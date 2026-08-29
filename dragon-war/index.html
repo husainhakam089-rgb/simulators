@@ -46,6 +46,8 @@
   #stats{position:absolute;top:14px;left:14px;text-align:left;line-height:1.9;font-size:13px;letter-spacing:1px}
   #stats b{color:var(--gold);font-size:17px;font-weight:600}
   #stats span{color:var(--steel)}
+  #combo{margin-top:6px;font-size:13px;letter-spacing:1px;color:var(--ember);font-weight:600;
+    text-shadow:0 0 12px rgba(255,106,31,.6);min-height:1.1em}
 
   /* علامة التصويب — عين التنين */
   #reticle{position:absolute;top:50%;left:50%;width:56px;height:56px;transform:translate(-50%,-50%);
@@ -57,6 +59,8 @@
   #reticle.lock{transform:translate(-50%,-50%) scale(1.35)}
   #reticle.lock .ring{border-color:var(--ember);box-shadow:0 0 18px rgba(255,106,31,.55)}
   #reticle.lock .pupil{background:var(--ember);height:26px;width:2px}
+  #reticle.hit .ring{animation:hitpulse .14s}
+  @keyframes hitpulse{0%{transform:scale(1.55);border-color:#fff}100%{transform:scale(1)}}
 
   #msg{position:absolute;top:22%;left:0;right:0;text-align:center;font-size:clamp(18px,4vw,30px);
     letter-spacing:3px;color:var(--gold);text-shadow:0 0 26px rgba(255,106,31,.6);opacity:0;transition:opacity .35s}
@@ -64,6 +68,25 @@
 
   #damage{position:absolute;inset:0;opacity:0;pointer-events:none;
     background:radial-gradient(ellipse at center,transparent 42%,rgba(168,34,27,.85) 100%);transition:opacity .18s}
+
+  /* ===== مؤشرات الأعداء خارج الشاشة ===== */
+  #edgeArrows{position:absolute;inset:0}
+  .arrow{position:absolute;width:0;height:0;display:none;
+    border-left:8px solid transparent;border-right:8px solid transparent;
+    border-bottom:15px solid rgba(232,222,208,.65);
+    filter:drop-shadow(0 0 5px rgba(0,0,0,.5))}
+  .arrow.boss{border-bottom-color:var(--ember);
+    filter:drop-shadow(0 0 8px rgba(255,106,31,.85))}
+
+  /* ===== إيقاف مؤقت ===== */
+  #pauseOv{position:fixed;inset:0;display:none;align-items:center;justify-content:center;
+    background:rgba(5,4,4,.55);z-index:20}
+  #pauseOv.on{display:flex}
+  #pauseCard{text-align:center;padding:30px 42px;display:flex;flex-direction:column;gap:14px;min-width:220px}
+  #pauseCard h2{color:var(--gold);letter-spacing:7px;font-size:19px;font-weight:600}
+  #pauseCard button{cursor:pointer;font-family:inherit;font-size:12.5px;letter-spacing:2px;color:var(--bone);
+    background:rgba(255,255,255,.05);border:1px solid rgba(217,164,65,.35);padding:12px 20px}
+  #pauseCard button:hover{border-color:var(--gold);color:var(--gold)}
 
   /* ===== أزرار اللمس ===== */
   #touch{position:absolute;inset:0;display:none}
@@ -175,7 +198,7 @@
   #pick:focus-visible,#glbFlip:focus-visible{outline:2px solid var(--bone);outline-offset:3px}
   #glbInfo{font-size:11.5px;color:var(--steel);line-height:1.7}
   #glbInfo.ok{color:var(--gold)}
-  #flipWrap{font-size:11.5px;color:var(--steel);display:flex;align-items:center;gap:7px;cursor:pointer}
+  #flipWrap,#invertWrap{font-size:11.5px;color:var(--steel);display:flex;align-items:center;gap:7px;cursor:pointer;margin-top:2px}
 
   #grader{position:static;display:block;width:auto}
 
@@ -216,6 +239,7 @@
     <div>النقاط <b id="score">0</b></div>
     <div>أعداء في السماء <b id="left">0</b></div>
     <div><span id="spd">سرعة 30</span> · <span id="alt">ارتفاع 0</span></div>
+    <div id="combo"></div>
   </div>
 
   <div id="reticle"><div class="ring"></div><div class="pupil"></div></div>
@@ -227,6 +251,16 @@
     <div id="btnBite" class="tbtn">عضّ</div>
     <div id="btnUp" class="tbtn">تسريع</div>
     <div id="btnDown" class="tbtn">تبطيء</div>
+  </div>
+
+  <div id="edgeArrows"></div>
+</div>
+
+<div id="pauseOv">
+  <div class="panel" id="pauseCard">
+    <h2>إيقاف مؤقت</h2>
+    <button id="resumeBtn">استئناف</button>
+    <button id="quitBtn">القائمة الرئيسية</button>
   </div>
 </div>
 
@@ -360,9 +394,18 @@
           <div><b>W / S</b> — تسريع وتبطيء</div>
           <div><b>A / D</b> — انعطاف</div>
           <div><b>H</b> — قبل/بعد التدرّج</div>
+          <div><b>P</b> — إيقاف مؤقت</div>
           <div><b>Esc</b> — رجوع للمشغل</div>
           <div><b>الموبايل</b> — عصا يمين، نار يسار</div>
         </div>
+      </div>
+      <div class="grp">
+        <h5>الإعدادات</h5>
+        <div class="row"><label for="optVol">مستوى الصوت</label>
+          <input id="optVol" type="range" min="0" max="1.4" step="0.02" value="1"><output>1.00</output></div>
+        <div class="row"><label for="optSens">حساسية الماوس</label>
+          <input id="optSens" type="range" min="0.3" max="2.2" step="0.02" value="1"><output>1.00</output></div>
+        <label id="invertWrap"><input type="checkbox" id="optInvert"> عكس محور الماوس العمودي</label>
       </div>
       <div class="grp">
         <h5>موديل خارجي</h5>
@@ -1927,6 +1970,75 @@ function ParticleJet(count, size){
 const jetPlayer = ParticleJet(340, 5.5);
 const jetEnemy  = ParticleJet(420, 6.5);
 
+/* ══════════ دخان — يتبع النار والانفجارات، يتمدد ويرتفع ببطء ══════════ */
+function smokeTex(){
+  const cv = document.createElement('canvas'); cv.width = cv.height = 64;
+  const ctx = cv.getContext('2d');
+  const g = ctx.createRadialGradient(32,32,2,32,32,32);
+  g.addColorStop(0,'rgba(230,222,212,.55)');
+  g.addColorStop(.5,'rgba(120,110,102,.30)');
+  g.addColorStop(1,'rgba(80,74,70,0)');
+  ctx.fillStyle = g; ctx.fillRect(0,0,64,64);
+  return new THREE.CanvasTexture(cv);
+}
+const SMOKE_TEX = smokeTex();
+
+function SmokeJet(count, size){
+  const pos = new Float32Array(count*3), col = new Float32Array(count*3), scl = new Float32Array(count);
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos,3));
+  geo.setAttribute('color', new THREE.BufferAttribute(col,3));
+  const mat = new THREE.PointsMaterial({
+    size, map:SMOKE_TEX, vertexColors:true, transparent:true,
+    depthWrite:false, sizeAttenuation:true, opacity:0.9
+  });
+  const pts = new THREE.Points(geo, mat);
+  pts.frustumCulled = false;
+  scene.add(pts);
+  const P = [];
+  for(let i=0;i<count;i++) P.push({v:new THREE.Vector3(), life:0, max:1, s:1});
+  let head = 0;
+  return {
+    spawn(origin, dir, spd, spread, life, startSize){
+      const p = P[head], i3 = head*3;
+      head = (head+1)%count;
+      pos[i3]=origin.x; pos[i3+1]=origin.y; pos[i3+2]=origin.z;
+      p.v.copy(dir).multiplyScalar(spd).add(new THREE.Vector3(
+        (Math.random()-.5)*spread,(Math.random()-.5)*spread*0.6+spread*0.25,(Math.random()-.5)*spread));
+      p.life = p.max = life;
+      p.s = startSize || 1;
+      scl[head === 0 ? count-1 : head-1] = p.s;
+    },
+    update(dt){
+      for(let i=0;i<count;i++){
+        const p = P[i], i3 = i*3;
+        if(p.life <= 0){ col[i3]=col[i3+1]=col[i3+2]=0; continue; }
+        p.life -= dt;
+        pos[i3]   += p.v.x*dt;
+        pos[i3+1] += p.v.y*dt + dt*4;             // طفو بطيء للأعلى
+        pos[i3+2] += p.v.z*dt;
+        p.v.multiplyScalar(0.97);
+        const k = Math.max(p.life,0)/p.max;
+        const fade = k*(1-k*0.15);
+        col[i3] = col[i3+1] = col[i3+2] = fade*0.85*p.s;
+      }
+      geo.attributes.position.needsUpdate = true;
+      geo.attributes.color.needsUpdate = true;
+    }
+  };
+}
+const smokeAmbient = SmokeJet(260, 12);
+
+/* ══════════ توهّج ديناميكي عند نفث النار — يضيء ما حول فم التنين ══════════ */
+const fireLight = new THREE.PointLight(0xff7a2a, 0, 70, 2.1);
+fireLight.castShadow = false;
+scene.add(fireLight);
+
+/* ومضة انفجار عند سقوط تنين — تخفت بسرعة */
+const explosionLight = new THREE.PointLight(0xffb04a, 0, 130, 2);
+explosionLight.castShadow = false;
+scene.add(explosionLight);
+
 /* ══════════ استيراد موديل خارجي ══════════ */
 const GLB = {buf:null, flip:false, name:'', builtin:true};
 
@@ -2176,6 +2288,49 @@ function spawnWave(n){
       ent.mouth.set(0, sz.y*0.32, -sz.z*0.55);
     });
   }
+
+  /* زعيم كل 5 موجات — أضخم وأقوى وأبطأ، بأعين متوهّجة مضاعفة */
+  if(n > 0 && n % 5 === 0) spawnBoss(n);
+}
+
+function spawnBoss(n){
+  const base = FOES[n % FOES.length];
+  const sp = Object.assign({}, base, {scale: base.scale * 2.1, eye: base.eye});
+  const g = new THREE.Group();
+  const d = buildDragon(sp, poolGEO(Math.floor(Math.random()*POOL_N)));
+  g.add(d);
+  const bar = healthBar();
+  bar.scale.setScalar(1.6);
+  scene.add(bar);
+
+  const ang = Math.random()*Math.PI*2;
+  g.position.set(
+    player.g.position.x + Math.cos(ang)*520,
+    Math.min(SKY_MAX-80, Math.max(160, player.g.position.y + 40)),
+    player.g.position.z + Math.sin(ang)*520
+  );
+  scene.add(g);
+  const ent = {
+    g, d, bar, sp,
+    hp: (100 + n*28) * (sp.scale/1.5) * 2.6,
+    max: (100 + n*28) * (sp.scale/1.5) * 2.6,
+    speed: (25 + n*1.8) * (1.5/sp.scale) * 0.82,
+    cd: 2 + Math.random()*1.5,
+    burn: 0, hurt: 0, phase: Math.random()*9,
+    jaw: 0, meleeCd: 2 + Math.random()*1.5,
+    mouth: new THREE.Vector3(0, 3.15*sp.scale, -11.7*sp.scale),
+    boss: true
+  };
+  enemies.push(ent);
+  if(GLB.buf) buildCustom(sp.scale/1.5, sp.body, w=>{
+    if(!w || !ent.g.parent) return;
+    ent.g.remove(ent.d);
+    ent.d = w; ent.g.add(w);
+    const sz = w.userData.size;
+    ent.mouth.set(0, sz.y*0.32, -sz.z*0.55);
+  });
+  showMsg('⚠ زعيم يقترب: ' + base.name, 2.6);
+  if(audio) audio.roar(1.1);
 }
 
 /* ══════════ الإدخال ══════════ */
@@ -2248,7 +2403,8 @@ const grader = (function(){
 
 addEventListener('keydown', e=>{
   if(e.code === 'KeyH') grader.flip();
-  else if(e.code === 'Escape' && state === 'play') toForge();
+  else if(e.code === 'KeyP' && state === 'play') setPaused(!paused);
+  else if(e.code === 'Escape' && state === 'play'){ if(paused) setPaused(false); toForge(); }
 });
 addEventListener('mousemove', e=>{
   if(document.pointerLockElement === canvas){ mouseDX += e.movementX; mouseDY += e.movementY; }
@@ -2292,27 +2448,80 @@ btnUp.addEventListener('touchend',   ()=>{ touchSpd = 0; });
 btnDn.addEventListener('touchstart', e=>{ touchSpd = -1; e.preventDefault(); });
 btnDn.addEventListener('touchend',   ()=>{ touchSpd = 0; });
 
-/* ══════════ صوت بسيط ══════════ */
+/* ══════════ صوت إجرائي — كل شي مولّد بالكود، بلا ملفات خارجية ══════════ */
 let audio = null;
 function initAudio(){
   try{
     const AC = window.AudioContext || window.webkitAudioContext;
     const ctx = new AC();
+    const master = ctx.createGain(); master.gain.value = SETTINGS.vol; master.connect(ctx.destination);
+
     const buf = ctx.createBuffer(1, ctx.sampleRate*2, ctx.sampleRate);
     const d = buf.getChannelData(0);
     for(let i=0;i<d.length;i++) d[i] = (Math.random()*2-1)*0.6;
+
+    /* هدير نفث النار — طبقة هسهسة منخفضة + طبقة فرقعة عالية تعطي إحساس الاشتعال */
     const src = ctx.createBufferSource(); src.buffer = buf; src.loop = true;
     const fireF = ctx.createBiquadFilter(); fireF.type = 'lowpass'; fireF.frequency.value = 900;
     const fireG = ctx.createGain(); fireG.gain.value = 0;
-    src.connect(fireF).connect(fireG).connect(ctx.destination);
+    src.connect(fireF).connect(fireG).connect(master);
 
+    const src3 = ctx.createBufferSource(); src3.buffer = buf; src3.loop = true;
+    const crackleF = ctx.createBiquadFilter(); crackleF.type = 'bandpass'; crackleF.frequency.value = 2600; crackleF.Q.value = 4;
+    const crackleG = ctx.createGain(); crackleG.gain.value = 0;
+    src3.connect(crackleF).connect(crackleG).connect(master);
+
+    /* الريح — تتبع السرعة والارتفاع */
     const src2 = ctx.createBufferSource(); src2.buffer = buf; src2.loop = true;
     const windF = ctx.createBiquadFilter(); windF.type = 'bandpass'; windF.frequency.value = 320; windF.Q.value = 0.7;
     const windG = ctx.createGain(); windG.gain.value = 0.02;
-    src2.connect(windF).connect(windG).connect(ctx.destination);
+    src2.connect(windF).connect(windG).connect(master);
 
-    src.start(); src2.start();
-    audio = {ctx, fireG, windG, windF};
+    /* وسادة موسيقية متوترة — تعلو مع تقدّم الموجات */
+    const padG = ctx.createGain(); padG.gain.value = 0.05;
+    const padF = ctx.createBiquadFilter(); padF.type = 'lowpass'; padF.frequency.value = 420;
+    padF.connect(padG).connect(master);
+    const padOscs = [55, 55*1.5, 55*2.006].map((f, i)=>{
+      const o = ctx.createOscillator(); o.type = i === 2 ? 'triangle' : 'sawtooth';
+      o.frequency.value = f; o.detune.value = (Math.random()-0.5)*8;
+      o.connect(padF); o.start();
+      return o;
+    });
+    const padLFO = ctx.createOscillator(); padLFO.frequency.value = 0.07;
+    const padLFOGain = ctx.createGain(); padLFOGain.gain.value = 160;
+    padLFO.connect(padLFOGain).connect(padF.frequency); padLFO.start();
+
+    src.start(); src2.start(); src3.start();
+
+    /* زئير قصير — نبضة ضوضاء تنزل بالحدة، لحظة إصابة قوية/موت/زعيم */
+    function roar(strength){
+      const t0 = ctx.currentTime;
+      const rs = ctx.createBufferSource(); rs.buffer = buf;
+      const rf = ctx.createBiquadFilter(); rf.type = 'bandpass'; rf.Q.value = 1.1;
+      rf.frequency.setValueAtTime(1400*strength, t0);
+      rf.frequency.exponentialRampToValueAtTime(90, t0 + 0.5);
+      const rg = ctx.createGain();
+      rg.gain.setValueAtTime(0, t0);
+      rg.gain.linearRampToValueAtTime(0.55*strength, t0 + 0.04);
+      rg.gain.exponentialRampToValueAtTime(0.001, t0 + 0.55);
+      rs.connect(rf).connect(rg).connect(master);
+      rs.start(t0); rs.stop(t0 + 0.6);
+    }
+
+    /* خفقة جناح — نبضة قصيرة منخفضة، إيقاعها يتبع سرعة الرفرفة */
+    function flap(vol){
+      const t0 = ctx.currentTime;
+      const fs = ctx.createBufferSource(); fs.buffer = buf;
+      const ff = ctx.createBiquadFilter(); ff.type = 'lowpass'; ff.frequency.value = 220;
+      const fg = ctx.createGain();
+      fg.gain.setValueAtTime(0, t0);
+      fg.gain.linearRampToValueAtTime(0.22*vol, t0 + 0.02);
+      fg.gain.exponentialRampToValueAtTime(0.001, t0 + 0.22);
+      fs.connect(ff).connect(fg).connect(master);
+      fs.start(t0); fs.stop(t0 + 0.25);
+    }
+
+    audio = {ctx, master, fireG, crackleG, windG, windF, padG, roar, flap};
   }catch(e){ audio = null; }
 }
 
@@ -2326,6 +2535,7 @@ const UI = {
   wave: document.getElementById('wave'),
   score: document.getElementById('score'),
   left: document.getElementById('left'),
+  combo: document.getElementById('combo'),
   spd: document.getElementById('spd'),
   alt: document.getElementById('alt'),
   msg: document.getElementById('msg'),
@@ -2334,6 +2544,61 @@ const UI = {
   final: document.getElementById('final')
 };
 let state = 'menu', wave = 0, score = 0, waveGap = 0, msgT = 0, shake = 0;
+let combo = 0, comboTimer = 0, hitFlash = 0, wingBeatT = 1;
+let paused = false;
+const pauseOv = document.getElementById('pauseOv');
+function setPaused(p){
+  if(state !== 'play') return;
+  paused = p;
+  pauseOv.classList.toggle('on', paused);
+  if(paused){
+    player.firing = false;
+    if(document.pointerLockElement) document.exitPointerLock();
+  }else if(!IS_TOUCH){
+    canvas.requestPointerLock();
+  }
+}
+document.getElementById('resumeBtn').addEventListener('click', ()=> setPaused(false));
+document.getElementById('quitBtn').addEventListener('click', ()=>{ setPaused(false); toForge(); });
+
+/* ══════════ مؤشرات الأعداء خارج حقل الرؤية — على حافة الشاشة ══════════ */
+const RADAR_N = 4;
+const radarBox = document.getElementById('edgeArrows');
+const RADAR_ARROWS = [];
+for(let i=0;i<RADAR_N;i++){
+  const el = document.createElement('div'); el.className = 'arrow';
+  radarBox.appendChild(el); RADAR_ARROWS.push(el);
+}
+const _ndc = new THREE.Vector3();
+function updateRadar(){
+  const w = innerWidth, h = innerHeight, cx = w/2, cy = h/2;
+  const marginX = w*0.47, marginY = h*0.43;
+  const near = enemies
+    .map(e => ({e, d: e.g.position.distanceTo(player.g.position)}))
+    .filter(o => o.d < 1600)
+    .sort((a,b)=> a.d - b.d)
+    .slice(0, RADAR_N);
+
+  for(let i=0;i<RADAR_N;i++){
+    const el = RADAR_ARROWS[i], o = near[i];
+    if(!o){ el.style.display = 'none'; continue; }
+    _ndc.copy(o.e.g.position).project(camera);
+    const behind = _ndc.z > 1;
+    let x = _ndc.x, y = _ndc.y;
+    if(behind){ x = -x; y = -y; }
+    if(!behind && x > -0.85 && x < 0.85 && y > -0.78 && y < 0.78){
+      el.style.display = 'none'; continue;              // العدو ظاهر بالفعل بالشاشة
+    }
+    const ex = x || 1e-4, ey = -y || 1e-4;
+    const scale = Math.min(marginX/Math.abs(ex), marginY/Math.abs(ey));
+    const px = cx + ex*scale, py = cy + ey*scale;
+    el.style.left = px + 'px';
+    el.style.top  = py + 'px';
+    el.style.transform = 'translate(-50%,-50%) rotate(' + (Math.atan2(ey, ex) + Math.PI/2) + 'rad)';
+    el.classList.toggle('boss', !!o.e.boss);
+    el.style.display = 'block';
+  }
+}
 
 function showMsg(text, secs){ UI.msg.textContent = text; UI.msg.classList.add('on'); msgT = secs; }
 
@@ -2343,6 +2608,8 @@ function startGame(){
   Object.assign(player, {yaw:0, pitch:0, roll:0, speed:34, hp:100, heat:0, overheat:false, firing:false, biteCd:0, biteAnim:0, jaw:0});
   player.g.position.set(120, 340, 760);
   wave = 0; score = 0; waveGap = 1.6; state = 'play';
+  combo = 0; comboTimer = 0; hitFlash = 0; paused = false;
+  pauseOv.classList.remove('on');
   UI.screen.classList.add('hide');
   UI.hud.classList.add('on');
   document.getElementById('touch').classList.toggle('on', IS_TOUCH);
@@ -2376,7 +2643,7 @@ function toForge(){
   UI.final.innerHTML = '';
   document.getElementById('go').textContent = 'ارجع للسماء';
   UI.screen.classList.remove('hide');
-  if(audio) audio.fireG.gain.value = 0;
+  if(audio){ audio.fireG.gain.value = 0; audio.crackleG.gain.value = 0; }
 }
 
 function endGame(){
@@ -2387,7 +2654,7 @@ function endGame(){
   UI.final.innerHTML = `سقط تنينك بعد الموجة <b>${wave}</b><br>النقاط النهائية <b>${score}</b>`;
   document.getElementById('go').textContent = 'عُد للسماء';
   UI.screen.classList.remove('hide');
-  if(audio) audio.fireG.gain.value = 0;
+  if(audio){ audio.fireG.gain.value = 0; audio.crackleG.gain.value = 0; }
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -2431,6 +2698,40 @@ function loadDesign(){
   }catch(e){}
 }
 loadDesign();
+
+/* ══════════ إعدادات اللاعب: صوت وحساسية — تُحفظ محلياً ══════════ */
+const SETTINGS = {vol:1, sens:1, invertY:false};
+const SETTINGS_STORE = 'dragonwar.settings.v1';
+function saveSettings(){
+  try{ localStorage.setItem(SETTINGS_STORE, JSON.stringify(SETTINGS)); }catch(e){}
+}
+function loadSettings(){
+  try{
+    const raw = localStorage.getItem(SETTINGS_STORE);
+    if(!raw) return;
+    Object.assign(SETTINGS, JSON.parse(raw));
+  }catch(e){}
+}
+loadSettings();
+
+(function bindSettings(){
+  const vol = document.getElementById('optVol'), volOut = vol.parentNode.querySelector('output');
+  const sens = document.getElementById('optSens'), sensOut = sens.parentNode.querySelector('output');
+  const inv = document.getElementById('optInvert');
+  vol.value = SETTINGS.vol; volOut.textContent = SETTINGS.vol.toFixed(2);
+  sens.value = SETTINGS.sens; sensOut.textContent = SETTINGS.sens.toFixed(2);
+  inv.checked = SETTINGS.invertY;
+  vol.addEventListener('input', ()=>{
+    SETTINGS.vol = parseFloat(vol.value); volOut.textContent = SETTINGS.vol.toFixed(2);
+    if(audio) audio.master.gain.value = SETTINGS.vol;
+    saveSettings();
+  });
+  sens.addEventListener('input', ()=>{
+    SETTINGS.sens = parseFloat(sens.value); sensOut.textContent = SETTINGS.sens.toFixed(2);
+    saveSettings();
+  });
+  inv.addEventListener('change', ()=>{ SETTINGS.invertY = inv.checked; saveSettings(); });
+})();
 
 /* نوع اللاعب — يُغذّي matsFor مباشرة */
 const PSPEC = {name:'', body:0, memb:0, horn:0, eye:0, scale:1};
@@ -2751,8 +3052,9 @@ function update(dt){
   if(keys['ArrowDown']) axY += 1;
   axX += touchAxis.x; axY += touchAxis.y;
 
-  player.yaw   -= axX * 1.15 * dt + mouseDX * 0.0021;
-  player.pitch -= axY * 0.95 * dt + mouseDY * 0.0018;
+  const invY = SETTINGS.invertY ? -1 : 1;
+  player.yaw   -= axX * 1.15 * dt + mouseDX * 0.0021 * SETTINGS.sens;
+  player.pitch -= axY * 0.95 * dt + mouseDY * 0.0018 * SETTINGS.sens * invY;
   mouseDX = mouseDY = 0;
   player.pitch = Math.max(-1.25, Math.min(1.25, player.pitch));
   const targetRoll = -Math.max(-1, Math.min(1, axX + (touchAxis.x*0.5))) * 0.55;
@@ -2804,11 +3106,30 @@ function update(dt){
     if(player.heat >= 100){ player.overheat = true; showMsg('برد نَفَسك!', 1.2); }
     const m = mouthPos().clone();
     for(let i=0;i<5;i++) jetPlayer.spawn(m, fwd, 150 + Math.random()*70, 16, 0.55);
+    if(Math.random() < 0.5) smokeAmbient.spawn(m, fwd, 24 + Math.random()*14, 10, 1.4 + Math.random()*0.6, 0.7 + Math.random()*0.5);
+    fireLight.position.copy(m);
+    fireLight.intensity = 1.5 + Math.random()*0.7;      // ارتعاش لهب حقيقي
   }else{
     player.heat = Math.max(0, player.heat - 26*dt);
     if(player.overheat && player.heat < 32) player.overheat = false;
+    fireLight.intensity = Math.max(0, fireLight.intensity - dt*9);
   }
-  if(audio) audio.fireG.gain.value += ((firing?0.07:0) - audio.fireG.gain.value)*0.15;
+  if(audio){
+    audio.fireG.gain.value += ((firing?0.07:0) - audio.fireG.gain.value)*0.15;
+    audio.crackleG.gain.value += ((firing?0.05:0) - audio.crackleG.gain.value)*0.2;
+  }
+
+  /* --- أثر سرعة عند الانقضاض السريع --- */
+  if(player.speed > 62){
+    const trailAlpha = Math.min(1, (player.speed-62)/23);
+    if(playerDragon.userData.wings && playerDragon.userData.wings.length === 2){
+      playerDragon.userData.wings.forEach(w=>{
+        if(Math.random() > trailAlpha*0.7) return;
+        const tip = new THREE.Vector3(w.sx*7.2*PSPEC.scale, 0.2, -1).applyMatrix4(w.pivot.matrixWorld);
+        smokeAmbient.spawn(tip, fwd, player.speed*0.3, 2, 0.5, 0.22);
+      });
+    }
+  }
 
   /* --- عضة اللاعب --- */
   player.biteCd -= dt;
@@ -2845,9 +3166,17 @@ function update(dt){
     const dist = tmpB.length();
     tmpB.normalize();
 
+    // ينسحب عن القتال إذا صحته حرجة (إلا الزعماء — يقاتلون حتى النهاية)
+    const wasFleeing = e.fleeing;
+    e.fleeing = !e.boss && e.hp < e.max*0.22;
+    if(e.fleeing && !wasFleeing) showMsg('عدو ينسحب جريحاً', 0.9);
+
     // اتجاه المناورة
     let desired = tmpB.clone();
-    if(dist < 55){
+    if(e.fleeing){
+      desired.negate();                                   // هروب بعيداً عن اللاعب
+      desired.y += 0.5;
+    }else if(dist < 55){
       desired.negate();                                   // يبتعد بعد الاشتباك
       desired.y += 0.35;
     }else if(dist < 260){
@@ -2859,7 +3188,7 @@ function update(dt){
     const look = _m4.lookAt(_zero, desired, _up);
     const q = _q1.setFromRotationMatrix(look);
     e.g.quaternion.slerp(q, Math.min(1, dt*1.1));
-    e.g.translateZ(-e.speed * dt);
+    e.g.translateZ(-e.speed * (e.fleeing ? 1.6 : 1) * dt);
 
     e.g.updateMatrixWorld();
     e.jaw = Math.max(0, e.jaw - dt*2.6);
@@ -2882,18 +3211,21 @@ function update(dt){
       if(aim > 0.985 && dist < 190){
         player.hp -= 8*dt;
         UI.dmg.style.opacity = 0.75; shake = 0.35;
+        comboTimer = 0; combo = 0;
       }
-    }else if(e.cd <= 0 && aim > 0.96 && dist < 220 && dist > 60){
+    }else if(!e.fleeing && e.cd <= 0 && aim > 0.96 && dist < 220 && dist > 60){
       e.burn = 1.4; e.cd = 3.5 + Math.random()*3;
     }
 
     // اشتباك قريب: يعضّ
     e.meleeCd -= dt;
-    if(dist < 30 + e.sp.scale*8 && aim > 0.80 && e.meleeCd <= 0){
+    if(!e.fleeing && dist < 30 + e.sp.scale*8 && aim > 0.80 && e.meleeCd <= 0){
       e.meleeCd = 2.4 + Math.random()*1.6;
       e.jaw = 1.2;
       player.hp -= 9 + e.sp.scale*4;
       UI.dmg.style.opacity = 0.9; shake = 0.75;
+      comboTimer = 0; combo = 0;
+      if(audio) audio.roar(0.7);
       showMsg('عضّك التنين!', 0.8);
       const hp2 = player.g.position.clone();
       for(let k=0;k<18;k++)
@@ -2912,6 +3244,7 @@ function update(dt){
         e.hp -= 62*dt*(1 - dist/340);
         e.hurt = 0.12;
         lockOn = true;
+        hitFlash = 0.14;
       }else if(dist < 320 && align > 0.965){
         lockOn = true;
       }
@@ -2927,13 +3260,26 @@ function update(dt){
       for(let k=0;k<45;k++){
         jetEnemy.spawn(p, new THREE.Vector3(Math.random()-.5,Math.random()-.5,Math.random()-.5).normalize(), 55, 26, 1.1);
       }
+      for(let k=0;k<24;k++){
+        smokeAmbient.spawn(p, new THREE.Vector3((Math.random()-.5),Math.random()*0.6+0.2,(Math.random()-.5)).normalize(),
+          14 + Math.random()*10, 8, 2.4 + Math.random()*1.4, 1.3 + Math.random()*1.1);
+      }
+      explosionLight.position.copy(p);
+      explosionLight.intensity = 4.0;
+      if(audio) audio.roar(e.boss ? 1.4 : 0.9);
       scene.remove(e.g); scene.remove(e.bar);
       enemies.splice(i,1);
-      score += 100 * (wave+1);
-      showMsg('تنين ساقط', 1.0);
+
+      combo = comboTimer > 0 ? combo + 1 : 1;
+      comboTimer = 3.0;
+      const bossBonus = e.boss ? 4 : 1;
+      const gained = 100 * (wave+1) * Math.min(combo, 8) * bossBonus;
+      score += gained;
+      showMsg(e.boss ? 'سقط الزعيم!' : (combo > 1 ? 'تنين ساقط ×' + combo : 'تنين ساقط'), 1.0);
     }
   }
   UI.ret.classList.toggle('lock', lockOn);
+  updateRadar();
 
   /* --- الموجات --- */
   if(enemies.length === 0){
@@ -2949,16 +3295,27 @@ function update(dt){
 
   /* --- الرياح والاهتزاز --- */
   if(audio){
-    audio.windG.gain.value = 0.012 + player.speed/85*0.05;
-    audio.windF.frequency.value = 220 + player.speed*5;
+    const altK = Math.max(0, Math.min(1, player.g.position.y/SKY_MAX));   // هواء أرقّ بالعلو
+    audio.windG.gain.value = (0.010 + player.speed/85*0.048) * (0.65 + altK*0.5);
+    audio.windF.frequency.value = 210 + player.speed*5 + altK*160;
+    audio.padG.gain.value += ((0.035 + Math.min(1, wave/8)*0.05) - audio.padG.gain.value)*0.02;
+
+    /* خفقات الأجنحة — إيقاع يتسارع مع السرعة، يهدأ بالانزلاق */
+    wingBeatT -= dt * (0.7 + player.speed/48);
+    if(wingBeatT <= 0){
+      wingBeatT = 1;
+      audio.flap(0.55 + player.speed/140);
+    }
   }
   if(shake > 0){
     shake -= dt;
     camera.position.set((Math.random()-.5)*shake*1.4, 2.75+(Math.random()-.5)*shake*1.4, -0.3);
   }else camera.position.set(0,2.75,-0.3);
+  if(explosionLight.intensity > 0) explosionLight.intensity = Math.max(0, explosionLight.intensity - dt*14);
 
   jetPlayer.update(dt);
   jetEnemy.update(dt);
+  smokeAmbient.update(dt);
 
   /* --- الواجهة --- */
   UI.hp.style.transform   = 'scaleX(' + Math.max(0, player.hp/100) + ')';
@@ -2971,6 +3328,13 @@ function update(dt){
   UI.alt.textContent   = 'ارتفاع ' + Math.round(player.g.position.y);
   UI.dmg.style.opacity = Math.max(0, parseFloat(UI.dmg.style.opacity || 0) - dt*2.4);
 
+  if(comboTimer > 0){
+    comboTimer -= dt;
+    if(comboTimer <= 0) combo = 0;
+  }
+  UI.combo.textContent = combo > 1 ? '× ' + Math.min(combo, 8) + ' سلسلة' : '';
+  if(hitFlash > 0){ hitFlash -= dt; UI.ret.classList.toggle('hit', hitFlash > 0); }
+
   if(msgT > 0){ msgT -= dt; if(msgT <= 0) UI.msg.classList.remove('on'); }
   if(player.hp <= 0) endGame();
 }
@@ -2979,7 +3343,7 @@ function loop(){
   requestAnimationFrame(loop);
   const dt = Math.min(clock.getDelta(), 0.05);
   if(state === 'play'){
-    update(dt);
+    if(!paused) update(dt);
     if(FX && GRADE.on) FX.composer.render(dt);
     else renderer.render(scene, camera);
   }else{
@@ -2995,12 +3359,12 @@ addEventListener('resize', ()=>{
   renderer.setSize(innerWidth, innerHeight);
 });
 document.addEventListener('pointerlockchange', ()=>{
-  if(state === 'play' && !document.pointerLockElement && !IS_TOUCH){
+  if(state === 'play' && !paused && !document.pointerLockElement && !IS_TOUCH){
     showMsg('اضغط الشاشة للمتابعة', 99);
   }
 });
 canvas.addEventListener('click', ()=>{
-  if(state === 'play' && !IS_TOUCH && !document.pointerLockElement){
+  if(state === 'play' && !paused && !IS_TOUCH && !document.pointerLockElement){
     canvas.requestPointerLock(); UI.msg.classList.remove('on');
   }
 });
