@@ -426,7 +426,10 @@
     const comp = {
       id: uid(), type,
       x: pos.x - COMP_W / 2, y: pos.y - COMP_H / 2,
-      closed: true,
+      // A freshly dropped switch starts OPEN, like a real one — otherwise
+      // the first click on it *breaks* an already-working loop instead of
+      // completing it.
+      closed: type !== 'switch',
     };
     state.components.push(comp);
     render();

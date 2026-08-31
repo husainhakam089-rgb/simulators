@@ -813,6 +813,16 @@ function evaluateCircuit(){
   // brightness in circuit-simulator.
   const swing = anyLoop ? Math.max(14, 34 / (1 + resistiveLoad*0.5)) : 0;
 
+  // Track which coils are currently carrying current, so a *step change*
+  // (a switch just opening/closing) can be detected from outside this
+  // function and used to fire a mutual-induction pulse into a nearby
+  // secondary coil — see toggleSwitchWithInduction().
+  const energizedCoils=new Set();
+  for(const c of lab().components){
+    if(COIL_TYPES.includes(c.type) && litNodes.has(nodeKey(c.id,'a')) && litNodes.has(nodeKey(c.id,'b'))) energizedCoils.add(c.id);
+  }
+  lab().energizedCoilIds=energizedCoils;
+
   let activeCount=0;
   document.querySelectorAll('.comp').forEach(div=>{
     const comp=findComp(div.dataset.id); if(!comp) return;
@@ -837,7 +847,12 @@ function evaluateCircuit(){
   }
 
   if(lab().components.length===0){ el.circuitStatus.innerHTML='اسحب الأدوات وابدأ التركيب'; return; }
-  if(inducedActive){ el.circuitStatus.innerHTML='تيار <b>محتث</b> أثناء حركة المغناطيس — سيتوقف فور توقفك'; return; }
+  if(inducedActive){
+    el.circuitStatus.innerHTML = pulse.reason==='switch'
+      ? 'تيار <b>محتث لحظي</b> بالملف المجاور — نتيجة تغيّر التيار عند غلق/فتح المفتاح'
+      : 'تيار <b>محتث</b> أثناء حركة المغناطيس — سيتوقف فور توقفك';
+    return;
+  }
   if(sources.length===0){ el.circuitStatus.innerHTML='وصّل الملف بجلفانومتر وحرّك مغناطيسًا داخله، أو أضف مصدر جهد <b>(للأدوات الكهربائية فقط)</b>'; return; }
   el.circuitStatus.innerHTML = anyLoop
     ? 'الدارة <b>مكتملة</b> — لاحظ استجابة الجلفانومتر/المصباح'
@@ -866,7 +881,10 @@ el.viewport.addEventListener('drop', e=>{
   const type=e.dataTransfer.getData('text/plain'); if(!type || !TYPES[type]) return;
   const t=TYPES[type];
   const pos=clientToWorld(e.clientX, e.clientY);
-  const comp={ id:uid(), type, x:pos.x-t.w/2, y:pos.y-t.h/2, closed:true };
+  // A freshly dropped switch starts OPEN (like a real one) so wiring a
+  // battery/coil loop doesn't silently start energized before you touch it —
+  // click it once to close the circuit.
+  const comp={ id:uid(), type, x:pos.x-t.w/2, y:pos.y-t.h/2, closed:!TYPES[type].toggle };
   lab().components.push(comp);
   render();
 });
@@ -892,6 +910,29 @@ function findNestTarget(dragComp){
   }
   return best;
 }
+const COIL_TYPES=['coilPrimary','coilSecondary','coilInduction','coilSmall','inductor'];
+
+// Two coils placed near each other (e.g. wound on the same iron core, or
+// just side by side) are treated as magnetically coupled — a step change in
+// one's current induces a momentary pulse in the other, independent of any
+// wire between them (there usually isn't one — that's the whole point of a
+// transformer/mutual-induction setup).
+function findCoupledCoil(coil){
+  const ct=TYPES[coil.type];
+  const cCenter={ x:coil.x+ct.w/2, y:coil.y+ct.h/2 };
+  const MARGIN=120;
+  let best=null, bestDist=Infinity;
+  for(const c of lab().components){
+    if(c.id===coil.id || !COIL_TYPES.includes(c.type)) continue;
+    const ot=TYPES[c.type];
+    const oCenter={ x:c.x+ot.w/2, y:c.y+ot.h/2 };
+    const dist=Math.hypot(cCenter.x-oCenter.x, cCenter.y-oCenter.y);
+    if(dist>MARGIN) continue;
+    if(dist<bestDist){ bestDist=dist; best=c; }
+  }
+  return best;
+}
+
 // A wider proximity check than findNestTarget: used to detect "the magnet is
 // approaching/leaving a coil" even before it's close enough to visually snap
 // inside it — this is what drives the induced-current pulse while dragging.
@@ -920,6 +961,35 @@ function nestUnder(dragComp, target){
   dragComp.x = target.x + (tt.w-dt.w)/2;
   dragComp.y = target.y + (tt.h-dt.h)/2;
   dragComp.nestedIn = target.id;
+}
+
+// Flipping a switch is a step change in current, not motion — so instead of
+// the continuous drag-based pulse, this compares which coils were energized
+// just before and just after the flip. Any coil whose current just
+// appeared/disappeared fires one momentary pulse into its nearest coupled
+// coil (e.g. a transformer's secondary), exactly like the curriculum's own
+// "close/open the switch suddenly" step — then clears itself shortly after.
+function toggleSwitchWithInduction(sw){
+  const targetLab=lab();
+  const before=new Set(targetLab.energizedCoilIds || []);
+  sw.closed=!sw.closed;
+  render();
+  const after=targetLab.energizedCoilIds || new Set();
+  for(const c of targetLab.components){
+    if(!COIL_TYPES.includes(c.type)) continue;
+    const was=before.has(c.id), now=after.has(c.id);
+    if(was===now) continue; // this coil's current didn't change — no induction from it
+    const secondary=findCoupledCoil(c);
+    if(!secondary) continue;
+    targetLab.inducedPulse={ coilId:secondary.id, dir: now?1:-1, reason:'switch' };
+    setTimeout(()=>{
+      if(targetLab.inducedPulse && targetLab.inducedPulse.coilId===secondary.id){
+        targetLab.inducedPulse=null;
+        if(lab()===targetLab) render();
+      }
+    }, 450);
+  }
+  render();
 }
 
 el.world.addEventListener('mousedown', e=>{
@@ -973,7 +1043,7 @@ document.addEventListener('mousemove', e=>{
       if(found){
         if(dragCtx.lastDist!=null && found.dist!==dragCtx.lastDist){
           const dir = found.dist < dragCtx.lastDist ? 1 : -1;
-          lab().inducedPulse = { coilId:found.comp.id, dir };
+          lab().inducedPulse = { coilId:found.comp.id, dir, reason:'motion' };
           dragCtx.lastDir=dir;
         }
         dragCtx.lastDist=found.dist;
@@ -1002,7 +1072,7 @@ document.addEventListener('mouseup', e=>{
       else comp.nestedIn=null;
     }
     if(comp && !dragCtx.moved){
-      if(TYPES[comp.type].toggle) comp.closed=!comp.closed;
+      if(TYPES[comp.type].toggle) toggleSwitchWithInduction(comp);
       select('comp', comp.id);
     }
     nestHoverId=null;
