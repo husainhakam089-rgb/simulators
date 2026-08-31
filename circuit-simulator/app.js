@@ -21,6 +21,7 @@
     viewport: document.getElementById('viewport'),
     world: document.getElementById('world'),
     wireLayer: document.getElementById('wireLayer'),
+    wireContent: document.getElementById('wireContent'),
     sidebar: document.getElementById('sidebar'),
     sidebarToggle: document.getElementById('sidebarToggle'),
     viewModeBtn: document.getElementById('viewModeBtn'),
@@ -82,18 +83,20 @@
         </svg>`;
       case 'switch':
         return `<svg viewBox="0 0 140 56" preserveAspectRatio="none" class="switch-svg">
-          <line x1="0" y1="28" x2="26" y2="28" stroke="#8a6d1a" stroke-width="4"/>
-          <line x1="114" y1="28" x2="140" y2="28" stroke="#8a6d1a" stroke-width="4"/>
-          <circle cx="26" cy="28" r="7" fill="#ffdd88" stroke="#8a6d1a" stroke-width="2"/>
-          <circle cx="114" cy="28" r="7" fill="#ffdd88" stroke="#8a6d1a" stroke-width="2"/>
-          <line class="lever" x1="26" y1="28" x2="104" y2="28" stroke="#333" stroke-width="5" stroke-linecap="round"/>
+          <line x1="0" y1="28" x2="20" y2="28" stroke="#8a6d1a" stroke-width="4"/>
+          <line x1="120" y1="28" x2="140" y2="28" stroke="#8a6d1a" stroke-width="4"/>
+          <circle cx="120" cy="28" r="8" fill="none" stroke="#8a6d1a" stroke-width="2" stroke-dasharray="2 3"/>
+          <line class="lever" x1="20" y1="28" x2="112" y2="28" stroke="#3a3a3a" stroke-width="6" stroke-linecap="round"/>
+          <circle cx="20" cy="28" r="8" fill="#d8d8d8" stroke="#555" stroke-width="2"/>
+          <circle cx="20" cy="28" r="3" fill="#555"/>
         </svg>`;
       case 'bulb':
         return `<svg viewBox="0 0 140 56" preserveAspectRatio="none">
           <line x1="0" y1="28" x2="46" y2="28" stroke="#8a6d1a" stroke-width="4"/>
           <line x1="94" y1="28" x2="140" y2="28" stroke="#8a6d1a" stroke-width="4"/>
-          <circle class="glass" cx="70" cy="28" r="25" fill="#fff8dc" stroke="#8a6d1a" stroke-width="2"/>
-          <path class="filament" d="M58 18 L82 38 M82 18 L58 38" stroke="#8a6d1a" stroke-width="2.5"/>
+          <circle class="glass" cx="70" cy="28" r="24" fill="#fff8dc" stroke="#8a6d1a" stroke-width="2"/>
+          <path class="filament" d="M60 24 L65 33 L70 22 L75 33 L80 24" fill="none" stroke="#8a6d1a" stroke-width="2"/>
+          <rect x="63" y="49" width="14" height="6" rx="1" fill="#777"/>
         </svg>`;
       default: return '';
     }
@@ -141,10 +144,11 @@
       if (comp.type === 'bulb') {
         const rays = document.createElement('div');
         rays.className = 'bulb-rays';
-        for (let i = 0; i < 10; i++) {
+        const rayCount = 18;
+        for (let i = 0; i < rayCount; i++) {
           const ray = document.createElement('div');
           ray.className = 'ray';
-          ray.style.transform = `rotate(${i * 36}deg)`;
+          ray.style.transform = `rotate(${i * (360 / rayCount)}deg)`;
           rays.appendChild(ray);
         }
         div.appendChild(rays);
@@ -172,33 +176,48 @@
     return `M ${p1.x} ${p1.y} L ${midX} ${p1.y} L ${midX} ${p2.y} L ${p2.x} ${p2.y}`;
   }
 
+  function junctionRing(x, y) {
+    const ring = document.createElementNS(SVG_NS, 'circle');
+    ring.setAttribute('cx', x);
+    ring.setAttribute('cy', y);
+    ring.setAttribute('r', 13);
+    ring.setAttribute('class', 'junction-ring');
+    return ring;
+  }
+
   function renderWires() {
-    el.wireLayer.innerHTML = '';
+    el.wireContent.innerHTML = '';
     for (const w of state.wires) {
       const ca = findComp(w.a.comp), cb = findComp(w.b.comp);
       if (!ca || !cb) continue;
       const p1 = terminalPos(ca, w.a.term), p2 = terminalPos(cb, w.b.term);
       const d = wirePathD(p1, p2);
+      const selected = state.selected && state.selected.kind === 'wire' && state.selected.id === w.id;
+
+      const border = document.createElementNS(SVG_NS, 'path');
+      border.setAttribute('d', d);
+      border.setAttribute('class', 'wire-border');
+
+      const fill = document.createElementNS(SVG_NS, 'path');
+      fill.setAttribute('d', d);
+      fill.setAttribute('class', 'wire-fill' + (selected ? ' selected' : ''));
+
+      const sheen = document.createElementNS(SVG_NS, 'path');
+      sheen.setAttribute('d', d);
+      sheen.setAttribute('class', 'wire-sheen');
+      sheen.id = 'wirepath-' + w.id;
 
       const hit = document.createElementNS(SVG_NS, 'path');
       hit.setAttribute('d', d);
       hit.setAttribute('class', 'wire-hit');
       hit.dataset.wireId = w.id;
-      hit.style.pointerEvents = 'stroke';
 
-      const outer = document.createElementNS(SVG_NS, 'path');
-      outer.setAttribute('d', d);
-      outer.setAttribute('class', 'wire-line' + (state.selected && state.selected.kind === 'wire' && state.selected.id === w.id ? ' selected' : ''));
-      outer.dataset.wireId = w.id;
-
-      const inner = document.createElementNS(SVG_NS, 'path');
-      inner.setAttribute('d', d);
-      inner.setAttribute('class', 'wire-line inner');
-      inner.id = 'wirepath-' + w.id;
-
-      el.wireLayer.appendChild(outer);
-      el.wireLayer.appendChild(inner);
-      el.wireLayer.appendChild(hit);
+      el.wireContent.appendChild(border);
+      el.wireContent.appendChild(fill);
+      el.wireContent.appendChild(sheen);
+      el.wireContent.appendChild(junctionRing(p1.x, p1.y));
+      el.wireContent.appendChild(junctionRing(p2.x, p2.y));
+      el.wireContent.appendChild(hit);
       w._active = false; // set by evaluateCircuit
     }
   }
@@ -301,7 +320,7 @@
     mpath.setAttributeNS('http://www.w3.org/1999/xlink', 'href', '#' + pathEl.id);
     anim.appendChild(mpath);
     dot.appendChild(anim);
-    el.wireLayer.appendChild(dot);
+    el.wireContent.appendChild(dot);
   }
 
   function updateStatusText(sources, anyLoop, litCount) {
@@ -371,7 +390,7 @@
       wireCtx = { fromComp: termEl.dataset.comp, fromTerm: termEl.dataset.term, startPos };
       tempWireEl = document.createElementNS(SVG_NS, 'path');
       tempWireEl.setAttribute('class', 'temp-wire');
-      el.wireLayer.appendChild(tempWireEl);
+      el.wireContent.appendChild(tempWireEl);
       return;
     }
     if (compEl) {
@@ -505,18 +524,23 @@
   });
 
   // ---------------------------------------------------------------
-  // Seed with a starter circuit similar to the reference screenshot
+  // Seed with two side-by-side rectangular loops, like the reference:
+  // a bulb on top and a source/switch on the bottom, joined by two
+  // straight vertical wires that form the loop's left/right sides.
   // ---------------------------------------------------------------
   function seedDemo() {
-    const battery = { id: uid(), type: 'battery', x: 120, y: 260, closed: true };
-    const bulb1 = { id: uid(), type: 'bulb', x: 120, y: 120, closed: true };
-    const sw1 = { id: uid(), type: 'switch', x: 320, y: 260, closed: true };
-    state.components.push(battery, bulb1, sw1);
+    const bulb1 = { id: uid(), type: 'bulb', x: 90, y: 90, closed: true };
+    const battery = { id: uid(), type: 'battery', x: 90, y: 340, closed: true };
+    const bulb2 = { id: uid(), type: 'bulb', x: 380, y: 90, closed: true };
+    const ac1 = { id: uid(), type: 'ac', x: 380, y: 340, closed: true };
+    state.components.push(bulb1, battery, bulb2, ac1);
     state.wires.push(
       { id: uid(), a: { comp: bulb1.id, term: 'a' }, b: { comp: battery.id, term: 'a' } },
-      { id: uid(), a: { comp: bulb1.id, term: 'b' }, b: { comp: sw1.id, term: 'a' } },
-      { id: uid(), a: { comp: sw1.id, term: 'b' }, b: { comp: battery.id, term: 'b' } }
+      { id: uid(), a: { comp: bulb1.id, term: 'b' }, b: { comp: battery.id, term: 'b' } },
+      { id: uid(), a: { comp: bulb2.id, term: 'a' }, b: { comp: ac1.id, term: 'a' } },
+      { id: uid(), a: { comp: bulb2.id, term: 'b' }, b: { comp: ac1.id, term: 'b' } }
     );
+    state.selected = { kind: 'comp', id: bulb2.id };
   }
 
   seedDemo();
