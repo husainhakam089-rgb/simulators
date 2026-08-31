@@ -227,21 +227,23 @@
   // ---------------------------------------------------------------
   function nodeKey(comp, term) { return comp + '|' + term; }
 
+  // Adjacency carries edge metadata (kind + id) so we can later reconstruct
+  // a concrete directed path and know which way current flows on each wire.
   function buildGraph(excludeInternalId) {
     const adj = new Map();
-    const addEdge = (n1, n2) => {
+    const addEdge = (n1, n2, kind, id) => {
       if (!adj.has(n1)) adj.set(n1, []);
       if (!adj.has(n2)) adj.set(n2, []);
-      adj.get(n1).push(n2);
-      adj.get(n2).push(n1);
+      adj.get(n1).push({ to: n2, kind, id });
+      adj.get(n2).push({ to: n1, kind, id });
     };
     for (const comp of state.components) {
       if (comp.id === excludeInternalId) continue;
       const conducts = comp.type === 'switch' ? !!comp.closed : true;
-      if (conducts) addEdge(nodeKey(comp.id, 'a'), nodeKey(comp.id, 'b'));
+      if (conducts) addEdge(nodeKey(comp.id, 'a'), nodeKey(comp.id, 'b'), 'comp', comp.id);
     }
     for (const w of state.wires) {
-      addEdge(nodeKey(w.a.comp, w.a.term), nodeKey(w.b.comp, w.b.term));
+      addEdge(nodeKey(w.a.comp, w.a.term), nodeKey(w.b.comp, w.b.term), 'wire', w.id);
     }
     return adj;
   }
@@ -251,27 +253,69 @@
     const queue = [start];
     while (queue.length) {
       const cur = queue.shift();
-      for (const next of (adj.get(cur) || [])) {
-        if (!seen.has(next)) { seen.add(next); queue.push(next); }
+      for (const edge of (adj.get(cur) || [])) {
+        if (!seen.has(edge.to)) { seen.add(edge.to); queue.push(edge.to); }
       }
     }
     return seen;
   }
 
+  // Finds one concrete path of edges from `start` to `target` (both node keys),
+  // used only to give the animated current dots a consistent flow direction.
+  function bfsPathEdges(adj, start, target) {
+    const prev = new Map();
+    const seen = new Set([start]);
+    const queue = [start];
+    while (queue.length) {
+      const cur = queue.shift();
+      if (cur === target) break;
+      for (const edge of (adj.get(cur) || [])) {
+        if (!seen.has(edge.to)) {
+          seen.add(edge.to);
+          prev.set(edge.to, { from: cur, kind: edge.kind, id: edge.id });
+          queue.push(edge.to);
+        }
+      }
+    }
+    if (!seen.has(target)) return null;
+    const path = [];
+    let cur = target;
+    while (cur !== start) {
+      const p = prev.get(cur);
+      path.push({ from: p.from, to: cur, kind: p.kind, id: p.id });
+      cur = p.from;
+    }
+    path.reverse();
+    return path;
+  }
+
   function evaluateCircuit() {
     const sources = state.components.filter(c => c.type === 'battery' || c.type === 'ac');
     const litNodes = new Set();
+    const wireDirection = new Map(); // wireId -> +1 (a->b) | -1 (b->a)
     let anyLoop = false;
     let resistiveLoad = 0;
 
     for (const src of sources) {
       const adj = buildGraph(src.id); // exclude the source's own internal short so we test the *external* path
-      const reach = bfsReachable(adj, nodeKey(src.id, 'a'));
-      if (reach.has(nodeKey(src.id, 'b'))) {
+      const startNode = nodeKey(src.id, 'a'), targetNode = nodeKey(src.id, 'b');
+      const reach = bfsReachable(adj, startNode);
+      if (reach.has(targetNode)) {
         anyLoop = true;
         for (const n of reach) litNodes.add(n);
         for (const c of state.components) {
           if (c.type === 'resistor' && reach.has(nodeKey(c.id, 'a'))) resistiveLoad++;
+        }
+        // Walk one concrete loop path to know which way current flows on each wire.
+        const path = bfsPathEdges(adj, startNode, targetNode);
+        if (path) {
+          for (const edge of path) {
+            if (edge.kind !== 'wire') continue;
+            const w = state.wires.find(x => x.id === edge.id);
+            if (!w) continue;
+            const forward = edge.from === nodeKey(w.a.comp, w.a.term);
+            wireDirection.set(w.id, forward ? 1 : -1);
+          }
         }
       }
     }
@@ -296,31 +340,45 @@
       }
     });
 
-    // Mark active wires + animate current dots
+    // Mark active wires + animate flowing current dots
     for (const w of state.wires) {
       const active = litNodes.has(nodeKey(w.a.comp, w.a.term)) && litNodes.has(nodeKey(w.b.comp, w.b.term));
       w._active = active;
       const path = document.getElementById('wirepath-' + w.id);
-      if (path && active) animateCurrent(path, w.id);
+      if (path && active) animateCurrent(path, w.id, wireDirection.get(w.id) === -1, brightness);
     }
 
     updateStatusText(sources, anyLoop, litCount);
   }
 
-  function animateCurrent(pathEl, wireId) {
-    if (document.getElementById('dot-' + wireId)) return;
-    const dot = document.createElementNS(SVG_NS, 'circle');
-    dot.setAttribute('r', 4);
-    dot.setAttribute('class', 'charge-dot');
-    dot.id = 'dot-' + wireId;
-    const anim = document.createElementNS(SVG_NS, 'animateMotion');
-    anim.setAttribute('dur', '1.4s');
-    anim.setAttribute('repeatCount', 'indefinite');
-    const mpath = document.createElementNS(SVG_NS, 'mpath');
-    mpath.setAttributeNS('http://www.w3.org/1999/xlink', 'href', '#' + pathEl.id);
-    anim.appendChild(mpath);
-    dot.appendChild(anim);
-    el.wireContent.appendChild(dot);
+  // Draws a short train of dots flowing along the wire's path to make the
+  // current visually "flow", oriented per wireDirection (reverse = b->a).
+  function animateCurrent(pathEl, wireId, reverse, brightness) {
+    if (document.getElementById('dots-' + wireId)) return;
+    const DOT_COUNT = 4;
+    const dur = Math.max(0.5, 1.6 / Math.max(brightness, 0.35)); // dimmer current flows slower
+    const group = document.createElementNS(SVG_NS, 'g');
+    group.id = 'dots-' + wireId;
+    for (let i = 0; i < DOT_COUNT; i++) {
+      const dot = document.createElementNS(SVG_NS, 'circle');
+      dot.setAttribute('r', 4.5);
+      dot.setAttribute('class', 'charge-dot');
+      const anim = document.createElementNS(SVG_NS, 'animateMotion');
+      anim.setAttribute('dur', dur + 's');
+      anim.setAttribute('repeatCount', 'indefinite');
+      anim.setAttribute('begin', -(dur / DOT_COUNT) * i + 's');
+      if (reverse) {
+        anim.setAttribute('keyPoints', '1;0');
+        anim.setAttribute('keyTimes', '0;1');
+        anim.setAttribute('calcMode', 'linear');
+      }
+      const mpath = document.createElementNS(SVG_NS, 'mpath');
+      mpath.setAttributeNS('http://www.w3.org/1999/xlink', 'href', '#' + pathEl.id);
+      anim.appendChild(mpath);
+      dot.appendChild(anim);
+      group.appendChild(dot);
+    }
+    el.wireContent.appendChild(group);
   }
 
   function updateStatusText(sources, anyLoop, litCount) {
