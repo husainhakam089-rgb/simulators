@@ -286,7 +286,7 @@
   .comp:active{ cursor:grabbing; }
   .comp.drop-target .comp-body{ outline:3px dashed var(--accent-gold); outline-offset:6px; border-radius:14px; }
   .needle{ transition: transform .4s cubic-bezier(.34,1.4,.64,1); }
-  .comp-body{ position:relative; width:100%; height:100%; }
+  .comp-body{ position:relative; width:100%; height:100%; display:flex; align-items:center; justify-content:center; }
   .comp-body svg{ width:100%; height:100%; overflow:visible; }
   .terminal{
     position:absolute; top:50%; width:16px; height:16px; margin-top:-8px;
@@ -294,6 +294,10 @@
     cursor:crosshair; z-index:3;
   }
   .terminal.a{ left:-8px; } .terminal.b{ right:-8px; }
+  /* a rotated component's leads move from left/right to top/bottom */
+  .comp.rotated .terminal{ top:auto; left:50%; margin-top:0; margin-left:-8px; }
+  .comp.rotated .terminal.a{ top:-8px; left:50%; }
+  .comp.rotated .terminal.b{ bottom:-8px; right:auto; left:50%; }
   .terminal:hover{ background:#fff2b0; box-shadow:0 0 8px var(--accent-gold); }
   .terminal::after{
     content:''; position:absolute; left:50%; top:50%; width:26px; height:26px; margin:-13px 0 0 -13px;
@@ -458,6 +462,8 @@ const EXPERIMENTS = {
    leads, can be wired, can conduct current).
    hasTerminals: false -> purely a positionable prop (magnet, rails, pot...).
    ========================================================================= */
+const COIL_TYPES=['coilPrimary','coilSecondary','coilInduction','coilSmall','inductor'];
+
 const TYPES = {
   battery:{ label:'بطارية', w:140, h:56, hasTerminals:true, svg:()=>`
     <line x1="0" y1="28" x2="20" y2="28" stroke="#8a6d1a" stroke-width="4"/>
@@ -529,12 +535,12 @@ const TYPES = {
     <text x="70" y="76" font-size="11" fill="#fff" text-anchor="middle" font-weight="800">S</text>
     ${[20,50,80,110].map(x=>`<line x1="${x}" y1="24" x2="${x}" y2="60" stroke="#ffe9c7" stroke-width="2" marker-end="url(#arrowB)"/>`).join('')}
     <defs><marker id="arrowB" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#ffe9c7"/></marker></defs>` },
-  ironCore:{ label:'قلب حديدي مطاوع', w:100, h:100, hasTerminals:false, nestable:true, svg:()=>`
-    <path d="M4 4 H96 V96 H4 Z M22 22 H78 V78 H22 Z" fill="#8891a0" stroke="#4a5160" stroke-width="2" fill-rule="evenodd"/>
-    <line x1="4" y1="4" x2="22" y2="22" stroke="#6c7688" stroke-width="1.5"/>
-    <line x1="96" y1="4" x2="78" y2="22" stroke="#6c7688" stroke-width="1.5"/>
-    <line x1="4" y1="96" x2="22" y2="78" stroke="#6c7688" stroke-width="1.5"/>
-    <line x1="96" y1="96" x2="78" y2="78" stroke="#6c7688" stroke-width="1.5"/>` },
+  ironCore:{ label:'قلب حديدي مطاوع', w:240, h:160, hasTerminals:false, nestable:true, accepts:COIL_TYPES, twoLegs:true, svg:()=>`
+    <path d="M6 6 H234 V154 H6 Z M36 36 H204 V124 H36 Z" fill="#8891a0" stroke="#4a5160" stroke-width="2" fill-rule="evenodd"/>
+    <line x1="6" y1="6" x2="36" y2="36" stroke="#6c7688" stroke-width="1.5"/>
+    <line x1="234" y1="6" x2="204" y2="36" stroke="#6c7688" stroke-width="1.5"/>
+    <line x1="6" y1="154" x2="36" y2="124" stroke="#6c7688" stroke-width="1.5"/>
+    <line x1="234" y1="154" x2="204" y2="124" stroke="#6c7688" stroke-width="1.5"/>` },
   ring:{ label:'حلقة موصلة', w:110, h:110, hasTerminals:false, svg:()=>`
     <ellipse cx="55" cy="55" rx="46" ry="46" fill="none" stroke="#d98a3d" stroke-width="9"/>
     <ellipse cx="55" cy="55" rx="46" ry="46" fill="none" stroke="#e8a860" stroke-width="3"/>` },
@@ -666,9 +672,20 @@ function clientToWorld(clientX, clientY){
   const y=(clientY-rect.top+el.viewport.scrollTop)/lab().scale;
   return {x,y};
 }
-function terminalPos(comp, term){
+// A double-clicked component turns 90° (see the mouseup handler) so it can
+// be oriented to fit wherever it's needed — e.g. a coil standing upright to
+// wrap a leg of the square core. Rotation swaps its effective width/height
+// and moves its two leads from left/right to top/bottom; every place that
+// reasons about a component's footprint or terminal position goes through
+// effSize()/terminalPos() so it stays correct either way.
+function effSize(comp){
   const t=TYPES[comp.type];
-  return { x: term==='a'?comp.x:comp.x+t.w, y: comp.y+t.h/2 };
+  return comp.rotated ? { w:t.h, h:t.w } : { w:t.w, h:t.h };
+}
+function terminalPos(comp, term){
+  const s=effSize(comp);
+  if(comp.rotated) return { x: comp.x+s.w/2, y: term==='a'?comp.y:comp.y+s.h };
+  return { x: term==='a'?comp.x:comp.x+s.w, y: comp.y+s.h/2 };
 }
 
 /* ---- rendering ---- */
@@ -678,17 +695,21 @@ function renderComponents(){
   el.world.innerHTML='';
   for(const comp of lab().components){
     const t=TYPES[comp.type];
+    const s=effSize(comp);
     const div=document.createElement('div');
-    div.className='comp'+(comp.type==='neonLamp'?' neon':'');
+    div.className='comp'+(comp.type==='neonLamp'?' neon':'')+(comp.rotated?' rotated':'');
     div.dataset.id=comp.id;
     div.style.left=comp.x+'px'; div.style.top=comp.y+'px';
-    div.style.width=t.w+'px'; div.style.height=t.h+'px';
+    div.style.width=s.w+'px'; div.style.height=s.h+'px';
     if(lab().selected && lab().selected.kind==='comp' && lab().selected.id===comp.id) div.classList.add('selected');
     if(nestHoverId===comp.id) div.classList.add('drop-target');
 
     const body=document.createElement('div');
     body.className='comp-body';
-    body.innerHTML=`<svg viewBox="0 0 ${t.w} ${t.h}">${t.svg(comp)}</svg>`;
+    // the artwork itself always keeps its original w×h viewBox — rotation is
+    // a plain CSS turn on the whole <svg>, centered in the (possibly
+    // swapped) outer box, so no per-icon math is needed to support it
+    body.innerHTML=`<svg viewBox="0 0 ${t.w} ${t.h}" style="width:${t.w}px;height:${t.h}px;transform:${comp.rotated?'rotate(90deg)':'none'};">${t.svg(comp)}</svg>`;
     div.appendChild(body);
 
     if(t.toggle){
@@ -894,26 +915,27 @@ el.viewport.addEventListener('drop', e=>{
 
 /* ---- drag / wire / select / nesting ---- */
 let dragCtx=null, wireCtx=null, tempWireEl=null, nestHoverId=null;
+let lastClickTime=0, lastClickCompId=null; // used to detect a double-click by hand — see the mouseup handler
 
 // A nestable prop (magnet, iron core) snaps inside the nearest component
 // whose type "accepts" it (a coil/inductor) once its center is close enough —
 // like sliding a rod through a real coil.
 function findNestTarget(dragComp){
-  const dt=TYPES[dragComp.type];
-  const dCenter={ x:dragComp.x+dt.w/2, y:dragComp.y+dt.h/2 };
+  const ds=effSize(dragComp);
+  const dCenter={ x:dragComp.x+ds.w/2, y:dragComp.y+ds.h/2 };
   let best=null, bestDist=Infinity;
   for(const c of lab().components){
     if(c.id===dragComp.id) continue;
     const ct=TYPES[c.type];
     if(!ct.accepts || !ct.accepts.includes(dragComp.type)) continue;
-    if(dCenter.x < c.x-20 || dCenter.x > c.x+ct.w+20 || dCenter.y < c.y-20 || dCenter.y > c.y+ct.h+20) continue;
-    const cCenter={ x:c.x+ct.w/2, y:c.y+ct.h/2 };
+    const cs=effSize(c);
+    if(dCenter.x < c.x-20 || dCenter.x > c.x+cs.w+20 || dCenter.y < c.y-20 || dCenter.y > c.y+cs.h+20) continue;
+    const cCenter={ x:c.x+cs.w/2, y:c.y+cs.h/2 };
     const dist=Math.hypot(dCenter.x-cCenter.x, dCenter.y-cCenter.y);
     if(dist<bestDist){ bestDist=dist; best=c; }
   }
   return best;
 }
-const COIL_TYPES=['coilPrimary','coilSecondary','coilInduction','coilSmall','inductor'];
 
 // Two coils placed near each other (e.g. wound on the same iron core, or
 // just side by side) are treated as magnetically coupled — a step change in
@@ -921,14 +943,14 @@ const COIL_TYPES=['coilPrimary','coilSecondary','coilInduction','coilSmall','ind
 // wire between them (there usually isn't one — that's the whole point of a
 // transformer/mutual-induction setup).
 function findCoupledCoil(coil){
-  const ct=TYPES[coil.type];
-  const cCenter={ x:coil.x+ct.w/2, y:coil.y+ct.h/2 };
-  const MARGIN=120;
+  const cs=effSize(coil);
+  const cCenter={ x:coil.x+cs.w/2, y:coil.y+cs.h/2 };
+  const MARGIN=200; // wide enough to still count two coils on opposite legs of the same core as coupled
   let best=null, bestDist=Infinity;
   for(const c of lab().components){
     if(c.id===coil.id || !COIL_TYPES.includes(c.type)) continue;
-    const ot=TYPES[c.type];
-    const oCenter={ x:c.x+ot.w/2, y:c.y+ot.h/2 };
+    const os=effSize(c);
+    const oCenter={ x:c.x+os.w/2, y:c.y+os.h/2 };
     const dist=Math.hypot(cCenter.x-oCenter.x, cCenter.y-oCenter.y);
     if(dist>MARGIN) continue;
     if(dist<bestDist){ bestDist=dist; best=c; }
@@ -940,8 +962,8 @@ function findCoupledCoil(coil){
 // approaching/leaving a coil" even before it's close enough to visually snap
 // inside it — this is what drives the induced-current pulse while dragging.
 function findInductionCoil(dragComp){
-  const dt=TYPES[dragComp.type];
-  const dCenter={ x:dragComp.x+dt.w/2, y:dragComp.y+dt.h/2 };
+  const ds=effSize(dragComp);
+  const dCenter={ x:dragComp.x+ds.w/2, y:dragComp.y+ds.h/2 };
   const MARGIN=90;
   let best=null, bestDist=Infinity;
   for(const c of lab().components){
@@ -954,8 +976,9 @@ function findInductionCoil(dragComp){
     // in and out of a bigger coil induce a current, same as a bar magnet).
     const compatible = (ct.accepts && ct.accepts.includes(dragComp.type)) || (COIL_TYPES.includes(c.type) && COIL_TYPES.includes(dragComp.type));
     if(!compatible) continue;
-    if(dCenter.x < c.x-MARGIN || dCenter.x > c.x+ct.w+MARGIN || dCenter.y < c.y-MARGIN || dCenter.y > c.y+ct.h+MARGIN) continue;
-    const cCenter={ x:c.x+ct.w/2, y:c.y+ct.h/2 };
+    const cs=effSize(c);
+    if(dCenter.x < c.x-MARGIN || dCenter.x > c.x+cs.w+MARGIN || dCenter.y < c.y-MARGIN || dCenter.y > c.y+cs.h+MARGIN) continue;
+    const cCenter={ x:c.x+cs.w/2, y:c.y+cs.h/2 };
     const dist=Math.hypot(dCenter.x-cCenter.x, dCenter.y-cCenter.y);
     if(dist<bestDist){ bestDist=dist; best=c; }
   }
@@ -966,9 +989,23 @@ function nestUnder(dragComp, target){
   const arr=lab().components;
   arr.splice(arr.indexOf(dragComp),1);
   arr.splice(arr.indexOf(target), 0, dragComp);
-  const dt=TYPES[dragComp.type], tt=TYPES[target.type];
-  dragComp.x = target.x + (tt.w-dt.w)/2;
-  dragComp.y = target.y + (tt.h-dt.h)/2;
+  const ds=effSize(dragComp), ts=effSize(target);
+
+  if(TYPES[target.type].twoLegs && COIL_TYPES.includes(dragComp.type)){
+    // A two-legged core (the square/rectangular frame) takes one coil per
+    // leg — whichever side the coil's center is nearer to when dropped —
+    // instead of centering it on the whole frame, so a primary and a
+    // secondary can sit on opposite legs of the same core at once.
+    const dragCenterX = dragComp.x + ds.w/2;
+    const targetCenterX = target.x + ts.w/2;
+    const onLeft = dragCenterX < targetCenterX;
+    const legInset = ts.w*0.15;
+    dragComp.x = onLeft ? target.x + legInset - ds.w/2 : target.x + ts.w - legInset - ds.w/2;
+    dragComp.y = target.y + (ts.h-ds.h)/2;
+  } else {
+    dragComp.x = target.x + (ts.w-ds.w)/2;
+    dragComp.y = target.y + (ts.h-ds.h)/2;
+  }
   dragComp.nestedIn = target.id;
 }
 
@@ -1018,8 +1055,11 @@ el.world.addEventListener('mousedown', e=>{
     // A nested prop (magnet/core) renders under its host coil, so the host's
     // div would normally eat the click — prefer the nested child instead
     // whenever the click actually falls inside its own footprint.
-    const child=lab().components.find(c=>c.nestedIn===host.id &&
-      start.x>=c.x && start.x<=c.x+TYPES[c.type].w && start.y>=c.y && start.y<=c.y+TYPES[c.type].h);
+    const child=lab().components.find(c=>{
+      if(c.nestedIn!==host.id) return false;
+      const s=effSize(c);
+      return start.x>=c.x && start.x<=c.x+s.w && start.y>=c.y && start.y<=c.y+s.h;
+    });
     const comp=child||host;
     dragCtx={ id:comp.id, offX:start.x-comp.x, offY:start.y-comp.y, moved:false, startClientX:e.clientX, startClientY:e.clientY };
   }
@@ -1086,8 +1126,21 @@ document.addEventListener('mouseup', e=>{
       else comp.nestedIn=null;
     }
     if(comp && !dragCtx.moved){
-      if(TYPES[comp.type].toggle) toggleSwitchWithInduction(comp);
-      select('comp', comp.id);
+      // Detected by timing rather than the native 'dblclick' event: render()
+      // below tears down and rebuilds every .comp div, so by the time the
+      // browser would synthesize 'dblclick' the original target element is
+      // already gone and the event never fires.
+      const now=Date.now();
+      const isDoubleClick = lastClickCompId===comp.id && (now-lastClickTime)<400;
+      lastClickTime=now; lastClickCompId=comp.id;
+      if(isDoubleClick){
+        comp.rotated=!comp.rotated;
+      } else if(TYPES[comp.type].toggle){
+        toggleSwitchWithInduction(comp);
+        select('comp', comp.id);
+      } else {
+        select('comp', comp.id);
+      }
     }
     nestHoverId=null;
     // motion stops -> any drag-induced current stops immediately (a switch-
@@ -1101,6 +1154,7 @@ document.addEventListener('mouseup', e=>{
 
 el.wireLayer.addEventListener('mousedown', e=>{ const hit=e.target.closest('.wire-hit'); if(hit) select('wire', hit.dataset.wireId); });
 el.viewport.addEventListener('mousedown', e=>{ if(e.target===el.viewport||e.target===el.world) select(null); });
+
 
 function select(kind,id){
   if(kind===null) lab().selected=null;
