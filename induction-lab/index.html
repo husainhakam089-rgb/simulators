@@ -3,12 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>مختبر الحث الكهرومغناطيسي التفاعلي | الفصل الثاني - الثاني عشر</title>
+<title>مختبر الحث الكهرومغناطيسي — تركيب حر | الفصل الثاني</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
-  /* Palette matched to محاكي الدارات الكهربائية: navy chrome (sidebar/header/tabs),
-     a warm circuit-board canvas, and amber/teal accents instead of the original cyan theme. */
   :root{
     --bg-deep:#0c1220;
     --bg-panel:#16233c;
@@ -31,7 +29,7 @@
     --shadow:0 8px 24px rgba(0,0,0,.35);
   }
   *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;min-height:100vh;}
+  html,body{margin:0;padding:0;min-height:100vh;overflow:hidden;}
   body{
     background:
       radial-gradient(circle at 15% 0%, rgba(47,179,199,.07), transparent 40%),
@@ -39,16 +37,17 @@
       var(--bg-deep);
     color:var(--text);
     font-family:'Tajawal', sans-serif;
-    min-height:100vh;
+    height:100vh;
     display:flex;
     flex-direction:column;
+    user-select:none;
   }
   h1,h2,h3,h4{font-family:'Tajawal', sans-serif; font-weight:900; margin:0;}
 
   /* ===== Header ===== */
   header.app-header{
-    padding:14px 22px;
-    background:linear-gradient(180deg, var(--bg-panel), rgba(17,26,44,.6));
+    padding:12px 22px;
+    background:linear-gradient(180deg, var(--bg-panel), rgba(12,18,32,.6));
     border-bottom:1px solid var(--border);
     display:flex;
     align-items:center;
@@ -56,26 +55,23 @@
     flex-wrap:wrap;
     flex-shrink:0;
   }
-  .brand{
-    display:flex; align-items:center; gap:10px;
-  }
+  .brand{display:flex; align-items:center; gap:10px;}
   .brand .logo{
     width:38px;height:38px;border-radius:10px;
     background:conic-gradient(from 200deg, var(--accent-cyan), var(--accent-amber), var(--accent-cyan));
     display:flex;align-items:center;justify-content:center;
     font-size:18px; font-weight:900; color:#1a1005;
   }
-  .brand h1{font-size:17px;}
+  .brand h1{font-size:16.5px;}
   .brand span{display:block;font-size:11px;color:var(--text-muted);font-weight:400;margin-top:2px;}
 
   /* ===== Tabs Nav ===== */
   nav.tabs{
-    display:flex; gap:8px; overflow-x:auto; padding:10px 18px;
+    display:flex; gap:8px; overflow-x:auto; padding:9px 18px;
     background:var(--bg-panel-alt);
     border-bottom:1px solid var(--border);
     scrollbar-width:thin;
     flex-shrink:0;
-    min-height:56px;
   }
   nav.tabs::-webkit-scrollbar{height:6px;}
   nav.tabs::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
@@ -85,20 +81,20 @@
     background:var(--bg-panel);
     border:1px solid var(--border-soft);
     color:var(--text-muted);
-    padding:9px 14px;
+    padding:8px 13px;
     border-radius:10px;
     cursor:pointer;
     font-family:'Tajawal';
-    font-size:13.5px;
+    font-size:13px;
     font-weight:500;
     white-space:nowrap;
     transition:.15s ease;
   }
   .tab-btn .num{
-    width:20px;height:20px;border-radius:50%;
+    width:19px;height:19px;border-radius:50%;
     background:var(--border-soft);
     display:flex;align-items:center;justify-content:center;
-    font-size:11px; font-weight:700; color:var(--text-muted);
+    font-size:10.5px; font-weight:700; color:var(--text-muted);
     flex:0 0 auto;
   }
   .tab-btn:hover{border-color:var(--accent-amber); color:var(--text);}
@@ -114,103 +110,81 @@
   main.app-main{
     flex:1;
     display:grid;
-    grid-template-columns: 340px 1fr;
-    gap:18px;
-    padding:18px;
-    align-items:start;
+    grid-template-columns: 200px 1fr;
+    gap:14px;
+    padding:14px;
+    min-height:0;
   }
 
-  /* ===== Sidebar ===== */
+  /* ===== Sidebar (tool palette + steps) ===== */
   aside.sidebar{
     background:var(--bg-panel);
     border:1px solid var(--border);
     border-radius:var(--radius);
-    padding:16px;
-    max-height:calc(100vh - 150px);
+    padding:14px 10px;
     overflow-y:auto;
     box-shadow:var(--shadow);
+    display:flex; flex-direction:column; gap:16px;
   }
   aside.sidebar::-webkit-scrollbar{width:6px;}
   aside.sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
   .sidebar-title{
-    font-size:15px; margin-bottom:14px; padding-bottom:10px;
+    font-size:14px; padding:0 4px 10px; margin:0 -4px 0;
     border-bottom:1px dashed var(--border);
     color:var(--accent-amber);
   }
-  .sidebar-section{margin-bottom:20px;}
   .sidebar-section h3{
-    font-size:13.5px;
+    font-size:12.5px;
     display:flex; align-items:center; gap:6px;
     color:var(--text);
-    margin-bottom:10px;
+    margin:0 0 10px 4px;
     font-weight:700;
   }
-  .sidebar-section ul, .sidebar-section ol{
-    margin:0; padding-inline-start:20px;
-    display:flex; flex-direction:column; gap:6px;
+  #paletteGrid{
+    display:flex; flex-direction:column; gap:8px;
   }
-  .sidebar-section li{
-    font-size:13px; color:var(--text-muted); line-height:1.6;
-  }
-  .sidebar-section ol li::marker{color:var(--accent-amber); font-weight:700;}
-  .sidebar-section ul li::marker{color:var(--accent-cyan);}
-
-  /* Control panel */
-  .control-panel{display:none; flex-direction:column; gap:14px;}
-  .control-panel.active{display:flex;}
-  .control-row{display:flex; flex-direction:column; gap:6px;}
-  .control-row label{
-    font-size:12.5px; color:var(--text-muted);
-    display:flex; justify-content:space-between;
-  }
-  .control-row label b{color:var(--accent-cyan); font-weight:700;}
-  input[type=range]{
-    -webkit-appearance:none; width:100%; height:6px; border-radius:4px;
-    background:var(--border-soft); outline:none;
-  }
-  input[type=range]::-webkit-slider-thumb{
-    -webkit-appearance:none; width:16px;height:16px;border-radius:50%;
-    background:var(--accent-cyan); cursor:pointer; border:2px solid #06251f;
-    box-shadow:0 0 0 3px rgba(47,179,199,.2);
-  }
-  .btn-row{display:flex; gap:8px; flex-wrap:wrap;}
-  .ctrl-btn{
-    flex:1;
+  .palette-item{
     background:var(--bg-panel-alt);
     border:1px solid var(--border-soft);
-    color:var(--text);
-    padding:10px 8px;
-    border-radius:9px;
-    cursor:pointer;
-    font-family:'Tajawal'; font-size:12.5px; font-weight:700;
-    transition:.15s;
-    display:flex; align-items:center; justify-content:center; gap:6px;
+    border-radius:8px;
+    padding:6px 4px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:4px;
+    cursor:grab;
+    transition:transform .12s ease, background .12s ease, border-color .12s ease;
   }
-  .ctrl-btn:hover{border-color:var(--accent-cyan);}
-  .ctrl-btn.on{background:linear-gradient(135deg, var(--accent-cyan), #1fae95); color:#06251f; border-color:transparent;}
-  .ctrl-btn.warn{background:linear-gradient(135deg, var(--accent-red), #b83a48); color:#fff; border-color:transparent;}
-  .ctrl-btn.amber.on{background:linear-gradient(135deg, var(--accent-amber), #b9791f); color:#301b02;}
-  .hint{
-    font-size:11.5px; color:var(--text-muted); background:var(--bg-panel-alt);
-    border:1px dashed var(--border-soft); border-radius:8px; padding:8px 10px; line-height:1.6;
-  }
+  .palette-item:hover{ background:#274468; border-color:var(--accent-amber); transform:translateY(-2px); }
+  .palette-item:active{ cursor:grabbing; }
+  .palette-icon{ width:100%; height:38px; }
+  .palette-icon svg{ width:100%; height:100%; overflow:visible; }
+  .palette-label{ color:var(--text); font-size:10.5px; text-align:center; line-height:1.3; }
+
+  .sidebar-section ol{ margin:0; padding-inline-start:18px; display:flex; flex-direction:column; gap:6px; }
+  .sidebar-section ol li{ font-size:12px; color:var(--text-muted); line-height:1.55; }
+  .sidebar-section ol li::marker{ color:var(--accent-amber); font-weight:700; }
 
   /* ===== Canvas Area ===== */
   section.canvas-area{
     background:var(--bg-panel);
     border:1px solid var(--border);
     border-radius:var(--radius);
-    padding:16px;
+    padding:14px;
     box-shadow:var(--shadow);
+    display:flex; flex-direction:column; min-height:0;
   }
   .canvas-header{
     display:flex; justify-content:space-between; align-items:center;
-    margin-bottom:12px; flex-wrap:wrap; gap:8px;
+    margin-bottom:10px; flex-wrap:wrap; gap:8px; flex-shrink:0;
   }
-  .canvas-header h2{font-size:18px;}
-  .canvas-header .sub{font-size:12px; color:var(--text-muted); margin-top:3px;}
+  .canvas-header h2{font-size:17px;}
+  .canvas-header .sub{font-size:11.5px; color:var(--text-muted); margin-top:3px;}
+
   .canvas-wrap{
     position:relative;
+    flex:1;
+    min-height:0;
     background:
       linear-gradient(rgba(255,221,136,.05) 1px, transparent 1px),
       linear-gradient(90deg, rgba(255,221,136,.05) 1px, transparent 1px),
@@ -220,157 +194,144 @@
     border:1px solid var(--border-soft);
     overflow:hidden;
   }
-  canvas#simCanvas{
-    display:block; width:100%; height:auto; touch-action:none; cursor:grab;
-  }
-  canvas#simCanvas.dragging{cursor:grabbing;}
+  #viewport{ position:absolute; inset:0; overflow:auto; }
+  #world{ position:relative; width:2000px; height:1300px; transform-origin:0 0; }
+  #wireLayer{ position:absolute; inset:0; width:2000px; height:1300px; transform-origin:0 0; pointer-events:none; overflow:visible; }
 
-  .readouts{
-    position:absolute; top:10px; inset-inline-start:10px;
-    display:flex; flex-direction:column; gap:6px;
-    background:rgba(20,14,6,.68);
+  #topLeftTools, #bottomLeftTools{ position:absolute; z-index:6; display:flex; gap:6px; }
+  #topLeftTools{ top:10px; left:10px; }
+  #bottomLeftTools{ bottom:10px; left:10px; }
+  .icon-btn{
+    width:32px; height:32px; border-radius:8px;
     border:1px solid #3a2a14;
-    backdrop-filter:blur(4px);
-    border-radius:10px; padding:10px 12px;
-    min-width:190px;
+    background:rgba(20,14,6,.6);
+    color:var(--text-warm);
+    font-size:13px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    backdrop-filter:blur(2px);
   }
-  .readout-item{display:flex; justify-content:space-between; gap:14px; font-size:12.5px;}
-  .readout-item .lbl{color:var(--text-warm); opacity:.75;}
-  .readout-item .val{color:var(--accent-gold); font-weight:700; font-family:'Tajawal';}
+  .icon-btn:hover{ background:rgba(40,28,12,.85); }
+  .icon-btn.danger{ color:#ffb4b4; }
+  .icon-btn.danger:hover{ background:rgba(120,20,20,.6); }
 
   .status-pill{
-    position:absolute; top:10px; inset-inline-end:10px;
+    position:absolute; top:10px; inset-inline-end:10px; z-index:6;
     background:rgba(20,14,6,.68); border:1px solid #3a2a14;
     border-radius:20px; padding:6px 14px; font-size:12px; color:var(--text-warm);
+    max-width:60%;
   }
-  .status-pill b{color:var(--accent-amber);}
+  .status-pill b{ color:var(--accent-amber); }
 
   footer{
-    text-align:center; font-size:11.5px; color:var(--text-muted);
-    padding:14px; border-top:1px solid var(--border);
+    text-align:center; font-size:11px; color:var(--text-muted);
+    padding:10px; border-top:1px solid var(--border); flex-shrink:0;
   }
 
-  /* ===== Welcome / Landing Overlay ===== */
+  /* ===== Welcome overlay ===== */
   #welcomeOverlay{
     position:fixed; inset:0; z-index:1000;
     display:flex; align-items:center; justify-content:center;
     background:
-      radial-gradient(circle at 20% 15%, rgba(47,179,199,.16), transparent 45%),
-      radial-gradient(circle at 85% 85%, rgba(242,163,61,.14), transparent 50%),
+      radial-gradient(circle at 20% 15%, rgba(47,179,199,.14), transparent 45%),
+      radial-gradient(circle at 85% 85%, rgba(242,163,61,.16), transparent 50%),
       linear-gradient(160deg, #05070d, #0c1220 55%, #0a0f1c);
     transition: opacity .6s ease, visibility .6s ease;
   }
   #welcomeOverlay.hidden{ opacity:0; visibility:hidden; pointer-events:none; }
-  #welcomeOverlay::before{
-    content:''; position:absolute; inset:0;
-    background-image:
-      linear-gradient(rgba(47,179,199,.05) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(47,179,199,.05) 1px, transparent 1px);
-    background-size:42px 42px;
-    -webkit-mask-image: radial-gradient(circle at 50% 40%, black, transparent 75%);
-            mask-image: radial-gradient(circle at 50% 40%, black, transparent 75%);
-  }
   .welcome-card{
     position:relative; z-index:1;
     display:flex; flex-direction:column; align-items:center; text-align:center;
-    gap:18px; padding:56px 60px; max-width:640px; width:92%;
-    background:rgba(17,26,44,.55);
+    gap:16px; padding:50px 56px; max-width:600px; width:92%;
+    background:rgba(22,35,60,.55);
     border:1px solid var(--border);
     border-radius:22px;
     backdrop-filter:blur(10px);
     box-shadow:0 20px 60px rgba(0,0,0,.45);
     animation: welcomeRise .8s ease;
   }
-  @keyframes welcomeRise{
-    from{ opacity:0; transform:translateY(22px) scale(.97); }
-    to{ opacity:1; transform:translateY(0) scale(1); }
-  }
+  @keyframes welcomeRise{ from{opacity:0; transform:translateY(22px) scale(.97);} to{opacity:1; transform:translateY(0) scale(1);} }
   .welcome-logo{
-    width:78px; height:78px; border-radius:20px;
+    width:72px; height:72px; border-radius:20px;
     background:conic-gradient(from 200deg, var(--accent-cyan), var(--accent-amber), var(--accent-cyan));
     display:flex; align-items:center; justify-content:center;
-    font-size:38px; font-weight:900; color:#081018;
+    font-size:34px; font-weight:900; color:#1a1005;
     box-shadow:0 10px 30px rgba(47,179,199,.25);
   }
   .welcome-title{
-    font-family:'Tajawal', sans-serif; font-weight:800; font-size:30px;
+    font-weight:800; font-size:27px;
     background:linear-gradient(90deg, var(--accent-cyan-bright), var(--accent-amber));
     -webkit-background-clip:text; background-clip:text; color:transparent;
     line-height:1.4;
   }
-  .welcome-subtitle{
-    font-size:16px; color:var(--text); opacity:.9; font-weight:500;
-  }
-  .welcome-divider{
-    width:70px; height:3px; border-radius:2px;
-    background:linear-gradient(90deg, var(--accent-cyan), var(--accent-amber));
-  }
+  .welcome-subtitle{ font-size:15px; color:var(--text); opacity:.9; font-weight:500; }
+  .welcome-divider{ width:64px; height:3px; border-radius:2px; background:linear-gradient(90deg, var(--accent-cyan), var(--accent-amber)); }
   .welcome-author{
-    width:100%; max-width:380px;
-    font-size:13.5px; color:var(--text-muted);
-    background:var(--bg-panel-alt);
-    border:1px dashed var(--border-soft);
-    border-radius:10px; padding:10px 16px;
+    width:100%; max-width:360px; font-size:13px; color:var(--text-muted);
+    background:var(--bg-panel-alt); border:1px dashed var(--border-soft); border-radius:10px; padding:9px 14px;
   }
   .welcome-author b{ color:var(--text); font-weight:700; }
   .welcome-start-btn{
-    margin-top:10px;
-    display:flex; align-items:center; gap:10px;
-    font-family:'Tajawal', sans-serif; font-weight:800; font-size:17px;
-    color:#06251f;
-    background:linear-gradient(135deg, var(--accent-cyan-bright), var(--accent-cyan));
-    border:none; border-radius:14px;
-    padding:15px 42px;
-    cursor:pointer;
-    box-shadow:0 12px 30px rgba(47,179,199,.3);
-    transition:.2s ease;
+    margin-top:8px; display:flex; align-items:center; gap:10px;
+    font-weight:800; font-size:16px; color:#1a1005;
+    background:linear-gradient(135deg, var(--accent-gold), var(--accent-amber));
+    border:none; border-radius:14px; padding:14px 38px; cursor:pointer;
+    box-shadow:0 12px 30px rgba(242,163,61,.3); transition:.2s ease;
   }
-  .welcome-start-btn:hover{ transform:translateY(-2px); box-shadow:0 16px 38px rgba(47,179,199,.42); }
-  .welcome-start-btn:active{ transform:translateY(0); }
-  .welcome-hint{ font-size:11.5px; color:var(--text-muted); opacity:.75; }
+  .welcome-start-btn:hover{ transform:translateY(-2px); box-shadow:0 16px 38px rgba(242,163,61,.42); }
+  .welcome-hint{ font-size:11px; color:var(--text-muted); opacity:.8; }
 
-  /* ===== التعديلات الخاصة بشاشات الجوال ===== */
+  /* ===== Components placed on the canvas ===== */
+  .comp{ position:absolute; cursor:grab; }
+  .comp.selected .comp-body{ outline:3px solid var(--accent-cyan); outline-offset:4px; border-radius:10px; }
+  .comp:active{ cursor:grabbing; }
+  .comp-body{ position:relative; width:100%; height:100%; }
+  .comp-body svg{ width:100%; height:100%; overflow:visible; }
+  .terminal{
+    position:absolute; top:50%; width:16px; height:16px; margin-top:-8px;
+    border-radius:50%; background:var(--accent-gold); border:2px solid #8a6d1a;
+    cursor:crosshair; z-index:3;
+  }
+  .terminal.a{ left:-8px; } .terminal.b{ right:-8px; }
+  .terminal:hover{ background:#fff2b0; box-shadow:0 0 8px var(--accent-gold); }
+  .terminal::after{
+    content:''; position:absolute; left:50%; top:50%; width:26px; height:26px; margin:-13px 0 0 -13px;
+    border-radius:50%; border:2px dashed rgba(255,233,199,.6); pointer-events:none;
+  }
+  .comp-label{
+    position:absolute; bottom:-18px; width:100%; text-align:center;
+    font-size:10.5px; color:var(--text-warm); pointer-events:none; white-space:nowrap;
+  }
+
+  /* glow rays for anything "lit" (neon lamp) */
+  .glow-rays{
+    position:absolute; left:50%; top:50%; width:4px; height:4px;
+    pointer-events:none; opacity:0; transition:opacity .2s ease; z-index:0;
+  }
+  .comp.active .glow-rays{ opacity:1; }
+  .comp.active .comp-body{ position:relative; z-index:1; }
+  .glow-rays .ray{
+    position:absolute; left:-1px; top:-90px; width:2px; height:90px;
+    background:linear-gradient(rgba(255,120,60,0), #ff8a3d 55%, rgba(255,120,60,0));
+    transform-origin:bottom center;
+  }
+  .comp.active.neon .glow-rays .ray{
+    background:linear-gradient(rgba(255,90,190,0), #ff5abe 55%, rgba(255,90,190,0));
+  }
+
+  /* wires */
+  .wire-border{ stroke:#2a1c0c; stroke-width:15; stroke-linecap:round; fill:none; }
+  .wire-fill{ stroke:url(#wireStripe); stroke-width:11; stroke-linecap:round; fill:none; cursor:pointer; }
+  .wire-fill.selected{ stroke:var(--accent-cyan); }
+  .wire-sheen{ stroke:rgba(255,255,255,.4); stroke-width:2; stroke-linecap:round; fill:none; pointer-events:none; }
+  .wire-hit{ stroke:transparent; stroke-width:24; fill:none; cursor:pointer; pointer-events:stroke; }
+  .junction-ring{ fill:rgba(255,221,136,.15); stroke:var(--text-warm); stroke-width:2; stroke-dasharray:3 4; pointer-events:none; }
+  .charge-dot{ fill:#ff3b3b; filter:drop-shadow(0 0 3px #ff3b3b); }
+  .temp-wire{ stroke:var(--accent-cyan); stroke-width:8; stroke-dasharray:6 6; fill:none; opacity:.85; stroke-linecap:round; }
+
   @media (max-width:900px){
-    main.app-main {
-      display: flex;
-      flex-direction: column;
-    }
-    section.canvas-area { 
-      order: 1; /* التجربة تكون بالبداية */
-    }
-    aside.sidebar { 
-      order: 2; /* لوحة التحكم تنزل جوا */
-      max-height: none; 
-      overflow-y: visible;
-    }
-    
-    .canvas-wrap {
-      display: flex;
-      flex-direction: column;
-    }
-    .readouts {
-      position: static; /* نلغي طوفان القراءات فوق التجربة */
-      flex-direction: row;
-      flex-wrap: wrap;
-      margin-top: 10px;
-      border: none;
-      background: transparent;
-      padding: 0;
-    }
-    .readout-item {
-      flex: 1 1 45%;
-      background: rgba(20,14,6,.68);
-      border: 1px solid var(--border-soft);
-      border-radius: 8px;
-      padding: 8px;
-    }
-    .status-pill {
-      position: static;
-      align-self: flex-start;
-      margin-top: 10px;
-    }
-    .welcome-card { padding: 30px 20px; width: 92%; }
-    .welcome-title { font-size: 24px; }
+    main.app-main{ display:flex; flex-direction:column; overflow-y:auto; }
+    aside.sidebar{ max-height:220px; }
+    section.canvas-area{ min-height:60vh; }
   }
 </style>
 </head>
@@ -380,11 +341,11 @@
   <div class="welcome-card">
     <div class="welcome-logo">Φ</div>
     <div class="welcome-title">مختبر الفيزياء الافتراضي<br>الفصل الثاني</div>
-    <div class="welcome-subtitle">محاكي تجارب الحث الكهرومغناطيسي</div>
+    <div class="welcome-subtitle">ركّب تجارب الحث الكهرومغناطيسي بنفسك — اسحب الأدوات ووصّلها</div>
     <div class="welcome-divider"></div>
     <div class="welcome-author">إعداد: <b>الاستاذ ياسين ذنون</b></div>
-    <button class="welcome-start-btn" id="startBtn">🚀 ابدأ التجربة</button>
-    <div class="welcome-hint">10 تجارب تفاعلية — الصف السادس الإعدادي (الثاني عشر)</div>
+    <button class="welcome-start-btn" id="startBtn">🚀 ابدأ التركيب</button>
+    <div class="welcome-hint">10 تجارب — لكل تجربة أدواتها الخاصة، فاضية بانتظارك لتركيبها</div>
   </div>
 </div>
 
@@ -392,7 +353,7 @@
   <div class="brand">
     <div class="logo">Φ</div>
     <div>
-      <h1>مختبر الحث الكهرومغناطيسي التفاعلي</h1>
+      <h1>مختبر الحث الكهرومغناطيسي — تركيب حر</h1>
       <span>الفيزياء — الصف السادس الإعدادي (الثاني عشر) — الفصل الثاني</span>
     </div>
   </div>
@@ -403,238 +364,13 @@
 <main class="app-main">
   <aside class="sidebar">
     <div class="sidebar-title" id="sidebarTitle">النشاط الحالي</div>
-
     <div class="sidebar-section">
-      <h3>🧰 أدوات النشاط</h3>
-      <ul id="toolsList"></ul>
+      <h3>🧰 أدوات التجربة (اسحبها للكانفاس)</h3>
+      <div id="paletteGrid"></div>
     </div>
-
     <div class="sidebar-section">
-      <h3>📋 خطوات النشاط</h3>
+      <h3>📋 خطوات مقترحة</h3>
       <ol id="stepsList"></ol>
-    </div>
-
-    <div class="sidebar-section">
-      <h3>🎛️ لوحة التحكم</h3>
-      <div id="controlPanels">
-        <div class="control-panel active" data-tab="1">
-          <div class="control-row">
-            <label style="margin-bottom:2px;">📖 طريقة توليد التيار (3 طرق حسب المنهج)</label>
-          </div>
-          <div class="btn-row" id="tab1-method-1">
-            <button class="ctrl-btn on" data-method1="1" data-tab="1">1️⃣ مغناطيس دائم متحرك</button>
-          </div>
-          <div class="btn-row" id="tab1-method-2">
-            <button class="ctrl-btn" data-method1="2" data-tab="1">2️⃣ ملف ابتدائي (مغناطيس كهربائي) متحرك</button>
-          </div>
-          <div class="btn-row" id="tab1-method-3">
-            <button class="ctrl-btn" data-method1="3" data-tab="1">3️⃣ ملف ابتدائي ثابت داخل الملف + مفتاح</button>
-          </div>
-
-          <div class="btn-row" style="margin-top:6px;">
-            <button class="ctrl-btn on" data-action="mode" data-tab="1">⚙️ تلقائي</button>
-            <button class="ctrl-btn" data-action="reverse" data-tab="1">🔁 عكس القطبية</button>
-          </div>
-
-          <div class="btn-row" id="switchRow1" style="display:none;">
-            <button class="ctrl-btn amber" id="switchBtn1" data-tab="1">🔌 غلق دائرة الملف الابتدائي</button>
-          </div>
-
-          <div class="hint" id="dragHint1">💡 في الوضع اليدوي: اسحب المغناطيس بالماوس داخل الشاشة لتحريكه.</div>
-
-          <div class="control-row" id="speedRow1">
-            <label>السرعة (v) <b id="val-speed1">0.6</b></label>
-            <input type="range" min="0.1" max="1.5" step="0.05" value="0.6" data-param="speed" data-tab="1">
-          </div>
-          <div class="control-row">
-            <label>شدة المجال المغناطيسي (B) <b id="val-field1">1.0</b></label>
-            <input type="range" min="0.2" max="2" step="0.1" value="1" data-param="B" data-tab="1">
-          </div>
-          <div class="control-row">
-            <label>عدد لفات الملف الأصلي (N) <b id="val-turns1">4</b></label>
-            <input type="range" min="2" max="10" step="1" value="4" data-param="N" data-tab="1">
-          </div>
-          <div class="control-row" id="voltageRow1" style="display:none;">
-            <label>جهد بطارية الملف الابتدائي (V) <b id="val-voltage1">6.0</b></label>
-            <input type="range" min="1" max="12" step="0.5" value="6" data-param="voltage" data-tab="1">
-          </div>
-        </div>
-
-        <div class="control-panel" data-tab="2">
-          <div class="btn-row">
-            <button class="ctrl-btn amber" id="switchBtn2">🔌 غلق الدائرة الابتدائية</button>
-          </div>
-          <div class="hint">💡 اضغط زر المفتاح لإغلاقه/فتحه ولاحظ انحراف الجلفانومتر اللحظي ثم عودته للصفر.</div>
-          <div class="control-row">
-            <label>جهد البطارية (V) <b id="val-voltage2">6.0</b></label>
-            <input type="range" min="1" max="12" step="0.5" value="6" data-param="voltage" data-tab="2">
-          </div>
-          <div class="control-row">
-            <label>عدد لفات الملف الثانوي (N) <b id="val-turns2">4</b></label>
-            <input type="range" min="2" max="10" step="1" value="4" data-param="N" data-tab="2">
-          </div>
-        </div>
-
-
-        <div class="control-panel" data-tab="3">
-          <div class="control-row">
-            <label style="margin-bottom:2px;">📖 طريقة النشاط (3 طرق حسب المنهج)</label>
-          </div>
-          <div class="btn-row" id="tab3-methods">
-            <button class="ctrl-btn on" data-method="1" data-tab="3">1️⃣ الغلق والفتح المفاجئ</button>
-          </div>
-          <div class="btn-row" id="tab3-methods-2">
-            <button class="ctrl-btn" data-method="2" data-tab="3">2️⃣ تقريب/إبعاد الملفين</button>
-          </div>
-          <div class="btn-row" id="tab3-methods-3">
-            <button class="ctrl-btn" data-method="3" data-tab="3">3️⃣ تغيير التيار (ريوستات)</button>
-          </div>
-          <div class="btn-row" style="margin-top:6px;">
-            <button class="ctrl-btn on" data-action="mode" data-tab="3">⚙️ تلقائي</button>
-            <button class="ctrl-btn" data-action="reverse" data-tab="3">🔁 عكس أقطاب البطارية</button>
-          </div>
-          <div class="btn-row" id="switchRow3">
-            <button class="ctrl-btn amber" id="switchBtn3" data-action="switch" data-tab="3">🔌 غلق الدائرة الابتدائية</button>
-          </div>
-          <div class="hint" id="hint3">💡 في الوضع اليدوي: اضغط زر المفتاح لغلق/فتح الدائرة الابتدائية ولاحظ نبضة التيار في الملف الثانوي.</div>
-          <div class="control-row">
-            <label>جهد البطارية (V) <b id="val-voltage3">6.0</b></label>
-            <input type="range" min="1" max="12" step="0.5" value="6" data-param="voltage" data-tab="3">
-          </div>
-          <div class="control-row">
-            <label>عدد لفات الملف الثانوي (N) <b id="val-turns3">4</b></label>
-            <input type="range" min="2" max="10" step="1" value="4" data-param="N" data-tab="3">
-          </div>
-          <div class="control-row" id="rheostatRow3" style="display:none;">
-            <label>مقاومة الريوستات (يدويًا) <b id="val-rheostat3">0.50</b></label>
-            <input type="range" min="0" max="1" step="0.02" value="0.5" data-param="rheostat" data-tab="3">
-          </div>
-        </div>
-
-        <div class="control-panel" data-tab="4">
-          <div class="btn-row">
-            <button class="ctrl-btn on" data-action="mode" data-tab="4">⚙️ تلقائي</button>
-            <button class="ctrl-btn" data-action="reverse" data-tab="4">🔁 عكس اتجاه المجال</button>
-          </div>
-          <div class="hint">💡 في الوضع اليدوي: اسحب الساق الموصلة على القضيبين لتوليد قوة دافعة كهربائية حركية.</div>
-          <div class="control-row">
-            <label>سرعة الساق (v) <b id="val-speed4">0.5</b></label>
-            <input type="range" min="0.1" max="1.5" step="0.05" value="0.5" data-param="speed" data-tab="4">
-          </div>
-          <div class="control-row">
-            <label>شدة المجال (B) <b id="val-field4">1.0</b></label>
-            <input type="range" min="0.2" max="2" step="0.1" value="1" data-param="B" data-tab="4">
-          </div>
-          <div class="control-row">
-            <label>مقاومة الدائرة (R Ω) <b id="val-res4">5.0</b></label>
-            <input type="range" min="1" max="10" step="0.5" value="5" data-param="R" data-tab="4">
-          </div>
-        </div>
-
-        <div class="control-panel" data-tab="5">
-          <div class="btn-row" id="fluxModeBtns5">
-            <button class="ctrl-btn on" data-fluxmode="angle">① تغيير الزاوية θ</button>
-            <button class="ctrl-btn" data-fluxmode="area">② تغيير المساحة</button>
-            <button class="ctrl-btn" data-fluxmode="field">③ تغيير كثافة الفيض B</button>
-          </div>
-          <div class="btn-row">
-            <button class="ctrl-btn" data-action="reverse" data-tab="5">🔁 عكس الاتجاه</button>
-          </div>
-          <div class="hint" id="fluxModeHint5">💡 دوران الملف يغيّر الزاوية θ بين A وB. عند θ=0 الفيض أقصاه، وعند θ=90° يكون صفرًا.</div>
-          <div class="control-row">
-            <label>السرعة <b id="val-speed5">0.6</b></label>
-            <input type="range" min="0.1" max="1.5" step="0.05" value="0.6" data-param="speed" data-tab="5">
-          </div>
-          <div class="control-row">
-            <label>كثافة الفيض المغناطيسي (B) <b id="val-field5">1.0</b></label>
-            <input type="range" min="0.2" max="2" step="0.1" value="1" data-param="B" data-tab="5">
-          </div>
-        </div>
-        <div class="control-panel" data-tab="6">
-          <div class="btn-row">
-            <button class="ctrl-btn" data-action="reverse" data-tab="6">🔁 عكس القطبية</button>
-          </div>
-          <div class="btn-row">
-            <button class="ctrl-btn amber" id="dropBtn6">⬇️ أسقط المغناطيس تلقائيًا</button>
-          </div>
-          <div class="hint">💡 اضغط زر الإسقاط لسقوط تلقائي بالسرعة المحددة، أو اسحب المغناطيس يدويًا بالماوس/باللمس بأي وقت (يلغي السقوط التلقائي فورًا).</div>
-          <div class="control-row">
-            <label>سرعة الإسقاط <b id="val-dropspeed6">0.6</b></label>
-            <input type="range" min="0.1" max="1.5" step="0.05" value="0.6" data-param="dropSpeed" data-tab="6">
-          </div>
-          <div class="control-row">
-            <label>شدة المجال المغناطيسي (B) <b id="val-field6">1.0</b></label>
-            <input type="range" min="0.4" max="2" step="0.1" value="1" data-param="B" data-tab="6">
-          </div>
-        </div>
-
-        <div class="control-panel" data-tab="7">
-          <div class="btn-row">
-            <button class="ctrl-btn on" data-action="mode" data-tab="7">⚙️ تلقائي</button>
-            <button class="ctrl-btn on" data-action="reverse" data-tab="7">🔁 المجال: يعمل</button>
-          </div>
-          <div class="btn-row">
-            <button class="ctrl-btn amber" id="releaseBtn7">🕹️ أطلق البندولين</button>
-          </div>
-          <div class="hint">💡 القرص المصمت (الأيسر) يتوقف بسرعة بسبب التيارات الدوامية، بينما القرص المشقوق (الأيمن) يستمر بالتأرجح لفترة أطول.</div>
-          <div class="control-row">
-            <label>شدة المجال المغناطيسي (B) <b id="val-field7">1.0</b></label>
-            <input type="range" min="0.4" max="2" step="0.1" value="1" data-param="B" data-tab="7">
-          </div>
-        </div>
-
-        <div class="control-panel" data-tab="8">
-          <div class="btn-row">
-            <button class="ctrl-btn on" data-action="mode" data-tab="8">⚙️ تلقائي</button>
-          </div>
-          <div class="btn-row">
-            <button class="ctrl-btn amber" id="switchBtn8">🔌 غلق الدائرة</button>
-          </div>
-          <div class="hint">💡 المصباح A (مقاومة) يضيء فورًا. المصباح B (ملف محاثة) يضيء تدريجيًا بسبب القوة الدافعة المعاكسة (الحث الذاتي).</div>
-          <div class="control-row">
-            <label>جهد البطارية (V) <b id="val-voltage8">9.0</b></label>
-            <input type="range" min="3" max="12" step="0.5" value="9" data-param="voltage" data-tab="8">
-          </div>
-          <div class="control-row">
-            <label>قيمة المحاثة (L) <b id="val-inductance8">1.0</b></label>
-            <input type="range" min="0.3" max="2.5" step="0.1" value="1" data-param="L" data-tab="8">
-          </div>
-        </div>
-
-        <div class="control-panel" data-tab="9">
-          <div class="btn-row">
-            <button class="ctrl-btn on" data-action="mode" data-tab="9">⚙️ تلقائي</button>
-            <button class="ctrl-btn" data-action="reverse" data-tab="9">🔁 عكس أقطاب البطارية</button>
-          </div>
-          <div class="btn-row">
-            <button class="ctrl-btn amber" id="switchBtn9">🔌 غلق الدائرة</button>
-          </div>
-          <div class="hint">💡 المصباح النيوني يحتاج 90V ليضيء. لاحظ أنه يبقى مطفأ أثناء غلق الدائرة، ويومض بقوة فقط لحظة الفصل المفاجئ بسبب الحث الذاتي.</div>
-          <div class="control-row">
-            <label>جهد البطارية (V) <b id="val-voltage9">9.0</b></label>
-            <input type="range" min="6" max="12" step="0.5" value="9" data-param="voltage" data-tab="9">
-          </div>
-          <div class="control-row">
-            <label>قيمة محاثة الملف (L) <b id="val-inductance9">1.0</b></label>
-            <input type="range" min="0.5" max="2.5" step="0.1" value="1" data-param="L" data-tab="9">
-          </div>
-        </div>
-
-        <div class="control-panel" data-tab="10">
-          <div class="btn-row">
-            <button class="ctrl-btn on" data-action="mode" data-tab="10">⚙️ تلقائي</button>
-            <button class="ctrl-btn" data-action="reverse" data-tab="10">🔁 نوع الإناء: حديدي</button>
-          </div>
-          <div class="btn-row">
-            <button class="ctrl-btn amber" id="powerBtn10">🔥 تشغيل/إيقاف الموقد</button>
-          </div>
-          <div class="hint">💡 التيار المتردد بالملف يولّد مجالًا متغيرًا يحدث تيارات دوامية بقاعدة الإناء فتسخنه. جرّب تغيير نوع الإناء لترى الفرق.</div>
-          <div class="control-row">
-            <label>مستوى الطاقة <b id="val-power10">0.60</b></label>
-            <input type="range" min="0.1" max="1" step="0.05" value="0.6" data-param="power" data-tab="10">
-          </div>
-        </div>
-      </div>
     </div>
   </aside>
 
@@ -642,2141 +378,546 @@
     <div class="canvas-header">
       <div>
         <h2 id="mainTitle">توليد التيار المحتث</h2>
-        <div class="sub" id="mainSubtitle">حرّك المغناطيس بالقرب من الملف لتوليد تيار محتث</div>
+        <div class="sub" id="mainSubtitle">اسحب الأدوات من اللوحة الجانبية ورتّبها لتركيب التجربة</div>
       </div>
     </div>
     <div class="canvas-wrap">
-      <canvas id="simCanvas" width="900" height="480"></canvas>
-      <div class="readouts">
-        <div class="readout-item"><span class="lbl" id="lbl1">الفيض المغناطيسي (Φ)</span><span class="val" id="val1">0.00</span></div>
-        <div class="readout-item"><span class="lbl" id="lbl2">القوة الدافعة الكهرمغناطيسية (EMF)</span><span class="val" id="val2">0.00 V</span></div>
-        <div class="readout-item"><span class="lbl" id="lbl3">التيار المحتث (I)</span><span class="val" id="val3">0.00 A</span></div>
+      <div id="topLeftTools">
+        <button id="viewModeBtn" class="icon-btn" title="تبديل الشبكة">▭</button>
+        <button id="clearBtn" class="icon-btn" title="مسح كل عناصر هذه التجربة">✕</button>
       </div>
-      <div class="status-pill">الوضع: <b id="modeStatus">تلقائي</b></div>
+      <div id="viewport" dir="ltr">
+        <svg id="wireLayer">
+          <defs>
+            <pattern id="wireStripe" patternUnits="userSpaceOnUse" width="18" height="18" patternTransform="rotate(45)">
+              <rect width="18" height="18" fill="#1c98ab"/>
+              <rect width="9" height="18" fill="#f2a33d"/>
+            </pattern>
+          </defs>
+          <g id="wireContent"></g>
+        </svg>
+        <div id="world"></div>
+      </div>
+      <div id="bottomLeftTools">
+        <button id="zoomOutBtn" class="icon-btn" title="تصغير">🔍−</button>
+        <button id="zoomInBtn" class="icon-btn" title="تكبير">🔍+</button>
+        <button id="deleteBtn" class="icon-btn danger" title="حذف العنصر المحدد">🗑</button>
+      </div>
+      <div class="status-pill" id="circuitStatus">اسحب الأدوات وابدأ التركيب</div>
     </div>
   </section>
 </main>
 
-<footer>مختبر تفاعلي تعليمي — القيم الفيزيائية تقريبية لأغراض التوضيح المفاهيمي فقط.</footer>
+<footer>مختبر تفاعلي تعليمي — ركّب التجارب بنفسك، وناقش ملاحظاتك مع أستاذك.</footer>
 
 <script>
 /* =========================================================================
-   DATA: 10 experiments — titles / tools / steps (dummy Arabic text, edit later)
+   EXPERIMENTS: 10 activities — title/subtitle/steps + which tool types
+   appear in that tab's palette (drawn from the curriculum's own equipment
+   lists). Every tab gets its own independent canvas (components + wires),
+   so switching tabs never loses another tab's build.
    ========================================================================= */
 const EXPERIMENTS = {
-  1: {
-    title:'توليد التيار المحتث',
-    subtitle:'حرّك المغناطيس بالقرب من الملف لتوليد تيار محتث',
-    tools:['ملف حث (سلك نحاسي ملفوف)','مغناطيس قضيبي','جلفانومتر حساس','أسلاك توصيل'],
-    steps:['وصّل طرفي الملف بالجلفانومتر.','قرّب المغناطيس من الملف ولاحظ حركة المؤشر.','أبعد المغناطيس ولاحظ اتجاه الانحراف.','غيّر سرعة الحركة ولاحظ تغيّر شدة التيار.','اعكس قطبية المغناطيس وسجّل الفرق.']
-  },
-  2: {
-    title:'اكتشاف فاراداي للحث الكهرومغناطيسي',
-    subtitle:'ملفان على قلب من الحديد المطاوع — أغلق وافتح المفتاح ولاحظ الجلفانومتر',
-    tools:['قلب من الحديد المطاوع','ملف ابتدائي','ملف ثانوي','بطارية','مفتاح قطعي','جلفانومتر (صفر مركزي)'],
-    steps:['لُف الملف الابتدائي على أحد ساقي القلب الحديدي وصله بالبطارية والمفتاح.','لُف الملف الثانوي على الساق الأخرى وصله بالجلفانومتر.','أغلق المفتاح فجأة ولاحظ انحراف المؤشر لحظيًا ثم عودته للصفر.','اترك المفتاح مغلقًا ولاحظ عدم وجود انحراف طالما التيار ثابت.','افتح المفتاح فجأة ولاحظ انحرافًا لحظيًا بالاتجاه المعاكس.']
-  },
-  3: {
-    title:'نشاط الحث الكهرومغناطيسي المتبادل',
-    subtitle:'ثلاث طرق لتوليد تيار محتث في الملف الثانوي — اختر الطريقة من لوحة التحكم',
-    tools:['ملف ابتدائي','ملف ثانوي','بطارية','مفتاح كهربائي','ريوستات (مقاومة متغيرة)','جلفانومتر','أسلاك توصيل'],
-    steps:['الطريقة 1: أغلق وافتح المفتاح فجأة ولاحظ نبضة التيار في الثانوي.','الطريقة 2: قرّب وأبعد الملف الثانوي عن الابتدائي (والتيار ثابت) ولاحظ التيار المحتث أثناء الحركة فقط.','الطريقة 3: غيّر مقاومة الريوستات تدريجيًا لتغيير شدة التيار الابتدائي، ولاحظ التيار المحتث أثناء التغيير فقط.','قارن بين الطرق الثلاث: في كل الحالات لا يظهر تيار محتث إلا عند تغيّر الفيض المغناطيسي.','اعكس قطبية البطارية في أي طريقة وسجّل أثر ذلك على اتجاه الانحراف.']
-  },
-  4: {
-    title:'القوة الدافعة الكهربائية الحركية (الحث الحركي)',
-    subtitle:'حرّك الساق الموصلة على القضيبين المتوازيين داخل مجال مغناطيسي منتظم',
-    tools:['قضيبان موصلان متوازيان (على شكل U)','ساق معدنية موصلة','مغناطيس (مجال منتظم)','مقاومة أو جلفانومتر'],
-    steps:['ركّب الساق الموصلة عموديًا على القضيبين.','حرّك الساق بسرعة ثابتة داخل المجال المغناطيسي.','لاحظ نشوء قوة دافعة كهربائية حركية وتيار محتث.','غيّر سرعة الساق وسجّل العلاقة بين السرعة والتيار.','اعكس اتجاه المجال ولاحظ تغيّر اتجاه التيار.']
-  },
-  5: {
-    title:'طرائق تغيّر الفيض المغناطيسي',
-    subtitle:'ثلاث طرائق لتغيير الفيض Φ = B·A·cosθ — الزاوية، المساحة، وكثافة الفيض',
-    tools:['ملف موصل داخل مجال منتظم','مصدر مجال مغناطيسي (B)','متجه المساحة A','جهاز قياس الفيض (تمثيلي)'],
-    steps:['اختر إحدى الطرائق الثلاث من لوحة التحكم.','① تغيير الزاوية θ: الملف يدور فتتغيّر الزاوية بين A وB (المساحة وB ثابتتان).','② تغيير المساحة: الملف يتمدّد ويتقلّص فتتغيّر A (الزاوية وB ثابتتان).','③ تغيير كثافة الفيض B: شدة المجال تتغيّر (المساحة والزاوية ثابتتان).','لاحظ في كل طريقة نشوء قوة دافعة كهربائية أثناء تغيّر الفيض.','قارن: الفيض أقصاه عند θ=0 وصفر عند θ=90°.']
-  },
-  6: {
-    title:'قانون لنز',
-    subtitle:'اسحب المغناطيس يدويًا عبر حلقة موصلة مغلقة ولاحظ التيار المحتث والقوة المعاكسة',
-    tools:['حلقة معدنية موصلة (نحاس أو ألمنيوم)','مغناطيس قضيبي متحرك باليد'],
-    steps:['اسحب المغناطيس ببطء نحو الحلقة ولاحظ ظهور تيار محتث واتجاهه.','لاحظ تسمية قطب الحلقة العلوي (N = تنافر) أثناء الاقتراب.','أوقف المغناطيس داخل الحلقة تمامًا ولاحظ أن التيار يصبح صفرًا فورًا.','اسحب المغناطيس مبتعدًا ولاحظ انعكاس التيار وتحول قطب الحلقة إلى (S = تجاذب).','راقب سهم القوة المعاكسة (F) ولاحظ أنه دائمًا يعاكس اتجاه حركة يدك.']
-  },
-  7: {
-    title:'نشاط تقليل التيارات الدوامية',
-    subtitle:'بندول مصمت مقابل بندول مشقوق داخل مجال مغناطيسي — قارن زمن التوقف',
-    tools:['بندول معدني مصمت','بندول معدني مشقوق (مخدد)','مغناطيس كهربائي قوي','حامل للبندول'],
-    steps:['أرجح البندول المصمت بين قطبي المغناطيس.','لاحظ التوقف السريع نتيجة التيارات الدوامية.','كرر التجربة باستخدام البندول المشقوق.','قارن الفرق في زمن التوقف بين البندولين.','ناقش أسباب تقليل التيارات الدوامية بالشقوق.']
-  },
-  8: {
-    title:'تأثير المحاثة (دائرة RL)',
-    subtitle:'دائرتان متوازيتان: مصباح مع مقاومة ومصباح مع ملف محاثة',
-    tools:['ملف محاثة (وشيعة)','مقاومة','بطارية','مفتاح','جهاز قياس التيار'],
-    steps:['صل الدائرة الأولى بمقاومة فقط وأغلق المفتاح.','لاحظ الوصول الفوري للتيار الأعظمي.','صل الدائرة الثانية بملف محاثة مع المقاومة.','أغلق المفتاح ولاحظ التأخر التدريجي لنمو التيار.','قارن زمن الوصول للتيار المستقر بين الدائرتين.']
-  },
-  9: {
-    title:'تجربة الحث الذاتي (مصباح النيون)',
-    subtitle:'مصباح النيون يومض فقط عند فتح الدائرة فجأة',
-    tools:['ملف محاثة كبير','بطارية منخفضة الجهد','مصباح نيون','مفتاح قاطع'],
-    steps:['صل الملف بالبطارية والمفتاح ومصباح النيون على التوازي.','أغلق المفتاح ولاحظ عدم إضاءة المصباح (الجهد منخفض).','افتح المفتاح فجأة ولاحظ ومضة قوية من المصباح.','فسّر الظاهرة باستخدام قانون الحث الذاتي.','كرر التجربة بعدد لفات مختلف للملف.']
-  },
-  10: {
-    title:'الطباخ الحثي (موقد الحث الكهرومغناطيسي)',
-    subtitle:'تيار متناوب يولّد مجالًا متغيرًا يحدث تيارات دوامية تُسخّن قاع الإناء',
-    tools:['وشيعة حثية مسطحة','مصدر تيار متناوب عالي التردد','إناء معدني (فرومغناطيسي)','مؤشر حرارة'],
-    steps:['ضع الإناء المعدني فوق الوشيعة الحثية.','شغّل التيار المتردد عالي التردد في الوشيعة.','لاحظ نشوء تيارات دوامية في قاعدة الإناء.','لاحظ ارتفاع درجة حرارة الإناء دون تسخين الوشيعة نفسها.','غيّر مستوى الطاقة ولاحظ تأثيره على معدل التسخين.']
+  1: { title:'توليد التيار المحتث', subtitle:'حرّك المغناطيس بالقرب من الملف لتوليد تيار محتث',
+    steps:['اسحب الملف والمغناطيس والجلفانومتر إلى الكانفاس.','وصّل طرفي الملف بالجلفانومتر بسحب سلك بين نقطتي الاتصال.','قرّب المغناطيس من الملف يدويًا ولاحظ اتجاه إبرة الجلفانومتر.','أبعد المغناطيس ولاحظ اختلاف اتجاه الانحراف.','اعكس قطبية المغناطيس وسجّل الفرق.'],
+    tools:['coilInduction','magnet','galvanometer'] },
+  2: { title:'اكتشاف فاراداي للحث الكهرومغناطيسي', subtitle:'ملفان على قلب من الحديد المطاوع — أغلق وافتح المفتاح ولاحظ الجلفانومتر',
+    steps:['ضع القلب الحديدي، ولُف حوله الملف الابتدائي والملف الثانوي.','صل الملف الابتدائي بالبطارية والمفتاح.','صل الملف الثانوي بالجلفانومتر.','أغلق المفتاح فجأة ولاحظ انحراف المؤشر لحظيًا.','افتح المفتاح فجأة ولاحظ انحرافًا معاكسًا.'],
+    tools:['ironCore','coilPrimary','coilSecondary','battery','switch','galvanometer'] },
+  3: { title:'نشاط الحث الكهرومغناطيسي المتبادل', subtitle:'ثلاث طرق لتوليد تيار محتث في الملف الثانوي',
+    steps:['ركّب ملفين ابتدائي وثانوي، وصل الابتدائي ببطارية ومفتاح وريوستات، والثانوي بجلفانومتر.','أغلق وافتح المفتاح فجأة ولاحظ نبضة التيار.','غيّر الريوستات تدريجيًا ولاحظ ظهور تيار أثناء التغيير فقط.','قارن بين الطرق: التيار المحتث لا يظهر إلا عند تغيّر الفيض.'],
+    tools:['coilPrimary','coilSecondary','battery','switch','rheostat','galvanometer'] },
+  4: { title:'القوة الدافعة الكهربائية الحركية (الحث الحركي)', subtitle:'حرّك الساق الموصلة على القضيبين المتوازيين داخل مجال مغناطيسي',
+    steps:['ضع القضيبين المتوازيين وركّب الساق المعدنية عليهما.','ضع مصدر المجال المنتظم بحيث يشمل منطقة الساق.','صل طرفي القضيبين بمقاومة أو جلفانومتر.','حرّك الساق يدويًا وسجّل ملاحظاتك عن التيار الناشئ.'],
+    tools:['rails','rod','fieldSource','resistor','galvanometer'] },
+  5: { title:'طرائق تغيّر الفيض المغناطيسي', subtitle:'Φ = B·A·cosθ — الزاوية، المساحة، وكثافة الفيض',
+    steps:['ضع الملف داخل منطقة المجال المنتظم.','استخدم متجه المساحة لتحديد اتجاه A، ووصّل مقياس الفيض للملف.','غيّر زاوية الملف أو موضعه ولاحظ تغيّر قراءة المقياس.','قارن الحالات: الفيض أقصاه عند θ=0 وصفر عند θ=90°.'],
+    tools:['coilInduction','fieldSource','areaVector','fluxMeter'] },
+  6: { title:'قانون لنز', subtitle:'اسحب المغناطيس يدويًا عبر حلقة موصلة مغلقة ولاحظ التيار المحتث',
+    steps:['ضع الحلقة الموصلة على الكانفاس.','حرّك المغناطيس نحو الحلقة ببطء.','لاحظ اتجاه القطب المتكوّن على الحلقة أثناء الاقتراب.','أبعد المغناطيس ولاحظ انعكاس الحالة.'],
+    tools:['ring','magnet'] },
+  7: { title:'نشاط تقليل التيارات الدوامية', subtitle:'بندول مصمت مقابل بندول مشقوق داخل مجال مغناطيسي',
+    steps:['ثبّت الحامل، وعلّق البندول المصمت بين قطبي مصدر المجال.','أرجحه ولاحظ سرعة توقفه.','كرر بالبندول المشقوق وقارن مدة التأرجح.','ناقش سبب الفرق (التيارات الدوامية).'],
+    tools:['pendulumSolid','pendulumSlotted','fieldSource','stand'] },
+  8: { title:'تأثير المحاثة (دائرة RL)', subtitle:'دائرتان متوازيتان: مصباح مع مقاومة ومصباح مع ملف محاثة',
+    steps:['صل دائرة أولى: بطارية + مفتاح + مقاومة + جلفانومتر.','صل دائرة ثانية: بطارية + مفتاح + ملف محاثة + جلفانومتر.','أغلق مفتاح كل دائرة وقارن سرعة استقرار المؤشر.'],
+    tools:['inductor','resistor','battery','switch','galvanometer'] },
+  9: { title:'تجربة الحث الذاتي (مصباح النيون)', subtitle:'مصباح النيون يومض فقط عند فتح الدائرة فجأة',
+    steps:['صل الملف الكبير بالبطارية والمفتاح، ومصباح النيون على التوازي معهما.','أغلق المفتاح — لاحظ أن المصباح لا يضيء (الجهد منخفض).','افتح المفتاح فجأة وسجّل ملاحظتك عن ومضة المصباح.'],
+    tools:['inductor','battery','switch','neonLamp'] },
+  10:{ title:'الطباخ الحثي (موقد الحث الكهرومغناطيسي)', subtitle:'تيار متناوب يولّد مجالًا متغيرًا يحدث تيارات دوامية تُسخّن قاع الإناء',
+    steps:['ضع الوشيعة الحثية المسطحة على الكانفاس.','صل الوشيعة بمصدر التيار المتناوب عالي التردد.','ضع الإناء المعدني فوق الوشيعة وراقب مؤشر الحرارة.'],
+    tools:['flatCoil','acHighFreq','pot','thermometer'] }
+};
+
+/* =========================================================================
+   TOOL TYPE LIBRARY — every draggable object the palettes can offer.
+   hasTerminals: true  -> participates in the wiring/circuit engine (two
+   leads, can be wired, can conduct current).
+   hasTerminals: false -> purely a positionable prop (magnet, rails, pot...).
+   ========================================================================= */
+const TYPES = {
+  battery:{ label:'بطارية', w:140, h:56, hasTerminals:true, svg:()=>`
+    <line x1="0" y1="28" x2="20" y2="28" stroke="#8a6d1a" stroke-width="4"/>
+    <line x1="120" y1="28" x2="140" y2="28" stroke="#8a6d1a" stroke-width="4"/>
+    <rect x="20" y="6" width="46" height="44" rx="4" fill="#eef3fa" stroke="#8a6d1a" stroke-width="2"/>
+    <rect x="66" y="6" width="46" height="44" rx="4" fill="#2f6fd1" stroke="#8a6d1a" stroke-width="2"/>
+    <rect x="112" y="17" width="8" height="22" fill="#2f6fd1"/>
+    <text x="36" y="34" font-size="20" fill="#2f6fd1" text-anchor="middle" font-weight="700">+</text>
+    <text x="90" y="33" font-size="20" fill="#fff" text-anchor="middle" font-weight="700">−</text>` },
+  ac:{ label:'مصدر جهد متردد', w:140, h:56, hasTerminals:true, svg:()=>`
+    <line x1="0" y1="28" x2="34" y2="28" stroke="#8a6d1a" stroke-width="4"/>
+    <line x1="106" y1="28" x2="140" y2="28" stroke="#8a6d1a" stroke-width="4"/>
+    <circle cx="70" cy="28" r="26" fill="#fff" stroke="#2f6fd1" stroke-width="3"/>
+    <path d="M54 28 Q62 12 70 28 T86 28" fill="none" stroke="#2f6fd1" stroke-width="3"/>` },
+  acHighFreq:{ label:'مصدر تيار متناوب عالي التردد', w:140, h:56, hasTerminals:true, svg:()=>`
+    <line x1="0" y1="28" x2="34" y2="28" stroke="#8a6d1a" stroke-width="4"/>
+    <line x1="106" y1="28" x2="140" y2="28" stroke="#8a6d1a" stroke-width="4"/>
+    <circle cx="70" cy="28" r="26" fill="#fff" stroke="#ef5b6b" stroke-width="3"/>
+    <path d="M50 28 Q56 14 62 28 T74 28 T86 28" fill="none" stroke="#ef5b6b" stroke-width="2.5"/>` },
+  switch:{ label:'مفتاح كهربائي', w:140, h:56, hasTerminals:true, toggle:true, svg:()=>`
+    <line x1="0" y1="28" x2="20" y2="28" stroke="#8a6d1a" stroke-width="4"/>
+    <line x1="120" y1="28" x2="140" y2="28" stroke="#8a6d1a" stroke-width="4"/>
+    <circle cx="120" cy="28" r="8" fill="none" stroke="#8a6d1a" stroke-width="2" stroke-dasharray="2 3"/>
+    <line class="lever" x1="20" y1="28" x2="112" y2="28" stroke="#3a3a3a" stroke-width="6" stroke-linecap="round"/>
+    <circle cx="20" cy="28" r="8" fill="#d8d8d8" stroke="#555" stroke-width="2"/>
+    <circle cx="20" cy="28" r="3" fill="#555"/>` },
+  resistor:{ label:'مقاومة', w:140, h:56, hasTerminals:true, svg:()=>`
+    <line x1="0" y1="28" x2="30" y2="28" stroke="#8a6d1a" stroke-width="4"/>
+    <line x1="110" y1="28" x2="140" y2="28" stroke="#8a6d1a" stroke-width="4"/>
+    <rect x="30" y="12" width="80" height="32" rx="6" fill="#f1c56b" stroke="#8a6d1a" stroke-width="2"/>
+    <polyline points="30,28 42,28 48,14 60,42 72,14 84,42 96,14 102,28 110,28" fill="none" stroke="#5c3d0a" stroke-width="3"/>` },
+  rheostat:{ label:'ريوستات', w:140, h:56, hasTerminals:true, svg:()=>`
+    <line x1="0" y1="28" x2="30" y2="28" stroke="#8a6d1a" stroke-width="4"/>
+    <line x1="110" y1="28" x2="140" y2="28" stroke="#8a6d1a" stroke-width="4"/>
+    <rect x="30" y="16" width="80" height="24" rx="6" fill="#c9d3e6" stroke="#8a6d1a" stroke-width="2"/>
+    <line x1="30" y1="28" x2="110" y2="28" stroke="#5a6a8c" stroke-width="3"/>
+    <path d="M55 46 L70 10 L85 46" fill="none" stroke="#3a2a18" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="70" cy="10" r="4" fill="#3a2a18"/>` },
+  galvanometer:{ label:'جلفانومتر', w:130, h:80, hasTerminals:true, svg:(comp)=>`
+    <line x1="0" y1="65" x2="18" y2="65" stroke="#8a6d1a" stroke-width="4"/>
+    <line x1="112" y1="65" x2="130" y2="65" stroke="#8a6d1a" stroke-width="4"/>
+    <path d="M18 65 A47 47 0 0 1 112 65 Z" fill="#eef3fa" stroke="#8a6d1a" stroke-width="2"/>
+    <text x="65" y="34" font-size="13" fill="#2a3550" text-anchor="middle" font-weight="700">G</text>
+    <line class="needle" x1="65" y1="65" x2="65" y2="30" stroke="#c0384a" stroke-width="2.5" stroke-linecap="round" transform-origin="65px 65px"/>
+    <circle cx="65" cy="65" r="4" fill="#3a2a18"/>` },
+  coilPrimary:{ label:'ملف ابتدائي', w:150, h:70, hasTerminals:true, svg:()=>coilSVG(150,70,'#c9d3e6') },
+  coilSecondary:{ label:'ملف ثانوي', w:150, h:70, hasTerminals:true, svg:()=>coilSVG(150,70,'#e8c99b') },
+  coilInduction:{ label:'ملف حث (سلك نحاسي)', w:150, h:70, hasTerminals:true, svg:()=>coilSVG(150,70,'#d98a3d') },
+  inductor:{ label:'ملف محاثة', w:150, h:70, hasTerminals:true, svg:()=>coilSVG(150,70,'#c9d3e6') },
+  flatCoil:{ label:'وشيعة حثية مسطحة', w:140, h:70, hasTerminals:true, svg:()=>`
+    <line x1="0" y1="35" x2="20" y2="35" stroke="#8a6d1a" stroke-width="4"/>
+    <line x1="120" y1="35" x2="140" y2="35" stroke="#8a6d1a" stroke-width="4"/>
+    ${[26,20,14,8].map(r=>`<ellipse cx="70" cy="35" rx="${r*2.2}" ry="${r}" fill="none" stroke="#d98a3d" stroke-width="3"/>`).join('')}` },
+  neonLamp:{ label:'مصباح نيون', w:140, h:56, hasTerminals:true, svg:()=>`
+    <line x1="0" y1="28" x2="40" y2="28" stroke="#8a6d1a" stroke-width="4"/>
+    <line x1="100" y1="28" x2="140" y2="28" stroke="#8a6d1a" stroke-width="4"/>
+    <rect class="glass" x="40" y="12" width="60" height="32" rx="16" fill="#3a1f33" stroke="#ff5abe" stroke-width="2"/>
+    <line x1="52" y1="28" x2="88" y2="28" stroke="#ff5abe" stroke-width="2" stroke-dasharray="3 3"/>` },
+  magnet:{ label:'مغناطيس قضيبي', w:104, h:48, hasTerminals:false, svg:()=>`
+    <rect x="2" y="2" width="48" height="44" rx="4" fill="#ef5b6b" stroke="#1a1410" stroke-width="2"/>
+    <rect x="52" y="2" width="48" height="44" rx="4" fill="#4d8dff" stroke="#1a1410" stroke-width="2"/>
+    <text x="26" y="31" font-size="20" fill="#fff" text-anchor="middle" font-weight="900">N</text>
+    <text x="76" y="31" font-size="20" fill="#fff" text-anchor="middle" font-weight="900">S</text>` },
+  fieldSource:{ label:'مصدر مجال منتظم', w:140, h:84, hasTerminals:false, svg:()=>`
+    <rect x="4" y="4" width="132" height="16" rx="3" fill="#ef5b6b" stroke="#1a1410" stroke-width="1.5"/>
+    <text x="70" y="16" font-size="11" fill="#fff" text-anchor="middle" font-weight="800">N</text>
+    <rect x="4" y="64" width="132" height="16" rx="3" fill="#4d8dff" stroke="#1a1410" stroke-width="1.5"/>
+    <text x="70" y="76" font-size="11" fill="#fff" text-anchor="middle" font-weight="800">S</text>
+    ${[20,50,80,110].map(x=>`<line x1="${x}" y1="24" x2="${x}" y2="60" stroke="#ffe9c7" stroke-width="2" marker-end="url(#arrowB)"/>`).join('')}
+    <defs><marker id="arrowB" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#ffe9c7"/></marker></defs>` },
+  ironCore:{ label:'قلب حديدي مطاوع', w:120, h:90, hasTerminals:false, svg:()=>`
+    <path d="M14 4 H30 V60 H90 V4 H106 V90 H80 V34 H40 V90 H14 Z" fill="#8891a0" stroke="#4a5160" stroke-width="2"/>` },
+  ring:{ label:'حلقة موصلة', w:110, h:110, hasTerminals:false, svg:()=>`
+    <ellipse cx="55" cy="55" rx="46" ry="46" fill="none" stroke="#d98a3d" stroke-width="9"/>
+    <ellipse cx="55" cy="55" rx="46" ry="46" fill="none" stroke="#e8a860" stroke-width="3"/>` },
+  rails:{ label:'قضيبان موصلان', w:220, h:90, hasTerminals:false, svg:()=>`
+    <line x1="10" y1="14" x2="210" y2="14" stroke="#c9d3e6" stroke-width="6" stroke-linecap="round"/>
+    <line x1="10" y1="76" x2="210" y2="76" stroke="#c9d3e6" stroke-width="6" stroke-linecap="round"/>
+    <line x1="10" y1="14" x2="10" y2="76" stroke="#8a6d1a" stroke-width="5"/>` },
+  rod:{ label:'ساق معدنية', w:26, h:100, hasTerminals:false, svg:()=>`
+    <rect x="6" y="2" width="14" height="96" rx="4" fill="#e8a860" stroke="#8a6d1a" stroke-width="2"/>` },
+  pendulumSolid:{ label:'بندول مصمت', w:90, h:150, hasTerminals:false, svg:()=>`
+    <line x1="45" y1="0" x2="45" y2="110" stroke="#5a6a8c" stroke-width="3"/>
+    <circle cx="45" cy="0" r="5" fill="#3a2a18"/>
+    <rect x="15" y="110" width="60" height="36" rx="6" fill="#8891a0" stroke="#4a5160" stroke-width="2"/>` },
+  pendulumSlotted:{ label:'بندول مشقوق', w:90, h:150, hasTerminals:false, svg:()=>`
+    <line x1="45" y1="0" x2="45" y2="110" stroke="#5a6a8c" stroke-width="3"/>
+    <circle cx="45" cy="0" r="5" fill="#3a2a18"/>
+    <rect x="15" y="110" width="60" height="36" rx="6" fill="#8891a0" stroke="#4a5160" stroke-width="2"/>
+    <line x1="27" y1="116" x2="27" y2="140" stroke="#4a2c11" stroke-width="4"/>
+    <line x1="45" y1="116" x2="45" y2="140" stroke="#4a2c11" stroke-width="4"/>
+    <line x1="63" y1="116" x2="63" y2="140" stroke="#4a2c11" stroke-width="4"/>` },
+  stand:{ label:'حامل', w:100, h:120, hasTerminals:false, svg:()=>`
+    <rect x="10" y="110" width="80" height="8" rx="2" fill="#4a5160"/>
+    <line x1="50" y1="4" x2="50" y2="112" stroke="#4a5160" stroke-width="6"/>
+    <line x1="50" y1="10" x2="90" y2="10" stroke="#4a5160" stroke-width="6"/>` },
+  pot:{ label:'إناء معدني', w:140, h:66, hasTerminals:false, svg:()=>`
+    <path d="M18 6 H122 L104 60 H36 Z" fill="#8891a0" stroke="#4a5160" stroke-width="2.5"/>
+    <ellipse cx="70" cy="6" rx="52" ry="7" fill="#aab2c0" stroke="#4a5160" stroke-width="2"/>` },
+  thermometer:{ label:'مؤشر حرارة', w:26, h:130, hasTerminals:false, svg:()=>`
+    <line x1="13" y1="4" x2="13" y2="96" stroke="#c9d3e6" stroke-width="6" stroke-linecap="round"/>
+    <circle cx="13" cy="110" r="14" fill="#ef5b6b" stroke="#8a6d1a" stroke-width="2"/>
+    <line x1="13" y1="20" x2="13" y2="100" stroke="#ef5b6b" stroke-width="2.5"/>` },
+  areaVector:{ label:'متجه المساحة A', w:100, h:60, hasTerminals:false, svg:()=>`
+    <line x1="10" y1="50" x2="80" y2="10" stroke="#7fe4ef" stroke-width="3" marker-end="url(#arrowA)"/>
+    <text x="82" y="14" font-size="14" fill="#7fe4ef" font-weight="800">A</text>
+    <defs><marker id="arrowA" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#7fe4ef"/></marker></defs>` },
+  fluxMeter:{ label:'جهاز قياس الفيض', w:130, h:80, hasTerminals:true, svg:()=>`
+    <line x1="0" y1="65" x2="18" y2="65" stroke="#8a6d1a" stroke-width="4"/>
+    <line x1="112" y1="65" x2="130" y2="65" stroke="#8a6d1a" stroke-width="4"/>
+    <path d="M18 65 A47 47 0 0 1 112 65 Z" fill="#eef3fa" stroke="#8a6d1a" stroke-width="2"/>
+    <text x="65" y="34" font-size="11" fill="#2a3550" text-anchor="middle" font-weight="700">Φ</text>
+    <line class="needle" x1="65" y1="65" x2="65" y2="30" stroke="#2f6fd1" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="65" cy="65" r="4" fill="#3a2a18"/>` },
+};
+function coilSVG(w,h,color){
+  const turns=5, cy=h/2, spacing=(w-40)/turns;
+  let loops='';
+  for(let i=0;i<turns;i++){
+    const cx=20+i*spacing+spacing/2;
+    loops+=`<ellipse cx="${cx}" cy="${cy}" rx="${spacing*0.42}" ry="${h*0.42}" fill="none" stroke="${color}" stroke-width="3.5"/>`;
   }
-};
+  return `<line x1="0" y1="${cy}" x2="20" y2="${cy}" stroke="#8a6d1a" stroke-width="4"/>
+    <line x1="${w-20}" y1="${cy}" x2="${w}" y2="${cy}" stroke="#8a6d1a" stroke-width="4"/>
+    ${loops}`;
+}
 
 /* =========================================================================
-   COLORS (kept in sync with CSS palette, used for canvas drawing)
+   PER-TAB SANDBOX ENGINE — generalised from the circuit-simulator project:
+   drag components in from the palette, wire terminals together, select /
+   delete, zoom. Each tab keeps its own independent {components, wires}.
    ========================================================================= */
-const COLORS = {
-  bg:'#6e441c', border:'#2b3f63', text:'#ffe9c7', muted:'#c9b28f',
-  amber:'#f2a33d', cyan:'#2fb3c7', cyanBright:'#7fe4ef', red:'#ef5b6b', blue:'#4d8dff',
-  coil:'#c9d3e6', wire:'#5a6a8c', copper:'#d98a3d', copperLight:'#e8a860'
-};
+const SVG_NS='http://www.w3.org/2000/svg';
+let nextId=1;
+const uid=()=>'o'+(nextId++);
 
-/* =========================================================================
-   TAB NAV + SIDEBAR WIRING
-   ========================================================================= */
+const labs = {};
+Object.keys(EXPERIMENTS).forEach(id=>{ labs[id] = { components:[], wires:[], selected:null, scale:1 }; });
 let activeTab = 1;
-const tabsNav = document.getElementById('tabsNav');
 
+const el = {
+  tabsNav: document.getElementById('tabsNav'),
+  sidebarTitle: document.getElementById('sidebarTitle'),
+  paletteGrid: document.getElementById('paletteGrid'),
+  stepsList: document.getElementById('stepsList'),
+  mainTitle: document.getElementById('mainTitle'),
+  mainSubtitle: document.getElementById('mainSubtitle'),
+  viewport: document.getElementById('viewport'),
+  world: document.getElementById('world'),
+  wireLayer: document.getElementById('wireLayer'),
+  wireContent: document.getElementById('wireContent'),
+  circuitStatus: document.getElementById('circuitStatus'),
+  deleteBtn: document.getElementById('deleteBtn'),
+  clearBtn: document.getElementById('clearBtn'),
+  zoomInBtn: document.getElementById('zoomInBtn'),
+  zoomOutBtn: document.getElementById('zoomOutBtn'),
+  viewModeBtn: document.getElementById('viewModeBtn'),
+  canvasWrap: document.querySelector('.canvas-wrap'),
+};
+
+function lab(){ return labs[activeTab]; }
+function findComp(id){ return lab().components.find(c=>c.id===id); }
+
+/* ---- tabs + sidebar ---- */
 Object.keys(EXPERIMENTS).forEach(id=>{
-  const btn = document.createElement('button');
-  btn.className = 'tab-btn' + (Number(id)===1 ? ' active' : '');
-  btn.dataset.tab = id;
-  btn.innerHTML = `<span class="num">${id}</span><span>${EXPERIMENTS[id].title}</span>`;
-  btn.addEventListener('click', ()=> switchTab(Number(id)));
-  tabsNav.appendChild(btn);
+  const btn=document.createElement('button');
+  btn.className='tab-btn'+(Number(id)===1?' active':'');
+  btn.dataset.tab=id;
+  btn.innerHTML=`<span class="num">${id}</span><span>${EXPERIMENTS[id].title}</span>`;
+  btn.addEventListener('click', ()=>switchTab(Number(id)));
+  el.tabsNav.appendChild(btn);
 });
 
 function switchTab(id){
-  activeTab = id;
-  document.querySelectorAll('.tab-btn').forEach(b=> b.classList.toggle('active', Number(b.dataset.tab)===id));
-  document.querySelectorAll('.control-panel').forEach(p=> p.classList.toggle('active', Number(p.dataset.tab)===id));
-
-  const exp = EXPERIMENTS[id];
-  document.getElementById('sidebarTitle').textContent = `النشاط ${id}: ${exp.title}`;
-  document.getElementById('mainTitle').textContent = exp.title;
-  document.getElementById('mainSubtitle').textContent = exp.subtitle;
-
-  const toolsList = document.getElementById('toolsList');
-  toolsList.innerHTML = exp.tools.map(t=>`<li>${t}</li>`).join('');
-  const stepsList = document.getElementById('stepsList');
-  stepsList.innerHTML = exp.steps.map(s=>`<li>${s}</li>`).join('');
-
-  // Reset / configure the readout labels for tabs that have working sims
-  configureReadouts(id);
-  updateModeStatusPill();
-}
-
-function configureReadouts(id){
-  const l1=document.getElementById('lbl1'), l2=document.getElementById('lbl2'), l3=document.getElementById('lbl3');
-  if(id===2){
-    l1.textContent='التيار الابتدائي (Ip)';
-    l2.textContent='القوة الدافعة المحتثة بالثانوي';
-    l3.textContent='التيار الثانوي المحتث (Is)';
-  } else if(id===3){
-    l1.textContent='التيار الابتدائي (Ip)';
-    l2.textContent='القوة الدافعة المحتثة بالثانوي';
-    l3.textContent='التيار الثانوي المحتث (Is)';
-  } else if(id===4){
-    l1.textContent='طول الساق × السرعة (L·v)';
-    l2.textContent='القوة الدافعة الحركية (EMF)';
-    l3.textContent='التيار المحتث (I)';
-  } else if(id===5){
-    l1.textContent='الفيض المغناطيسي (Φ = B·A·cosθ)';
-    l2.textContent='القوة الدافعة اللحظية (أثناء التغيير)';
-    l3.textContent='التيار اللحظي (I)';
-  } else if(id===6){
-    l1.textContent='سرعة المغناطيس (v)';
-    l2.textContent='التيار المحتث (I)';
-    l3.textContent='حالة الحركة';
-  } else {
-    l1.textContent='الفيض المغناطيسي (Φ)';
-    l2.textContent='القوة الدافعة الكهرمغناطيسية (EMF)';
-    l3.textContent='التيار المحتث (I)';
-  }
-}
-
-/* =========================================================================
-   SHARED STATE
-   ========================================================================= */
-const state = {
-  1: { mode:'auto', reversed:false, method:1, speed:0.6, B:1, N:4, voltage:6, magnetX:0, prevMagnetX:0, t:0, dashOffset:0, dragging:false, current:0, emf:0, flux:0, prevFlux:0, switchOn:false, primaryCurrent:0, prevFluxLink:0, autoTimer:0 },
-  2: { switchOn:false, voltage:6, N:4, primaryCurrent:0, prevFluxLink:0, secondaryCurrent:0, secondaryEMF:0, dashOffsetP:0, dashOffsetS:0, fieldGlow:0 },
-  3: { mode:'auto', reversed:false, method:1, switchOn:false, voltage:6, N:4, rheostat:0.5, primaryCurrent:0, secondaryCurrent:0, secondaryEMF:0, prevFluxLink:0, gapOffset:0, dashOffsetP:0, dashOffsetS:0, autoTimer:0, autoTimer2:0 },
-  4: { mode:'auto', reversed:false, speed:0.5, B:1, R:5, rodX:0, prevRodX:0, t:0, dashOffset:0, dragging:false, current:0, emf:0 },
-  5: { mode:'auto', fluxMode:'angle', animPhase:0, reversed:false, speed:0.6, B:1, rx:110, ry:80, theta:0, prevTheta:0, area:0, flux:0, prevFlux:0, emf:0, current:0, dashOffset:0, dragHandle:null, history:[] },
-  6: { magnetY:-220, prevMagnetY:-220, reversed:false, B:1, prevFlux:0, current:0, velocity:0, approaching:false, leaving:false, forceMagnitude:0, forceDir:0, flowPhase:0, dragging:false, fallingAuto:false, dropSpeed:0.6 },
-  7: { mode:'auto', reversed:false, B:1,
-       thetaSolid:0.55, omegaSolid:0, thetaSlot:0.55, omegaSlot:0,
-       autoTimer:0 },
-  8: { mode:'auto', switchOn:false, voltage:9, L:1,
-       currentA:0, currentB:0, autoTimer:0 },
-  9: { mode:'auto', reversed:false, switchOn:false, prevSwitchOn:false, voltage:9, L:1,
-       current:0, flashTimer:0, flashIntensity:0, spikeV:0, autoTimer:0 },
-  10:{ mode:'auto', reversed:false, power:0.6, on:true, temp:20, phase:0 }
-};
-
-/* Slider / button wiring for tabs 1-4 */
-document.querySelectorAll('input[type=range][data-param]').forEach(inp=>{
-  inp.addEventListener('input', e=>{
-    const tab = Number(e.target.dataset.tab);
-    const param = e.target.dataset.param;
-    const value = Number(e.target.value);
-    state[tab][param] = value;
-    const map = {speed:'speed', B:'field', N:'turns', voltage:'voltage', R:'res', rheostat:'rheostat', L:'inductance', power:'power', dropSpeed:'dropspeed'};
-    const labelEl = document.getElementById(`val-${map[param]}${tab}`);
-    const twoDecimalParams = ['rheostat','L','power'];
-    if(labelEl) labelEl.textContent = value.toFixed(param==='N'?0:(twoDecimalParams.includes(param)?2:1));
+  activeTab=id;
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', Number(b.dataset.tab)===id));
+  const exp=EXPERIMENTS[id];
+  el.sidebarTitle.textContent=`النشاط ${id}: ${exp.title}`;
+  el.mainTitle.textContent=exp.title;
+  el.mainSubtitle.textContent=exp.subtitle;
+  el.stepsList.innerHTML=exp.steps.map(s=>`<li>${s}</li>`).join('');
+  el.paletteGrid.innerHTML='';
+  exp.tools.forEach(type=>{
+    const t=TYPES[type];
+    const item=document.createElement('div');
+    item.className='palette-item';
+    item.draggable=true;
+    item.dataset.type=type;
+    item.innerHTML=`<div class="palette-icon"><svg viewBox="0 0 ${t.w} ${t.h}">${t.svg()}</svg></div><div class="palette-label">${t.label}</div>`;
+    item.addEventListener('dragstart', e=>{ e.dataTransfer.setData('text/plain', type); e.dataTransfer.effectAllowed='copy'; });
+    el.paletteGrid.appendChild(item);
   });
-});
-
-document.querySelectorAll('.ctrl-btn[data-action="mode"]').forEach(btn=>{
-  btn.addEventListener('click', e=>{
-    const tab = Number(e.currentTarget.dataset.tab);
-    const s = state[tab];
-    s.mode = s.mode === 'auto' ? 'manual' : 'auto';
-    e.currentTarget.classList.toggle('on', s.mode==='auto');
-    e.currentTarget.textContent = s.mode==='auto' ? '⚙️ تلقائي' : '🖐️ يدوي';
-    if(tab===3){
-      document.getElementById('switchBtn3').style.opacity = s.mode==='manual' ? '1' : '.5';
-    }
-    if(tab===activeTab) updateModeStatusPill();
-  });
-});
-
-document.querySelectorAll('.ctrl-btn[data-action="reverse"]').forEach(btn=>{
-  btn.addEventListener('click', e=>{
-    const tab = Number(e.currentTarget.dataset.tab);
-    state[tab].reversed = !state[tab].reversed;
-    e.currentTarget.classList.toggle('warn', state[tab].reversed);
-    if(tab===7){
-      // repurposed: toggles whether the magnetic field is present at all
-      e.currentTarget.classList.toggle('on', !state[tab].reversed);
-      e.currentTarget.textContent = state[tab].reversed ? '🔁 المجال: متوقف' : '🔁 المجال: يعمل';
-    }
-    if(tab===10){
-      // repurposed: toggles the pan material (iron vs aluminum)
-      e.currentTarget.textContent = state[tab].reversed ? '🔁 نوع الإناء: ألمنيوم' : '🔁 نوع الإناء: حديدي';
-    }
-  });
-});
-
-document.querySelectorAll('#fluxModeBtns5 button').forEach(btn=>{
-  btn.addEventListener('click', e=>{
-    const m = e.currentTarget.dataset.fluxmode;
-    state[5].fluxMode = m;
-    state[5].animPhase = 0;
-    document.querySelectorAll('#fluxModeBtns5 button').forEach(b=>b.classList.remove('on'));
-    e.currentTarget.classList.add('on');
-    // reset the geometry/field to that mode's neutral start
-    if(m==='angle'){ state[5].theta=0; state[5].rx=110; state[5].ry=80; }
-    if(m==='area'){ state[5].theta=0; }
-    if(m==='field'){ state[5].theta=0; state[5].rx=110; state[5].ry=80; }
-    const hint=document.getElementById('fluxModeHint5');
-    if(hint){
-      hint.textContent = m==='angle'
-        ? '💡 دوران الملف يغيّر الزاوية θ بين A وB. عند θ=0 الفيض أقصاه، وعند θ=90° يكون صفرًا.'
-        : m==='area'
-        ? '💡 تمدّد الملف وتقلّصه يغيّر المساحة A، فيتغيّر الفيض Φ = B·A (الزاوية ثابتة).'
-        : '💡 تغيّر كثافة المجال B يغيّر الفيض Φ = B·A مباشرة (المساحة والزاوية ثابتتان).';
-    }
-  });
-});
-
-document.getElementById('switchBtn3').addEventListener('click', e=>{
-  const s = state[3];
-  if(s.method !== 1) return;   // the switch only applies to Method 1
-  if(s.mode !== 'manual') return; // in auto mode the switch toggles itself
-  s.switchOn = !s.switchOn;
-  e.currentTarget.classList.toggle('on', s.switchOn);
-  e.currentTarget.textContent = s.switchOn ? '🔌 فتح الدائرة الابتدائية' : '🔌 غلق الدائرة الابتدائية';
-});
-
-/* ---- Tab 3: three curriculum methods for demonstrating induction ---- */
-const TAB3_HINTS = {
-  1: '💡 هذه الطريقة: أغلق وافتح المفتاح فجأة (تلقائيًا أو يدويًا) ولاحظ نبضة التيار اللحظية بالملف الثانوي.',
-  2: '💡 هذه الطريقة: التيار بالملف الابتدائي ثابت. في الوضع اليدوي اسحب الملف الثانوي بالماوس لتقريبه أو إبعاده، ولاحظ ظهور تيار محتث فقط أثناء الحركة.',
-  3: '💡 هذه الطريقة: التيار بالملف الابتدائي يتغيّر تدريجيًا بواسطة الريوستات. في الوضع اليدوي حرّك شريط الريوستات، ولاحظ ظهور تيار محتث أثناء التغيير فقط (يختفي عند ثبات القيمة).'
-};
-document.querySelectorAll('#tab3-methods button, #tab3-methods-2 button, #tab3-methods-3 button').forEach(btn=>{
-  btn.addEventListener('click', e=>{
-    const m = Number(e.currentTarget.dataset.method);
-    const s = state[3];
-    s.method = m;
-    document.querySelectorAll('#tab3-methods button, #tab3-methods-2 button, #tab3-methods-3 button')
-      .forEach(b => b.classList.toggle('on', Number(b.dataset.method) === m));
-    document.getElementById('switchRow3').style.display = (m===1) ? 'flex' : 'none';
-    document.getElementById('rheostatRow3').style.display = (m===3) ? 'flex' : 'none';
-    document.getElementById('hint3').textContent = TAB3_HINTS[m];
-    // reset transient values so switching methods doesn't carry a stale spike
-    s.prevFluxLink = 0; s.primaryCurrent = 0; s.secondaryCurrent = 0; s.secondaryEMF = 0;
-    s.gapOffset = 0; s.switchOn = false;
-  });
-});
-
-/* ---- Tab 1: three curriculum methods for generating induced current ---- */
-const TAB1_HINTS = {
-  1: '💡 في الوضع اليدوي: اسحب المغناطيس الدائم بالماوس داخل الملف وخارجه.',
-  2: '💡 في الوضع اليدوي: اسحب الملف الابتدائي (المغناطيس الكهربائي المتصل ببطارية) داخل الملف الأصلي وخارجه.',
-  3: '💡 الملف الابتدائي ثابت داخل الملف الأصلي. في الوضع اليدوي اضغط زر المفتاح لغلقه وفتحه ولاحظ نبضة التيار.'
-};
-document.querySelectorAll('#tab1-method-1 button, #tab1-method-2 button, #tab1-method-3 button').forEach(btn=>{
-  btn.addEventListener('click', e=>{
-    const m = Number(e.currentTarget.dataset.method1);
-    const s = state[1];
-    s.method = m;
-    document.querySelectorAll('#tab1-method-1 button, #tab1-method-2 button, #tab1-method-3 button')
-      .forEach(b => b.classList.toggle('on', Number(b.dataset.method1) === m));
-    document.getElementById('speedRow1').style.display = (m===3) ? 'none' : 'flex';
-    document.getElementById('voltageRow1').style.display = (m===3) ? 'flex' : 'none';
-    document.getElementById('switchRow1').style.display = (m===3) ? 'flex' : 'none';
-    document.getElementById('dragHint1').textContent = TAB1_HINTS[m];
-    // reset transient values so switching methods doesn't carry a stale spike
-    s.magnetX = 0; s.prevFlux = 0; s.prevFluxLink = 0; s.primaryCurrent = 0;
-    s.current = 0; s.emf = 0; s.switchOn = false;
-  });
-});
-document.getElementById('switchBtn1').addEventListener('click', e=>{
-  const s = state[1];
-  if(s.method !== 3) return;
-  if(s.mode !== 'manual') return; // in auto mode the switch toggles itself
-  s.switchOn = !s.switchOn;
-  e.currentTarget.classList.toggle('on', s.switchOn);
-  e.currentTarget.textContent = s.switchOn ? '🔌 فتح دائرة الملف الابتدائي' : '🔌 غلق دائرة الملف الابتدائي';
-});
-
-/* ---- Tab 2: Faraday's Discovery — switch toggle (iron-core mutual induction) ---- */
-document.getElementById('switchBtn2').addEventListener('click', e=>{
-  state[2].switchOn = !state[2].switchOn;
-  e.currentTarget.classList.toggle('on', state[2].switchOn);
-  e.currentTarget.textContent = state[2].switchOn ? '🔌 فتح الدائرة الابتدائية' : '🔌 غلق الدائرة الابتدائية';
-});
-
-/* ---- Tab 6: Lenz's Law — auto-drop trigger (speed set by the slider) ---- */
-document.getElementById('dropBtn6').addEventListener('click', ()=>{
-  const s = state[6];
-  s.magnetY = -220;
-  s.fallingAuto = true;
-  s.dragging = false;
-});
-
-/* ---- Tab 7: Reducing Eddy Currents — manual release trigger ---- */
-document.getElementById('releaseBtn7').addEventListener('click', ()=>{
-  const s = state[7];
-  s.thetaSolid = 0.55; s.omegaSolid = 0;
-  s.thetaSlot = 0.55; s.omegaSlot = 0;
-});
-
-/* ---- Tab 8: Effect of Inductance — manual switch ---- */
-document.getElementById('switchBtn8').addEventListener('click', e=>{
-  const s = state[8];
-  if(s.mode !== 'manual') return;
-  s.switchOn = !s.switchOn;
-  e.currentTarget.classList.toggle('on', s.switchOn);
-  e.currentTarget.textContent = s.switchOn ? '🔌 فتح الدائرة' : '🔌 غلق الدائرة';
-});
-
-/* ---- Tab 9: Self-Induction — manual switch ---- */
-document.getElementById('switchBtn9').addEventListener('click', e=>{
-  const s = state[9];
-  if(s.mode !== 'manual') return;
-  s.switchOn = !s.switchOn;
-  e.currentTarget.classList.toggle('on', s.switchOn);
-  e.currentTarget.textContent = s.switchOn ? '🔌 فتح الدائرة' : '🔌 غلق الدائرة';
-});
-
-/* ---- Tab 10: Induction Cooker — manual power toggle ---- */
-document.getElementById('powerBtn10').addEventListener('click', e=>{
-  const s = state[10];
-  if(s.mode !== 'manual') return;
-  s.on = !s.on;
-  e.currentTarget.classList.toggle('on', s.on);
-});
-
-function updateModeStatusPill(){
-  const s = state[activeTab];
-  document.getElementById('modeStatus').textContent = (s && s.mode==='manual') ? 'يدوي' : 'تلقائي';
+  applyZoom();
+  render();
 }
 
-/* =========================================================================
-   CANVAS + INPUT (drag) HANDLING
-   ========================================================================= */
-const canvas = document.getElementById('simCanvas');
-const ctx = canvas.getContext('2d');
-const CW = canvas.width, CH = canvas.height;
-
-function getCanvasPos(evt){
-  const rect = canvas.getBoundingClientRect();
-  const clientX = evt.touches ? evt.touches[0].clientX : evt.clientX;
-  const clientY = evt.touches ? evt.touches[0].clientY : evt.clientY;
-  return {
-    x: (clientX - rect.left) * (CW / rect.width),
-    y: (clientY - rect.top) * (CH / rect.height)
-  };
+/* ---- coordinates ---- */
+function clientToWorld(clientX, clientY){
+  const rect=el.viewport.getBoundingClientRect();
+  const x=(clientX-rect.left+el.viewport.scrollLeft)/lab().scale;
+  const y=(clientY-rect.top+el.viewport.scrollTop)/lab().scale;
+  return {x,y};
+}
+function terminalPos(comp, term){
+  const t=TYPES[comp.type];
+  return { x: term==='a'?comp.x:comp.x+t.w, y: comp.y+t.h/2 };
 }
 
-let dragTarget = null; // 'magnet1' | 'magnet2' | 'rod4'
+/* ---- rendering ---- */
+function render(){ renderComponents(); renderWires(); evaluateCircuit(); }
 
-function pointerDown(evt){
-  const p = getCanvasPos(evt);
-  if(activeTab===1 && state[1].mode==='manual' && state[1].method!==3){
-    const mx = 470 + state[1].magnetX;
-    if(Math.abs(p.x-mx) < 90 && Math.abs(p.y-230) < 50){ dragTarget='magnet1'; canvas.classList.add('dragging'); }
-  } else if(activeTab===4 && state[4].mode==='manual'){
-    const rx = 190 + state[4].rodX;
-    if(Math.abs(p.x-rx) < 45){ dragTarget='rod4'; canvas.classList.add('dragging'); }
-  } else if(activeTab===3 && state[3].method===2 && state[3].mode==='manual'){
-    const pCx3 = 230, d = clamp(280+state[3].gapOffset,120,480);
-    const sCx3 = pCx3 + d;
-    if(Math.abs(p.x-sCx3) < 70 && Math.abs(p.y-225) < 90){ dragTarget='coil3sec'; canvas.classList.add('dragging'); }
-  }
-}
-function pointerMove(evt){
-  if(!dragTarget) return;
-  evt.preventDefault();
-  const p = getCanvasPos(evt);
-  if(dragTarget==='magnet1'){
-    state[1].magnetX = Math.max(-320, Math.min(320, p.x - 470));
-  } else if(dragTarget==='rod4'){
-    state[4].rodX = Math.max(0, Math.min(620, p.x - 190));
-  } else if(dragTarget==='coil3sec'){
-    const pCx3 = 230;
-    const d = Math.max(120, Math.min(480, p.x - pCx3));
-    state[3].gapOffset = d - 280;
-  }
-}
-function pointerUp(){ dragTarget=null; canvas.classList.remove('dragging'); }
+function renderComponents(){
+  el.world.innerHTML='';
+  for(const comp of lab().components){
+    const t=TYPES[comp.type];
+    const div=document.createElement('div');
+    div.className='comp'+(comp.type==='neonLamp'?' neon':'');
+    div.dataset.id=comp.id;
+    div.style.left=comp.x+'px'; div.style.top=comp.y+'px';
+    div.style.width=t.w+'px'; div.style.height=t.h+'px';
+    if(lab().selected && lab().selected.kind==='comp' && lab().selected.id===comp.id) div.classList.add('selected');
 
-canvas.addEventListener('mousedown', pointerDown);
-window.addEventListener('mousemove', pointerMove);
-window.addEventListener('mouseup', pointerUp);
-canvas.addEventListener('touchstart', pointerDown, {passive:true});
-window.addEventListener('touchmove', pointerMove, {passive:false});
-window.addEventListener('touchend', pointerUp);
+    const body=document.createElement('div');
+    body.className='comp-body';
+    body.innerHTML=`<svg viewBox="0 0 ${t.w} ${t.h}">${t.svg(comp)}</svg>`;
+    div.appendChild(body);
 
-/* =========================================================================
-   DRAW HELPERS
-   ========================================================================= */
-function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
-
-function roundRectPath(x,y,w,h,r,roundTop,roundBottom){
-  const rt = roundTop ? r : 0, rb = roundBottom ? r : 0;
-  ctx.beginPath();
-  ctx.moveTo(x+rt, y);
-  ctx.lineTo(x+w-rt, y);
-  if(rt) ctx.arcTo(x+w, y, x+w, y+rt, rt); else ctx.lineTo(x+w,y);
-  ctx.lineTo(x+w, y+h-rb);
-  if(rb) ctx.arcTo(x+w, y+h, x+w-rb, y+h, rb); else ctx.lineTo(x+w,y+h);
-  ctx.lineTo(x+rb, y+h);
-  if(rb) ctx.arcTo(x, y+h, x, y+h-rb, rb); else ctx.lineTo(x,y+h);
-  ctx.lineTo(x, y+rt);
-  if(rt) ctx.arcTo(x, y, x+rt, y, rt); else ctx.lineTo(x,y);
-  ctx.closePath();
-}
-
-function drawGalvanometer(ctx,cx,cy,r,value){
-  value = clamp(value,-1,1);
-  ctx.save();
-  ctx.translate(cx,cy);
-
-  // ---- cream/beige semicircular dial (styled like a real lab galvanometer) ----
-  ctx.beginPath();
-  ctx.moveTo(-r,4); ctx.arc(0,0,r,Math.PI,0,false); ctx.lineTo(r,4); ctx.closePath();
-  const grad = ctx.createLinearGradient(0,-r,0,4);
-  grad.addColorStop(0,'#f7f0da'); grad.addColorStop(1,'#e9dcbe');
-  ctx.fillStyle = grad; ctx.fill();
-  ctx.lineWidth=3; ctx.strokeStyle = '#2a3550'; ctx.stroke();
-
-  // ---- graduated, numbered scale: 0 at top centre, 1..5 each side ----
-  const dark = '#2a2320';
-  // major ticks at 0, ±1..±5  (11 divisions over the 180°)
-  for(let i=-5;i<=5;i++){
-    const frac = i/5;                        // -1..+1
-    const a = Math.PI - (frac+1)/2*Math.PI;  // map to angle
-    const major = (i%1===0);
-    const inner = major ? r-16 : r-10;
-    ctx.strokeStyle = dark; ctx.lineWidth = (i===0)?2.4:1.6;
-    ctx.beginPath();
-    ctx.moveTo(Math.cos(a)*(r-4), -Math.sin(a)*(r-4));
-    ctx.lineTo(Math.cos(a)*inner, -Math.sin(a)*inner);
-    ctx.stroke();
-    // minor ticks between majors
-    if(i<5){
-      for(let m=1;m<5;m++){
-        const f2=(i+m/5)/5;
-        const a2=Math.PI-(f2+1)/2*Math.PI;
-        ctx.lineWidth=0.8;
-        ctx.beginPath();
-        ctx.moveTo(Math.cos(a2)*(r-4), -Math.sin(a2)*(r-4));
-        ctx.lineTo(Math.cos(a2)*(r-9), -Math.sin(a2)*(r-9));
-        ctx.stroke();
-      }
-    }
-    // numbers on major ticks
-    ctx.fillStyle = dark; ctx.font = `bold ${Math.max(9,r*0.13)}px Tajawal`;
-    ctx.textAlign='center'; ctx.textBaseline='middle';
-    const nx=Math.cos(a)*(r-26), ny=-Math.sin(a)*(r-26);
-    ctx.fillText(String(Math.abs(i)), nx, ny);
-  }
-
-  // unit + labels
-  ctx.fillStyle = dark; ctx.font = `bold ${Math.max(11,r*0.2)}px Tajawal`; ctx.textAlign='center';
-  ctx.fillText('mA', 0, -r*0.34);
-  ctx.font = `bold ${Math.max(12,r*0.22)}px Tajawal`;
-  ctx.fillStyle = '#3a4a8a';
-  ctx.fillText('G', 0, -r*0.60);
-
-  // ---- + / − polarity marks near the ends ----
-  ctx.fillStyle = COLORS.red || '#ef5b6b'; ctx.font=`bold ${Math.max(11,r*0.18)}px Tajawal`;
-  ctx.fillText('+', -r*0.62, r*0.02+2);
-  ctx.fillStyle = COLORS.blue || '#4d8dff';
-  ctx.fillText('−', r*0.62, r*0.02+2);
-
-  // ---- black needle ----
-  const angle = Math.PI - (value+1)/2*Math.PI;
-  ctx.strokeStyle = '#1a1410'; ctx.lineWidth=Math.max(2,r*0.035); ctx.lineCap='round';
-  ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(Math.cos(angle)*(r-20), -Math.sin(angle)*(r-20)); ctx.stroke();
-  // hub
-  ctx.beginPath(); ctx.arc(0,0,Math.max(4,r*0.07),0,Math.PI*2); ctx.fillStyle='#1a1410'; ctx.fill();
-
-  // caption under the dial
-  ctx.fillStyle = COLORS.muted; ctx.font=`${Math.max(10,r*0.14)}px Tajawal`; ctx.textAlign='center'; ctx.textBaseline='top';
-  ctx.fillText('كلفانومتر', 0, 10);
-  ctx.restore();
-}
-
-function drawMagnet(ctx,x,y,length,thickness,vertical,reversed){
-  ctx.save();
-  ctx.translate(x,y);
-  if(vertical) ctx.rotate(Math.PI/2);
-  const half = length/2;
-  ctx.fillStyle = reversed ? COLORS.blue : COLORS.red;
-  ctx.fillRect(-half,-thickness/2, half, thickness);
-  ctx.fillStyle = reversed ? COLORS.red : COLORS.blue;
-  ctx.fillRect(0,-thickness/2, half, thickness);
-  ctx.strokeStyle = '#03060c'; ctx.lineWidth=2;
-  ctx.strokeRect(-half,-thickness/2, length, thickness);
-  ctx.fillStyle = '#fff'; ctx.font='bold 16px Tajawal'; ctx.textAlign='center'; ctx.textBaseline='middle';
-  ctx.save(); if(vertical) ctx.rotate(-Math.PI/2);
-  ctx.fillText(reversed?'S':'N', vertical?0:-half/2, vertical?-half/2:0);
-  ctx.restore();
-  ctx.save(); if(vertical) ctx.rotate(-Math.PI/2);
-  ctx.fillText(reversed?'N':'S', vertical?0:half/2, vertical?half/2:0);
-  ctx.restore();
-  ctx.restore();
-}
-
-function drawCoilHorizontal(ctx,cx,cy,turns,radiusY,spacing,color){
-  ctx.save();
-  const startX = cx - (turns-1)*spacing/2;
-  const base = color || COLORS.coil;
-  const copper = (base===COLORS.copper);
-  for(let i=0;i<turns;i++){
-    const x = startX+i*spacing;
-    // main winding stroke
-    ctx.strokeStyle = base; ctx.lineWidth = copper?4.5:3.5;
-    ctx.beginPath();
-    ctx.ellipse(x, cy, spacing*0.42, radiusY, 0, 0, Math.PI*2);
-    ctx.stroke();
-    // copper: add a lighter highlight arc for a rounded-wire look
-    if(copper){
-      ctx.strokeStyle = COLORS.copperLight; ctx.lineWidth=1.6;
-      ctx.beginPath();
-      ctx.ellipse(x-1.4, cy, spacing*0.42, radiusY, 0, Math.PI*0.9, Math.PI*1.9);
-      ctx.stroke();
-    }
-  }
-  ctx.restore();
-  return { leadTop:{x:startX-spacing*0.42, y:cy-radiusY}, leadBottom:{x:startX-spacing*0.42, y:cy+radiusY},
-           right:startX+(turns-1)*spacing+spacing*0.42 };
-}
-
-function drawCoilVertical(ctx,cx,cy,turns,radiusX,spacing,color){
-  ctx.save();
-  const startY = cy - (turns-1)*spacing/2;
-  const base = color || COLORS.coil;
-  const copper = (base===COLORS.copper);
-  for(let i=0;i<turns;i++){
-    const y = startY+i*spacing;
-    ctx.strokeStyle = base; ctx.lineWidth = copper?4.5:3.5;
-    ctx.beginPath();
-    ctx.ellipse(cx, y, radiusX, spacing*0.42, 0, 0, Math.PI*2);
-    ctx.stroke();
-    if(copper){
-      ctx.strokeStyle = COLORS.copperLight; ctx.lineWidth=1.6;
-      ctx.beginPath();
-      ctx.ellipse(cx, y-1.4, radiusX, spacing*0.42, 0, Math.PI*1.05, Math.PI*1.95);
-      ctx.stroke();
-    }
-  }
-  ctx.restore();
-  return { leadLeft:{x:cx-radiusX, y:startY-spacing*0.42}, leadRight:{x:cx+radiusX, y:startY-spacing*0.42} };
-}
-
-function strokeWire(ctx, points, color, width){
-  ctx.save();
-  ctx.strokeStyle = color; ctx.lineWidth = width||3; ctx.lineJoin='round';
-  ctx.beginPath();
-  points.forEach((p,i)=> i===0 ? ctx.moveTo(p.x,p.y) : ctx.lineTo(p.x,p.y));
-  ctx.stroke();
-  ctx.restore();
-}
-
-function strokeFlow(ctx, points, current, dashOffset){
-  strokeWire(ctx, points, COLORS.wire, 3);
-  if(Math.abs(current) < 0.01) return;
-  ctx.save();
-  ctx.strokeStyle = current>0 ? COLORS.cyanBright : COLORS.amber;
-  ctx.lineWidth = 3;
-  ctx.setLineDash([13,9]);
-  ctx.lineDashOffset = dashOffset;
-  ctx.beginPath();
-  points.forEach((p,i)=> i===0 ? ctx.moveTo(p.x,p.y) : ctx.lineTo(p.x,p.y));
-  ctx.stroke();
-  ctx.setLineDash([]);
-  ctx.restore();
-}
-
-function drawFieldArc(ctx,x,y,r,color,alpha){
-  ctx.save();
-  ctx.globalAlpha = alpha;
-  ctx.strokeStyle = color; ctx.lineWidth=1.5;
-  ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.stroke();
-  ctx.restore();
-}
-
-/* Small binding-post / terminal dot drawn wherever a wire connects to a device */
-function drawTerminal(ctx,x,y,color){
-  ctx.save();
-  ctx.fillStyle = color || COLORS.amber;
-  ctx.beginPath(); ctx.arc(x,y,5,0,Math.PI*2); ctx.fill();
-  ctx.strokeStyle = '#03060c'; ctx.lineWidth = 1.5; ctx.stroke();
-  ctx.beginPath(); ctx.arc(x,y,1.8,0,Math.PI*2); ctx.fillStyle='#03060c'; ctx.fill();
-  ctx.restore();
-}
-
-/* Draws a set of small terminal dots at every point of a wire path in one call */
-function drawTerminals(ctx, points, color){
-  points.forEach(p => drawTerminal(ctx, p.x, p.y, color));
-}
-
-/* A simple wooden lab-bench line with support legs under a component, for physical grounding */
-function drawBench(ctx, x1, x2, y){
-  ctx.save();
-  ctx.strokeStyle = '#3a2a18'; ctx.lineWidth = 6; ctx.lineCap='round';
-  ctx.beginPath(); ctx.moveTo(x1,y); ctx.lineTo(x2,y); ctx.stroke();
-  ctx.lineWidth = 5;
-  ctx.beginPath(); ctx.moveTo(x1+18,y); ctx.lineTo(x1+8,y+26); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(x2-18,y); ctx.lineTo(x2-8,y+26); ctx.stroke();
-  ctx.restore();
-}
-
-/* A small mounting stand/clamp holding a component upright at (x,y) */
-function drawStand(ctx, x, topY, baseY){
-  ctx.save();
-  ctx.strokeStyle = '#3a2a18'; ctx.lineWidth = 5; ctx.lineCap='round';
-  ctx.beginPath(); ctx.moveTo(x,topY); ctx.lineTo(x,baseY); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(x-22,baseY); ctx.lineTo(x+22,baseY); ctx.stroke();
-  ctx.restore();
-}
-
-function updateReadouts(v1,v2,v3){
-  document.getElementById('val1').textContent = v1;
-  document.getElementById('val2').textContent = v2;
-  document.getElementById('val3').textContent = v3;
-}
-
-/* =========================================================================
-   TAB 1 — توليد التيار المحتث (coil + moving magnet, horizontal)
-   ========================================================================= */
-function tab1Update(dt){
-  const s = state[1];
-  s.t += dt;
-  if(s.method===1 || s.method===2){
-    // Methods 1 & 2: something is physically moved in/out of the main coil —
-    // a permanent magnet (1) or a small battery-driven electromagnet coil (2).
-    // The flux-vs-distance model is identical either way; only the drawing differs.
-    s.prevMagnetX = s.magnetX;
-    if(s.mode==='auto'){
-      const omega = 0.5 + s.speed*1.6;
-      s.magnetX = Math.sin(s.t*omega) * 230;
-    }
-    const d = Math.abs(s.magnetX);
-    const polarity = s.reversed ? -1 : 1;
-    s.flux = polarity * s.B * s.N * 1.4 / (1 + Math.pow(d/58,2));
-    const dPhi = s.flux - s.prevFlux;
-    s.emf = dt>0 ? -(dPhi/dt) * 0.045 : 0;
-    s.current = s.emf / 5; // fixed coil resistance R=5 ohm
-    s.prevFlux = s.flux;
-    s.dashOffset -= s.current*dt*130;
-  } else {
-    // Method 3: a primary coil + battery + switch sits stationary INSIDE the
-    // main coil. Current only flows in the main coil while the primary
-    // current is changing (i.e. right after the switch opens/closes).
-    if(s.mode==='auto'){
-      s.autoTimer += dt;
-      if(s.autoTimer > 2.0){ s.switchOn = !s.switchOn; s.autoTimer = 0; }
-    }
-    const polarity = s.reversed ? -1 : 1;
-    const target = s.switchOn ? (polarity * s.voltage / 3) : 0; // Rp = 3 ohm
-    s.primaryCurrent += (target - s.primaryCurrent) * Math.min(1, dt*6);
-    const M = 1.3 * (s.N/4); // fixed coupling: coils are nested, not moving
-    const fluxLink = M * s.primaryCurrent;
-    const dFlux = fluxLink - s.prevFluxLink;
-    s.emf = dt>0 ? -(dFlux/dt) * 0.05 : 0;
-    s.current = s.emf / 5;
-    s.prevFluxLink = fluxLink;
-    s.flux = fluxLink;
-    s.dashOffset -= s.current*dt*130;
-
-    const btn = document.getElementById('switchBtn1');
-    if(btn && s.mode==='auto'){
-      btn.classList.toggle('on', s.switchOn);
-      btn.textContent = s.switchOn ? '🔌 الدائرة مغلقة (تلقائي)' : '🔌 الدائرة مفتوحة (تلقائي)';
-    }
-  }
-}
-
-/* Small primary-coil + battery assembly used as a moving electromagnet (Method 2) */
-function drawElectromagnetAssembly(ctx,x,y,reversed){
-  ctx.save();
-  ctx.translate(x,y);
-  ctx.strokeStyle = reversed ? COLORS.blue : COLORS.red;
-  ctx.lineWidth = 4;
-  for(let i=-1;i<=1;i++){
-    ctx.beginPath(); ctx.ellipse(i*16,0, 13, 40, 0, 0, Math.PI*2); ctx.stroke();
-  }
-  // small battery riding on top of the coil
-  ctx.strokeStyle = COLORS.text; ctx.lineWidth=3;
-  ctx.beginPath(); ctx.moveTo(-10,-68); ctx.lineTo(-10,-50); ctx.stroke();
-  ctx.lineWidth=1.5;
-  ctx.beginPath(); ctx.moveTo(8,-64); ctx.lineTo(8,-54); ctx.stroke();
-  ctx.strokeStyle=COLORS.wire; ctx.lineWidth=2.5;
-  ctx.beginPath(); ctx.moveTo(-10,-50); ctx.lineTo(-16,-42); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(8,-50); ctx.lineTo(14,-42); ctx.stroke();
-  drawTerminal(ctx,-16,-42,COLORS.amber); drawTerminal(ctx,14,-42,COLORS.amber);
-  ctx.fillStyle=COLORS.text; ctx.font='bold 11px Tajawal'; ctx.textAlign='center';
-  ctx.fillText(reversed?'−':'+', -10, -76);
-  ctx.fillText(reversed?'+':'−', 8, -76);
-  ctx.restore();
-}
-
-function tab1Draw(){
-  ctx.clearRect(0,0,CW,CH);
-  const s = state[1];
-  const coilCx=470, coilCy=230;
-  const turns = Math.round(s.N/1.4)+2;
-
-  if(s.method===1 || s.method===2){
-    drawBench(ctx, 60, 840, 330);
-    drawStand(ctx, coilCx, coilCy+80, 330);
-    const coil = drawCoilHorizontal(ctx, coilCx, coilCy, turns, 82, 30, COLORS.copper);
-
-    // field arcs around the moving source (visual only)
-    const mx = coilCx + s.magnetX;
-    for(let i=1;i<=3;i++) drawFieldArc(ctx, mx, coilCy, 24+i*18, s.reversed?COLORS.blue:COLORS.red, 0.10);
-
-    // wires from the main coil to the galvanometer, with visible terminals
-    const gx=170, gy=250;
-    const wireTop = [coil.leadTop, {x:coil.leadTop.x, y:110}, {x:gx, y:110}, {x:gx,y:gy-62}];
-    const wireBot = [coil.leadBottom, {x:coil.leadBottom.x, y:355}, {x:gx, y:355}, {x:gx,y:gy+62}];
-    strokeFlow(ctx, wireTop, s.current, s.dashOffset);
-    strokeFlow(ctx, wireBot, s.current, s.dashOffset);
-    drawTerminals(ctx, [coil.leadTop, coil.leadBottom], COLORS.coil);
-    drawTerminals(ctx, [{x:gx,y:gy-62},{x:gx,y:gy+62}], COLORS.amber);
-    drawStand(ctx, gx, gy+62, 330);
-    drawGalvanometer(ctx, gx, gy, 82, clamp(s.current/2.2,-1,1));
-
-    ctx.fillStyle=COLORS.muted; ctx.font='13px Tajawal'; ctx.textAlign='center';
-    ctx.fillText('الملف الأصلي (وشيعة)', coilCx, coilCy-105);
-    ctx.fillText('جهاز الجلفانومتر', gx, gy-90);
-
-    if(s.method===1){
-      drawMagnet(ctx, mx, coilCy, 160, 42, false, s.reversed);
-      ctx.fillStyle=COLORS.amber; ctx.font='bold 14px Tajawal';
-      ctx.fillText('الطريقة 1: إدخال مغناطيس دائم داخل الملف', coilCx, 30);
-      ctx.fillStyle=COLORS.muted; ctx.font='12px Tajawal';
-      ctx.fillText('اسحب المغناطيس (بالوضع اليدوي) ↔', coilCx, 60);
-    } else {
-      drawElectromagnetAssembly(ctx, mx, coilCy, s.reversed);
-      ctx.fillStyle=COLORS.amber; ctx.font='bold 14px Tajawal';
-      ctx.fillText('الطريقة 2: إدخال ملف ابتدائي (مغناطيس كهربائي) داخل الملف', coilCx, 30);
-      ctx.fillStyle=COLORS.muted; ctx.font='12px Tajawal';
-      ctx.fillText('اسحب الملف الابتدائي المتصل بالبطارية (بالوضع اليدوي) ↔', coilCx, 60);
+    if(t.toggle){
+      const lever=body.querySelector('.lever');
+      if(lever && !comp.closed){ lever.setAttribute('x2','95'); lever.setAttribute('y2','6'); }
     }
 
-    updateReadouts(s.flux.toFixed(2)+' Wb', s.emf.toFixed(2)+' V', s.current.toFixed(2)+' A');
-
-  } else {
-    // Method 3: primary coil + battery + switch, stationary, nested inside the main coil
-    drawBench(ctx, 60, 840, 400);
-    drawStand(ctx, coilCx-110, 100, 400);
-    drawStand(ctx, coilCx+110, 100, 400);
-    const outer = drawCoilVertical(ctx, coilCx, coilCy, Math.round(s.N/1.4)+2, 100, 32);
-    // nested primary coil drawn smaller, concentric, inside the main coil
-    ctx.save(); ctx.globalAlpha=0.9;
-    const inner = drawCoilVertical(ctx, coilCx, coilCy, 4, 46, 18);
-    ctx.restore();
-
-    // main-coil wires down to the galvanometer
-    const gx=770, gy=270;
-    const wireOut1 = [outer.leadLeft, {x:outer.leadLeft.x-40,y:outer.leadLeft.y}, {x:outer.leadLeft.x-40,y:gy-30},{x:gx-40,y:gy-30}];
-    const wireOut2 = [outer.leadRight, {x:outer.leadRight.x+40,y:outer.leadRight.y}, {x:outer.leadRight.x+40,y:gy+30},{x:gx+40,y:gy+30}];
-    strokeFlow(ctx, wireOut1, s.current, s.dashOffset);
-    strokeFlow(ctx, wireOut2, s.current, s.dashOffset);
-    drawTerminals(ctx, [outer.leadLeft, outer.leadRight], COLORS.coil);
-    drawTerminals(ctx, [{x:gx-40,y:gy-30},{x:gx+40,y:gy+30}], COLORS.amber);
-    drawStand(ctx, gx, gy+62, 400);
-    drawGalvanometer(ctx, gx, gy, 74, clamp(s.current/1.5,-1,1));
-
-    // inner (primary) coil wired to its own battery + switch, off to the side
-    const by=330;
-    const wireIn1 = [inner.leadLeft, {x:inner.leadLeft.x-140,y:inner.leadLeft.y}, {x:inner.leadLeft.x-140,y:by}, {x:coilCx-150,y:by}];
-    const wireIn2 = [inner.leadRight, {x:inner.leadRight.x-90,y:inner.leadRight.y+18}, {x:coilCx-110,y:by}];
-    strokeFlow(ctx, wireIn1, s.primaryCurrent, s.dashOffset);
-    strokeFlow(ctx, wireIn2, s.primaryCurrent, s.dashOffset);
-    drawTerminals(ctx, [{x:coilCx-150,y:by},{x:coilCx-110,y:by}], COLORS.amber);
-
-    ctx.save(); ctx.strokeStyle=COLORS.text; ctx.lineWidth=4;
-    ctx.beginPath(); ctx.moveTo(coilCx-150,by-20); ctx.lineTo(coilCx-150,by+20); ctx.stroke();
-    ctx.lineWidth=2;
-    ctx.beginPath(); ctx.moveTo(coilCx-133,by-11); ctx.lineTo(coilCx-133,by+11); ctx.stroke();
-    ctx.font='12px Tajawal'; ctx.fillStyle=COLORS.muted; ctx.textAlign='center';
-    ctx.fillText(s.voltage.toFixed(1)+' V', coilCx-141, by-32);
-    ctx.strokeStyle = s.switchOn ? COLORS.cyanBright : COLORS.red; ctx.lineWidth=3.5;
-    ctx.beginPath(); ctx.moveTo(coilCx-126,by);
-    if(s.switchOn){ ctx.lineTo(coilCx-110,by); } else { ctx.lineTo(coilCx-114,by-17); }
-    ctx.stroke();
-    ctx.fillStyle=COLORS.muted; ctx.font='12px Tajawal';
-    ctx.fillText(s.switchOn?'مفتاح: مغلق':'مفتاح: مفتوح', coilCx-118, by+38);
-    ctx.restore();
-
-    ctx.fillStyle=COLORS.amber; ctx.font='bold 14px Tajawal'; ctx.textAlign='center';
-    ctx.fillText('الطريقة 3: ملف ابتدائي ثابت + مفتاح داخل الملف الأصلي', coilCx, 30);
-    ctx.fillStyle=COLORS.muted; ctx.font='13px Tajawal';
-    ctx.fillText('الملف الأصلي', coilCx, 78);
-    ctx.fillText('جهاز الجلفانومتر', gx, gy-82);
-    ctx.font='12px Tajawal';
-    ctx.fillText('الملف الابتدائي ثابت — لا يتحرك، فقط أغلق/افتح المفتاح', coilCx, 460);
-
-    updateReadouts(s.flux.toFixed(2)+' Wb', s.emf.toFixed(2)+' V', s.current.toFixed(2)+' A');
-  }
-}
-
-/* =========================================================================
-   TAB 2 — اكتشاف فاراداي: ملفان على قلب من الحديد المطاوع + مفتاح قطعي
-   ========================================================================= */
-
-/** Call this from the switch button's click handler. */
-function toggleTab2Switch(){
-  state[2].switchOn = !state[2].switchOn;
-}
-
-function tab2Update(dt){
-  const s = state[2];
-
-  // Primary current ramps toward its target once the switch closes (and
-  // decays back to 0 once it opens) — this transient is what generates the
-  // momentary flux change, exactly like the real make/break demonstration.
-  const Rp = 3;
-  const target = s.switchOn ? s.voltage / Rp : 0;
-  s.primaryCurrent += (target - s.primaryCurrent) * Math.min(1, dt * 6);
-
-  // A soft-iron core dramatically increases the mutual coupling compared to
-  // an air core — represented here simply as a larger coupling constant M.
-  const M = 1.6;
-  const fluxLink = M * s.primaryCurrent * (s.N / 4);
-  const dFlux = fluxLink - s.prevFluxLink;
-  s.secondaryEMF = dt > 0 ? -(dFlux / dt) * 0.05 : 0;
-  s.secondaryCurrent = s.secondaryEMF / 4; // Rs = 4 ohm
-  s.prevFluxLink = fluxLink;
-
-  s.dashOffsetP -= s.primaryCurrent * dt * 90;
-  s.dashOffsetS -= s.secondaryCurrent * dt * 130;
-
-  // Field-line glow inside the core eases toward the present primary current
-  s.fieldGlow += (Math.min(1, Math.abs(s.primaryCurrent) / 2) - s.fieldGlow) * Math.min(1, dt * 5);
-}
-
-/** Draws a closed rectangular "picture-frame" iron core with animated field
- * lines, a coil wound on each leg, battery+switch, and a galvanometer. */
-function tab2Draw(){
-  ctx.clearRect(0, 0, CW, CH);
-  const s = state[2];
-  const cx = 450, cy = 230;
-  const coreW = 260, coreH = 190, thick = 30;
-
-  drawBench(ctx, 60, 840, 420);
-
-  // --- soft iron core (rectangular ring, drawn as a thick frame) ---
-  ctx.save();
-  ctx.strokeStyle = '#5a6270';
-  ctx.lineWidth = thick;
-  ctx.strokeRect(cx - coreW/2, cy - coreH/2, coreW, coreH);
-  ctx.strokeStyle = '#8b98b4';
-  ctx.lineWidth = thick - 8;
-  ctx.strokeRect(cx - coreW/2, cy - coreH/2, coreW, coreH);
-  ctx.restore();
-  ctx.fillStyle = COLORS.muted; ctx.font = '12px Tajawal'; ctx.textAlign = 'center';
-  ctx.fillText('قلب من الحديد المطاوع', cx, cy - coreH/2 - 55);
-
-  // --- animated field lines flowing around the core, growing/fading with fieldGlow ---
-  if(s.fieldGlow > 0.03){
-    ctx.save();
-    ctx.globalAlpha = clamp(s.fieldGlow, 0, 0.9);
-    ctx.strokeStyle = COLORS.amber;
-    ctx.lineWidth = 2.5;
-    ctx.setLineDash([14, 10]);
-    ctx.lineDashOffset = s.dashOffsetP; // reuses the primary current's flow animation
-    ctx.strokeRect(cx - coreW/2, cy - coreH/2, coreW, coreH);
-    ctx.setLineDash([]);
-    ctx.restore();
-  }
-
-  // --- primary coil (left leg) + battery + switch ---
-  const legLx = cx - coreW/2;
-  const coilP = drawCoilVertical(ctx, legLx, cy, 5, 46, 20, COLORS.copper);
-  const by = cy + coreH/2 + 90;
-  const wireP1 = [coilP.leadLeft, {x: legLx-70, y: coilP.leadLeft.y}, {x: legLx-70, y: by}, {x: legLx-24, y: by}];
-  const wireP2 = [coilP.leadRight, {x: legLx+40, y: coilP.leadRight.y}, {x: legLx+40, y: by}, {x: legLx+24, y: by}];
-  strokeFlow(ctx, wireP1, s.primaryCurrent, s.dashOffsetP);
-  strokeFlow(ctx, wireP2, s.primaryCurrent, s.dashOffsetP);
-  drawTerminals(ctx, [coilP.leadLeft, coilP.leadRight], COLORS.coil);
-  drawTerminals(ctx, [{x:legLx-24,y:by},{x:legLx+24,y:by}], COLORS.amber);
-
-  ctx.save();
-  ctx.strokeStyle = COLORS.text; ctx.lineWidth = 4;
-  ctx.beginPath(); ctx.moveTo(legLx-24, by-20); ctx.lineTo(legLx-24, by+20); ctx.stroke();
-  ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.moveTo(legLx-7, by-11); ctx.lineTo(legLx-7, by+11); ctx.stroke();
-  ctx.font = '12px Tajawal'; ctx.fillStyle = COLORS.muted; ctx.textAlign = 'center';
-  ctx.fillText(s.voltage.toFixed(1)+' V', legLx-15, by-32);
-  ctx.strokeStyle = s.switchOn ? COLORS.cyanBright : COLORS.red; ctx.lineWidth = 3.5;
-  ctx.beginPath(); ctx.moveTo(legLx+7, by);
-  if(s.switchOn){ ctx.lineTo(legLx+24, by); } else { ctx.lineTo(legLx+19, by-17); }
-  ctx.stroke();
-  ctx.fillStyle = COLORS.muted; ctx.font = '12px Tajawal';
-  ctx.fillText(s.switchOn ? 'مفتاح: مغلق' : 'مفتاح: مفتوح', legLx+16, by+38);
-  ctx.restore();
-  ctx.fillStyle = COLORS.muted; ctx.font = '13px Tajawal'; ctx.textAlign = 'center';
-  ctx.fillText('ملف ابتدائي', legLx, cy - 130);
-
-  // --- secondary coil (right leg) + zero-centered galvanometer ---
-  const legRx = cx + coreW/2;
-  const coilS = drawCoilVertical(ctx, legRx, cy, Math.round(s.N/1.4)+2, 46, 20, COLORS.blue);
-  const gx = legRx + 160, gy = cy;
-  const wireS1 = [coilS.leadLeft, {x: legRx-30, y: coilS.leadLeft.y}, {x: legRx-30, y: gy-30}, {x: gx-40, y: gy-30}];
-  const wireS2 = [coilS.leadRight, {x: legRx+60, y: coilS.leadRight.y}, {x: legRx+60, y: gy+30}, {x: gx+40, y: gy+30}];
-  strokeFlow(ctx, wireS1, s.secondaryCurrent, s.dashOffsetS);
-  strokeFlow(ctx, wireS2, s.secondaryCurrent, s.dashOffsetS);
-  drawTerminals(ctx, [coilS.leadLeft, coilS.leadRight], COLORS.coil);
-  drawTerminals(ctx, [{x:gx-40,y:gy-30},{x:gx+40,y:gy+30}], COLORS.amber);
-  drawStand(ctx, gx, gy+62, 420);
-  drawGalvanometer(ctx, gx, gy, 74, clamp(s.secondaryCurrent/1.5, -1, 1));
-  ctx.fillStyle = COLORS.muted; ctx.font = '13px Tajawal'; ctx.textAlign = 'center';
-  ctx.fillText('ملف ثانوي', legRx, cy - 130);
-  ctx.fillText('جلفانومتر (صفر مركزي)', gx, gy - 88);
-
-  ctx.fillStyle = COLORS.amber; ctx.font = 'bold 14px Tajawal';
-  ctx.fillText('اكتشاف فاراداي: انحراف لحظي عند إغلاق/فتح المفتاح ثم يعود للصفر', 450, 30);
-
-  updateReadouts(
-    s.primaryCurrent.toFixed(2)+' A',
-    s.secondaryEMF.toFixed(2)+' V',
-    s.secondaryCurrent.toFixed(2)+' A'
-  );
-}
-
-/* =========================================================================
-   TAB 3 — نشاط الحث الكهرومغناطيسي المتبادل (primary/secondary coils)
-   ========================================================================= */
-function tab3Update(dt){
-  const s = state[3];
-  const method = s.method;
-
-  // ---- Method 1: switch is opened/closed suddenly ----
-  if(method===1){
-    if(s.mode==='auto'){
-      s.autoTimer += dt;
-      if(s.autoTimer > 2.0){ s.switchOn = !s.switchOn; s.autoTimer = 0; }
+    if(t.hasTerminals){
+      const rays=document.createElement('div'); rays.className='glow-rays';
+      const n = comp.type==='neonLamp' ? 14 : 0;
+      for(let i=0;i<n;i++){ const r=document.createElement('div'); r.className='ray'; r.style.transform=`rotate(${i*(360/n)}deg)`; rays.appendChild(r); }
+      div.appendChild(rays);
+      ['a','b'].forEach(term=>{
+        const dot=document.createElement('div');
+        dot.className='terminal '+term; dot.dataset.comp=comp.id; dot.dataset.term=term;
+        div.appendChild(dot);
+      });
     }
-  } else {
-    s.switchOn = true; // methods 2 & 3 assume a permanently closed primary circuit
+
+    const label=document.createElement('div');
+    label.className='comp-label'; label.textContent=t.label;
+    div.appendChild(label);
+    el.world.appendChild(div);
   }
+}
 
-  // ---- Method 3: rheostat value changes gradually (current changes continuously) ----
-  if(method===3 && s.mode==='auto'){
-    s.autoTimer += dt;
-    s.rheostat = 0.5 + 0.48*Math.sin(s.autoTimer*0.8);
+function wirePathD(p1,p2){ const midX=(p1.x+p2.x)/2; return `M ${p1.x} ${p1.y} L ${midX} ${p1.y} L ${midX} ${p2.y} L ${p2.x} ${p2.y}`; }
+function junctionRing(x,y){ const c=document.createElementNS(SVG_NS,'circle'); c.setAttribute('cx',x); c.setAttribute('cy',y); c.setAttribute('r',13); c.setAttribute('class','junction-ring'); return c; }
+
+function renderWires(){
+  el.wireContent.innerHTML='';
+  for(const w of lab().wires){
+    const ca=findComp(w.a.comp), cb=findComp(w.b.comp);
+    if(!ca||!cb) continue;
+    const p1=terminalPos(ca,w.a.term), p2=terminalPos(cb,w.b.term);
+    const d=wirePathD(p1,p2);
+    const selected = lab().selected && lab().selected.kind==='wire' && lab().selected.id===w.id;
+
+    const border=document.createElementNS(SVG_NS,'path'); border.setAttribute('d',d); border.setAttribute('class','wire-border');
+    const fill=document.createElementNS(SVG_NS,'path'); fill.setAttribute('d',d); fill.setAttribute('class','wire-fill'+(selected?' selected':''));
+    const sheen=document.createElementNS(SVG_NS,'path'); sheen.setAttribute('d',d); sheen.setAttribute('class','wire-sheen'); sheen.id='wirepath-'+w.id;
+    const hit=document.createElementNS(SVG_NS,'path'); hit.setAttribute('d',d); hit.setAttribute('class','wire-hit'); hit.dataset.wireId=w.id;
+
+    el.wireContent.appendChild(border); el.wireContent.appendChild(fill); el.wireContent.appendChild(sheen);
+    el.wireContent.appendChild(junctionRing(p1.x,p1.y)); el.wireContent.appendChild(junctionRing(p2.x,p2.y));
+    el.wireContent.appendChild(hit);
   }
+}
 
-  // ---- Primary current approaches its target (rheostat only affects Method 3) ----
-  const polarity = s.reversed ? -1 : 1;
-  const rheoFactor = (method===3) ? clamp(s.rheostat,0,1) : 1;
-  const target = s.switchOn ? (polarity * s.voltage * rheoFactor / 3) : 0; // Rp = 3 ohm
-  s.primaryCurrent += (target - s.primaryCurrent) * Math.min(1, dt*6);
+/* ---- circuit graph (only components with hasTerminals participate) ---- */
+function nodeKey(comp,term){ return comp+'|'+term; }
+const SOURCE_TYPES=['battery','ac','acHighFreq'];
 
-  // ---- Method 2: distance between the two coils changes ----
-  if(method===2 && s.mode==='auto'){
-    s.autoTimer2 += dt;
-    s.gapOffset = Math.sin(s.autoTimer2*0.6) * 150;
-  } else if(method!==2){
-    s.gapOffset = 0; // coils stay docked at the base distance for methods 1 & 3
+function buildGraph(excludeInternalId){
+  const adj=new Map();
+  const addEdge=(n1,n2,kind,id)=>{ if(!adj.has(n1))adj.set(n1,[]); if(!adj.has(n2))adj.set(n2,[]); adj.get(n1).push({to:n2,kind,id}); adj.get(n2).push({to:n1,kind,id}); };
+  for(const comp of lab().components){
+    if(!TYPES[comp.type].hasTerminals || comp.id===excludeInternalId) continue;
+    const conducts = TYPES[comp.type].toggle ? !!comp.closed : true;
+    if(conducts) addEdge(nodeKey(comp.id,'a'), nodeKey(comp.id,'b'), 'comp', comp.id);
   }
-  const d = clamp(280 + s.gapOffset, 120, 480);
+  for(const w of lab().wires) addEdge(nodeKey(w.a.comp,w.a.term), nodeKey(w.b.comp,w.b.term), 'wire', w.id);
+  return adj;
+}
+function bfsReachable(adj,start){
+  const seen=new Set([start]); const q=[start];
+  while(q.length){ const cur=q.shift(); for(const e of (adj.get(cur)||[])) if(!seen.has(e.to)){ seen.add(e.to); q.push(e.to); } }
+  return seen;
+}
+function bfsPathEdges(adj,start,target){
+  const prev=new Map(); const seen=new Set([start]); const q=[start];
+  while(q.length){ const cur=q.shift(); if(cur===target)break;
+    for(const e of (adj.get(cur)||[])) if(!seen.has(e.to)){ seen.add(e.to); prev.set(e.to,{from:cur,kind:e.kind,id:e.id}); q.push(e.to); } }
+  if(!seen.has(target)) return null;
+  const path=[]; let cur=target;
+  while(cur!==start){ const p=prev.get(cur); path.push({from:p.from,to:cur,kind:p.kind,id:p.id}); cur=p.from; }
+  return path.reverse();
+}
 
-  // ---- Mutual flux linkage & induced secondary EMF — one formula covers all 3 methods ----
-  const M0 = 1.7;
-  const M = M0 / (1 + Math.pow(d/170,2));
-  const fluxLink = M * s.primaryCurrent * (s.N/4);
-  const dFlux = fluxLink - s.prevFluxLink;
-  s.secondaryEMF = dt>0 ? -(dFlux/dt) * 0.05 : 0;
-  s.secondaryCurrent = s.secondaryEMF / 4; // Rs = 4 ohm
-  s.prevFluxLink = fluxLink;
+function evaluateCircuit(){
+  const sources=lab().components.filter(c=>SOURCE_TYPES.includes(c.type));
+  const litNodes=new Set(); const wireDirection=new Map(); let anyLoop=false;
 
-  s.dashOffsetP -= s.primaryCurrent*dt*90;
-  s.dashOffsetS -= s.secondaryCurrent*dt*130;
-
-  // reflect auto-switch state in the manual button UI too (Method 1 only)
-  if(method===1){
-    const btn = document.getElementById('switchBtn3');
-    if(s.mode==='auto'){
-      btn.classList.toggle('on', s.switchOn);
-      btn.textContent = s.switchOn ? '🔌 الدائرة مغلقة (تلقائي)' : '🔌 الدائرة مفتوحة (تلقائي)';
+  for(const src of sources){
+    const adj=buildGraph(src.id);
+    const startN=nodeKey(src.id,'a'), targetN=nodeKey(src.id,'b');
+    const reach=bfsReachable(adj,startN);
+    if(reach.has(targetN)){
+      anyLoop=true;
+      for(const n of reach) litNodes.add(n);
+      const path=bfsPathEdges(adj,startN,targetN);
+      if(path) for(const e of path){ if(e.kind!=='wire') continue; const w=lab().wires.find(x=>x.id===e.id); if(!w) continue;
+        wireDirection.set(w.id, e.from===nodeKey(w.a.comp,w.a.term) ? 1 : -1); }
     }
   }
-}
-function tab3Draw(){
-  ctx.clearRect(0,0,CW,CH);
-  const s = state[3];
-  const method = s.method;
-  const pCx=230, pCy=225;
-  const d = clamp(280 + s.gapOffset, 120, 480);
-  const sCx = pCx + d, sCy=225;
-  const turnsP = 5, turnsS = Math.round(s.N/1.4)+2;
 
-  drawBench(ctx, 60, 840, 400);
-  drawStand(ctx, pCx-70, 100, 400);
-  drawStand(ctx, pCx+70, 100, 400);
-  // secondary coil's mounting legs slide along with it (Method 2 moves the coil)
-  drawStand(ctx, sCx-70, 100, 400);
-  drawStand(ctx, sCx+70, 100, 400);
-  if(method===2){
-    // a visible sliding rail/track under the secondary coil hints that it can be dragged
-    ctx.save(); ctx.strokeStyle = COLORS.border; ctx.lineWidth=3; ctx.setLineDash([6,6]);
-    ctx.beginPath(); ctx.moveTo(pCx+110, 388); ctx.lineTo(790, 388); ctx.stroke();
-    ctx.setLineDash([]); ctx.restore();
-  }
-
-  const coilP = drawCoilVertical(ctx, pCx, pCy, turnsP, 68, 26);
-  const coilS = drawCoilVertical(ctx, sCx, sCy, turnsS, 68, 26);
-
-  // battery (+ switch, only relevant for Method 1) on the primary side
-  const by = 340;
-  const wireP1 = [coilP.leadLeft, {x:coilP.leadLeft.x-70,y:coilP.leadLeft.y}, {x:coilP.leadLeft.x-70,y:by}, {x:pCx-24,y:by}];
-  const wireP2 = [coilP.leadRight, {x:coilP.leadRight.x+40,y:coilP.leadRight.y}, {x:coilP.leadRight.x+40,y:by}, {x:pCx+24,y:by}];
-  strokeFlow(ctx, wireP1, s.primaryCurrent, s.dashOffsetP);
-  strokeFlow(ctx, wireP2, s.primaryCurrent, s.dashOffsetP);
-  drawTerminals(ctx, [coilP.leadLeft, coilP.leadRight], COLORS.coil);
-  drawTerminals(ctx, [{x:pCx-24,y:by},{x:pCx+24,y:by}], COLORS.amber);
-  // battery symbol
-  ctx.save(); ctx.strokeStyle=COLORS.text; ctx.lineWidth=4;
-  ctx.beginPath(); ctx.moveTo(pCx-24,by-20); ctx.lineTo(pCx-24,by+20); ctx.stroke();
-  ctx.lineWidth=2;
-  ctx.beginPath(); ctx.moveTo(pCx-7,by-11); ctx.lineTo(pCx-7,by+11); ctx.stroke();
-  ctx.font='12px Tajawal'; ctx.fillStyle=COLORS.muted; ctx.textAlign='center';
-  ctx.fillText(s.voltage.toFixed(1)+' V', pCx-15, by-32);
-  ctx.fillText('بطارية', pCx-15, by+38);
-
-  if(method===1){
-    // switch symbol
-    ctx.strokeStyle = s.switchOn ? COLORS.cyanBright : COLORS.red; ctx.lineWidth=3.5;
-    ctx.beginPath(); ctx.moveTo(pCx+7,by);
-    if(s.switchOn){ ctx.lineTo(pCx+24,by); } else { ctx.lineTo(pCx+19,by-17); }
-    ctx.stroke();
-    ctx.fillStyle=COLORS.muted; ctx.font='12px Tajawal';
-    ctx.fillText(s.switchOn?'مفتاح: مغلق':'مفتاح: مفتوح', pCx+16, by+38);
-  } else if(method===3){
-    // rheostat symbol: resistor body + sliding wiper arrow reflecting current value
-    ctx.strokeStyle = COLORS.text; ctx.lineWidth=3;
-    ctx.strokeRect(pCx+7, by-10, 45, 20);
-    const wiperX = pCx+7 + s.rheostat*45;
-    ctx.strokeStyle = COLORS.amber; ctx.lineWidth=2.5;
-    ctx.beginPath(); ctx.moveTo(pCx+7, by+22); ctx.lineTo(wiperX, by); ctx.stroke();
-    ctx.beginPath(); ctx.arc(wiperX, by, 3, 0, Math.PI*2); ctx.fillStyle=COLORS.amber; ctx.fill();
-    ctx.fillStyle=COLORS.muted; ctx.font='12px Tajawal'; ctx.textAlign='center';
-    ctx.fillText('ريوستات', pCx+30, by+38);
-  } else {
-    // Method 2: circuit permanently closed — a plain connecting wire, no switch
-    ctx.strokeStyle = COLORS.coil; ctx.lineWidth=3;
-    ctx.beginPath(); ctx.moveTo(pCx+7,by); ctx.lineTo(pCx+24,by); ctx.stroke();
-    ctx.fillStyle=COLORS.muted; ctx.font='12px Tajawal'; ctx.textAlign='center';
-    ctx.fillText('دائرة مغلقة دائمًا', pCx+16, by+38);
-  }
-  ctx.restore();
-
-  // secondary side to galvanometer
-  const gx=800, gy=270;
-  const wireS1 = [coilS.leadLeft, {x:coilS.leadLeft.x-30,y:coilS.leadLeft.y}, {x:coilS.leadLeft.x-30,y:gy-32},{x:gx-40,y:gy-32}];
-  const wireS2 = [coilS.leadRight, {x:coilS.leadRight.x+40,y:coilS.leadRight.y}, {x:coilS.leadRight.x+40,y:gy+32},{x:gx+40,y:gy+32}];
-  strokeFlow(ctx, wireS1, s.secondaryCurrent, s.dashOffsetS);
-  strokeFlow(ctx, wireS2, s.secondaryCurrent, s.dashOffsetS);
-  drawTerminals(ctx, [coilS.leadLeft, coilS.leadRight], COLORS.coil);
-  drawTerminals(ctx, [{x:gx-40,y:gy-32},{x:gx+40,y:gy+32}], COLORS.amber);
-  drawStand(ctx, gx, gy+62, 400);
-  drawGalvanometer(ctx, gx, gy, 74, clamp(s.secondaryCurrent/1.5,-1,1));
-
-  // flux linkage visual between coils when primary current flows
-  if(Math.abs(s.primaryCurrent) > 0.05){
-    ctx.save();
-    ctx.globalAlpha = clamp(Math.abs(s.primaryCurrent)/2.5, 0, 0.35);
-    ctx.strokeStyle = COLORS.amber; ctx.lineWidth=1.5;
-    for(let i=-1;i<=1;i++){
-      ctx.beginPath(); ctx.ellipse((pCx+sCx)/2, pCy+i*40, (sCx-pCx)*0.62, 100, 0, 0, Math.PI*2); ctx.stroke();
-    }
-    ctx.restore();
-  }
-
-  const methodTitles = {
-    1:'الطريقة 1: الغلق والفتح المفاجئ للدائرة',
-    2:'الطريقة 2: تقريب وإبعاد الملفين (تيار ثابت)',
-    3:'الطريقة 3: تغيير شدة التيار تدريجيًا بالريوستات'
-  };
-  ctx.fillStyle=COLORS.amber; ctx.font='bold 14px Tajawal'; ctx.textAlign='center';
-  ctx.fillText(methodTitles[method], 450, 30);
-
-  ctx.fillStyle=COLORS.muted; ctx.font='13px Tajawal';
-  ctx.fillText('الملف الابتدائي', pCx, 78);
-  ctx.fillText('الملف الثانوي' + (method===2 ? ' (اسحبه)' : ''), sCx, 78);
-  ctx.fillText('جهاز الجلفانومتر', gx, gy-82);
-
-  updateReadouts(s.primaryCurrent.toFixed(2)+' A', s.secondaryEMF.toFixed(2)+' V', s.secondaryCurrent.toFixed(2)+' A');
-}
-
-/* =========================================================================
-   TAB 4 — القوة الدافعة الكهربائية الحركية (rod on rails)
-   ========================================================================= */
-function tab4Update(dt){
-  const s = state[4];
-  s.t += dt;
-  if(s.mode==='auto'){
-    const omega = 0.5 + s.speed*1.5;
-    s.rodX = 310 + Math.sin(s.t*omega) * 300;
-  }
-  const v = (s.rodX - s.prevRodX) / Math.max(dt,0.0001);
-  const Bsigned = s.reversed ? -s.B : s.B;
-  const L = 1.8; // rail separation (arbitrary units)
-  s.emf = Bsigned * L * v * 0.012;
-  s.current = s.emf / s.R;
-  s.dashOffset -= s.current*dt*130;
-  s.prevRodX = s.rodX; // capture AFTER using it, so manual drag deltas aren't erased
-}
-function tab4Draw(){
-  ctx.clearRect(0,0,CW,CH);
-  const s = state[4];
-  const railTopY=150, railBotY=360, leftX=190, rightX=820;
-  drawBench(ctx, 60, 840, 420);
-  drawStand(ctx, leftX, railBotY, 420);
-  drawStand(ctx, rightX, railBotY, 420);
-
-  // field dots/crosses
-  ctx.save();
-  ctx.fillStyle = COLORS.muted; ctx.strokeStyle = COLORS.muted; ctx.lineWidth=1.4;
-  for(let x=leftX+50;x<rightX;x+=54){
-    for(let y=railTopY+34;y<railBotY;y+=48){
-      if(s.reversed){ // into page: X
-        ctx.beginPath(); ctx.moveTo(x-6,y-6); ctx.lineTo(x+6,y+6); ctx.moveTo(x+6,y-6); ctx.lineTo(x-6,y+6); ctx.stroke();
-      } else { // out of page: dot
-        ctx.beginPath(); ctx.arc(x,y,3,0,Math.PI*2); ctx.fill();
-      }
-    }
-  }
-  ctx.restore();
-
-  // rails (thicker, look like real conducting bars)
-  strokeWire(ctx, [{x:leftX,y:railTopY},{x:rightX,y:railTopY}], COLORS.coil, 6);
-  strokeWire(ctx, [{x:leftX,y:railBotY},{x:rightX,y:railBotY}], COLORS.coil, 6);
-  drawTerminals(ctx, [{x:leftX,y:railTopY},{x:leftX,y:railBotY},{x:rightX,y:railTopY},{x:rightX,y:railBotY}], COLORS.coil);
-
-  // resistor on left end connecting the rails
-  ctx.save(); ctx.strokeStyle=COLORS.text; ctx.lineWidth=3.5;
-  ctx.beginPath();
-  ctx.moveTo(leftX,railTopY);
-  let zx=leftX, zy=railTopY;
-  for(let i=0;i<6;i++){ zy += (railBotY-railTopY)/6; zx = leftX + (i%2===0?16:-16); ctx.lineTo(zx,zy); }
-  ctx.lineTo(leftX,railBotY);
-  ctx.stroke(); ctx.restore();
-  ctx.fillStyle=COLORS.muted; ctx.font='13px Tajawal'; ctx.textAlign='center';
-  ctx.fillText('R = '+s.R.toFixed(1)+' Ω', leftX-45, (railTopY+railBotY)/2 - 74);
-
-  // flowing current visualization along the loop (rails + resistor)
-  const rodX = leftX + s.rodX;
-  strokeFlow(ctx, [{x:leftX,y:railTopY},{x:rodX,y:railTopY}], s.current, s.dashOffset);
-  strokeFlow(ctx, [{x:leftX,y:railBotY},{x:rodX,y:railBotY}], s.current, s.dashOffset);
-
-  // rod (draggable) — thicker, with terminal caps where it grips the rails
-  ctx.save();
-  ctx.strokeStyle = Math.abs(s.current)>0.03 ? COLORS.cyanBright : COLORS.text;
-  ctx.lineWidth=10; ctx.lineCap='round';
-  ctx.beginPath(); ctx.moveTo(rodX, railTopY); ctx.lineTo(rodX, railBotY); ctx.stroke();
-  ctx.restore();
-  drawTerminals(ctx, [{x:rodX,y:railTopY},{x:rodX,y:railBotY}], COLORS.amber);
-
-  // velocity arrow on rod
-  const v = (s.rodX - s.prevRodX);
-  if(Math.abs(v) > 0.02){
-    ctx.save();
-    ctx.strokeStyle = COLORS.amber; ctx.fillStyle = COLORS.amber; ctx.lineWidth=3;
-    const dir = Math.sign(v);
-    const ay = railTopY - 30;
-    ctx.beginPath(); ctx.moveTo(rodX-dir*26, ay); ctx.lineTo(rodX+dir*26, ay); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(rodX+dir*26, ay); ctx.lineTo(rodX+dir*14, ay-7); ctx.lineTo(rodX+dir*14, ay+7); ctx.closePath(); ctx.fill();
-    ctx.font='12px Tajawal'; ctx.textAlign='center'; ctx.fillText('v', rodX, ay-14);
-    ctx.restore();
-  }
-
-  // galvanometer near resistor
-  drawStand(ctx, leftX-90, (railTopY+railBotY)/2+62, 420);
-  drawGalvanometer(ctx, leftX-96, (railTopY+railBotY)/2, 76, clamp(s.current/1.5,-1,1));
-
-  ctx.fillStyle=COLORS.muted; ctx.font='13px Tajawal'; ctx.textAlign='center';
-  ctx.fillText('القضيبان الموصلان (على شكل U)', 505, 88);
-  ctx.fillText(s.reversed? 'المجال المغناطيسي داخل الصفحة ⊗' : 'المجال المغناطيسي خارج الصفحة ⊙', 505, 108);
-  ctx.font='12px Tajawal';
-  ctx.fillText('اسحب الساق أفقيًا (بالوضع اليدوي) ↔', 505, 452);
-
-  updateReadouts((1.8*s.B).toFixed(2)+' T·m', s.emf.toFixed(2)+' V', s.current.toFixed(2)+' A');
-}
-
-/* =========================================================================
-   TAB 5 — طرائق تغيّر الفيض المغناطيسي: دوران تلقائي + شد/كبس يدوي
-
-   Φ_B = B · A · cosθ — fully live on all three variables:
-     - Auto mode:   the loop rotates automatically (θ), speed slider controls ω
-     - Manual mode: rotation holds still (θ = 0) and the two handles let you
-                    stretch/compress the loop to change its area (A)
-     - B slider always live in either mode
-   ========================================================================= */
-
-const TAB5_LOOP_CX = 450, TAB5_LOOP_CY = 210;
-
-function setTab5FieldStrength(value){ state[5].B = value; }
-
-/* ---- dedicated drag handling for the two resize handles (Manual mode only) ---- */
-function tab5PointerDown(evt){
-  if(activeTab !== 5 || state[5].mode !== 'manual') return;
-  const p = getCanvasPos(evt);
-  const s = state[5];
-  const rxHandle = { x: TAB5_LOOP_CX + s.rx, y: TAB5_LOOP_CY };
-  const ryHandle = { x: TAB5_LOOP_CX, y: TAB5_LOOP_CY + s.ry };
-  if (Math.hypot(p.x-rxHandle.x, p.y-rxHandle.y) < 18) { s.dragHandle='rx'; canvas.classList.add('dragging'); }
-  else if (Math.hypot(p.x-ryHandle.x, p.y-ryHandle.y) < 18) { s.dragHandle='ry'; canvas.classList.add('dragging'); }
-}
-function tab5PointerMove(evt){
-  const s = state[5];
-  if (!s.dragHandle) return;
-  evt.preventDefault();
-  const p = getCanvasPos(evt);
-  if (s.dragHandle === 'rx') s.rx = clamp(p.x - TAB5_LOOP_CX, 40, 280);
-  if (s.dragHandle === 'ry') s.ry = clamp(p.y - TAB5_LOOP_CY, 30, 190);
-}
-function tab5PointerUp(){ state[5].dragHandle = null; canvas.classList.remove('dragging'); }
-canvas.addEventListener('mousedown', tab5PointerDown);
-window.addEventListener('mousemove', tab5PointerMove);
-window.addEventListener('mouseup', tab5PointerUp);
-canvas.addEventListener('touchstart', tab5PointerDown, { passive: true });
-window.addEventListener('touchmove', tab5PointerMove, { passive: false });
-window.addEventListener('touchend', tab5PointerUp);
-
-function tab5Update(dt){
-  const s = state[5];
-  s.prevTheta = s.theta;
-  const spd = (0.4 + s.speed*1.6) * (s.reversed ? -1 : 1);
-  s.animPhase += spd * dt;
-
-  if(s.fluxMode === 'angle'){
-    // rotate the loop -> θ changes (A and B fixed)
-    s.theta += (0.5 + s.speed*3) * (s.reversed?-1:1) * dt;
-    s.rx = 110; s.ry = 80;                      // fixed area
-  } else if(s.fluxMode === 'area'){
-    // loop stays flat-on (θ = 0); its area breathes in and out
-    s.theta = 0;
-    const k = (Math.sin(s.animPhase)+1)/2;      // 0..1
-    s.rx = 55 + k*95;                            // 55..150
-    s.ry = 42 + k*66;                            // 42..108
-  } else { // 'field'
-    // θ = 0, area fixed; the field strength B oscillates
-    s.theta = 0;
-    s.rx = 110; s.ry = 80;
-    s.B = 0.4 + ((Math.sin(s.animPhase)+1)/2)*1.6;   // 0.4..2.0
-    const lab=document.getElementById('val-field5'); if(lab) lab.textContent=s.B.toFixed(1);
-    const sl=document.querySelector('input[data-param="B"][data-tab="5"]'); if(sl) sl.value=s.B;
-  }
-
-  s.area = Math.PI * s.rx * s.ry / 3000; // scaled to a friendly Wb range
-  s.flux = s.B * s.area * Math.cos(s.theta);
-  const dFlux = s.flux - s.prevFlux;
-  s.emf = dt > 0 ? -(dFlux/dt) * 0.08 : 0;
-  s.current = s.emf / 5;
-  s.prevFlux = s.flux;
-
-  s.dashOffset -= s.current*dt*130;
-  s.history.push(s.emf);
-  if(s.history.length > 160) s.history.shift();
-}
-
-function tab5Draw(){
-  ctx.clearRect(0, 0, CW, CH);
-  const s = state[5];
-
-  // 3D-ish scene centred on the loop
-  const cx = 470, cy = 250;
-
-  // ---------------------------------------------------------------
-  // Perspective magnetic-flux planes (B is vertical): a stack of
-  // receding horizontal sheets drawn with a fake 3D projection, warm
-  // colours above the loop, cool/purple below — matching the target.
-  // ---------------------------------------------------------------
-  function proj(x, y, z){
-    // simple oblique projection: depth z shifts up-right and scales
-    const k = 0.42;                 // depth foreshorten
-    const sx = cx + x + z*k*1.15;
-    const sy = cy + y - z*k*0.62;
-    return { x: sx, y: sy };
-  }
-  const halfW = 330, depth = 150, rows = 18;
-  ctx.save();
-  ctx.lineWidth = 2;
-  for(let i=0;i<rows;i++){
-    const t = i/(rows-1);
-    const yy = (t-0.5) * 360;                 // vertical spread of sheets
-    // colour gradient: orange (top) -> violet (bottom)
-    const warm = i < rows/2;
-    const c = warm ? `rgba(235,140,60,${0.75-0.03*i})`
-                   : `rgba(168,110,240,${0.45+0.03*(i-rows/2)})`;
-    ctx.strokeStyle = c; ctx.fillStyle = c;
-    // each sheet is a line from back to front at this height
-    const back  = proj(-halfW, yy, -depth);
-    const front = proj( halfW, yy,  depth);
-    ctx.beginPath(); ctx.moveTo(back.x, back.y); ctx.lineTo(front.x, front.y); ctx.stroke();
-    // little arrowheads along the sheet to show field direction (flux lines)
-    const ah = proj(halfW, yy, depth);
-    ctx.beginPath();
-    ctx.moveTo(ah.x, ah.y);
-    ctx.lineTo(ah.x-9, ah.y-4);
-    ctx.lineTo(ah.x-9, ah.y+4);
-    ctx.closePath(); ctx.fill();
-  }
-  ctx.restore();
-
-  // B label (top-left of the field region)
-  const bl = proj(-halfW, -150, -depth);
-  ctx.fillStyle = COLORS.amber; ctx.font = "bold 15px Tajawal"; ctx.textAlign='left';
-  ctx.fillText('B', bl.x-6, bl.y-6);
-
-  // ---------------------------------------------------------------
-  // The circular wire loop, tilted by θ. We draw it as an ellipse whose
-  // vertical squash = |cos(tilt)| to fake the 3D rotation about a
-  // horizontal axis; colour cyan like the target.
-  // ---------------------------------------------------------------
-  const R = 95;                              // loop radius on screen
-  const tilt = s.theta;                      // rotation angle
-  const squash = Math.max(0.12, Math.abs(Math.cos(tilt)));  // foreshorten
-  ctx.save();
-  ctx.translate(cx, cy);
-  // faint filled disc to suggest the loop plane
-  ctx.globalAlpha = 0.12; ctx.fillStyle = COLORS.cyanBright;
-  ctx.beginPath(); ctx.ellipse(0,0,R,R*squash,0,0,Math.PI*2); ctx.fill();
-  ctx.globalAlpha = 1;
-  // the wire itself (glowing cyan ring)
-  ctx.shadowColor = COLORS.cyanBright; ctx.shadowBlur = 14;
-  ctx.strokeStyle = COLORS.cyanBright; ctx.lineWidth = 5;
-  ctx.beginPath(); ctx.ellipse(0,0,R,R*squash,0,0,Math.PI*2); ctx.stroke();
-  ctx.shadowBlur = 0;
-  // a golden inner ring accent (like the target's small tilted ring)
-  ctx.strokeStyle = COLORS.amber; ctx.lineWidth = 2.5; ctx.globalAlpha=0.9;
-  ctx.beginPath(); ctx.ellipse(0,0,R*0.72,R*0.72*squash,0,0,Math.PI*2); ctx.stroke();
-  ctx.globalAlpha=1;
-  ctx.restore();
-
-  // ---------------------------------------------------------------
-  // Area vector A (green), perpendicular to the loop plane. As the loop
-  // tilts, the vector leans by θ so the angle between A and B (vertical)
-  // is exactly θ — the physics the activity teaches.
-  // ---------------------------------------------------------------
-  const aLen = 92;
-  const ax = cx + Math.sin(tilt)*aLen;
-  const ay = cy - Math.cos(tilt)*aLen;
-  ctx.save();
-  ctx.strokeStyle = '#7CFC3A'; ctx.fillStyle = '#7CFC3A'; ctx.lineWidth = 4;
-  ctx.shadowColor = '#7CFC3A'; ctx.shadowBlur = 8;
-  ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(ax, ay); ctx.stroke();
-  // arrowhead
-  const aang = Math.atan2(ay-cy, ax-cx);
-  ctx.beginPath();
-  ctx.moveTo(ax, ay);
-  ctx.lineTo(ax - 13*Math.cos(aang-0.4), ay - 13*Math.sin(aang-0.4));
-  ctx.lineTo(ax - 13*Math.cos(aang+0.4), ay - 13*Math.sin(aang+0.4));
-  ctx.closePath(); ctx.fill();
-  ctx.shadowBlur = 0;
-  ctx.font = "bold 14px Tajawal"; ctx.textAlign='center';
-  ctx.fillText('A', ax+14, ay-2);
-  // small angle marker θ between A and vertical
-  ctx.strokeStyle = 'rgba(124,252,58,.6)'; ctx.lineWidth=1.5;
-  ctx.beginPath(); ctx.arc(cx, cy, 26, -Math.PI/2, -Math.PI/2 + tilt, tilt<0); ctx.stroke();
-  ctx.fillStyle='#7CFC3A'; ctx.font='12px Tajawal';
-  ctx.fillText('θ', cx+Math.sin(tilt/2)*38, cy-Math.cos(tilt/2)*38);
-  ctx.restore();
-
-  // active-mode indicator chip (top-right) — reflects which quantity changes
-  ctx.save();
-  const modeLabel = s.fluxMode==='angle' ? 'تغيير الزاوية θ'
-                  : s.fluxMode==='area'  ? 'تغيير المساحة A'
-                  : 'تغيير كثافة الفيض B';
-  ctx.font='bold 12px Tajawal'; ctx.textAlign='center';
-  const chipW=Math.max(150, ctx.measureText(modeLabel).width+40), chipX=CW-chipW-14, chipY=14;
-  ctx.fillStyle='rgba(20,14,6,.72)'; ctx.strokeStyle=COLORS.cyanBright; ctx.lineWidth=1.5;
-  ctx.beginPath(); ctx.roundRect?ctx.roundRect(chipX,chipY,chipW,28,14):ctx.rect(chipX,chipY,chipW,28); ctx.fill(); ctx.stroke();
-  ctx.fillStyle=COLORS.cyanBright;
-  ctx.fillText('3D · '+modeLabel, chipX+chipW/2, chipY+18);
-  ctx.restore();
-
-  // live values of the three quantities (top-left), highlighting the changing one
-  ctx.save();
-  ctx.textAlign='left'; ctx.font='13px Tajawal';
-  const valRows=[
-    ['θ = '+(s.theta*180/Math.PI%360).toFixed(0)+'°', s.fluxMode==='angle'],
-    ['A = '+s.area.toFixed(2)+' m²',                    s.fluxMode==='area'],
-    ['B = '+s.B.toFixed(2)+' T',                        s.fluxMode==='field'],
-  ];
-  valRows.forEach((r,i)=>{
-    ctx.fillStyle = r[1] ? COLORS.cyanBright : COLORS.muted;
-    ctx.font = (r[1]?'bold ':'')+'13px Tajawal';
-    ctx.fillText(r[0], 20, 70+i*22);
-  });
-  ctx.restore();
-
-  // flux-strength slider hint at the bottom (visual echo of the target)
-  ctx.fillStyle=COLORS.muted; ctx.font='12px Tajawal'; ctx.textAlign='center';
-  ctx.fillText('مؤشر الفيض Φ', cx, CH-40);
-  const barX=cx-150, barW=300, barY=CH-26;
-  ctx.strokeStyle=COLORS.border; ctx.lineWidth=4; ctx.lineCap='round';
-  ctx.beginPath(); ctx.moveTo(barX,barY); ctx.lineTo(barX+barW,barY); ctx.stroke();
-  const fluxFrac = clamp((s.flux/ (s.B*Math.PI*R*R/3000) +1)/2, 0, 1) || 0.5;
-  ctx.strokeStyle=COLORS.amber;
-  ctx.beginPath(); ctx.arc(barX+barW*fluxFrac, barY, 7, 0, Math.PI*2); ctx.fillStyle=COLORS.amber; ctx.fill();
-
-  // physics readouts to the sidebar cards
-  updateReadouts(
-    s.flux.toFixed(3)+' Wb',
-    s.emf.toFixed(2)+' V',
-    s.current.toFixed(2)+' A'
-  );
-}
-
-
-
-/* =========================================================================
-   TAB 6 — قانون لنز: تحكم يدوي كامل بالمغناطيس + توضيح مستمر
-
-   The magnet is fully mouse/touch-draggable along the ring's axis at all
-   times. Every frame: compute velocity, determine approach/departure
-   relative to the ring, derive the induced current (and therefore the
-   ring's momentary pole), and draw a force vector opposing the user's hand.
-   ========================================================================= */
-
-const TAB6_CX = 450, TAB6_RING_SCREEN_Y = 250; // screen position of the ring's center
-
-/* ---- full manual dragging along the vertical axis through the ring ---- */
-function tab6PointerDown(evt){
-  if (activeTab !== 6) return;
-  const p = getCanvasPos(evt);
-  const s = state[6];
-  const magnetScreenY = TAB6_RING_SCREEN_Y + s.magnetY;
-  if (Math.abs(p.x - TAB6_CX) < 55 && Math.abs(p.y - magnetScreenY) < 60) {
-    s.dragging = true; s.fallingAuto = false; canvas.classList.add('dragging');
-  }
-}
-function tab6PointerMove(evt){
-  const s = state[6];
-  if (!s.dragging) return;
-  evt.preventDefault();
-  const p = getCanvasPos(evt);
-  s.magnetY = clamp(p.y - TAB6_RING_SCREEN_Y, -220, 220);
-}
-function tab6PointerUp(){ state[6].dragging = false; canvas.classList.remove('dragging'); }
-canvas.addEventListener('mousedown', tab6PointerDown);
-window.addEventListener('mousemove', tab6PointerMove);
-window.addEventListener('mouseup', tab6PointerUp);
-canvas.addEventListener('touchstart', tab6PointerDown, { passive: true });
-window.addEventListener('touchmove', tab6PointerMove, { passive: false });
-window.addEventListener('touchend', tab6PointerUp);
-
-function tab6Update(dt){
-  dt = Math.max(dt, 1e-4);
-  const s = state[6];
-  const ringY = 0; // the ring sits at magnetY == 0 in this local coordinate space
-
-  // Auto-drop: moves the magnet down at a user-controlled speed until it
-  // reaches the bottom. Grabbing the magnet (see tab6PointerDown) cancels it.
-  if (s.fallingAuto && !s.dragging) {
-    const vPxPerSec = 80 + s.dropSpeed * 300;
-    s.magnetY = Math.min(220, s.magnetY + vPxPerSec * dt);
-    if (s.magnetY >= 220) s.fallingAuto = false;
-  }
-
-  const velocity = (s.magnetY - s.prevMagnetY) / dt;
-  s.prevMagnetY = s.magnetY;
-  s.velocity = velocity;
-
-  const dist = s.magnetY - ringY;
-  const polarity = s.reversed ? -1 : 1;
-  const flux = polarity * s.B * 1.4 / (1 + Math.pow(dist / 55, 2));
-  const dFlux = flux - s.prevFlux;
-  s.prevFlux = flux;
-
-  // v ≈ 0 -> current must be EXACTLY zero, immediately (per the requirement)
-  if (Math.abs(velocity) < 2) {
-    s.current = 0;
-  } else {
-    s.current = clamp(-(dFlux / dt) * 0.6, -1, 1);
-  }
-
-  // Kinematic approach/departure flags — robust regardless of which side of
-  // the ring the magnet is on, and work correctly for arbitrary drag motion.
-  s.approaching = (dist < 0 && velocity > 0) || (dist > 0 && velocity < 0);
-  s.leaving     = (dist < 0 && velocity < 0) || (dist > 0 && velocity > 0);
-
-  // The magnetic reaction force always opposes the direction of motion.
-  s.forceMagnitude = clamp(Math.abs(s.current), 0, 1);
-  s.forceDir = velocity > 0 ? -1 : 1; // opposite sign to velocity, along screen-Y
-
-  // animate the current-flow arrows around the ring
-  const dir = s.approaching ? 1 : -1;
-  s.flowPhase += dir * Math.abs(s.current) * dt * 6;
-}
-
-/** Glowing green current particles travelling around the induced ring. */
-function drawTab6RingArrows(cx, cy, rx, ry, current, flowPhase){
-  if (Math.abs(current) < 0.04) return;
-  const dir = current >= 0 ? 1 : -1;
-  ctx.save();
-  const n = 10;
-  for (let i = 0; i < n; i++){
-    const angle = (i/n)*Math.PI*2 + flowPhase;
-    const x = cx + Math.cos(angle)*rx, y = cy + Math.sin(angle)*ry;
-    const glow = 0.5 + Math.abs(current)*0.5;
-    ctx.globalAlpha = glow;
-    ctx.shadowColor = '#7CFC3A'; ctx.shadowBlur = 12;
-    ctx.fillStyle = '#7CFC3A';
-    ctx.beginPath(); ctx.arc(x, y, 6.5, 0, Math.PI*2); ctx.fill();
-  }
-  ctx.restore();
-}
-
-function tab6Draw(){
-  ctx.clearRect(0, 0, CW, CH);
-  const s = state[6];
-  const cx = TAB6_CX, cy = TAB6_RING_SCREEN_Y;
-  const magnetScreenY = cy + s.magnetY;
-  const active = Math.abs(s.current) > 0.05;
-
-  // ---- top annotations: current direction (green) + repulsion/attraction (red) ----
-  if (active) {
-    ctx.save();
-    ctx.textAlign='center';
-    ctx.shadowColor='#7CFC3A'; ctx.shadowBlur=10;
-    ctx.fillStyle='#7CFC3A'; ctx.font="bold 20px Tajawal";
-    ctx.fillText((s.current>=0?'تيار مع عقارب الساعة ↻':'تيار عكس عقارب الساعة ↺'), cx, 55);
-    ctx.shadowBlur=0;
-    ctx.fillStyle=COLORS.red; ctx.font="bold 17px Tajawal";
-    ctx.fillText(s.approaching?'قوة تنافر ↔':'قوة تجاذب →←', cx, 82);
-    ctx.restore();
-  }
-
-  // ---- concentric magnetic field-force lines radiating from the magnet ----
-  ctx.save();
-  ctx.strokeStyle = 'rgba(90,150,255,.28)'; ctx.lineWidth = 1.4;
-  for(let r=40;r<=210;r+=26){
-    ctx.beginPath(); ctx.ellipse(cx, magnetScreenY, r, r*0.82, 0, 0, Math.PI*2); ctx.stroke();
-  }
-  ctx.restore();
-
-  // ---- induced field halo around the ring (green glow when active) ----
-  if(active){
-    ctx.save();
-    ctx.globalAlpha = 0.16 + Math.abs(s.current)*0.24;
-    const g = ctx.createRadialGradient(cx, cy, 20, cx, cy, 150);
-    g.addColorStop(0, 'rgba(124,252,58,.5)');
-    g.addColorStop(1, 'rgba(124,252,58,0)');
-    ctx.fillStyle = g;
-    ctx.beginPath(); ctx.ellipse(cx, cy, 150, 90, 0, 0, Math.PI*2); ctx.fill();
-    ctx.restore();
-  }
-
-  // ---- the induced ring (orange/copper), perspective ellipse, BEHIND magnet top half ----
-  ctx.save();
-  ctx.lineWidth = 11;
-  ctx.strokeStyle = active ? COLORS.copper : '#8a6a4a';
-  if(active){ ctx.shadowColor=COLORS.copper; ctx.shadowBlur=14; }
-  ctx.beginPath(); ctx.ellipse(cx, cy, 118, 34, 0, Math.PI, Math.PI*2); ctx.stroke(); // back half
-  ctx.restore();
-
-  // green current particles around the ring
-  drawTab6RingArrows(cx, cy, 118, 34, s.current, s.flowPhase);
-
-  // ---- induced-pole labels (S محتث on top side, N محتث on bottom) ----
-  if (active) {
-    // Lenz: the ring face toward an approaching N shows N (repulsion). Labels
-    // shown on both sides for clarity, coloured like the poles.
-    ctx.save(); ctx.textAlign='center'; ctx.font='bold 18px Tajawal';
-    const topPole = s.approaching ? 'S' : 'N';
-    const botPole = s.approaching ? 'N' : 'S';
-    ctx.fillStyle = topPole==='N'?COLORS.red:COLORS.blue;
-    ctx.fillText(topPole+' محتث', cx+185, cy-10);
-    ctx.fillStyle = botPole==='N'?COLORS.red:COLORS.blue;
-    ctx.fillText(botPole+' محتث', cx-185, cy+18);
-    ctx.restore();
-  }
-
-  // ---- the bar magnet (vertical), glowing, N red / S blue ----
-  ctx.save();
-  const mw=54, mh=150, mx=cx-mw/2, my=magnetScreenY-mh/2;
-  ctx.shadowColor = s.reversed ? '#4d8dff' : '#ef5b6b'; ctx.shadowBlur = active?22:10;
-  // top half
-  const topRed = !s.reversed;
-  const gTop = ctx.createLinearGradient(mx,my,mx+mw,my);
-  gTop.addColorStop(0, topRed?'#c0384a':'#2f5fbf'); gTop.addColorStop(0.5, topRed?'#ef5b6b':'#4d8dff'); gTop.addColorStop(1, topRed?'#c0384a':'#2f5fbf');
-  ctx.fillStyle=gTop; roundRectPath(mx,my,mw,mh/2,8,true,false); ctx.fill();
-  // bottom half
-  const gBot = ctx.createLinearGradient(mx,my,mx+mw,my);
-  gBot.addColorStop(0, topRed?'#2f5fbf':'#c0384a'); gBot.addColorStop(0.5, topRed?'#4d8dff':'#ef5b6b'); gBot.addColorStop(1, topRed?'#2f5fbf':'#c0384a');
-  ctx.fillStyle=gBot; roundRectPath(mx,my+mh/2,mw,mh/2,8,false,true); ctx.fill();
-  ctx.shadowBlur=0;
-  ctx.strokeStyle='rgba(0,0,0,.5)'; ctx.lineWidth=2; roundRectPath(mx,my,mw,mh,8,true,true); ctx.stroke();
-  // pole letters
-  ctx.fillStyle='#fff'; ctx.font='bold 26px Tajawal'; ctx.textAlign='center'; ctx.textBaseline='middle';
-  ctx.fillText(topRed?'N':'S', cx, my+mh*0.25);
-  ctx.fillText(topRed?'S':'N', cx, my+mh*0.75);
-  ctx.restore();
-
-  // ---- front half of the ring (drawn OVER the magnet to encircle it) ----
-  ctx.save();
-  ctx.lineWidth = 11;
-  ctx.strokeStyle = active ? COLORS.copperLight : '#9a7a5a';
-  if(active){ ctx.shadowColor=COLORS.copper; ctx.shadowBlur=14; }
-  ctx.beginPath(); ctx.ellipse(cx, cy, 118, 34, 0, 0, Math.PI); ctx.stroke(); // front half
-  ctx.restore();
-  drawTab6RingArrows(cx, cy, 118, 34, s.current, s.flowPhase + Math.PI); // particles on front
-
-  // ---- opposing force vector on the magnet ----
-  if (s.forceMagnitude > 0.05) {
-    const arrowLen = 34 + s.forceMagnitude * 46;
-    const ay = magnetScreenY + s.forceDir * 90;
-    ctx.save();
-    ctx.strokeStyle = COLORS.amber; ctx.fillStyle = COLORS.amber; ctx.lineWidth = 4;
-    ctx.shadowColor=COLORS.amber; ctx.shadowBlur=8;
-    ctx.beginPath(); ctx.moveTo(cx+90, ay); ctx.lineTo(cx+90, ay + s.forceDir*arrowLen); ctx.stroke();
-    const tipY = ay + s.forceDir*arrowLen;
-    ctx.beginPath(); ctx.moveTo(cx+90, tipY + s.forceDir*11); ctx.lineTo(cx+82, tipY); ctx.lineTo(cx+98, tipY); ctx.closePath(); ctx.fill();
-    ctx.shadowBlur=0; ctx.font='12px Tajawal'; ctx.textAlign='center';
-    ctx.fillText('F معاكسة', cx+90, ay + s.forceDir*arrowLen + s.forceDir*16);
-    ctx.restore();
-  }
-
-  // ---- big EMF readout (top-right) ----
-  ctx.save();
-  const emf = s.current * 3.38 / (Math.abs(s.current)||1) * Math.abs(s.current); // scaled display
-  ctx.textAlign='right';
-  ctx.shadowColor=COLORS.amber; ctx.shadowBlur = active?12:0;
-  ctx.fillStyle = active ? '#ffd75e' : COLORS.muted;
-  ctx.font='bold 30px Tajawal';
-  ctx.fillText('EMF = ' + (s.current*3.4).toFixed(2) + ' V', CW-30, 50);
-  ctx.restore();
-
-  // title + hint
-  ctx.fillStyle = COLORS.muted; ctx.font = '12px Tajawal'; ctx.textAlign = 'center';
-  ctx.fillText('اسحب المغناطيس لأعلى أو لأسفل ↕', cx, CH-16);
-
-  updateReadouts(
-    s.velocity.toFixed(0)+' px/s',
-    s.current.toFixed(2)+' A',
-    Math.abs(s.current) < 0.05 ? 'ساكن — لا تيار' : (s.approaching ? 'يقترب' : 'يبتعد')
-  );
-}
-
-function drawRingArrows(ctx, cx, cy, rx, ry, current){
-  if(Math.abs(current) < 0.05) return;
-  ctx.save();
-  ctx.strokeStyle = current>0 ? COLORS.cyanBright : COLORS.amber;
-  ctx.lineWidth = 2.5;
-  const dir = current>0 ? 1 : -1;
-  for(let a=0; a<Math.PI*2; a+=Math.PI/2){
-    const x = cx + Math.cos(a)*rx, y = cy + Math.sin(a)*ry;
-    const ta = a + dir*0.35;
-    const tx = cx + Math.cos(ta)*rx, ty = cy + Math.sin(ta)*ry;
-    ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(tx,ty); ctx.stroke();
-    const ang = Math.atan2(ty-y, tx-x);
-    ctx.beginPath();
-    ctx.moveTo(tx,ty);
-    ctx.lineTo(tx-Math.cos(ang-0.4)*8, ty-Math.sin(ang-0.4)*8);
-    ctx.lineTo(tx-Math.cos(ang+0.4)*8, ty-Math.sin(ang+0.4)*8);
-    ctx.closePath(); ctx.fillStyle = ctx.strokeStyle; ctx.fill();
-  }
-  ctx.restore();
-}
-/* =========================================================================
-   TAB 7 — نشاط تقليل التيارات الدوامية (solid vs. slotted pendulum)
-   ========================================================================= */
-function tab7Update(dt){
-  const s = state[7];
-  const g = 9.8, L = 2.2;
-  const fieldOn = !s.reversed;
-  const sub = 4, h = dt/sub;
-  for(let i=0;i<sub;i++){
-    const dampSolid = (Math.abs(s.thetaSolid) < 0.28 && fieldOn) ? 4.4*s.B*s.B : 0.02;
-    s.omegaSolid += (-(g/L)*Math.sin(s.thetaSolid) - dampSolid*s.omegaSolid) * h;
-    s.thetaSolid += s.omegaSolid*h;
-
-    const dampSlot = (Math.abs(s.thetaSlot) < 0.28 && fieldOn) ? 0.2*s.B*s.B : 0.02;
-    s.omegaSlot += (-(g/L)*Math.sin(s.thetaSlot) - dampSlot*s.omegaSlot) * h;
-    s.thetaSlot += s.omegaSlot*h;
-  }
-  if(s.mode==='auto'){
-    s.autoTimer += dt;
-    const bothStopped = Math.abs(s.thetaSolid)<0.02 && Math.abs(s.omegaSolid)<0.05 &&
-                         Math.abs(s.thetaSlot)<0.02 && Math.abs(s.omegaSlot)<0.05;
-    if(bothStopped && s.autoTimer>1.2){
-      s.thetaSolid=0.55; s.omegaSolid=0; s.thetaSlot=0.55; s.omegaSlot=0; s.autoTimer=0;
-    }
-  }
-}
-function drawPendulum(ctx, pivotX, pivotY, rodLen, theta, slotted, inField, glowStrength){
-  const px = pivotX + Math.sin(theta)*rodLen;
-  const py = pivotY + Math.cos(theta)*rodLen;
-  ctx.save();
-  ctx.strokeStyle = COLORS.muted; ctx.lineWidth=2.5;
-  ctx.beginPath(); ctx.moveTo(pivotX,pivotY); ctx.lineTo(px,py); ctx.stroke();
-  ctx.fillStyle = COLORS.border; ctx.beginPath(); ctx.arc(pivotX,pivotY,6,0,Math.PI*2); ctx.fill();
-
-  // eddy-current glow under the plate while braking is active
-  if(inField && glowStrength>0.03){
-    ctx.save();
-    ctx.globalAlpha = clamp(glowStrength,0,0.6);
-    const grad = ctx.createRadialGradient(px,py,4,px,py,46);
-    grad.addColorStop(0, COLORS.amber); grad.addColorStop(1, 'transparent');
-    ctx.fillStyle = grad;
-    ctx.beginPath(); ctx.arc(px,py,46,0,Math.PI*2); ctx.fill();
-    ctx.restore();
-  }
-
-  // the plate itself
-  ctx.save();
-  ctx.translate(px,py); ctx.rotate(theta);
-  ctx.fillStyle = COLORS.coil; ctx.strokeStyle = '#03060c'; ctx.lineWidth=2;
-  ctx.beginPath(); ctx.roundRect ? ctx.roundRect(-30,-38,60,76,8) : ctx.rect(-30,-38,60,76);
-  ctx.fill(); ctx.stroke();
-  if(slotted){
-    ctx.strokeStyle = COLORS.bg; ctx.lineWidth=4;
-    for(let x=-18; x<=18; x+=12){
-      ctx.beginPath(); ctx.moveTo(x,-30); ctx.lineTo(x,30); ctx.stroke();
-    }
-  }
-  ctx.restore();
-  ctx.restore();
-}
-function tab7Draw(){
-  ctx.clearRect(0,0,CW,CH);
-  const s = state[7];
-  const fieldOn = !s.reversed;
-  const pivotSolidX=250, pivotSlotX=650, pivotY=75, rodLen=250;
-  drawBench(ctx, 60, 840, 460);
-  drawStand(ctx, pivotSolidX, pivotY, 60);
-  drawStand(ctx, pivotSlotX, pivotY, 60);
-
-  [pivotSolidX, pivotSlotX].forEach(px=>{
-    // magnet poles fixed at the bottom of the swing, forming the field gap
-    ctx.save();
-    if(fieldOn){
-      ctx.fillStyle = COLORS.red;
-      ctx.fillRect(px-95, pivotY+rodLen-20, 35, 55);
-      ctx.fillStyle = COLORS.blue;
-      ctx.fillRect(px+60, pivotY+rodLen-20, 35, 55);
-      ctx.fillStyle='#fff'; ctx.font='bold 12px Tajawal'; ctx.textAlign='center';
-      ctx.fillText('N', px-77, pivotY+rodLen+10);
-      ctx.fillText('S', px+77, pivotY+rodLen+10);
-    } else {
-      ctx.strokeStyle = COLORS.muted; ctx.lineWidth=2; ctx.setLineDash([4,4]);
-      ctx.strokeRect(px-95, pivotY+rodLen-20, 35, 55);
-      ctx.strokeRect(px+60, pivotY+rodLen-20, 35, 55);
-      ctx.setLineDash([]);
-    }
-    ctx.restore();
+  let activeCount=0;
+  document.querySelectorAll('.comp').forEach(div=>{
+    const comp=findComp(div.dataset.id); if(!comp) return;
+    const t=TYPES[comp.type]; if(!t.hasTerminals) return;
+    const on = litNodes.has(nodeKey(comp.id,'a')) && litNodes.has(nodeKey(comp.id,'b'));
+    const isIndicator = comp.type==='neonLamp' || comp.type==='galvanometer' || comp.type==='fluxMeter';
+    div.classList.toggle('active', on && isIndicator);
+    if(on) activeCount++;
+    const needle=div.querySelector('.needle');
+    if(needle) needle.style.transform = on ? 'rotate(32deg)' : 'rotate(0deg)';
+    if(needle) needle.style.transformOrigin = (TYPES[comp.type].w*0.5)+'px '+(TYPES[comp.type].h*0.8125)+'px';
   });
 
-  const inFieldSolid = Math.abs(s.thetaSolid) < 0.28 && fieldOn;
-  const inFieldSlot = Math.abs(s.thetaSlot) < 0.28 && fieldOn;
-  drawPendulum(ctx, pivotSolidX, pivotY, rodLen, s.thetaSolid, false, inFieldSolid, Math.abs(s.omegaSolid)*0.5);
-  drawPendulum(ctx, pivotSlotX, pivotY, rodLen, s.thetaSlot, true, inFieldSlot, Math.abs(s.omegaSlot)*0.15);
+  for(const w of lab().wires){
+    const active=litNodes.has(nodeKey(w.a.comp,w.a.term)) && litNodes.has(nodeKey(w.b.comp,w.b.term));
+    const path=document.getElementById('wirepath-'+w.id);
+    if(path && active) animateCurrent(path, w.id, wireDirection.get(w.id)===-1);
+  }
 
-  ctx.fillStyle=COLORS.muted; ctx.font='13px Tajawal'; ctx.textAlign='center';
-  ctx.fillText('قرص مصمت', pivotSolidX, 460);
-  ctx.fillText('قرص مشقوق (محزز)', pivotSlotX, 460);
-  ctx.fillStyle=COLORS.amber; ctx.font='bold 14px Tajawal';
-  ctx.fillText('تقليل التيارات الدوامية بواسطة الشقوق', 450, 30);
-
-  updateReadouts(
-    (s.thetaSolid*57.3).toFixed(1)+'°',
-    (s.thetaSlot*57.3).toFixed(1)+'°',
-    fieldOn ? 'المجال: يعمل' : 'المجال: متوقف'
-  );
+  if(lab().components.length===0){ el.circuitStatus.innerHTML='اسحب الأدوات وابدأ التركيب'; return; }
+  if(sources.length===0){ el.circuitStatus.innerHTML='ركّب العناصر ووصّلها بأسلاك <b>(للأدوات الكهربائية فقط)</b>'; return; }
+  el.circuitStatus.innerHTML = anyLoop
+    ? 'الدارة <b>مكتملة</b> — لاحظ استجابة الجلفانومتر/المصباح'
+    : 'الدارة <b>غير مكتملة</b>';
 }
 
-/* =========================================================================
-   TAB 8 — تأثير المحاثة (parallel R-branch vs. L-branch lamps)
-   ========================================================================= */
-function tab8Update(dt){
-  const s = state[8];
-  if(s.mode==='auto'){
-    s.autoTimer += dt;
-    if(s.autoTimer > 3.0){ s.switchOn = !s.switchOn; s.autoTimer = 0;
-      const btn=document.getElementById('switchBtn8');
-      btn.classList.toggle('on', s.switchOn);
-      btn.textContent = s.switchOn ? '🔌 الدائرة مغلقة (تلقائي)' : '🔌 الدائرة مفتوحة (تلقائي)';
+function animateCurrent(pathEl, wireId, reverse){
+  if(document.getElementById('dots-'+wireId)) return;
+  const DOT_COUNT=4, dur=1.3;
+  const group=document.createElementNS(SVG_NS,'g'); group.id='dots-'+wireId;
+  for(let i=0;i<DOT_COUNT;i++){
+    const dot=document.createElementNS(SVG_NS,'circle'); dot.setAttribute('r',4.5); dot.setAttribute('class','charge-dot');
+    const anim=document.createElementNS(SVG_NS,'animateMotion');
+    anim.setAttribute('dur',dur+'s'); anim.setAttribute('repeatCount','indefinite'); anim.setAttribute('begin', -(dur/DOT_COUNT)*i+'s');
+    if(reverse){ anim.setAttribute('keyPoints','1;0'); anim.setAttribute('keyTimes','0;1'); anim.setAttribute('calcMode','linear'); }
+    const mpath=document.createElementNS(SVG_NS,'mpath'); mpath.setAttributeNS('http://www.w3.org/1999/xlink','href','#'+pathEl.id);
+    anim.appendChild(mpath); dot.appendChild(anim); group.appendChild(dot);
+  }
+  el.wireContent.appendChild(group);
+}
+
+/* ---- drop from palette ---- */
+el.viewport.addEventListener('dragover', e=>e.preventDefault());
+el.viewport.addEventListener('drop', e=>{
+  e.preventDefault();
+  const type=e.dataTransfer.getData('text/plain'); if(!type || !TYPES[type]) return;
+  const t=TYPES[type];
+  const pos=clientToWorld(e.clientX, e.clientY);
+  const comp={ id:uid(), type, x:pos.x-t.w/2, y:pos.y-t.h/2, closed:true };
+  lab().components.push(comp);
+  render();
+});
+
+/* ---- drag / wire / select ---- */
+let dragCtx=null, wireCtx=null, tempWireEl=null;
+
+el.world.addEventListener('mousedown', e=>{
+  const termEl=e.target.closest('.terminal');
+  const compEl=e.target.closest('.comp');
+  if(termEl){
+    e.stopPropagation();
+    const startPos=terminalPos(findComp(termEl.dataset.comp), termEl.dataset.term);
+    wireCtx={ fromComp:termEl.dataset.comp, fromTerm:termEl.dataset.term, startPos };
+    tempWireEl=document.createElementNS(SVG_NS,'path'); tempWireEl.setAttribute('class','temp-wire');
+    el.wireContent.appendChild(tempWireEl);
+    return;
+  }
+  if(compEl){
+    const comp=findComp(compEl.dataset.id);
+    const start=clientToWorld(e.clientX,e.clientY);
+    dragCtx={ id:comp.id, offX:start.x-comp.x, offY:start.y-comp.y, moved:false, startClientX:e.clientX, startClientY:e.clientY };
+  }
+});
+
+document.addEventListener('mousemove', e=>{
+  if(wireCtx){ const p=clientToWorld(e.clientX,e.clientY); tempWireEl.setAttribute('d', wirePathD(wireCtx.startPos,p)); return; }
+  if(dragCtx){
+    const dx=Math.abs(e.clientX-dragCtx.startClientX), dy=Math.abs(e.clientY-dragCtx.startClientY);
+    if(dx>3||dy>3) dragCtx.moved=true;
+    const p=clientToWorld(e.clientX,e.clientY);
+    const comp=findComp(dragCtx.id); if(!comp) return;
+    comp.x=p.x-dragCtx.offX; comp.y=p.y-dragCtx.offY;
+    render();
+  }
+});
+
+document.addEventListener('mouseup', e=>{
+  if(wireCtx){
+    const targetTerm=document.elementFromPoint(e.clientX,e.clientY)?.closest('.terminal');
+    if(targetTerm && !(targetTerm.dataset.comp===wireCtx.fromComp && targetTerm.dataset.term===wireCtx.fromTerm)){
+      lab().wires.push({ id:uid(), a:{comp:wireCtx.fromComp,term:wireCtx.fromTerm}, b:{comp:targetTerm.dataset.comp,term:targetTerm.dataset.term} });
     }
+    tempWireEl?.remove(); tempWireEl=null; wireCtx=null; render(); return;
   }
-  const RA=4, RB=4;
-  const targetA = s.switchOn ? s.voltage/RA : 0;
-  s.currentA += (targetA - s.currentA) * Math.min(1, dt/0.08);
-
-  const targetB = s.switchOn ? s.voltage/RB : 0;
-  const tauB = 0.25 + s.L*0.65;
-  s.currentB += (targetB - s.currentB) * Math.min(1, dt/tauB);
-}
-function drawLamp(ctx,x,y,brightness,maxCurrent){
-  const b = clamp(brightness/maxCurrent, 0, 1);
-  ctx.save();
-  if(b>0.03){
-    const grad = ctx.createRadialGradient(x,y,2,x,y,32);
-    grad.addColorStop(0, `rgba(255,230,140,${0.15+b*0.6})`); grad.addColorStop(1,'transparent');
-    ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(x,y,32,0,Math.PI*2); ctx.fill();
-  }
-  ctx.beginPath(); ctx.arc(x,y,18,0,Math.PI*2);
-  ctx.fillStyle = `rgb(${60+195*b}, ${50+170*b}, ${30+30*b})`;
-  ctx.fill();
-  ctx.strokeStyle=COLORS.border; ctx.lineWidth=2; ctx.stroke();
-  ctx.strokeStyle = '#03060c'; ctx.lineWidth=1.5;
-  ctx.beginPath(); ctx.moveTo(x-9,y-9); ctx.lineTo(x+9,y+9); ctx.moveTo(x+9,y-9); ctx.lineTo(x-9,y+9); ctx.stroke();
-  ctx.restore();
-}
-function tab8Draw(){
-  ctx.clearRect(0,0,CW,CH);
-  const s = state[8];
-  drawBench(ctx, 60, 840, 430);
-  const leftX=170, rightX=770, yA=170, yB=320, maxCurrent = s.voltage/4;
-
-  drawStand(ctx, leftX, 245, 430);
-  // battery + switch
-  ctx.save(); ctx.strokeStyle=COLORS.text; ctx.lineWidth=4;
-  ctx.beginPath(); ctx.moveTo(leftX,225); ctx.lineTo(leftX,265); ctx.stroke();
-  ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(leftX+17,232); ctx.lineTo(leftX+17,258); ctx.stroke();
-  ctx.font='12px Tajawal'; ctx.fillStyle=COLORS.muted; ctx.textAlign='center';
-  ctx.fillText(s.voltage.toFixed(1)+' V', leftX, 285);
-  ctx.strokeStyle = s.switchOn ? COLORS.cyanBright : COLORS.red; ctx.lineWidth=3.5;
-  ctx.beginPath(); ctx.moveTo(leftX,yA); ctx.lineTo(leftX,yA+ (s.switchOn?0:0));
-  ctx.moveTo(leftX-30,yA+75); // decorative anchor (unused) to keep path valid
-  ctx.stroke();
-  ctx.restore();
-
-  // branch wires (rectangular loop with two horizontal branches)
-  const wireA1 = [{x:leftX,y:245},{x:leftX,y:yA},{x:380,y:yA}];
-  const wireA2 = [{x:420,y:yA},{x:rightX,y:yA},{x:rightX,y:245}];
-  const wireB1 = [{x:leftX,y:245},{x:leftX,y:yB},{x:380,y:yB}];
-  const wireB2 = [{x:420,y:yB},{x:rightX,y:yB},{x:rightX,y:245}];
-  strokeFlow(ctx, wireA1, s.currentA, 0);
-  strokeFlow(ctx, wireA2, s.currentA, 0);
-  strokeFlow(ctx, wireB1, s.currentB, 0);
-  strokeFlow(ctx, wireB2, s.currentB, 0);
-  drawTerminals(ctx, [{x:leftX,y:yA},{x:leftX,y:yB},{x:rightX,y:yA},{x:rightX,y:yB}], COLORS.amber);
-
-  // resistor symbol on branch A
-  ctx.save(); ctx.strokeStyle=COLORS.text; ctx.lineWidth=3;
-  ctx.beginPath(); ctx.moveTo(200,yA);
-  for(let i=0;i<6;i++){ ctx.lineTo(210+i*20, yA + (i%2===0?-12:12)); }
-  ctx.lineTo(340,yA); ctx.stroke(); ctx.restore();
-  ctx.fillStyle=COLORS.muted; ctx.font='12px Tajawal'; ctx.textAlign='center';
-  ctx.fillText('مقاومة R', 270, yA-24);
-
-  // inductor (coil) symbol on branch B
-  ctx.save(); ctx.strokeStyle=COLORS.coil; ctx.lineWidth=3;
-  for(let i=0;i<5;i++){ ctx.beginPath(); ctx.ellipse(200+i*28, yB, 13, 16, 0, Math.PI, Math.PI*2.6); ctx.stroke(); }
-  ctx.restore();
-  ctx.fillText('ملف محاثة L = '+s.L.toFixed(1), 270, yB-24);
-
-  drawLamp(ctx, 470, yA, s.currentA, maxCurrent);
-  drawLamp(ctx, 470, yB, s.currentB, maxCurrent);
-  ctx.fillStyle=COLORS.muted; ctx.font='13px Tajawal';
-  ctx.fillText('مصباح A', 470, yA+42);
-  ctx.fillText('مصباح B', 470, yB+42);
-
-  ctx.fillStyle=COLORS.amber; ctx.font='bold 14px Tajawal';
-  ctx.fillText('تأثير المحاثة: تأخر إضاءة المصباح B بسبب الحث الذاتي', 450, 30);
-
-  updateReadouts(
-    s.currentA.toFixed(2)+' A',
-    s.currentB.toFixed(2)+' A',
-    s.switchOn ? 'الدائرة: مغلقة' : 'الدائرة: مفتوحة'
-  );
-}
-
-/* =========================================================================
-   TAB 9 — تجربة الحث الذاتي (neon lamp flashes only when the circuit breaks)
-   ========================================================================= */
-function tab9Update(dt){
-  const s = state[9];
-  // detect a make->break transition using last frame's recorded switch state
-  if(!s.switchOn && s.prevSwitchOn){
-    s.spikeV = Math.abs(s.current) * 40 * s.L;
-    if(s.spikeV > 90){
-      s.flashTimer = 0.35;
-      s.flashIntensity = clamp(s.spikeV/220, 0.4, 1);
+  if(dragCtx){
+    const comp=findComp(dragCtx.id);
+    if(!dragCtx.moved && comp){
+      if(TYPES[comp.type].toggle) comp.closed=!comp.closed;
+      select('comp', comp.id);
     }
+    dragCtx=null; render();
   }
-  s.prevSwitchOn = s.switchOn;
+});
 
-  if(s.mode==='auto'){
-    s.autoTimer += dt;
-    if(s.autoTimer > (s.switchOn ? 2.2 : 1.2)){
-      s.switchOn = !s.switchOn;
-      s.autoTimer = 0;
-      const btn=document.getElementById('switchBtn9');
-      btn.classList.toggle('on', s.switchOn);
-      btn.textContent = s.switchOn ? '🔌 فتح الدائرة' : '🔌 غلق الدائرة';
-    }
-  }
+el.wireLayer.addEventListener('mousedown', e=>{ const hit=e.target.closest('.wire-hit'); if(hit) select('wire', hit.dataset.wireId); });
+el.viewport.addEventListener('mousedown', e=>{ if(e.target===el.viewport||e.target===el.world) select(null); });
 
-  const polarity = s.reversed ? -1 : 1;
-  const R = 3;
-  const target = s.switchOn ? polarity*s.voltage/R : 0;
-  const tau = 0.3 + s.L*0.55;
-  s.current += (target - s.current) * Math.min(1, dt/tau);
-
-  if(s.flashTimer > 0) s.flashTimer = Math.max(0, s.flashTimer - dt);
-}
-function tab9Draw(){
-  ctx.clearRect(0,0,CW,CH);
-  const s = state[9];
-  drawBench(ctx, 60, 840, 400);
-  const coilCx=380, coilCy=220;
-  drawStand(ctx, coilCx-90, 100, 400);
-  drawStand(ctx, coilCx+90, 100, 400);
-  const coil = drawCoilVertical(ctx, coilCx, coilCy, 6, 85, 26);
-
-  const by=340;
-  const wire1=[coil.leadLeft, {x:coil.leadLeft.x-60,y:coil.leadLeft.y}, {x:coil.leadLeft.x-60,y:by}, {x:coilCx-24,y:by}];
-  const wire2=[coil.leadRight, {x:coil.leadRight.x+40,y:coil.leadRight.y}, {x:coil.leadRight.x+40,y:by}, {x:coilCx+24,y:by}];
-  strokeFlow(ctx, wire1, s.current, 0);
-  strokeFlow(ctx, wire2, s.current, 0);
-  drawTerminals(ctx, [coil.leadLeft, coil.leadRight], COLORS.coil);
-
-  ctx.save(); ctx.strokeStyle=COLORS.text; ctx.lineWidth=4;
-  ctx.beginPath(); ctx.moveTo(coilCx-24,by-20); ctx.lineTo(coilCx-24,by+20); ctx.stroke();
-  ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(coilCx-7,by-11); ctx.lineTo(coilCx-7,by+11); ctx.stroke();
-  ctx.font='12px Tajawal'; ctx.fillStyle=COLORS.muted; ctx.textAlign='center';
-  ctx.fillText(s.voltage.toFixed(1)+' V', coilCx-15, by-32);
-  ctx.strokeStyle = s.switchOn ? COLORS.cyanBright : COLORS.red; ctx.lineWidth=3.5;
-  ctx.beginPath(); ctx.moveTo(coilCx+7,by);
-  if(s.switchOn){ ctx.lineTo(coilCx+24,by); } else { ctx.lineTo(coilCx+19,by-17); }
-  ctx.stroke();
-  ctx.fillStyle=COLORS.muted; ctx.font='12px Tajawal';
-  ctx.fillText(s.switchOn?'مفتاح: مغلق':'مفتاح: مفتوح', coilCx+16, by+38);
-  ctx.restore();
-
-  // neon lamp wired in parallel across the coil terminals
-  const lampX = coilCx+280, lampY=220;
-  strokeWire(ctx, [coil.leadLeft, {x:coil.leadLeft.x-15,y:lampY-30},{x:lampX,y:lampY-30}], COLORS.wire, 2.5);
-  strokeWire(ctx, [coil.leadRight,{x:coil.leadRight.x+15,y:lampY+30},{x:lampX,y:lampY+30}], COLORS.wire, 2.5);
-  drawTerminals(ctx, [{x:lampX,y:lampY-30},{x:lampX,y:lampY+30}], COLORS.amber);
-
-  const glow = s.flashTimer>0 ? s.flashIntensity*(s.flashTimer/0.35) : 0;
-  ctx.save();
-  if(glow>0.02){
-    const grad = ctx.createRadialGradient(lampX,lampY,4,lampX,lampY,70);
-    grad.addColorStop(0, `rgba(255,150,255,${0.25+glow*0.7})`); grad.addColorStop(1,'transparent');
-    ctx.fillStyle=grad; ctx.beginPath(); ctx.arc(lampX,lampY,70,0,Math.PI*2); ctx.fill();
-  }
-  ctx.beginPath(); ctx.arc(lampX,lampY,26,0,Math.PI*2);
-  ctx.fillStyle = glow>0.02 ? `rgb(${230},${120+glow*100},${230})` : '#241a2e';
-  ctx.fill(); ctx.strokeStyle=COLORS.border; ctx.lineWidth=2.5; ctx.stroke();
-  ctx.fillStyle=COLORS.muted; ctx.font='11px Tajawal'; ctx.textAlign='center';
-  ctx.fillText('Ne', lampX, lampY+4);
-  ctx.restore();
-  ctx.fillStyle=COLORS.muted; ctx.font='12px Tajawal';
-  ctx.fillText('مصباح نيون (يحتاج 90V)', lampX, lampY+60);
-
-  ctx.fillStyle=COLORS.amber; ctx.font='bold 14px Tajawal'; ctx.textAlign='center';
-  ctx.fillText('الحث الذاتي: ومضة المصباح لحظة فتح الدائرة فقط', 450, 30);
-
-  updateReadouts(
-    s.current.toFixed(2)+' A',
-    (s.flashTimer>0 ? s.spikeV.toFixed(0) : '0')+' V',
-    s.flashTimer>0 ? 'المصباح: يومض!' : 'المصباح: مطفأ'
-  );
+function select(kind,id){
+  if(kind===null) lab().selected=null;
+  else if(lab().selected && lab().selected.kind===kind && lab().selected.id===id) lab().selected=null;
+  else lab().selected={kind,id};
+  render();
 }
 
-/* =========================================================================
-   TAB 10 — الطباخ الحثي (AC coil induces eddy currents that heat a metal pan)
-   ========================================================================= */
-function tab10Update(dt){
-  const s = state[10];
-  if(s.mode==='auto') s.on = true;
-  s.phase += dt*14;
-  const materialFactor = s.reversed ? 0.35 : 1.0; // aluminum heats far less efficiently than iron
-  const heating = s.on ? s.power*materialFactor*10 : 0;
-  const cooling = (s.temp-20)*0.15;
-  s.temp = clamp(s.temp + (heating-cooling)*dt, 20, 320);
+/* ---- toolbar ---- */
+el.deleteBtn.addEventListener('click', deleteSelected);
+document.addEventListener('keydown', e=>{
+  if((e.key==='Delete'||e.key==='Backspace') && document.activeElement.tagName!=='INPUT') deleteSelected();
+});
+function deleteSelected(){
+  const sel=lab().selected; if(!sel) return;
+  if(sel.kind==='comp'){ lab().components=lab().components.filter(c=>c.id!==sel.id); lab().wires=lab().wires.filter(w=>w.a.comp!==sel.id && w.b.comp!==sel.id); }
+  else lab().wires=lab().wires.filter(w=>w.id!==sel.id);
+  lab().selected=null; render();
 }
-function tab10Draw(){
-  ctx.clearRect(0,0,CW,CH);
-  const s = state[10];
-  const cx=430, coilY=340, panY=270;
-  drawBench(ctx, 60, 840, 420);
+el.clearBtn.addEventListener('click', ()=>{
+  if(lab().components.length===0 && lab().wires.length===0) return;
+  if(confirm('هل تريد مسح كل عناصر هذه التجربة؟')){ lab().components=[]; lab().wires=[]; lab().selected=null; render(); }
+});
+el.viewModeBtn.addEventListener('click', ()=> el.canvasWrap.classList.toggle('grid'));
 
-  // flat spiral coil (cross-section: concentric arcs)
-  ctx.save(); ctx.strokeStyle=COLORS.coil; ctx.lineWidth=6;
-  for(let i=0;i<5;i++){ ctx.beginPath(); ctx.ellipse(cx, coilY, 40+i*34, 12, 0, 0, Math.PI*2); ctx.stroke(); }
-  ctx.restore();
+function applyZoom(){ el.world.style.transform=`scale(${lab().scale})`; el.wireLayer.style.transform=`scale(${lab().scale})`; }
+el.zoomInBtn.addEventListener('click', ()=>{ lab().scale=Math.min(2, +(lab().scale+0.15).toFixed(2)); applyZoom(); });
+el.zoomOutBtn.addEventListener('click', ()=>{ lab().scale=Math.max(0.5, +(lab().scale-0.15).toFixed(2)); applyZoom(); });
 
-  // alternating current direction indicator
-  const acDir = Math.sin(s.phase) >= 0 ? 1 : -1;
-  if(s.on){
-    ctx.save();
-    ctx.strokeStyle = COLORS.cyanBright; ctx.fillStyle = COLORS.cyanBright; ctx.lineWidth=2.5;
-    const ax = cx + 210, ay = coilY;
-    ctx.beginPath(); ctx.moveTo(ax-20*acDir, ay); ctx.lineTo(ax+20*acDir, ay); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(ax+20*acDir,ay); ctx.lineTo(ax+9*acDir,ay-7); ctx.lineTo(ax+9*acDir,ay+7); ctx.closePath(); ctx.fill();
-    ctx.font='11px Tajawal'; ctx.textAlign='center'; ctx.fillText('تيار متردد AC', ax, ay-18);
-    ctx.restore();
-
-    // oscillating field loops rising from the coil toward the pan
-    ctx.save();
-    ctx.strokeStyle = COLORS.amber;
-    for(let i=1;i<=4;i++){
-      const wobble = Math.sin(s.phase - i*0.6)*0.5+0.5;
-      ctx.globalAlpha = 0.12 + wobble*0.22;
-      ctx.lineWidth = 1.5;
-      ctx.beginPath(); ctx.ellipse(cx, coilY - i*16, 34+i*30, 10+i*3, 0, Math.PI, Math.PI*2); ctx.stroke();
-    }
-    ctx.restore();
-  }
-
-  // the pan (color shifts from gray to glowing red/orange with temperature)
-  const heatFrac = clamp((s.temp-20)/260, 0, 1);
-  const panColor = `rgb(${90+heatFrac*165}, ${90-heatFrac*60}, ${95-heatFrac*80})`;
-  ctx.save();
-  ctx.fillStyle = panColor;
-  ctx.beginPath();
-  ctx.moveTo(cx-190, panY);
-  ctx.lineTo(cx+190, panY);
-  ctx.lineTo(cx+165, panY+34);
-  ctx.lineTo(cx-165, panY+34);
-  ctx.closePath(); ctx.fill();
-  ctx.strokeStyle=COLORS.border; ctx.lineWidth=2.5; ctx.stroke();
-  // pan rim / handle hint
-  ctx.fillStyle = panColor; ctx.fillRect(cx-200, panY-10, 400, 12);
-  ctx.strokeRect(cx-200, panY-10, 400, 12);
-  ctx.restore();
-
-  // eddy currents glowing in the pan base
-  if(s.on && heatFrac>0.03){
-    ctx.save();
-    ctx.globalAlpha = clamp(heatFrac,0,0.85);
-    for(const ex of [cx-90, cx, cx+90]){
-      drawRingArrows(ctx, ex, panY+16, 55, 12, acDir*(0.3+heatFrac*0.7));
-    }
-    ctx.restore();
-  }
-
-  ctx.fillStyle=COLORS.muted; ctx.font='13px Tajawal'; ctx.textAlign='center';
-  ctx.fillText('الملف الحثي', cx, coilY+40);
-  ctx.fillText('إناء معدني ('+(s.reversed?'ألمنيوم':'حديد')+')', cx, panY-24);
-
-  // temperature gauge on the side
-  const gx=760, gyTop=100, gyBot=380;
-  ctx.save();
-  ctx.strokeStyle=COLORS.border; ctx.lineWidth=3;
-  ctx.beginPath(); ctx.roundRect ? ctx.roundRect(gx-16,gyTop,32,gyBot-gyTop,16) : ctx.rect(gx-16,gyTop,32,gyBot-gyTop);
-  ctx.stroke();
-  const fillH = (gyBot-gyTop)*heatFrac;
-  const grad = ctx.createLinearGradient(0,gyBot,0,gyTop);
-  grad.addColorStop(0, '#4d8dff'); grad.addColorStop(0.5,'#f2a83c'); grad.addColorStop(1,'#ef5b6b');
-  ctx.fillStyle = grad;
-  ctx.beginPath(); ctx.rect(gx-13, gyBot-fillH, 26, fillH); ctx.fill();
-  ctx.fillStyle=COLORS.muted; ctx.font='12px Tajawal'; ctx.textAlign='center';
-  ctx.fillText('°C', gx, gyTop-14);
-  ctx.fillText(s.temp.toFixed(0)+'°', gx, gyBot+24);
-  ctx.restore();
-
-  ctx.fillStyle=COLORS.amber; ctx.font='bold 14px Tajawal'; ctx.textAlign='center';
-  ctx.fillText('الطباخ الحثي: تيارات دوامية تسخّن قاع الإناء', 450, 30);
-
-  updateReadouts(
-    s.on ? 'يعمل' : 'متوقف',
-    s.temp.toFixed(0)+' °م',
-    (s.power*100).toFixed(0)+' %'
-  );
-}
-
-function drawPlaceholder(){
-  ctx.clearRect(0,0,CW,CH);
-  ctx.fillStyle = COLORS.muted;
-  ctx.textAlign='center';
-  ctx.font = '20px Tajawal';
-  ctx.fillText('🚧 هذه المحاكاة قيد الإنشاء', CW/2, CH/2 - 14);
-  ctx.font = '13px Tajawal';
-  ctx.fillText('سيتم تفعيل الرسوميات والفيزياء التفاعلية لهذا النشاط في تحديث قادم', CW/2, CH/2 + 16);
-  updateReadouts('—','—','—');
-}
-
-/* =========================================================================
-   MAIN LOOP
-   ========================================================================= */
-let lastTime = null;
-function loop(ts){
-  if(lastTime===null) lastTime = ts;
-  let dt = (ts - lastTime) / 1000;
-  dt = Math.min(dt, 0.05); // clamp to avoid jumps on tab switch / lag
-  lastTime = ts;
-
-  switch(activeTab){
-    case 1: tab1Update(dt); tab1Draw(); break;
-    case 2: tab2Update(dt); tab2Draw(); break;
-    case 3: tab3Update(dt); tab3Draw(); break;
-    case 4: tab4Update(dt); tab4Draw(); break;
-    case 5: tab5Update(dt); tab5Draw(); break;
-    case 6: tab6Update(dt); tab6Draw(); break;
-    case 7: tab7Update(dt); tab7Draw(); break;
-    case 8: tab8Update(dt); tab8Draw(); break;
-    case 9: tab9Update(dt); tab9Draw(); break;
-    case 10: tab10Update(dt); tab10Draw(); break;
-    default: drawPlaceholder(); break;
-  }
-  requestAnimationFrame(loop);
-}
-
-/* Init */
-switchTab(1);
-requestAnimationFrame(loop);
-
-/* Welcome overlay */
+/* ---- welcome overlay ---- */
 document.getElementById('startBtn').addEventListener('click', ()=>{
-  const overlay = document.getElementById('welcomeOverlay');
-  overlay.classList.add('hidden');
-  setTimeout(()=>{ overlay.style.display = 'none'; }, 650);
+  document.getElementById('welcomeOverlay').classList.add('hidden');
 });
+
+switchTab(1);
 </script>
 </body>
 </html>
