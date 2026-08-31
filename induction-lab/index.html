@@ -323,6 +323,11 @@
   .comp.active.neon .glow-rays .ray{
     background:linear-gradient(rgba(255,90,190,0), #ff5abe 55%, rgba(255,90,190,0));
   }
+  /* a live coil's field glow: shorter, gold, reads as "field" rather than "light" */
+  .glow-rays.field .ray{
+    height:60px; top:-60px;
+    background:linear-gradient(rgba(255,205,90,0), #ffcf5c 55%, rgba(255,205,90,0));
+  }
 
   /* wires */
   .wire-border{ stroke:#2a1c0c; stroke-width:15; stroke-linecap:round; fill:none; }
@@ -718,8 +723,12 @@ function renderComponents(){
     }
 
     if(t.hasTerminals){
-      const rays=document.createElement('div'); rays.className='glow-rays';
-      const n = comp.type==='neonLamp' ? 14 : 0;
+      // A live coil visibly radiates a field while current flows through it —
+      // this is the "دائرة ابتدائية تطلع مجال مغناطيسي" cue, and it shows up
+      // the instant a primary loop closes, before any secondary is even
+      // wired up. Reuses the same glow-rays plumbing as the neon lamp.
+      const rays=document.createElement('div'); rays.className='glow-rays'+(COIL_TYPES.includes(comp.type)?' field':'');
+      const n = comp.type==='neonLamp' ? 14 : (COIL_TYPES.includes(comp.type) ? 12 : 0);
       for(let i=0;i<n;i++){ const r=document.createElement('div'); r.className='ray'; r.style.transform=`rotate(${i*(360/n)}deg)`; rays.appendChild(r); }
       div.appendChild(rays);
       ['a','b'].forEach(term=>{
@@ -853,7 +862,7 @@ function evaluateCircuit(){
     const t=TYPES[comp.type]; if(!t.hasTerminals) return;
     const on = litNodes.has(nodeKey(comp.id,'a')) && litNodes.has(nodeKey(comp.id,'b'));
     const isMeter = comp.type==='galvanometer' || comp.type==='fluxMeter';
-    const isIndicator = comp.type==='neonLamp' || isMeter;
+    const isIndicator = comp.type==='neonLamp' || isMeter || COIL_TYPES.includes(comp.type);
     div.classList.toggle('active', on && isIndicator);
     if(on) activeCount++;
     const needle=div.querySelector('.needle');
@@ -1087,17 +1096,23 @@ document.addEventListener('mousemove', e=>{
     // A moving magnet — or a coil that's *itself* carrying current, acting as
     // a temporary electromagnet (e.g. a small battery+coil "secondary" you
     // slide in and out of a bigger coil) — induces a momentary current in
-    // any coil it's approaching or leaving. Direction flips depending on
-    // which way it's moving, and it stops the instant the motion stops (see
-    // mouseup), just like the real thing.
-    const isLiveInducer = TYPES[comp.type].induces ||
-      (COIL_TYPES.includes(comp.type) && lab().energizedCoilIds && lab().energizedCoilIds.has(comp.id));
-    if(isLiveInducer){
+    // any coil it's approaching or leaving. This also has to work the other
+    // way round: dragging an *unpowered* coil (e.g. tab 3's secondary) near
+    // a stationary energized one is the same relative motion, so whichever
+    // side actually lacks its own steady source is the one that gets the
+    // pulse. Direction flips depending on which way it's moving, and it
+    // stops the instant the motion stops (see mouseup), just like the real thing.
+    const isEnergizedCoil = c => COIL_TYPES.includes(c.type) && lab().energizedCoilIds && lab().energizedCoilIds.has(c.id);
+    const isCandidateInducer = TYPES[comp.type].induces || COIL_TYPES.includes(comp.type);
+    if(isCandidateInducer){
       const found=findInductionCoil(comp);
-      if(found){
+      const dragIsSource = TYPES[comp.type].induces || isEnergizedCoil(comp);
+      const targetIsSource = found && isEnergizedCoil(found.comp);
+      if(found && (dragIsSource || targetIsSource)){
+        const pulseCoil = dragIsSource ? found.comp : comp; // whichever side has no source of its own
         if(dragCtx.lastDist!=null && found.dist!==dragCtx.lastDist){
           const dir = found.dist < dragCtx.lastDist ? 1 : -1;
-          lab().inducedPulse = { coilId:found.comp.id, dir, reason:'motion' };
+          lab().inducedPulse = { coilId:pulseCoil.id, dir, reason:'motion' };
           dragCtx.lastDir=dir;
         }
         dragCtx.lastDist=found.dist;
