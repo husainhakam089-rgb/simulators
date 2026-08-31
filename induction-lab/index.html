@@ -853,7 +853,7 @@ function evaluateCircuit(){
   if(inducedActive){
     el.circuitStatus.innerHTML = pulse.reason==='switch'
       ? 'تيار <b>محتث لحظي</b> بالملف المجاور — نتيجة تغيّر التيار عند غلق/فتح المفتاح'
-      : 'تيار <b>محتث</b> أثناء حركة المغناطيس — سيتوقف فور توقفك';
+      : 'تيار <b>محتث</b> أثناء الحركة — سيتوقف فور توقفك';
     return;
   }
   if(sources.length===0){ el.circuitStatus.innerHTML='وصّل الملف بجلفانومتر وحرّك مغناطيسًا داخله، أو أضف مصدر جهد <b>(للأدوات الكهربائية فقط)</b>'; return; }
@@ -947,7 +947,13 @@ function findInductionCoil(dragComp){
   for(const c of lab().components){
     if(c.id===dragComp.id) continue;
     const ct=TYPES[c.type];
-    if(!ct.accepts || !ct.accepts.includes(dragComp.type)) continue;
+    // A target works if it explicitly accepts this dragged type (magnet/core
+    // sliding into a coil), or if both sides are coils — a live coil is
+    // itself a temporary electromagnet, so any other coil counts as a valid
+    // target for it too (this is what lets a battery+coil "secondary" moved
+    // in and out of a bigger coil induce a current, same as a bar magnet).
+    const compatible = (ct.accepts && ct.accepts.includes(dragComp.type)) || (COIL_TYPES.includes(c.type) && COIL_TYPES.includes(dragComp.type));
+    if(!compatible) continue;
     if(dCenter.x < c.x-MARGIN || dCenter.x > c.x+ct.w+MARGIN || dCenter.y < c.y-MARGIN || dCenter.y > c.y+ct.h+MARGIN) continue;
     const cCenter={ x:c.x+ct.w/2, y:c.y+ct.h/2 };
     const dist=Math.hypot(dCenter.x-cCenter.x, dCenter.y-cCenter.y);
@@ -1038,10 +1044,15 @@ document.addEventListener('mousemove', e=>{
       const target=findNestTarget(comp);
       nestHoverId = target ? target.id : null;
     }
-    // a moving magnet induces a momentary current in any coil it's approaching
-    // or leaving — direction flips depending on which way it's moving, and it
-    // stops the instant the magnet stops (see mouseup), just like the real thing.
-    if(TYPES[comp.type].induces){
+    // A moving magnet — or a coil that's *itself* carrying current, acting as
+    // a temporary electromagnet (e.g. a small battery+coil "secondary" you
+    // slide in and out of a bigger coil) — induces a momentary current in
+    // any coil it's approaching or leaving. Direction flips depending on
+    // which way it's moving, and it stops the instant the motion stops (see
+    // mouseup), just like the real thing.
+    const isLiveInducer = TYPES[comp.type].induces ||
+      (COIL_TYPES.includes(comp.type) && lab().energizedCoilIds && lab().energizedCoilIds.has(comp.id));
+    if(isLiveInducer){
       const found=findInductionCoil(comp);
       if(found){
         if(dragCtx.lastDist!=null && found.dist!==dragCtx.lastDist){
@@ -1079,7 +1090,11 @@ document.addEventListener('mouseup', e=>{
       select('comp', comp.id);
     }
     nestHoverId=null;
-    if(comp && TYPES[comp.type].induces) lab().inducedPulse=null; // motion stops -> induced current stops immediately
+    // motion stops -> any drag-induced current stops immediately (a switch-
+    // triggered pulse clears itself on its own timer, untouched by this)
+    if(comp && (TYPES[comp.type].induces || (COIL_TYPES.includes(comp.type) && lab().inducedPulse && lab().inducedPulse.reason==='motion'))){
+      lab().inducedPulse=null;
+    }
     dragCtx=null; render();
   }
 });
