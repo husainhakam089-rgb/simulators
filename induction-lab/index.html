@@ -284,6 +284,8 @@
   .comp{ position:absolute; cursor:grab; }
   .comp.selected .comp-body{ outline:3px solid var(--accent-cyan); outline-offset:4px; border-radius:10px; }
   .comp:active{ cursor:grabbing; }
+  .comp.drop-target .comp-body{ outline:3px dashed var(--accent-gold); outline-offset:6px; border-radius:14px; }
+  .needle{ transition: transform .4s cubic-bezier(.34,1.4,.64,1); }
   .comp-body{ position:relative; width:100%; height:100%; }
   .comp-body svg{ width:100%; height:100%; overflow:visible; }
   .terminal{
@@ -501,10 +503,10 @@ const TYPES = {
     <text x="65" y="34" font-size="13" fill="#2a3550" text-anchor="middle" font-weight="700">G</text>
     <line class="needle" x1="65" y1="65" x2="65" y2="30" stroke="#c0384a" stroke-width="2.5" stroke-linecap="round" transform-origin="65px 65px"/>
     <circle cx="65" cy="65" r="4" fill="#3a2a18"/>` },
-  coilPrimary:{ label:'ملف ابتدائي', w:150, h:70, hasTerminals:true, svg:()=>coilSVG(150,70,'#c9d3e6') },
-  coilSecondary:{ label:'ملف ثانوي', w:150, h:70, hasTerminals:true, svg:()=>coilSVG(150,70,'#e8c99b') },
-  coilInduction:{ label:'ملف حث (سلك نحاسي)', w:150, h:70, hasTerminals:true, svg:()=>coilSVG(150,70,'#d98a3d') },
-  inductor:{ label:'ملف محاثة', w:150, h:70, hasTerminals:true, svg:()=>coilSVG(150,70,'#c9d3e6') },
+  coilPrimary:{ label:'ملف ابتدائي', w:150, h:70, hasTerminals:true, accepts:['magnet','ironCore'], svg:()=>coilSVG(150,70,'#c9d3e6') },
+  coilSecondary:{ label:'ملف ثانوي', w:150, h:70, hasTerminals:true, accepts:['magnet','ironCore'], svg:()=>coilSVG(150,70,'#e8c99b') },
+  coilInduction:{ label:'ملف حث (سلك نحاسي)', w:150, h:70, hasTerminals:true, accepts:['magnet','ironCore'], svg:()=>coilSVG(150,70,'#d98a3d') },
+  inductor:{ label:'ملف محاثة', w:150, h:70, hasTerminals:true, accepts:['magnet','ironCore'], svg:()=>coilSVG(150,70,'#c9d3e6') },
   flatCoil:{ label:'وشيعة حثية مسطحة', w:140, h:70, hasTerminals:true, svg:()=>`
     <line x1="0" y1="35" x2="20" y2="35" stroke="#8a6d1a" stroke-width="4"/>
     <line x1="120" y1="35" x2="140" y2="35" stroke="#8a6d1a" stroke-width="4"/>
@@ -514,7 +516,7 @@ const TYPES = {
     <line x1="100" y1="28" x2="140" y2="28" stroke="#8a6d1a" stroke-width="4"/>
     <rect class="glass" x="40" y="12" width="60" height="32" rx="16" fill="#3a1f33" stroke="#ff5abe" stroke-width="2"/>
     <line x1="52" y1="28" x2="88" y2="28" stroke="#ff5abe" stroke-width="2" stroke-dasharray="3 3"/>` },
-  magnet:{ label:'مغناطيس قضيبي', w:104, h:48, hasTerminals:false, svg:()=>`
+  magnet:{ label:'مغناطيس قضيبي', w:104, h:48, hasTerminals:false, nestable:true, svg:()=>`
     <rect x="2" y="2" width="48" height="44" rx="4" fill="#ef5b6b" stroke="#1a1410" stroke-width="2"/>
     <rect x="52" y="2" width="48" height="44" rx="4" fill="#4d8dff" stroke="#1a1410" stroke-width="2"/>
     <text x="26" y="31" font-size="20" fill="#fff" text-anchor="middle" font-weight="900">N</text>
@@ -526,8 +528,9 @@ const TYPES = {
     <text x="70" y="76" font-size="11" fill="#fff" text-anchor="middle" font-weight="800">S</text>
     ${[20,50,80,110].map(x=>`<line x1="${x}" y1="24" x2="${x}" y2="60" stroke="#ffe9c7" stroke-width="2" marker-end="url(#arrowB)"/>`).join('')}
     <defs><marker id="arrowB" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#ffe9c7"/></marker></defs>` },
-  ironCore:{ label:'قلب حديدي مطاوع', w:120, h:90, hasTerminals:false, svg:()=>`
-    <path d="M14 4 H30 V60 H90 V4 H106 V90 H80 V34 H40 V90 H14 Z" fill="#8891a0" stroke="#4a5160" stroke-width="2"/>` },
+  ironCore:{ label:'قلب حديدي مطاوع', w:130, h:30, hasTerminals:false, nestable:true, svg:()=>`
+    <rect x="2" y="2" width="126" height="26" rx="5" fill="#8891a0" stroke="#4a5160" stroke-width="2"/>
+    ${[18,38,58,78,98,118].map(x=>`<line x1="${x}" y1="4" x2="${x-8}" y2="26" stroke="#6c7688" stroke-width="2"/>`).join('')}` },
   ring:{ label:'حلقة موصلة', w:110, h:110, hasTerminals:false, svg:()=>`
     <ellipse cx="55" cy="55" rx="46" ry="46" fill="none" stroke="#d98a3d" stroke-width="9"/>
     <ellipse cx="55" cy="55" rx="46" ry="46" fill="none" stroke="#e8a860" stroke-width="3"/>` },
@@ -677,6 +680,7 @@ function renderComponents(){
     div.style.left=comp.x+'px'; div.style.top=comp.y+'px';
     div.style.width=t.w+'px'; div.style.height=t.h+'px';
     if(lab().selected && lab().selected.kind==='comp' && lab().selected.id===comp.id) div.classList.add('selected');
+    if(nestHoverId===comp.id) div.classList.add('drop-target');
 
     const body=document.createElement('div');
     body.className='comp-body';
@@ -762,7 +766,8 @@ function bfsPathEdges(adj,start,target){
 
 function evaluateCircuit(){
   const sources=lab().components.filter(c=>SOURCE_TYPES.includes(c.type));
-  const litNodes=new Set(); const wireDirection=new Map(); let anyLoop=false;
+  const litNodes=new Set(); const wireDirection=new Map(); const compDirection=new Map();
+  let anyLoop=false; let resistiveLoad=0;
 
   for(const src of sources){
     const adj=buildGraph(src.id);
@@ -771,23 +776,37 @@ function evaluateCircuit(){
     if(reach.has(targetN)){
       anyLoop=true;
       for(const n of reach) litNodes.add(n);
+      for(const c of lab().components){
+        if((c.type==='resistor'||c.type==='rheostat') && reach.has(nodeKey(c.id,'a'))) resistiveLoad++;
+      }
       const path=bfsPathEdges(adj,startN,targetN);
-      if(path) for(const e of path){ if(e.kind!=='wire') continue; const w=lab().wires.find(x=>x.id===e.id); if(!w) continue;
-        wireDirection.set(w.id, e.from===nodeKey(w.a.comp,w.a.term) ? 1 : -1); }
+      if(path) for(const e of path){
+        if(e.kind==='wire'){ const w=lab().wires.find(x=>x.id===e.id); if(!w) continue; wireDirection.set(w.id, e.from===nodeKey(w.a.comp,w.a.term) ? 1 : -1); }
+        else { compDirection.set(e.id, e.from===nodeKey(e.id,'a') ? 1 : -1); }
+      }
     }
   }
+
+  // Deflection magnitude: like a real meter, a heavier resistive load in the
+  // loop means less current, so a smaller swing — same idea as the bulb
+  // brightness in circuit-simulator.
+  const swing = anyLoop ? Math.max(14, 34 / (1 + resistiveLoad*0.5)) : 0;
 
   let activeCount=0;
   document.querySelectorAll('.comp').forEach(div=>{
     const comp=findComp(div.dataset.id); if(!comp) return;
     const t=TYPES[comp.type]; if(!t.hasTerminals) return;
     const on = litNodes.has(nodeKey(comp.id,'a')) && litNodes.has(nodeKey(comp.id,'b'));
-    const isIndicator = comp.type==='neonLamp' || comp.type==='galvanometer' || comp.type==='fluxMeter';
+    const isMeter = comp.type==='galvanometer' || comp.type==='fluxMeter';
+    const isIndicator = comp.type==='neonLamp' || isMeter;
     div.classList.toggle('active', on && isIndicator);
     if(on) activeCount++;
     const needle=div.querySelector('.needle');
-    if(needle) needle.style.transform = on ? 'rotate(32deg)' : 'rotate(0deg)';
-    if(needle) needle.style.transformOrigin = (TYPES[comp.type].w*0.5)+'px '+(TYPES[comp.type].h*0.8125)+'px';
+    if(needle && isMeter){
+      const dir = compDirection.get(comp.id) || 1;
+      needle.style.transformOrigin = (t.w*0.5)+'px '+(t.h*0.8125)+'px';
+      needle.style.transform = on ? `rotate(${dir*swing}deg)` : 'rotate(0deg)';
+    }
   });
 
   for(const w of lab().wires){
@@ -830,8 +849,36 @@ el.viewport.addEventListener('drop', e=>{
   render();
 });
 
-/* ---- drag / wire / select ---- */
-let dragCtx=null, wireCtx=null, tempWireEl=null;
+/* ---- drag / wire / select / nesting ---- */
+let dragCtx=null, wireCtx=null, tempWireEl=null, nestHoverId=null;
+
+// A nestable prop (magnet, iron core) snaps inside the nearest component
+// whose type "accepts" it (a coil/inductor) once its center is close enough —
+// like sliding a rod through a real coil.
+function findNestTarget(dragComp){
+  const dt=TYPES[dragComp.type];
+  const dCenter={ x:dragComp.x+dt.w/2, y:dragComp.y+dt.h/2 };
+  let best=null, bestDist=Infinity;
+  for(const c of lab().components){
+    if(c.id===dragComp.id) continue;
+    const ct=TYPES[c.type];
+    if(!ct.accepts || !ct.accepts.includes(dragComp.type)) continue;
+    if(dCenter.x < c.x-20 || dCenter.x > c.x+ct.w+20 || dCenter.y < c.y-20 || dCenter.y > c.y+ct.h+20) continue;
+    const cCenter={ x:c.x+ct.w/2, y:c.y+ct.h/2 };
+    const dist=Math.hypot(dCenter.x-cCenter.x, dCenter.y-cCenter.y);
+    if(dist<bestDist){ bestDist=dist; best=c; }
+  }
+  return best;
+}
+function nestUnder(dragComp, target){
+  const arr=lab().components;
+  arr.splice(arr.indexOf(dragComp),1);
+  arr.splice(arr.indexOf(target), 0, dragComp);
+  const dt=TYPES[dragComp.type], tt=TYPES[target.type];
+  dragComp.x = target.x + (tt.w-dt.w)/2;
+  dragComp.y = target.y + (tt.h-dt.h)/2;
+  dragComp.nestedIn = target.id;
+}
 
 el.world.addEventListener('mousedown', e=>{
   const termEl=e.target.closest('.terminal');
@@ -845,8 +892,14 @@ el.world.addEventListener('mousedown', e=>{
     return;
   }
   if(compEl){
-    const comp=findComp(compEl.dataset.id);
+    const host=findComp(compEl.dataset.id);
     const start=clientToWorld(e.clientX,e.clientY);
+    // A nested prop (magnet/core) renders under its host coil, so the host's
+    // div would normally eat the click — prefer the nested child instead
+    // whenever the click actually falls inside its own footprint.
+    const child=lab().components.find(c=>c.nestedIn===host.id &&
+      start.x>=c.x && start.x<=c.x+TYPES[c.type].w && start.y>=c.y && start.y<=c.y+TYPES[c.type].h);
+    const comp=child||host;
     dragCtx={ id:comp.id, offX:start.x-comp.x, offY:start.y-comp.y, moved:false, startClientX:e.clientX, startClientY:e.clientY };
   }
 });
@@ -858,7 +911,18 @@ document.addEventListener('mousemove', e=>{
     if(dx>3||dy>3) dragCtx.moved=true;
     const p=clientToWorld(e.clientX,e.clientY);
     const comp=findComp(dragCtx.id); if(!comp) return;
-    comp.x=p.x-dragCtx.offX; comp.y=p.y-dragCtx.offY;
+    const newX=p.x-dragCtx.offX, newY=p.y-dragCtx.offY;
+    const delta={ x:newX-comp.x, y:newY-comp.y };
+    comp.x=newX; comp.y=newY;
+    // dragging a coil/inductor carries whatever is nested inside it along for the ride
+    if(TYPES[comp.type].accepts){
+      lab().components.forEach(c=>{ if(c.nestedIn===comp.id){ c.x+=delta.x; c.y+=delta.y; } });
+    }
+    // dragging a nestable prop (magnet / iron core) previews the coil it would snap into
+    if(TYPES[comp.type].nestable){
+      const target=findNestTarget(comp);
+      nestHoverId = target ? target.id : null;
+    }
     render();
   }
 });
@@ -873,10 +937,16 @@ document.addEventListener('mouseup', e=>{
   }
   if(dragCtx){
     const comp=findComp(dragCtx.id);
-    if(!dragCtx.moved && comp){
+    if(comp && dragCtx.moved && TYPES[comp.type].nestable){
+      const target=findNestTarget(comp);
+      if(target) nestUnder(comp, target);
+      else comp.nestedIn=null;
+    }
+    if(comp && !dragCtx.moved){
       if(TYPES[comp.type].toggle) comp.closed=!comp.closed;
       select('comp', comp.id);
     }
+    nestHoverId=null;
     dragCtx=null; render();
   }
 });
@@ -898,7 +968,11 @@ document.addEventListener('keydown', e=>{
 });
 function deleteSelected(){
   const sel=lab().selected; if(!sel) return;
-  if(sel.kind==='comp'){ lab().components=lab().components.filter(c=>c.id!==sel.id); lab().wires=lab().wires.filter(w=>w.a.comp!==sel.id && w.b.comp!==sel.id); }
+  if(sel.kind==='comp'){
+    lab().components=lab().components.filter(c=>c.id!==sel.id);
+    lab().wires=lab().wires.filter(w=>w.a.comp!==sel.id && w.b.comp!==sel.id);
+    lab().components.forEach(c=>{ if(c.nestedIn===sel.id) c.nestedIn=null; }); // release anything that was nested inside it
+  }
   else lab().wires=lab().wires.filter(w=>w.id!==sel.id);
   lab().selected=null; render();
 }
