@@ -529,9 +529,12 @@ const TYPES = {
     <text x="70" y="76" font-size="11" fill="#fff" text-anchor="middle" font-weight="800">S</text>
     ${[20,50,80,110].map(x=>`<line x1="${x}" y1="24" x2="${x}" y2="60" stroke="#ffe9c7" stroke-width="2" marker-end="url(#arrowB)"/>`).join('')}
     <defs><marker id="arrowB" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#ffe9c7"/></marker></defs>` },
-  ironCore:{ label:'قلب حديدي مطاوع', w:130, h:30, hasTerminals:false, nestable:true, svg:()=>`
-    <rect x="2" y="2" width="126" height="26" rx="5" fill="#8891a0" stroke="#4a5160" stroke-width="2"/>
-    ${[18,38,58,78,98,118].map(x=>`<line x1="${x}" y1="4" x2="${x-8}" y2="26" stroke="#6c7688" stroke-width="2"/>`).join('')}` },
+  ironCore:{ label:'قلب حديدي مطاوع', w:100, h:100, hasTerminals:false, nestable:true, svg:()=>`
+    <path d="M4 4 H96 V96 H4 Z M22 22 H78 V78 H22 Z" fill="#8891a0" stroke="#4a5160" stroke-width="2" fill-rule="evenodd"/>
+    <line x1="4" y1="4" x2="22" y2="22" stroke="#6c7688" stroke-width="1.5"/>
+    <line x1="96" y1="4" x2="78" y2="22" stroke="#6c7688" stroke-width="1.5"/>
+    <line x1="4" y1="96" x2="22" y2="78" stroke="#6c7688" stroke-width="1.5"/>
+    <line x1="96" y1="96" x2="78" y2="78" stroke="#6c7688" stroke-width="1.5"/>` },
   ring:{ label:'حلقة موصلة', w:110, h:110, hasTerminals:false, svg:()=>`
     <ellipse cx="55" cy="55" rx="46" ry="46" fill="none" stroke="#d98a3d" stroke-width="9"/>
     <ellipse cx="55" cy="55" rx="46" ry="46" fill="none" stroke="#e8a860" stroke-width="3"/>` },
