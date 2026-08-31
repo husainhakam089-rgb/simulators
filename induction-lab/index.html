@@ -421,8 +421,8 @@
    ========================================================================= */
 const EXPERIMENTS = {
   1: { title:'توليد التيار المحتث', subtitle:'حرّك المغناطيس بالقرب من الملف لتوليد تيار محتث',
-    steps:['اسحب الملف والمغناطيس والجلفانومتر إلى الكانفاس.','وصّل طرفي الملف بالجلفانومتر بسحب سلك بين نقطتي الاتصال.','قرّب المغناطيس من الملف يدويًا ولاحظ اتجاه إبرة الجلفانومتر.','أبعد المغناطيس ولاحظ اختلاف اتجاه الانحراف.','اعكس قطبية المغناطيس وسجّل الفرق.'],
-    tools:['coilInduction','magnet','galvanometer'] },
+    steps:['اسحب الملف والمغناطيس والجلفانومتر إلى الكانفاس.','وصّل طرفي الملف بالجلفانومتر بسحب سلك بين نقطتي الاتصال.','قرّب المغناطيس من الملف يدويًا ولاحظ اتجاه إبرة الجلفانومتر أثناء الحركة فقط.','أبعد المغناطيس ولاحظ اختلاف اتجاه الانحراف، وأنه يعود صفرًا إذا توقفت.','جرّب الملف الأصغر أيضًا، أو ركّب دارة بطارية ومفتاح لمقارنة مصدر ثابت بمصدر ناتج عن الحركة.'],
+    tools:['coilInduction','coilSmall','magnet','galvanometer','battery','switch'] },
   2: { title:'اكتشاف فاراداي للحث الكهرومغناطيسي', subtitle:'ملفان على قلب من الحديد المطاوع — أغلق وافتح المفتاح ولاحظ الجلفانومتر',
     steps:['ضع القلب الحديدي، ولُف حوله الملف الابتدائي والملف الثانوي.','صل الملف الابتدائي بالبطارية والمفتاح.','صل الملف الثانوي بالجلفانومتر.','أغلق المفتاح فجأة ولاحظ انحراف المؤشر لحظيًا.','افتح المفتاح فجأة ولاحظ انحرافًا معاكسًا.'],
     tools:['ironCore','coilPrimary','coilSecondary','battery','switch','galvanometer'] },
@@ -506,6 +506,7 @@ const TYPES = {
   coilPrimary:{ label:'ملف ابتدائي', w:150, h:70, hasTerminals:true, accepts:['magnet','ironCore'], svg:()=>coilSVG(150,70,'#c9d3e6') },
   coilSecondary:{ label:'ملف ثانوي', w:150, h:70, hasTerminals:true, accepts:['magnet','ironCore'], svg:()=>coilSVG(150,70,'#e8c99b') },
   coilInduction:{ label:'ملف حث (سلك نحاسي)', w:150, h:70, hasTerminals:true, accepts:['magnet','ironCore'], svg:()=>coilSVG(150,70,'#d98a3d') },
+  coilSmall:{ label:'ملف صغير (لفات أقل)', w:90, h:48, hasTerminals:true, accepts:['magnet','ironCore'], svg:()=>coilSVG(90,48,'#d98a3d',3) },
   inductor:{ label:'ملف محاثة', w:150, h:70, hasTerminals:true, accepts:['magnet','ironCore'], svg:()=>coilSVG(150,70,'#c9d3e6') },
   flatCoil:{ label:'وشيعة حثية مسطحة', w:140, h:70, hasTerminals:true, svg:()=>`
     <line x1="0" y1="35" x2="20" y2="35" stroke="#8a6d1a" stroke-width="4"/>
@@ -516,7 +517,7 @@ const TYPES = {
     <line x1="100" y1="28" x2="140" y2="28" stroke="#8a6d1a" stroke-width="4"/>
     <rect class="glass" x="40" y="12" width="60" height="32" rx="16" fill="#3a1f33" stroke="#ff5abe" stroke-width="2"/>
     <line x1="52" y1="28" x2="88" y2="28" stroke="#ff5abe" stroke-width="2" stroke-dasharray="3 3"/>` },
-  magnet:{ label:'مغناطيس قضيبي', w:104, h:48, hasTerminals:false, nestable:true, svg:()=>`
+  magnet:{ label:'مغناطيس قضيبي', w:104, h:48, hasTerminals:false, nestable:true, induces:true, svg:()=>`
     <rect x="2" y="2" width="48" height="44" rx="4" fill="#ef5b6b" stroke="#1a1410" stroke-width="2"/>
     <rect x="52" y="2" width="48" height="44" rx="4" fill="#4d8dff" stroke="#1a1410" stroke-width="2"/>
     <text x="26" y="31" font-size="20" fill="#fff" text-anchor="middle" font-weight="900">N</text>
@@ -574,8 +575,8 @@ const TYPES = {
     <line class="needle" x1="65" y1="65" x2="65" y2="30" stroke="#2f6fd1" stroke-width="2.5" stroke-linecap="round"/>
     <circle cx="65" cy="65" r="4" fill="#3a2a18"/>` },
 };
-function coilSVG(w,h,color){
-  const turns=5, cy=h/2, spacing=(w-40)/turns;
+function coilSVG(w,h,color,turns=5){
+  const cy=h/2, spacing=(w-40)/turns;
   let loops='';
   for(let i=0;i<turns;i++){
     const cx=20+i*spacing+spacing/2;
@@ -596,7 +597,7 @@ let nextId=1;
 const uid=()=>'o'+(nextId++);
 
 const labs = {};
-Object.keys(EXPERIMENTS).forEach(id=>{ labs[id] = { components:[], wires:[], selected:null, scale:1 }; });
+Object.keys(EXPERIMENTS).forEach(id=>{ labs[id] = { components:[], wires:[], selected:null, scale:1, inducedPulse:null }; });
 let activeTab = 1;
 
 const el = {
@@ -764,29 +765,49 @@ function bfsPathEdges(adj,start,target){
   return path.reverse();
 }
 
+// Tests whether hostId's own two terminals (startTerm -> targetTerm) are
+// joined by the *rest* of the circuit (hostId's own internal edge excluded),
+// and if so records which nodes are live and which way current flows on
+// every wire/component edge along that path. Shared by real sources
+// (battery/AC, always a->b) and a coil that a moving magnet is inducing a
+// current in (direction flips with the magnet's motion).
+function processLoop(hostId, startTerm, targetTerm, litNodes, wireDirection, compDirection, loadRef){
+  const adj=buildGraph(hostId);
+  const startN=nodeKey(hostId,startTerm), targetN=nodeKey(hostId,targetTerm);
+  const reach=bfsReachable(adj,startN);
+  if(!reach.has(targetN)) return false;
+  for(const n of reach) litNodes.add(n);
+  for(const c of lab().components){
+    if((c.type==='resistor'||c.type==='rheostat') && reach.has(nodeKey(c.id,'a'))) loadRef.count++;
+  }
+  const path=bfsPathEdges(adj,startN,targetN);
+  if(path) for(const e of path){
+    if(e.kind==='wire'){ const w=lab().wires.find(x=>x.id===e.id); if(!w) continue; wireDirection.set(w.id, e.from===nodeKey(w.a.comp,w.a.term) ? 1 : -1); }
+    else { compDirection.set(e.id, e.from===nodeKey(e.id,'a') ? 1 : -1); }
+  }
+  return true;
+}
+
 function evaluateCircuit(){
   const sources=lab().components.filter(c=>SOURCE_TYPES.includes(c.type));
   const litNodes=new Set(); const wireDirection=new Map(); const compDirection=new Map();
-  let anyLoop=false; let resistiveLoad=0;
+  let anyLoop=false; const loadRef={count:0};
 
   for(const src of sources){
-    const adj=buildGraph(src.id);
-    const startN=nodeKey(src.id,'a'), targetN=nodeKey(src.id,'b');
-    const reach=bfsReachable(adj,startN);
-    if(reach.has(targetN)){
-      anyLoop=true;
-      for(const n of reach) litNodes.add(n);
-      for(const c of lab().components){
-        if((c.type==='resistor'||c.type==='rheostat') && reach.has(nodeKey(c.id,'a'))) resistiveLoad++;
-      }
-      const path=bfsPathEdges(adj,startN,targetN);
-      if(path) for(const e of path){
-        if(e.kind==='wire'){ const w=lab().wires.find(x=>x.id===e.id); if(!w) continue; wireDirection.set(w.id, e.from===nodeKey(w.a.comp,w.a.term) ? 1 : -1); }
-        else { compDirection.set(e.id, e.from===nodeKey(e.id,'a') ? 1 : -1); }
-      }
-    }
+    if(processLoop(src.id,'a','b', litNodes, wireDirection, compDirection, loadRef)) anyLoop=true;
   }
 
+  // A magnet in motion momentarily turns the coil it's approaching/leaving
+  // into its own EMF source — direction depends on which way it's moving,
+  // and it's cleared the instant the drag stops (see the mouse handlers).
+  let inducedActive=false;
+  const pulse=lab().inducedPulse;
+  if(pulse && findComp(pulse.coilId)){
+    const terms = pulse.dir>0 ? ['a','b'] : ['b','a'];
+    if(processLoop(pulse.coilId, terms[0], terms[1], litNodes, wireDirection, compDirection, loadRef)){ anyLoop=true; inducedActive=true; }
+  }
+
+  const resistiveLoad=loadRef.count;
   // Deflection magnitude: like a real meter, a heavier resistive load in the
   // loop means less current, so a smaller swing — same idea as the bulb
   // brightness in circuit-simulator.
@@ -816,7 +837,8 @@ function evaluateCircuit(){
   }
 
   if(lab().components.length===0){ el.circuitStatus.innerHTML='اسحب الأدوات وابدأ التركيب'; return; }
-  if(sources.length===0){ el.circuitStatus.innerHTML='ركّب العناصر ووصّلها بأسلاك <b>(للأدوات الكهربائية فقط)</b>'; return; }
+  if(inducedActive){ el.circuitStatus.innerHTML='تيار <b>محتث</b> أثناء حركة المغناطيس — سيتوقف فور توقفك'; return; }
+  if(sources.length===0){ el.circuitStatus.innerHTML='وصّل الملف بجلفانومتر وحرّك مغناطيسًا داخله، أو أضف مصدر جهد <b>(للأدوات الكهربائية فقط)</b>'; return; }
   el.circuitStatus.innerHTML = anyLoop
     ? 'الدارة <b>مكتملة</b> — لاحظ استجابة الجلفانومتر/المصباح'
     : 'الدارة <b>غير مكتملة</b>';
@@ -870,6 +892,26 @@ function findNestTarget(dragComp){
   }
   return best;
 }
+// A wider proximity check than findNestTarget: used to detect "the magnet is
+// approaching/leaving a coil" even before it's close enough to visually snap
+// inside it — this is what drives the induced-current pulse while dragging.
+function findInductionCoil(dragComp){
+  const dt=TYPES[dragComp.type];
+  const dCenter={ x:dragComp.x+dt.w/2, y:dragComp.y+dt.h/2 };
+  const MARGIN=90;
+  let best=null, bestDist=Infinity;
+  for(const c of lab().components){
+    if(c.id===dragComp.id) continue;
+    const ct=TYPES[c.type];
+    if(!ct.accepts || !ct.accepts.includes(dragComp.type)) continue;
+    if(dCenter.x < c.x-MARGIN || dCenter.x > c.x+ct.w+MARGIN || dCenter.y < c.y-MARGIN || dCenter.y > c.y+ct.h+MARGIN) continue;
+    const cCenter={ x:c.x+ct.w/2, y:c.y+ct.h/2 };
+    const dist=Math.hypot(dCenter.x-cCenter.x, dCenter.y-cCenter.y);
+    if(dist<bestDist){ bestDist=dist; best=c; }
+  }
+  return best ? { comp:best, dist:bestDist } : null;
+}
+
 function nestUnder(dragComp, target){
   const arr=lab().components;
   arr.splice(arr.indexOf(dragComp),1);
@@ -923,6 +965,23 @@ document.addEventListener('mousemove', e=>{
       const target=findNestTarget(comp);
       nestHoverId = target ? target.id : null;
     }
+    // a moving magnet induces a momentary current in any coil it's approaching
+    // or leaving — direction flips depending on which way it's moving, and it
+    // stops the instant the magnet stops (see mouseup), just like the real thing.
+    if(TYPES[comp.type].induces){
+      const found=findInductionCoil(comp);
+      if(found){
+        if(dragCtx.lastDist!=null && found.dist!==dragCtx.lastDist){
+          const dir = found.dist < dragCtx.lastDist ? 1 : -1;
+          lab().inducedPulse = { coilId:found.comp.id, dir };
+          dragCtx.lastDir=dir;
+        }
+        dragCtx.lastDist=found.dist;
+      } else {
+        dragCtx.lastDist=null;
+        lab().inducedPulse=null;
+      }
+    }
     render();
   }
 });
@@ -947,6 +1006,7 @@ document.addEventListener('mouseup', e=>{
       select('comp', comp.id);
     }
     nestHoverId=null;
+    if(comp && TYPES[comp.type].induces) lab().inducedPulse=null; // motion stops -> induced current stops immediately
     dragCtx=null; render();
   }
 });
