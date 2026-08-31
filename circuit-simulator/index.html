@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>محاكي الدارات الكهربائية</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- Sidebar: component palette -->
+  <aside id="sidebar">
+    <button id="sidebarToggle" class="chevron-btn" title="طي/فتح اللوحة">▲</button>
+    <div id="paletteScroll">
+      <div class="palette-group-title">مصدر كهربائي</div>
+
+      <div class="palette-item" draggable="true" data-type="battery">
+        <div class="palette-icon">
+          <svg viewBox="0 0 60 30"><rect x="2" y="6" width="24" height="18" rx="2" fill="#e8eef5"/><rect x="26" y="6" width="24" height="18" rx="2" fill="#2f6fd1"/><rect x="50" y="11" width="6" height="8" fill="#2f6fd1"/><text x="10" y="20" font-size="14" fill="#2f6fd1">+</text><text x="34" y="20" font-size="14" fill="#fff">−</text></svg>
+        </div>
+        <div class="palette-label">بطارية</div>
+      </div>
+
+      <div class="palette-item" draggable="true" data-type="ac">
+        <div class="palette-icon">
+          <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="#fff" stroke="#2f6fd1" stroke-width="2.5"/><path d="M6 20 Q13 8 20 20 T34 20" fill="none" stroke="#2f6fd1" stroke-width="2.5"/></svg>
+        </div>
+        <div class="palette-label">الجهد المتردد</div>
+      </div>
+
+      <div class="palette-item" draggable="true" data-type="bulb">
+        <div class="palette-icon">
+          <svg viewBox="0 0 40 46"><circle cx="20" cy="17" r="14" fill="#fff8dc" stroke="#8a6d1a" stroke-width="2"/><path d="M13 12 L27 22 M27 12 L13 22" stroke="#8a6d1a" stroke-width="2"/><rect x="14" y="30" width="12" height="6" fill="#888"/><rect x="15" y="36" width="10" height="5" rx="2" fill="#555"/></svg>
+        </div>
+        <div class="palette-label">مصباح كهربائي</div>
+      </div>
+
+      <div class="palette-item" draggable="true" data-type="resistor">
+        <div class="palette-icon">
+          <svg viewBox="0 0 60 24"><line x1="0" y1="12" x2="10" y2="12" stroke="#2f6fd1" stroke-width="3"/><polyline points="10,12 15,4 21,20 27,4 33,20 39,4 45,20 50,12" fill="none" stroke="#2f6fd1" stroke-width="3"/><line x1="50" y1="12" x2="60" y2="12" stroke="#2f6fd1" stroke-width="3"/></svg>
+        </div>
+        <div class="palette-label">مقاوم</div>
+      </div>
+
+      <div class="palette-item" draggable="true" data-type="switch">
+        <div class="palette-icon">
+          <svg viewBox="0 0 60 24"><circle cx="6" cy="18" r="4" fill="#2f6fd1"/><circle cx="54" cy="18" r="4" fill="#2f6fd1"/><line x1="6" y1="18" x2="46" y2="6" stroke="#333" stroke-width="3"/></svg>
+        </div>
+        <div class="palette-label">مفتاح كهربائي</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main canvas -->
+  <main id="stage">
+    <div id="topLeftTools">
+      <button id="viewModeBtn" class="icon-btn" title="تبديل نمط العرض">▭</button>
+      <button id="clearBtn" class="icon-btn" title="مسح الكل">✕</button>
+    </div>
+
+    <div id="viewport" dir="ltr">
+      <svg id="wireLayer"></svg>
+      <div id="world"></div>
+    </div>
+
+    <div id="bottomLeftTools">
+      <button id="zoomOutBtn" class="icon-btn" title="تصغير">🔍−</button>
+      <button id="zoomInBtn" class="icon-btn" title="تكبير">🔍+</button>
+    </div>
+
+    <div id="statusBar">
+      <div id="teacherLine">
+        الاستاذ:
+        <span id="teacherName" contenteditable="true" spellcheck="false">اسم المعلم</span>
+      </div>
+      <div id="circuitStatus">اسحب مكونات من اللوحة الجانبية وابدأ بتوصيل دارة</div>
+      <button id="deleteBtn" class="icon-btn danger" title="حذف العنصر المحدد">🗑</button>
+    </div>
+  </main>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
