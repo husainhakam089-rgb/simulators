@@ -340,6 +340,31 @@
     background:linear-gradient(rgba(255,205,90,0), #ffcf5c 55%, rgba(255,205,90,0));
   }
 
+  /* tab 5's live Phi readout */
+  .flux-readout{
+    position:absolute; right:14px; bottom:14px; z-index:5;
+    background:rgba(16,26,45,.93); border:1px solid #2f445f; border-radius:10px;
+    padding:10px 14px; font-size:12.5px; color:#e8eef8; pointer-events:none;
+    box-shadow:0 6px 18px rgba(0,0,0,.35); min-width:186px;
+  }
+  .flux-readout .fr-title{ font-weight:800; color:var(--accent-amber); margin-bottom:6px; font-size:13px; }
+  .flux-readout .fr-row{ display:flex; gap:6px; align-items:baseline; margin:2px 0; }
+  .flux-readout .fr-row span{ width:16px; color:#9fb3d0; font-weight:700; }
+  .flux-readout .fr-row b{ color:#fff; font-variant-numeric:tabular-nums; }
+  .flux-readout .fr-row i{ color:#9fb3d0; font-style:normal; margin-right:4px; }
+  .flux-readout .fr-phi{ margin-top:5px; padding-top:5px; border-top:1px solid #2f445f; }
+  .flux-readout .fr-phi b{ color:var(--accent-amber); font-size:14px; }
+  .flux-readout .fr-warn{ margin-top:5px; color:#ffb3b3; font-size:11.5px; }
+
+  /* drag handles on the loop / field source */
+  .handle{
+    position:absolute; width:18px; height:18px; margin-left:-9px; margin-top:-9px;
+    border-radius:50%; background:#7fe4ef; border:2px solid #0d1b2e; cursor:grab; z-index:4;
+    box-shadow:0 0 0 3px rgba(127,228,239,.22);
+  }
+  .handle.size{ border-radius:4px; background:var(--accent-amber); box-shadow:0 0 0 3px rgba(255,207,92,.22); }
+  .handle:active{ cursor:grabbing; }
+
   /* wires */
   .wire-border{ stroke:#2a1c0c; stroke-width:15; stroke-linecap:round; fill:none; }
   .wire-fill{ stroke:url(#wireStripe); stroke-width:11; stroke-linecap:round; fill:none; cursor:pointer; }
@@ -453,8 +478,8 @@ const EXPERIMENTS = {
     steps:['ضع القضيبين المتوازيين وركّب الساق المعدنية عليهما.','ضع مصدر المجال المنتظم بحيث يشمل منطقة الساق.','صل طرفي القضيبين بمقاومة أو جلفانومتر.','حرّك الساق يدويًا وسجّل ملاحظاتك عن التيار الناشئ.'],
     tools:['rails','rod','fieldSource','resistor','galvanometer','bulb'] },
   5: { title:'طرائق تغيّر الفيض المغناطيسي', subtitle:'Φ = B·A·cosθ — الزاوية، المساحة، وكثافة الفيض',
-    steps:['ضع الملف داخل منطقة المجال المنتظم.','استخدم متجه المساحة لتحديد اتجاه A، ووصّل مقياس الفيض للملف.','غيّر زاوية الملف أو موضعه ولاحظ تغيّر قراءة المقياس.','قارن الحالات: الفيض أقصاه عند θ=0 وصفر عند θ=90°.'],
-    tools:['coilInduction','fieldSource','areaVector','fluxMeter','bulb'] },
+    steps:['ضع مصدر المجال ثم الحلقة المرنة داخل منطقته، ووصّل الحلقة بمقياس الفيض وبجلفانومتر أو مصباح.','<b>المساحة A:</b> اسحب المقبض الذهبي لكبس الحلقة وشدّها.','<b>الزاوية θ:</b> اسحب المقبض الأزرق (رأس متجه A) لتدويرها بين 0° و90°.','<b>كثافة الفيض B:</b> اسحب مقبض المصدر لتقويته أو إضعافه.','لاحظ لوحة القراءة: Φ أقصاه عند θ=0، وصفر عند θ=90°، ويصبح سالبًا بعدها.','الأهم: الجلفانومتر ينحرف <b>أثناء التغيير فقط</b> — لأن التيار يتولّد من تغيّر الفيض لا من مقداره.'],
+    tools:['flexLoop','fieldSource','fluxMeter','galvanometer','bulb'] },
   6: { title:'قانون لنز', subtitle:'اسحب المغناطيس يدويًا عبر حلقة موصلة مغلقة ولاحظ التيار المحتث',
     steps:['ضع الحلقة الموصلة على الكانفاس.','حرّك المغناطيس نحو الحلقة ببطء.','لاحظ اتجاه القطب المتكوّن على الحلقة أثناء الاقتراب.','أبعد المغناطيس ولاحظ انعكاس الحالة.'],
     tools:['ring','magnet','bulb'] },
@@ -539,6 +564,37 @@ const TYPES = {
     <line x1="100" y1="28" x2="140" y2="28" stroke="#8a6d1a" stroke-width="4"/>
     <rect class="glass" x="40" y="12" width="60" height="32" rx="16" fill="#3a1f33" stroke="#ff5abe" stroke-width="2"/>
     <line x1="52" y1="28" x2="88" y2="28" stroke="#ff5abe" stroke-width="2" stroke-dasharray="3 3"/>` },
+  // Tab 5's centrepiece. A real conducting loop with a real area, drawn in
+  // side view against a field that runs down the page, so Phi = B*A*cos(theta)
+  // is something you can see rather than assert:
+  //   theta = 0   -> the loop's normal lies along B, its plane is edge-on to
+  //                  us, and every field line pierces it: flux is maximum.
+  //   theta = 90  -> the plane contains B, we see the full circle, and the
+  //                  lines slide past without crossing it: flux is zero.
+  // So the ellipse we draw is the true circular loop foreshortened:
+  // horizontal radius stays r, vertical radius is r*|sin(theta)|. Squeezing
+  // and stretching changes r, and therefore A = pi*r^2, independently of the
+  // angle — the two factors of the formula you can move by hand.
+  flexLoop:{ label:'حلقة مرنة', w:240, h:210, hasTerminals:true, flexLoop:true,
+    init:c=>{ c.radius=60; c.tilt=35; },
+    terminalOffsets:()=>({ a:{x:16,y:196}, b:{x:224,y:196} }),
+    svg:(comp)=>{
+      const r=comp?(comp.radius||60):60, tilt=comp?(comp.tilt||0):35;
+      const cx=120, cy=96;
+      const th=tilt*Math.PI/180;
+      const ry=Math.abs(r*Math.sin(th));
+      // the area vector: out of the loop's face, i.e. along its normal
+      const nx=Math.sin(th), ny=Math.cos(th);
+      const ax=cx+nx*(r+30), ay=cy+ny*(r+30);
+      return `
+      <ellipse cx="${cx}" cy="${cy}" rx="${r}" ry="${Math.max(ry,1.2)}" fill="none" stroke="#d98a3d" stroke-width="7"/>
+      <ellipse cx="${cx}" cy="${cy}" rx="${r}" ry="${Math.max(ry,1.2)}" fill="none" stroke="#e8a860" stroke-width="2.5"/>
+      <line x1="${cx}" y1="${cy}" x2="${ax}" y2="${ay}" stroke="#7fe4ef" stroke-width="2.5" marker-end="url(#arrowA5)"/>
+      <text x="${ax+(nx>=0?8:-14)}" y="${ay+(ny>=0?12:-4)}" font-size="13" fill="#7fe4ef" font-weight="800">A</text>
+      <line x1="16" y1="196" x2="${cx-r}" y2="${cy}" stroke="#8a6d1a" stroke-width="4"/>
+      <line x1="224" y1="196" x2="${cx+r}" y2="${cy}" stroke="#8a6d1a" stroke-width="4"/>
+      <defs><marker id="arrowA5" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#7fe4ef"/></marker></defs>`;
+    } },
   // An ordinary lamp, available in every experiment: it lights whenever
   // current actually reaches it, induced current included — so a momentary
   // induced current shows up as a flicker of light, not just a needle
@@ -936,6 +992,32 @@ function renderComponents(){
       });
     }
 
+    // Handles: the loop's size (squeeze/stretch -> A) and its tilt
+    // (-> theta), plus the field source's strength (-> B). These are the
+    // three factors of Phi, one grabbable control each.
+    if(t.flexLoop){
+      const r=comp.radius||60, th=(comp.tilt||0)*Math.PI/180;
+      const cx=120, cy=96;
+      const sz=document.createElement('div'); sz.className='handle size';
+      sz.dataset.handle='size'; sz.dataset.comp=comp.id;
+      sz.style.left=(cx+r)+'px'; sz.style.top=cy+'px'; sz.title='كبس/شد الحلقة — يغيّر المساحة A';
+      div.appendChild(sz);
+      const ang=document.createElement('div'); ang.className='handle angle';
+      ang.dataset.handle='angle'; ang.dataset.comp=comp.id;
+      ang.style.left=(cx+Math.sin(th)*(r+30))+'px'; ang.style.top=(cy+Math.cos(th)*(r+30))+'px';
+      ang.title='أدر الحلقة — يغيّر الزاوية θ بين A و B';
+      div.appendChild(ang);
+    }
+    if(t.background && comp.type==='fieldSource'){
+      const st=document.createElement('div'); st.className='handle strength';
+      st.dataset.handle='strength'; st.dataset.comp=comp.id;
+      const s0=comp.strength==null?1.0:comp.strength;
+      st.style.left=(effSize(comp).w-14)+'px';
+      st.style.top=(effSize(comp).h*(1-Math.min(1,s0/2)))+'px';
+      st.title='اسحب لتغيير كثافة الفيض B';
+      div.appendChild(st);
+    }
+
     const label=document.createElement('div');
     label.className='comp-label'; label.textContent=t.label;
     div.appendChild(label);
@@ -1078,7 +1160,12 @@ function evaluateCircuit(){
   let swing = anyLoop ? Math.max(14, 34 / (1 + resistiveLoad*0.5)) : 0;
   // Only the induced reading fades — a meter held up by a real source keeps
   // reading steadily.
-  if(inducedActive && !sourceLoop) swing*=pulseFade;
+  if(inducedActive && !sourceLoop){
+    swing*=pulseFade;
+    // a pulse can carry its own strength (tab 5 scales it by |dPhi/dt|, so a
+    // quick squeeze kicks harder than a slow one)
+    if(pulse && pulse.strength!=null) swing*=pulse.strength;
+  }
 
   // Track which coils are currently carrying current, so a *step change*
   // (a switch just opening/closing) can be detected from outside this
@@ -1166,7 +1253,7 @@ function evaluateCircuit(){
   if(sources.length===0){
     const hasRing=lab().components.some(c=>c.type==='ring');
     const hasRails=lab().components.some(c=>TYPES[c.type].isRailTrack);
-    const hasFluxMeter=lab().components.some(c=>c.type==='fluxMeter');
+    const hasFluxMeter=lab().components.some(c=>c.type==='fluxMeter'||c.type==='flexLoop');
     const swingingPendulum=lab().components.find(c=>TYPES[c.type].pendulum && c._swinging);
     const hasPendulum=lab().components.some(c=>TYPES[c.type].pendulum);
     el.circuitStatus.innerHTML = swingingPendulum
@@ -1178,7 +1265,7 @@ function evaluateCircuit(){
       : hasRails
       ? 'حرّك الساق المعدنية على القضيبين وهي داخل المجال المغناطيسي لتوليد قوة دافعة كهربائية حركية'
       : hasFluxMeter
-      ? 'دوّر الملف (اضغط مرتين) أو حرّكه داخل/خارج المجال ولاحظ قراءة مقياس الفيض'
+      ? 'اسحب المقبض الذهبي (كبس/شد ⇦ A) أو الأزرق (تدوير ⇦ θ) أو مقبض المصدر (⇦ B) — والجلفانومتر ينحرف أثناء التغيير فقط'
       : hasPendulum
       ? 'اسحب كرة البندول جانبًا داخل مجال المصدر ثم أفلتها لاحظ سرعة توقفه'
       : 'وصّل الملف بجلفانومتر وحرّك مغناطيسًا داخله، أو أضف مصدر جهد <b>(للأدوات الكهربائية فقط)</b>';
@@ -1189,41 +1276,74 @@ function evaluateCircuit(){
     : 'الدارة <b>غير مكتملة</b>';
 }
 
-function rectOverlapFrac(a, aSize, b, bSize){
-  const ix=Math.max(0, Math.min(a.x+aSize.w, b.x+bSize.w)-Math.max(a.x, b.x));
-  const iy=Math.max(0, Math.min(a.y+aSize.h, b.y+bSize.h)-Math.max(a.y, b.y));
-  const aArea=aSize.w*aSize.h;
-  return aArea>0 ? Math.min(1, (ix*iy)/aArea) : 0;
+// Phi = B * A * cos(theta), evaluated honestly for a loop sitting in a field:
+//   B      flux density of the source it is standing in (adjustable, tesla)
+//   A      the loop's OWN area, pi*r^2 — squeezing/stretching it changes this
+//          and nothing else
+//   theta  angle between the loop's area vector (its normal) and B, measured
+//          continuously, so cos runs smoothly 1 -> 0 -> -1 rather than
+//          flipping between two states. A loop turned past 90 degrees reads a
+//          negative flux, which is the physically right answer, not zero.
+// Outside the field region there is no B to speak of, so Phi is 0.
+const FIELD_DEFAULT_B=1.0;
+function fluxOf(loop){
+  const field=lab().components.find(c=>c.type==='fieldSource');
+  const r=loop.radius||60;
+  const A=Math.PI*Math.pow(r/100,2); // loop radius in metres-ish, so A lands in a readable range
+  if(!field) return { B:0, A, theta:0, phi:0, inField:false };
+  const B=field.strength==null ? FIELD_DEFAULT_B : field.strength;
+  const ls=effSize(loop), fs=effSize(field);
+  const cx=loop.x+ls.w/2, cy=loop.y+ls.h/2;
+  const inField = cx>=field.x && cx<=field.x+fs.w && cy>=field.y && cy<=field.y+fs.h;
+  // the field runs down the page; rotating the source turns B with it, so the
+  // angle that matters is always the loop's normal *relative to* B
+  const fieldAngle = field.rotated ? 90 : 0;
+  let theta = (loop.tilt||0) - fieldAngle;
+  theta = ((theta+180)%360+360)%360-180; // keep it in (-180, 180] so the readout stays sane
+  const phi = inField ? B*A*Math.cos(theta*Math.PI/180) : 0;
+  return { B, A, theta, phi, inField };
 }
 
-// Experiment 5 (Φ = B·A·cosθ) has no battery at all — the flux a coil sees
-// comes straight from its geometry against the field source: the angle term
-// from the coil's own rotation relative to the field's (vertical) lines —
-// aligned once you turn it upright, near-zero lying flat across them — and
-// the area term from how much of the coil's footprint actually overlaps the
-// field region. A fluxMeter wired to the coil reads that value directly,
-// independent of the normal wire-current machinery above.
+// Puts the actual numbers on screen — B, A, theta and the resulting Phi —
+// so the relationship is checkable rather than something you take on trust.
+function renderFluxReadout(f){
+  let box=document.getElementById('fluxReadout');
+  if(!f){ if(box) box.remove(); return; }
+  if(!box){
+    box=document.createElement('div'); box.id='fluxReadout'; box.className='flux-readout';
+    el.viewport.appendChild(box);
+  }
+  const cos=Math.cos(f.theta*Math.PI/180);
+  box.innerHTML=`
+    <div class="fr-title">Φ = B · A · جتا(θ)</div>
+    <div class="fr-row"><span>B</span><b>${f.B.toFixed(2)}</b> تسلا</div>
+    <div class="fr-row"><span>A</span><b>${f.A.toFixed(3)}</b> م²</div>
+    <div class="fr-row"><span>θ</span><b>${f.theta.toFixed(0)}°</b> <i>جتا θ = ${cos.toFixed(2)}</i></div>
+    <div class="fr-row fr-phi"><span>Φ</span><b>${f.phi.toFixed(3)}</b> ويبر</div>
+    ${f.inField?'':'<div class="fr-warn">الحلقة خارج منطقة المجال — لا فيض</div>'}`;
+}
+
 function updateFluxMeters(){
+  const loop=lab().components.find(c=>c.type==='flexLoop');
+  const f = loop ? fluxOf(loop) : null;
   for(const fm of lab().components.filter(c=>c.type==='fluxMeter')){
     const div=document.querySelector(`.comp[data-id="${fm.id}"]`); if(!div) continue;
-    const wire=lab().wires.find(w=>{
-      const other = w.a.comp===fm.id ? findComp(w.b.comp) : (w.b.comp===fm.id ? findComp(w.a.comp) : null);
-      return other && other.type==='coilInduction';
+    // the meter reads the flux through whichever loop is on the canvas —
+    // wire it up to read, exactly like any other instrument
+    const wired = loop && lab().wires.some(w=>{
+      const other = w.a.comp===fm.id ? w.b.comp : (w.b.comp===fm.id ? w.a.comp : null);
+      return other===loop.id;
     });
-    const coil = wire ? findComp(wire.a.comp===fm.id ? wire.b.comp : wire.a.comp) : null;
-    const field = lab().components.find(c=>c.type==='fieldSource');
-    let flux=0;
-    if(coil && field){
-      const cosFactor = coil.rotated ? 1 : 0.12; // coil axis vertical (through the field) vs lying across it
-      flux = cosFactor * rectOverlapFrac(coil, effSize(coil), field, effSize(field));
-    }
-    div.classList.toggle('active', flux>0.05);
+    const phi = (wired && f) ? f.phi : 0;
+    div.classList.toggle('active', Math.abs(phi)>0.005);
     const needle=div.querySelector('.needle');
     if(needle){
       needle.style.transformOrigin=(TYPES.fluxMeter.w*0.5)+'px '+(TYPES.fluxMeter.h*0.8125)+'px';
-      needle.style.transform=`rotate(${flux*40}deg)`;
+      // full scale at Phi = 0.5 Wb, and it swings both ways because Phi is signed
+      needle.style.transform=`rotate(${Math.max(-60,Math.min(60, phi*120))}deg)`;
     }
   }
+  renderFluxReadout(f);
 }
 
 function animateCurrent(pathEl, wireId, reverse){
@@ -1252,6 +1372,7 @@ el.viewport.addEventListener('drop', e=>{
   // battery/coil loop doesn't silently start energized before you touch it —
   // click it once to close the circuit.
   const comp={ id:uid(), type, x:pos.x-t.w/2, y:pos.y-t.h/2, closed:!TYPES[type].toggle };
+  if(t.init) t.init(comp); // types with their own state (a loop's radius/tilt, a field's strength)
   lab().components.push(comp);
   // Dropping a prop straight onto its host from the palette snaps it in, the
   // same as dragging it there afterwards would. Without this a rod dropped
@@ -1266,7 +1387,7 @@ el.viewport.addEventListener('drop', e=>{
 });
 
 /* ---- drag / wire / select / nesting ---- */
-let dragCtx=null, wireCtx=null, tempWireEl=null, nestHoverId=null;
+let dragCtx=null, wireCtx=null, tempWireEl=null, nestHoverId=null, handleCtx=null;
 let lastClickTime=0, lastClickCompId=null; // used to detect a double-click by hand — see the mouseup handler
 
 // A nestable prop (magnet, iron core) snaps inside the nearest component
@@ -1452,6 +1573,17 @@ function toggleSwitchWithInduction(sw){
 }
 
 el.world.addEventListener('mousedown', e=>{
+  const handleEl=e.target.closest('.handle');
+  if(handleEl){
+    e.stopPropagation();
+    const c=findComp(handleEl.dataset.comp);
+    handleCtx={ id:c.id, kind:handleEl.dataset.handle, lastPhi:c.type==='flexLoop'?fluxOf(c).phi:null };
+    if(c.type!=='flexLoop'){
+      const l=lab().components.find(x=>x.type==='flexLoop');
+      handleCtx.lastPhi = l ? fluxOf(l).phi : null;
+    }
+    return;
+  }
   const termEl=e.target.closest('.terminal');
   const compEl=e.target.closest('.comp');
   if(termEl){
@@ -1489,6 +1621,40 @@ el.world.addEventListener('mousedown', e=>{
 });
 
 document.addEventListener('mousemove', e=>{
+  if(handleCtx){
+    const c=findComp(handleCtx.id); if(!c){ handleCtx=null; return; }
+    const p=clientToWorld(e.clientX,e.clientY);
+    if(handleCtx.kind==='size'){
+      // squeeze / stretch: only the radius moves, so only A changes
+      const cx=c.x+120;
+      c.radius=Math.max(18, Math.min(92, Math.abs(p.x-cx)));
+    } else if(handleCtx.kind==='angle'){
+      // turn the loop: only theta changes, A is untouched
+      const cx=c.x+120, cy=c.y+96;
+      c.tilt=Math.atan2(p.x-cx, p.y-cy)*180/Math.PI;
+    } else if(handleCtx.kind==='strength'){
+      // stronger / weaker field: only B changes
+      const h=effSize(c).h;
+      c.strength=Math.max(0, Math.min(2, 2*(1-(p.y-c.y)/h)));
+    }
+    // Faraday: it is the *rate of change* of flux that drives a current, so
+    // whichever factor you just moved, the induced current follows dPhi/dt —
+    // and stops the moment the flux stops changing.
+    const loop=lab().components.find(x=>x.type==='flexLoop');
+    if(loop){
+      const phi=fluxOf(loop).phi;
+      if(handleCtx.lastPhi!=null){
+        const dPhi=phi-handleCtx.lastPhi;
+        if(Math.abs(dPhi)>0.0004){
+          lab().inducedPulse={ coilId:loop.id, dir: dPhi<0?1:-1, reason:'motion',
+            strength: Math.max(0.25, Math.min(1, Math.abs(dPhi)*90)) };
+        }
+      }
+      handleCtx.lastPhi=phi;
+    }
+    render();
+    return;
+  }
   if(wireCtx){ const p=clientToWorld(e.clientX,e.clientY); tempWireEl.setAttribute('d', wirePathD(wireCtx.startPos,p)); return; }
   if(dragCtx){
     const dx=Math.abs(e.clientX-dragCtx.startClientX), dy=Math.abs(e.clientY-dragCtx.startClientY);
@@ -1545,6 +1711,19 @@ document.addEventListener('mousemove', e=>{
         if(lab().inducedPulse && lab().inducedPulse.coilId===comp.nestedIn) fadeOutMotionPulse(lab());
       }
     }
+    // Carrying the loop into or out of the field changes the flux through it
+    // just as surely as reshaping it does, so it induces a current too.
+    if(TYPES[comp.type].flexLoop){
+      const phi=fluxOf(comp).phi;
+      if(dragCtx.lastPhi!=null){
+        const dPhi=phi-dragCtx.lastPhi;
+        if(Math.abs(dPhi)>0.0004){
+          lab().inducedPulse={ coilId:comp.id, dir: dPhi<0?1:-1, reason:'motion',
+            strength: Math.max(0.25, Math.min(1, Math.abs(dPhi)*90)) };
+        }
+      }
+      dragCtx.lastPhi=phi;
+    }
     // dragging a nestable prop (magnet / iron core) previews the coil it would snap into
     if(TYPES[comp.type].nestable){
       const target=findNestTarget(comp);
@@ -1584,6 +1763,7 @@ document.addEventListener('mousemove', e=>{
 });
 
 document.addEventListener('mouseup', e=>{
+  if(handleCtx){ handleCtx=null; fadeOutMotionPulse(lab()); render(); return; }
   if(wireCtx){
     const targetTerm=document.elementFromPoint(e.clientX,e.clientY)?.closest('.terminal');
     if(targetTerm && !(targetTerm.dataset.comp===wireCtx.fromComp && targetTerm.dataset.term===wireCtx.fromTerm)){
@@ -1632,7 +1812,7 @@ document.addEventListener('mouseup', e=>{
     nestHoverId=null;
     // motion stops -> the drag-induced current dies away (a switch-triggered
     // pulse clears itself on its own timer, untouched by this)
-    if(comp && (TYPES[comp.type].induces || TYPES[comp.type].slidesOnRails || (COIL_TYPES.includes(comp.type) && lab().inducedPulse && lab().inducedPulse.reason==='motion'))){
+    if(comp && (TYPES[comp.type].induces || TYPES[comp.type].slidesOnRails || TYPES[comp.type].flexLoop || (COIL_TYPES.includes(comp.type) && lab().inducedPulse && lab().inducedPulse.reason==='motion'))){
       fadeOutMotionPulse(lab());
     }
     dragCtx=null; render();
