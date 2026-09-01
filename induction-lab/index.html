@@ -356,6 +356,25 @@
   .flux-readout .fr-phi b{ color:var(--accent-amber); font-size:14px; }
   .flux-readout .fr-warn{ margin-top:5px; color:#ffb3b3; font-size:11.5px; }
 
+  /* tab 6: the induced-current direction, stated in words */
+  .lenz-readout{
+    position:absolute; right:14px; bottom:14px; z-index:5;
+    background:rgba(16,26,45,.94); border:1px solid #2f445f; border-radius:10px;
+    padding:11px 15px; font-size:12.5px; color:#e8eef8; pointer-events:none;
+    box-shadow:0 6px 18px rgba(0,0,0,.4); max-width:330px; line-height:1.7;
+  }
+  .lenz-readout .lz-dir{
+    font-size:17px; font-weight:900; color:#ffcf5c; margin-bottom:6px;
+    text-shadow:0 0 14px rgba(255,207,92,.5);
+  }
+  .lenz-readout .lz-dir.lz-none{ color:#ff9d9d; text-shadow:0 0 14px rgba(255,120,120,.45); }
+  .lenz-readout .lz-row{ color:#cfdcee; }
+  .lenz-readout .lz-row b{ color:#fff; }
+  .lenz-readout .lz-pole{ color:#7fe4ef; font-size:14px; }
+  .lenz-readout .lz-force{ margin-top:5px; padding-top:5px; border-top:1px solid #2f445f; }
+  .lenz-readout .lz-force b{ color:var(--accent-amber); font-size:14px; }
+  .lenz-readout .lz-row i{ color:#9fb3d0; font-style:normal; }
+
   /* drag handles on the loop / field source */
   .handle{
     position:absolute; width:18px; height:18px; margin-left:-9px; margin-top:-9px;
@@ -481,8 +500,8 @@ const EXPERIMENTS = {
     steps:['ضع مصدر المجال ثم الحلقة المرنة داخل منطقته، ووصّل الحلقة بمقياس الفيض وبجلفانومتر أو مصباح.','<b>المساحة A:</b> اسحب المقبض الذهبي لكبس الحلقة وشدّها.','<b>الزاوية θ:</b> اسحب المقبض الأزرق (رأس متجه A) لتدويرها بين 0° و90°.','<b>كثافة الفيض B:</b> اسحب مقبض المصدر لتقويته أو إضعافه.','لاحظ لوحة القراءة: Φ أقصاه عند θ=0، وصفر عند θ=90°، ويصبح سالبًا بعدها.','الأهم: الجلفانومتر ينحرف <b>أثناء التغيير فقط</b> — لأن التيار يتولّد من تغيّر الفيض لا من مقداره.'],
     tools:['flexLoop','fieldSource','fluxMeter','galvanometer','bulb'] },
   6: { title:'قانون لنز', subtitle:'اسحب المغناطيس يدويًا عبر حلقة موصلة مغلقة ولاحظ التيار المحتث',
-    steps:['ضع الحلقة الموصلة على الكانفاس.','حرّك المغناطيس نحو الحلقة ببطء.','لاحظ اتجاه القطب المتكوّن على الحلقة أثناء الاقتراب.','أبعد المغناطيس ولاحظ انعكاس الحالة.'],
-    tools:['ring','magnet','bulb'] },
+    steps:['ضع الحلقة الموصلة، وحرّك المغناطيس نحوها ببطء.','اقرأ لوحة الاتجاه: التيار وعقارب الساعة، والقطب المتكوّن على وجه الحلقة، وهل يحدث تنافر أم تجاذب.','أبعد المغناطيس ولاحظ <b>انعكاس الاتجاه</b> والقطب والقوة معًا.','كرّر بالحلقة المفتوحة (المقطوعة): القوة الدافعة تتولّد لكن <b>لا تيار</b> ولا قوة — لأن الدارة غير مغلقة.','قارن الحالتين واستنتج لماذا يشترط قانون لنز مسارًا مغلقًا.'],
+    tools:['ring','ringOpen','magnet','bulb'] },
   7: { title:'نشاط تقليل التيارات الدوامية', subtitle:'بندول مصمت مقابل بندول مشقوق داخل مجال مغناطيسي',
     steps:['ثبّت الحامل، وعلّق البندول المصمت بين قطبي مصدر المجال.','أرجحه ولاحظ سرعة توقفه.','كرر بالبندول المشقوق وقارن مدة التأرجح.','ناقش سبب الفرق (التيارات الدوامية).'],
     tools:['pendulumSolid','pendulumSlotted','fieldSource','stand','bulb'] },
@@ -637,21 +656,50 @@ const TYPES = {
   // no terminals to route through the wire-graph engine, the induced current
   // is shown directly on the ring itself: a glowing stroke plus dots
   // orbiting the loop, reversing direction with the magnet's motion.
+  // --- Lenz's law, tab 6 ---------------------------------------------
+  // Convention, stated so the direction shown can be checked rather than
+  // trusted: the student sees the ring face-on and the magnet moves along
+  // the ring's axis. Lenz says the induced current opposes the *change* in
+  // flux, so
+  //   approaching -> the ring's near face takes the SAME pole as the
+  //                  magnet's near pole, and pushes back (repulsion)
+  //   receding    -> it takes the OPPOSITE pole, and pulls (attraction)
+  // and by the right-hand rule, seen from the magnet's side, a near face
+  // that is N carries current anticlockwise, a near face that is S carries
+  // it clockwise. lenzState() below works exactly this out.
   ring:{ label:'حلقة موصلة', w:110, h:110, hasTerminals:false, accepts:['magnet'], svg:(comp)=>{
     const pulse=comp && lab().inducedPulse;
     const active = pulse && pulse.coilId===comp.id;
-    const reverse = active && pulse.dir<0;
+    const st = active ? lenzState(comp) : null;
+    // dots run along the track, which is drawn clockwise from the top —
+    // so reverse them when the induced current is anticlockwise
+    const ccw = st && st.sense==='ccw';
     const dots = active ? [0,1,2,3].map(i=>`
       <circle r="4.5" fill="#ffcf5c">
-        <animateMotion dur="1.6s" repeatCount="indefinite" begin="${-(1.6/4)*i}s"${reverse?' keyPoints="1;0" keyTimes="0;1" calcMode="linear"':''}>
+        <animateMotion dur="1.6s" repeatCount="indefinite" begin="${-(1.6/4)*i}s"${ccw?' keyPoints="1;0" keyTimes="0;1" calcMode="linear"':''}>
           <mpath href="#ringTrack-${comp.id}"/>
         </animateMotion>
       </circle>`).join('') : '';
+    // tangential arrowheads at the top and bottom of the loop: the direction
+    // of the current, readable at a glance without watching the dots move
+    const arrow=(x,y,pointRight)=>`<path d="M-8 -7 L8 0 L-8 7 Z" fill="#ffcf5c" stroke="#3a2a10" stroke-width="1" transform="translate(${x} ${y}) rotate(${pointRight?0:180})"/>`;
+    const arrows = active ? (ccw ? arrow(55,9,false)+arrow(55,101,true)
+                                 : arrow(55,9,true)+arrow(55,101,false)) : '';
     return `
     <ellipse cx="55" cy="55" rx="46" ry="46" fill="none" stroke="${active?'#ffcf5c':'#d98a3d'}" stroke-width="9"/>
     <ellipse cx="55" cy="55" rx="46" ry="46" fill="none" stroke="#e8a860" stroke-width="3"/>
     <path id="ringTrack-${comp?comp.id:'preview'}" d="M55 9 A46 46 0 1 1 54.99 9 Z" fill="none" stroke="none"/>
-    ${dots}`; } },
+    ${dots}${arrows}`; } },
+  // The control case for the same experiment: an identical loop with a cut
+  // in it. The EMF is induced exactly as before — the changing flux does not
+  // care — but the circuit is broken, so no current can flow and there is no
+  // opposing force. It is never given `accepts`, so nothing can ever make it
+  // carry a pulse: the physics, not a special case in the drawing.
+  ringOpen:{ label:'حلقة مفتوحة (مقطوعة)', w:110, h:110, hasTerminals:false, openRing:true, svg:()=>`
+    <path d="M 55 9 A 46 46 0 1 1 40.2 12.4" fill="none" stroke="#8f9bb0" stroke-width="9" stroke-linecap="round"/>
+    <path d="M 55 9 A 46 46 0 1 1 40.2 12.4" fill="none" stroke="#aab6c8" stroke-width="3" stroke-linecap="round"/>
+    <line x1="52" y1="6" x2="46" y2="20" stroke="#ff7b7b" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="38" y1="9" x2="44" y2="23" stroke="#ff7b7b" stroke-width="2.5" stroke-linecap="round"/>` },
   // Deliberately long: the rod needs real room to slide *into* the field
   // region and back out of it again, which is the whole observation — a
   // short track leaves it half in the field wherever you put it.
@@ -831,7 +879,7 @@ function terminalPos(comp, term){
 }
 
 /* ---- rendering ---- */
-function render(){ renderComponents(); renderWires(); evaluateCircuit(); updateFluxMeters(); updateCooktop(); }
+function render(){ renderComponents(); renderWires(); evaluateCircuit(); updateFluxMeters(); updateCooktop(); renderLenzReadout(); }
 
 // Tab 10 (induction cooktop): the pot has to actually be resting on the flat
 // coil (nestedIn, same as a magnet dropped into a coil elsewhere) AND that
@@ -1251,7 +1299,7 @@ function evaluateCircuit(){
     return;
   }
   if(sources.length===0){
-    const hasRing=lab().components.some(c=>c.type==='ring');
+    const hasRing=lab().components.some(c=>c.type==='ring'||c.type==='ringOpen');
     const hasRails=lab().components.some(c=>TYPES[c.type].isRailTrack);
     const hasFluxMeter=lab().components.some(c=>c.type==='fluxMeter'||c.type==='flexLoop');
     const swingingPendulum=lab().components.find(c=>TYPES[c.type].pendulum && c._swinging);
@@ -1302,6 +1350,77 @@ function fluxOf(loop){
   theta = ((theta+180)%360+360)%360-180; // keep it in (-180, 180] so the readout stays sane
   const phi = inField ? B*A*Math.cos(theta*Math.PI/180) : 0;
   return { B, A, theta, phi, inField };
+}
+
+// Works out, from the geometry alone, which pole of the bar magnet is the
+// one facing the ring — N is drawn on the left half, S on the right, and a
+// rotated magnet stands N-up / S-down.
+function magnetNearPole(mag, ring){
+  const ms=effSize(mag), rs=effSize(ring);
+  const mc={ x:mag.x+ms.w/2, y:mag.y+ms.h/2 };
+  const rc={ x:ring.x+rs.w/2, y:ring.y+rs.h/2 };
+  if(mag.rotated) return mc.y < rc.y ? 'S' : 'N'; // above the ring -> its lower (S) end faces it
+  return mc.x < rc.x ? 'S' : 'N';                 // left of the ring -> its right (S) end faces it
+}
+
+// The full Lenz picture for the ring currently carrying an induced current:
+// which way the current runs, what pole that puts on the face towards the
+// magnet, and whether the pair therefore repel or attract.
+function lenzState(ring){
+  const pulse=lab().inducedPulse;
+  if(!pulse || pulse.coilId!==ring.id) return null;
+  const mag=lab().components.find(c=>c.type==='magnet');
+  if(!mag) return null;
+  const approaching = pulse.dir>0;
+  const near=magnetNearPole(mag, ring);
+  const opposite = near==='N' ? 'S' : 'N';
+  // opposing the change: same pole while the flux grows, opposite as it dies
+  const ringFace = approaching ? near : opposite;
+  return {
+    approaching,
+    magnetPole: near,
+    ringFace,
+    sense: ringFace==='N' ? 'ccw' : 'cw',           // seen from the magnet's side
+    force: approaching ? 'تنافر' : 'تجاذب',
+    flux:  approaching ? 'يزداد' : 'يتناقص'
+  };
+}
+
+// The prominent read-out the direction is actually communicated by — arrows
+// on the ring say which way, this says what it means.
+function renderLenzReadout(){
+  let box=document.getElementById('lenzReadout');
+  const ring=lab().components.find(c=>c.type==='ring');
+  const st=ring?lenzState(ring):null;
+  // an open ring near a moving magnet: EMF, but no path for a current
+  let openNote=null;
+  if(!st && dragCtx){
+    const dragged=findComp(dragCtx.id);
+    const openRing=lab().components.find(c=>c.type==='ringOpen');
+    if(dragged && dragged.type==='magnet' && openRing){
+      const ds=effSize(dragged), os=effSize(openRing);
+      const d=Math.hypot((dragged.x+ds.w/2)-(openRing.x+os.w/2), (dragged.y+ds.h/2)-(openRing.y+os.h/2));
+      if(d < 190) openNote=true;
+    }
+  }
+  if(!st && !openNote){ if(box) box.remove(); return; }
+  if(!box){
+    box=document.createElement('div'); box.id='lenzReadout'; box.className='lenz-readout';
+    el.viewport.appendChild(box);
+  }
+  if(openNote){
+    box.innerHTML=`
+      <div class="lz-dir lz-none">لا يسري تيار</div>
+      <div class="lz-row">الحلقة <b>مقطوعة</b> — الدارة غير مغلقة</div>
+      <div class="lz-row">القوة الدافعة المحتثة <b>متولّدة فعلًا</b>، لكن لا مسار للتيار</div>
+      <div class="lz-row lz-force">ولذلك <b>لا توجد قوة</b> تعارض حركة المغناطيس</div>`;
+    return;
+  }
+  box.innerHTML=`
+    <div class="lz-dir">${st.sense==='ccw'?'التيار عكس عقارب الساعة ↺':'التيار مع عقارب الساعة ↻'}</div>
+    <div class="lz-row">المغناطيس <b>${st.approaching?'يقترب':'يبتعد'}</b> بقطبه <b>${st.magnetPole}</b> — الفيض <b>${st.flux}</b></div>
+    <div class="lz-row">وجه الحلقة المقابل يصبح قطبًا <b class="lz-pole">${st.ringFace}</b></div>
+    <div class="lz-row lz-force">فيحدث <b>${st.force}</b> — التيار المحتث يعاكس التغيّر <i>(قانون لنز)</i></div>`;
 }
 
 // Puts the actual numbers on screen — B, A, theta and the resulting Phi —
