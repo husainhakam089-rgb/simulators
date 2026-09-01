@@ -328,9 +328,12 @@
     background:linear-gradient(rgba(255,90,190,0), #ff5abe 55%, rgba(255,90,190,0));
   }
   /* an ordinary lamp glows warm, and its glass/filament light up with it */
-  .comp.bulb .glass, .comp.bulb .filament{ transition:fill .15s ease, stroke .15s ease; }
-  .comp.active.bulb .glass{ fill:#fff2a8; stroke:#ffcf5c; }
-  .comp.active.bulb .filament{ stroke:#ff9d2e; stroke-width:2.6; }
+  /* brightness follows --lit (the lamp's actual current), so an inductive
+     circuit visibly ramps the filament up and lets it fade on the break */
+  .comp.bulb .glass{ fill:color-mix(in srgb, #ffe98a calc(var(--lit,0) * 100%), #fff8dc); }
+  .comp.bulb .filament{ stroke:color-mix(in srgb, #ff8c1a calc(var(--lit,0) * 100%), #8a6d1a); }
+  .comp.active.bulb .glass{ stroke:#ffcf5c; }
+  .comp.active.bulb .glow-rays{ opacity:var(--lit,1); }
   .comp.active.bulb .glow-rays .ray{
     background:linear-gradient(rgba(255,215,120,0), #ffd978 55%, rgba(255,215,120,0));
   }
@@ -1399,7 +1402,33 @@ function evaluateCircuit(){
     if(comp.type==='neonLamp') on = !!(inducedActive && pulse && pulse.coilId===comp.id);
     const isMeter = comp.type==='galvanometer' || comp.type==='fluxMeter';
     const isIndicator = comp.type==='neonLamp' || comp.type==='bulb' || isMeter || COIL_TYPES.includes(comp.type);
-    div.classList.toggle('active', on && isIndicator);
+    // A lamp's brightness is its current, and in an inductive circuit the
+    // current does not appear or vanish on a step: the coil opposes the
+    // change, so the filament comes up along i(t)=I(1-e^(-t/tau)) and, when
+    // the loop is broken, keeps glowing as the collapsing field drives
+    // I*e^(-t/tau) through it. Driving it off a bare on/off flag made the
+    // lamp contradict the galvanometer sitting in the same loop.
+    if(comp.type==='bulb'){
+      const liveTau=loopTau.get(comp.id)||0;
+      if(liveTau>0) comp._tau=liveTau;
+      const tau = liveTau>0 ? liveTau : ((!on && comp._lit) ? (comp._tau||0) : 0);
+      const target = on ? 1 : 0;
+      if(comp._lit==null) comp._lit=0;
+      if(tau>0.01){
+        const nw=(typeof performance!=='undefined'?performance.now():Date.now());
+        const dt=Math.min(0.1,(nw-(comp._lastLitT==null?nw:comp._lastLitT))/1000);
+        comp._lastLitT=nw;
+        comp._lit += (target-comp._lit)*(1-Math.exp(-dt/tau));
+        if(Math.abs(target-comp._lit)<0.01) comp._lit=target;
+        comp._ramping = comp._lit!==target;
+        if(comp._ramping) startMeterRampLoop(); else { comp._lastLitT=null; if(target===0) comp._tau=0; }
+      } else {
+        comp._lit=target; comp._ramping=false; comp._lastLitT=null;
+      }
+      div.style.setProperty('--lit', comp._lit.toFixed(3));
+    }
+    const litEnough = comp.type==='bulb' ? (comp._lit>0.02) : on;
+    div.classList.toggle('active', litEnough && isIndicator);
     if(on) activeCount++;
     const needle=div.querySelector('.needle');
     if(needle && isMeter){
