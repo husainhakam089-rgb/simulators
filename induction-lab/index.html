@@ -375,6 +375,21 @@
   .lenz-readout .lz-force b{ color:var(--accent-amber); font-size:14px; }
   .lenz-readout .lz-row i{ color:#9fb3d0; font-style:normal; }
 
+  /* tab 7: the two bobs, measured */
+  .pend-readout{
+    position:absolute; right:14px; bottom:14px; z-index:5;
+    background:rgba(16,26,45,.94); border:1px solid #2f445f; border-radius:10px;
+    padding:10px 14px; font-size:12px; color:#e8eef8; pointer-events:none;
+    box-shadow:0 6px 18px rgba(0,0,0,.4); min-width:330px;
+  }
+  .pend-readout .pd-title{ font-weight:800; color:var(--accent-amber); margin-bottom:6px; font-size:13px; }
+  .pend-readout .pd-row{ display:flex; gap:10px; align-items:baseline; padding:3px 6px; border-radius:6px; }
+  .pend-readout .pd-row.pd-in{ background:rgba(255,207,92,.12); }
+  .pend-readout .pd-name{ min-width:42px; font-weight:800; color:#7fe4ef; }
+  .pend-readout .pd-tag{ color:#9fb3d0; }
+  .pend-readout .pd-row b{ color:#fff; font-variant-numeric:tabular-nums; }
+  .pend-readout .pd-note{ margin-top:5px; color:#9fb3d0; font-size:11px; line-height:1.6; }
+
   /* drag handles on the loop / field source */
   .handle{
     position:absolute; width:18px; height:18px; margin-left:-9px; margin-top:-9px;
@@ -717,17 +732,38 @@ const TYPES = {
   rod:{ label:'ساق معدنية', w:48, h:100, hasTerminals:false, nestable:true, slidesOnRails:true, svg:()=>`
     <rect x="15" y="2" width="18" height="96" rx="5" fill="#e8a860" stroke="#8a6d1a" stroke-width="2"/>
     <rect x="19" y="6" width="5" height="88" rx="2" fill="#f6c68a" opacity="0.8"/>` },
-  pendulumSolid:{ label:'بندول مصمت', w:90, h:150, hasTerminals:false, pendulum:true, svg:()=>`
+  // While the bob is crossing the field it carries eddy currents, drawn on
+  // the plate itself and fading with speed — full-width loops in the solid
+  // plate, and in the slotted one only the thin loops the cuts leave room
+  // for, which is the whole reason it barely slows down.
+  pendulumSolid:{ label:'بندول مصمت', w:90, h:150, hasTerminals:false, pendulum:true, svg:(comp)=>{
+    const on=comp && comp._inField && comp._swinging;
+    const k=on ? Math.min(1, (comp._speed||0)/1.6) : 0;
+    const swirl = k>0.05 ? `
+      <ellipse cx="32" cy="128" rx="12" ry="9" fill="none" stroke="#ffcf5c" stroke-width="2.2" opacity="${(0.35+0.65*k).toFixed(2)}"/>
+      <ellipse cx="58" cy="128" rx="12" ry="9" fill="none" stroke="#ffcf5c" stroke-width="2.2" opacity="${(0.35+0.65*k).toFixed(2)}"/>
+      <path d="M26 121 l-5 -1 l3 -4" fill="none" stroke="#ffcf5c" stroke-width="2.2" opacity="${(0.35+0.65*k).toFixed(2)}"/>
+      <path d="M64 135 l5 1 l-3 4" fill="none" stroke="#ffcf5c" stroke-width="2.2" opacity="${(0.35+0.65*k).toFixed(2)}"/>` : '';
+    return `
     <line x1="45" y1="0" x2="45" y2="110" stroke="#5a6a8c" stroke-width="3"/>
     <circle cx="45" cy="0" r="5" fill="#3a2a18"/>
-    <rect x="15" y="110" width="60" height="36" rx="6" fill="#8891a0" stroke="#4a5160" stroke-width="2"/>` },
-  pendulumSlotted:{ label:'بندول مشقوق', w:90, h:150, hasTerminals:false, pendulum:true, svg:()=>`
+    <rect x="15" y="110" width="60" height="36" rx="6" fill="#8891a0" stroke="${on?'#ffcf5c':'#4a5160'}" stroke-width="2"/>
+    ${swirl}`; } },
+  pendulumSlotted:{ label:'بندول مشقوق', w:90, h:150, hasTerminals:false, pendulum:true, svg:(comp)=>{
+    const on=comp && comp._inField && comp._swinging;
+    const k=on ? Math.min(1, (comp._speed||0)/1.6) : 0;
+    // one narrow loop per strip: same law, far less of it
+    const swirl = k>0.05 ? [21,39,57,69].map(x=>`<ellipse cx="${x}" cy="128" rx="3.4" ry="8" fill="none" stroke="#ffcf5c" stroke-width="1.6" opacity="${(0.3+0.5*k).toFixed(2)}"/>`).join('') : '';
+    return `
     <line x1="45" y1="0" x2="45" y2="110" stroke="#5a6a8c" stroke-width="3"/>
     <circle cx="45" cy="0" r="5" fill="#3a2a18"/>
-    <rect x="15" y="110" width="60" height="36" rx="6" fill="#8891a0" stroke="#4a5160" stroke-width="2"/>
-    <line x1="27" y1="116" x2="27" y2="140" stroke="#4a2c11" stroke-width="4"/>
-    <line x1="45" y1="116" x2="45" y2="140" stroke="#4a2c11" stroke-width="4"/>
-    <line x1="63" y1="116" x2="63" y2="140" stroke="#4a2c11" stroke-width="4"/>` },
+    <rect x="15" y="110" width="60" height="36" rx="6" fill="#8891a0" stroke="${on?'#ffcf5c':'#4a5160'}" stroke-width="2"/>
+    <line x1="30" y1="114" x2="30" y2="142" stroke="#4a2c11" stroke-width="3.4"/>
+    <line x1="39" y1="114" x2="39" y2="142" stroke="#4a2c11" stroke-width="3.4"/>
+    <line x1="48" y1="114" x2="48" y2="142" stroke="#4a2c11" stroke-width="3.4"/>
+    <line x1="57" y1="114" x2="57" y2="142" stroke="#4a2c11" stroke-width="3.4"/>
+    <line x1="66" y1="114" x2="66" y2="142" stroke="#4a2c11" stroke-width="3.4"/>
+    ${swirl}`; } },
   stand:{ label:'حامل', w:100, h:120, hasTerminals:false, svg:()=>`
     <rect x="10" y="110" width="80" height="8" rx="2" fill="#4a5160"/>
     <line x1="50" y1="4" x2="50" y2="112" stroke="#4a5160" stroke-width="6"/>
@@ -879,7 +915,7 @@ function terminalPos(comp, term){
 }
 
 /* ---- rendering ---- */
-function render(){ renderComponents(); renderWires(); evaluateCircuit(); updateFluxMeters(); updateCooktop(); renderLenzReadout(); }
+function render(){ renderComponents(); renderWires(); evaluateCircuit(); updateFluxMeters(); updateCooktop(); renderLenzReadout(); renderPendulumReadout(); }
 
 // Tab 10 (induction cooktop): the pot has to actually be resting on the flat
 // coil (nestedIn, same as a magnet dropped into a coil elsewhere) AND that
@@ -919,7 +955,51 @@ function updateCooktop(){
 // state (not just the active one) so a pendulum left swinging keeps going
 // even if you switch away and back.
 let pendulumRAF=null;
-function tickPendulums(){
+// --- Tab 7: eddy-current damping, integrated rather than faked ----------
+// The bob hangs 128px below its pivot in the drawing and the canvas runs at
+// 100px to the metre, so this is a real 1.28 m pendulum obeying
+//     theta'' = -(g/L) sin(theta) - gamma * theta'
+// integrated against the wall clock, not per animation frame (a 120Hz screen
+// must not damp twice as fast as a 60Hz one).
+//
+// gamma is the honest part. Eddy braking is viscous: the motional EMF goes
+// as v, the induced current as EMF/R, and the retarding force as B*I*L — so
+// the force is proportional to v and the term belongs on theta', exactly
+// where it is. It is applied ONLY while the bob is actually inside the field
+// region (checked in x AND y against the drawn band), so the braking bites
+// hardest at the bottom of the swing where the bob is fastest, and vanishes
+// at the turning points where it stops — which is what the real apparatus
+// does and what the old fixed per-frame decay could never show.
+//
+// Solid vs slotted is not a magic number either. Eddy loops in a plate of
+// width w dissipate as w^2; cutting it into n strips leaves each loop a width
+// w/n, so the n strips together dissipate n*(w/n)^2 = w^2/n. The slotted bob
+// is cut into EDDY_STRIPS strips and is damped by that same factor less.
+const PEND_R_PX=128;              // pivot -> bob centre, matching the artwork
+const PX_PER_M=100;
+const PEND_L=PEND_R_PX/PX_PER_M;  // 1.28 m  ->  T = 2*pi*sqrt(L/g) ~ 2.27 s
+const G_ACCEL=9.81;
+const GAMMA_AIR=0.06;             // the bit both bobs share: air + pivot friction
+const GAMMA_EDDY=4.0;             // a solid plate crossing the field
+const EDDY_STRIPS=6;              // the slotted bob's cuts -> damping / 6
+
+function pendulumBob(c){
+  const th=(c._swingAngle||0)*Math.PI/180;
+  const px=c.x+45, py=c.y+4;      // the pivot, i.e. the transform origin it turns about
+  return { x:px+PEND_R_PX*Math.sin(th), y:py+PEND_R_PX*Math.cos(th), theta:th };
+}
+function bobInField(c, field){
+  if(!field) return false;
+  const b=pendulumBob(c), fs=effSize(field);
+  return b.x>=field.x && b.x<=field.x+fs.w && b.y>=field.y && b.y<=field.y+fs.h;
+}
+function pendulumGamma(c, inField){
+  if(!inField) return GAMMA_AIR;
+  return GAMMA_AIR + (c.type==='pendulumSlotted' ? GAMMA_EDDY/EDDY_STRIPS : GAMMA_EDDY);
+}
+
+function tickPendulums(ts){
+  const now = ts || (typeof performance!=='undefined' ? performance.now() : Date.now());
   let any=false;
   for(const key of Object.keys(labs)){
     const l=labs[key];
@@ -927,16 +1007,27 @@ function tickPendulums(){
     for(const c of l.components){
       if(!c._swinging) continue;
       any=true;
-      c._swingT=(c._swingT||0)+0.12;
-      const angleRad=(c._swingAngle||0)*Math.PI/180;
-      const bobX=c.x+effSize(c).w/2+55*Math.sin(angleRad);
-      const inField=field && bobX>=field.x && bobX<=field.x+effSize(field).w;
-      let decay=0.999; // baseline friction, same for both — the point is the *extra* field damping
-      if(c.type==='pendulumSolid' && inField) decay=0.90;
-      else if(c.type==='pendulumSlotted' && inField) decay=0.995;
-      c._swingAmp*=decay;
-      c._swingAngle=c._swingAmp*Math.cos(c._swingT);
-      if(Math.abs(c._swingAmp)<1){ c._swingAmp=0; c._swingAngle=0; c._swinging=false; }
+      let dt=(now-(c._lastT==null?now:c._lastT))/1000;
+      c._lastT=now;
+      dt=Math.min(Math.max(dt,0),0.05);            // ignore huge gaps after a tab switch
+      const steps=Math.max(1, Math.ceil(dt/0.004)); // small sub-steps keep it stable
+      const h=dt/steps;
+      for(let i=0;i<steps;i++){
+        const th=(c._swingAngle||0)*Math.PI/180;
+        const inField=bobInField(c, field);
+        const gamma=pendulumGamma(c, inField);
+        const omega=c._omega||0;
+        const alpha=-(G_ACCEL/PEND_L)*Math.sin(th) - gamma*omega;
+        const w2=omega+alpha*h;                     // semi-implicit Euler
+        c._omega=w2;
+        c._swingAngle=(th+w2*h)*180/Math.PI;
+        c._inField=inField; c._gamma=gamma;
+      }
+      c._speed=Math.abs(c._omega||0)*PEND_L;        // bob speed, m/s
+      // energy per unit mass: stop once it has essentially settled
+      const thNow=(c._swingAngle||0)*Math.PI/180;
+      const E=0.5*Math.pow((c._omega||0)*PEND_L,2) + G_ACCEL*PEND_L*(1-Math.cos(thNow));
+      if(E<0.0015){ c._omega=0; c._swingAngle=0; c._swinging=false; c._speed=0; c._inField=false; }
     }
   }
   render();
@@ -1421,6 +1512,33 @@ function renderLenzReadout(){
     <div class="lz-row">المغناطيس <b>${st.approaching?'يقترب':'يبتعد'}</b> بقطبه <b>${st.magnetPole}</b> — الفيض <b>${st.flux}</b></div>
     <div class="lz-row">وجه الحلقة المقابل يصبح قطبًا <b class="lz-pole">${st.ringFace}</b></div>
     <div class="lz-row lz-force">فيحدث <b>${st.force}</b> — التيار المحتث يعاكس التغيّر <i>(قانون لنز)</i></div>`;
+}
+
+// Tab 7's read-out: the two bobs side by side with the numbers that decide
+// the outcome — speed, whether the plate is in the field right now, and the
+// damping actually being applied to it.
+function renderPendulumReadout(){
+  let box=document.getElementById('pendReadout');
+  const pends=lab().components.filter(c=>TYPES[c.type].pendulum);
+  if(!pends.length){ if(box) box.remove(); return; }
+  if(!box){
+    box=document.createElement('div'); box.id='pendReadout'; box.className='pend-readout';
+    el.viewport.appendChild(box);
+  }
+  const rows=pends.map(c=>{
+    const inF=!!c._inField, moving=!!c._swinging;
+    const g=(c._gamma==null?GAMMA_AIR:c._gamma);
+    const name=c.type==='pendulumSolid'?'مصمت':'مشقوق';
+    return `<div class="pd-row${inF?' pd-in':''}">
+      <span class="pd-name">${name}</span>
+      <span>v = <b>${(c._speed||0).toFixed(2)}</b> م/ث</span>
+      <span class="pd-tag">${moving?(inF?'داخل المجال':'خارج المجال'):'ساكن'}</span>
+      <span>γ = <b>${g.toFixed(2)}</b> ث⁻¹</span>
+    </div>`;
+  }).join('');
+  box.innerHTML=`<div class="pd-title">التخميد بالتيارات الدوامية</div>${rows}
+    <div class="pd-note">قوة الكبح ∝ السرعة، وتعمل داخل المجال فقط — لذلك أقوى ما تكون في أسفل التأرجح</div>
+    <div class="pd-note">الشقوق تقطع حلقات التيار: عرض w مقسّم إلى ${EDDY_STRIPS} شرائح ⇦ تخميد أقل بمقدار ${EDDY_STRIPS}×</div>`;
 }
 
 // Puts the actual numbers on screen — B, A, theta and the resulting Phi —
@@ -1908,7 +2026,7 @@ document.addEventListener('mouseup', e=>{
     // own from wherever it was released — same idea as "أرجحه ولاحظ سرعة
     // توقفه" in the curriculum's own steps.
     if(comp && dragCtx.moved && TYPES[comp.type].pendulum && Math.abs(comp._swingAngle||0)>3){
-      comp._swingAmp=comp._swingAngle; comp._swingT=0; comp._swinging=true;
+      comp._omega=0; comp._lastT=null; comp._swinging=true; // let go from rest at that angle
       startPendulumLoop();
     }
     if(comp && !dragCtx.moved){
