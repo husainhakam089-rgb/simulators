@@ -390,6 +390,26 @@
   .pend-readout .pd-row b{ color:#fff; font-variant-numeric:tabular-nums; }
   .pend-readout .pd-note{ margin-top:5px; color:#9fb3d0; font-size:11px; line-height:1.6; }
 
+  .icon-btn.build{
+    width:auto; padding:0 14px; font-size:12.5px; font-weight:800; white-space:nowrap;
+    background:linear-gradient(180deg,#2b6cb0,#1e4f85); border-color:#5aa0e8; color:#eaf3ff;
+  }
+  .icon-btn.build:hover{ background:linear-gradient(180deg,#3479c4,#245c9b); }
+
+  /* tab 8: the R-L numbers */
+  .rl-readout{
+    position:absolute; right:14px; bottom:14px; z-index:5;
+    background:rgba(16,26,45,.94); border:1px solid #2f445f; border-radius:10px;
+    padding:10px 14px; font-size:12px; color:#e8eef8; pointer-events:none;
+    box-shadow:0 6px 18px rgba(0,0,0,.4); min-width:360px;
+  }
+  .rl-readout .rl-title{ font-weight:800; color:var(--accent-amber); margin-bottom:6px; font-size:13px; }
+  .rl-readout .rl-row{ display:flex; gap:10px; align-items:baseline; padding:3px 0; }
+  .rl-readout .rl-name{ min-width:92px; font-weight:800; color:#7fe4ef; }
+  .rl-readout .rl-row b{ color:#fff; font-variant-numeric:tabular-nums; }
+  .rl-readout .rl-note{ margin-top:4px; color:#9fb3d0; font-size:11px; line-height:1.6; }
+  .rl-readout .rl-note b{ color:#e8eef8; }
+
   /* drag handles on the loop / field source */
   .handle{
     position:absolute; width:18px; height:18px; margin-left:-9px; margin-top:-9px;
@@ -483,6 +503,7 @@
         <button id="zoomOutBtn" class="icon-btn" title="تصغير">🔍−</button>
         <button id="zoomInBtn" class="icon-btn" title="تكبير">🔍+</button>
         <button id="deleteBtn" class="icon-btn danger" title="حذف العنصر المحدد">🗑</button>
+        <button id="autoBuildBtn" class="icon-btn build" title="ربط الدائرة تلقائيًا حسب التجربة">⚡ ربط تلقائي</button>
       </div>
       <div class="status-pill" id="circuitStatus">اسحب الأدوات وابدأ التركيب</div>
     </div>
@@ -840,6 +861,7 @@ const el = {
   deleteBtn: document.getElementById('deleteBtn'),
   clearBtn: document.getElementById('clearBtn'),
   zoomInBtn: document.getElementById('zoomInBtn'),
+  autoBuildBtn: document.getElementById('autoBuildBtn'),
   zoomOutBtn: document.getElementById('zoomOutBtn'),
   viewModeBtn: document.getElementById('viewModeBtn'),
   canvasWrap: document.querySelector('.canvas-wrap'),
@@ -915,7 +937,7 @@ function terminalPos(comp, term){
 }
 
 /* ---- rendering ---- */
-function render(){ renderComponents(); renderWires(); evaluateCircuit(); updateFluxMeters(); updateCooktop(); renderLenzReadout(); renderPendulumReadout(); }
+function render(){ renderComponents(); renderWires(); evaluateCircuit(); updateFluxMeters(); updateCooktop(); renderLenzReadout(); renderPendulumReadout(); renderRLReadout(); }
 
 // Tab 10 (induction cooktop): the pot has to actually be resting on the flat
 // coil (nestedIn, same as a magnet dropped into a coil elsewhere) AND that
@@ -1190,6 +1212,16 @@ function renderWires(){
 /* ---- circuit graph (only components with hasTerminals participate) ---- */
 function nodeKey(comp,term){ return comp+'|'+term; }
 const SOURCE_TYPES=['battery','ac','acHighFreq'];
+// Nominal values behind the R-L behaviour of tab 8 (and any other battery
+// loop). A real coil is wound wire, so it carries resistance of its own —
+// which is what lets an inductor branch settle at the same current as a
+// resistor branch and differ only in how long it takes to get there.
+const SUPPLY_EMF=12;     // V
+const BASE_R=4;          // wiring + meter, ohms
+const RESISTOR_R=8;      // ohms
+const COIL_R=8;          // the inductor's own DC resistance, ohms
+const COIL_L=5;          // henries
+const REF_CURRENT=1.0;   // the current that reads full scale
 
 function buildGraph(excludeInternalId){
   const adj=new Map();
@@ -1258,13 +1290,39 @@ function evaluateCircuit(){
   // an inductive loop eases its needle toward the new value instead of
   // snapping (see the needle-setting block below), the same way a real coil's
   // back-EMF delays its current from jumping straight to steady-state.
-  const loopHasInductor=new Map();
+  // Each source loop is solved on its own terms. This used to share one
+  // resistor tally and one current across every loop on the canvas, so a
+  // resistor in one circuit dimmed the meter in a completely separate one —
+  // fatal for tab 8, whose entire subject is two independent circuits
+  // compared side by side.
+  //
+  //   R = wiring + meter, plus each resistor, plus the inductor's own coil
+  //       resistance (a real coil is wound wire and has some)
+  //   I = EMF / R                       -> where the needle ends up
+  //   tau = L / R                       -> how long it takes to get there,
+  //       since an R-L circuit rises as i(t) = I(1 - e^(-t/tau)) and falls
+  //       as I*e^(-t/tau). Give the inductor branch the same resistance as
+  //       the resistor branch and the two settle at the SAME reading — the
+  //       only difference is the time it takes, which is the whole lesson.
+  const loopHasInductor=new Map(), loopSwing=new Map(), loopTau=new Map();
+  const loopInfo=[];
   for(const src of sources){
     const members=new Set();
-    if(processLoop(src.id,'a','b', litNodes, wireDirection, compDirection, loadRef, members)){
+    const localLoad={count:0};
+    if(processLoop(src.id,'a','b', litNodes, wireDirection, compDirection, localLoad, members)){
       anyLoop=true;
-      const inductive=[...members].some(id=>{ const c=findComp(id); return c && c.type==='inductor'; });
-      for(const id of members) loopHasInductor.set(id, inductive);
+      let R=BASE_R, L=0;
+      for(const id of members){
+        const c=findComp(id); if(!c) continue;
+        if(c.type==='resistor'||c.type==='rheostat') R+=RESISTOR_R;
+        if(c.type==='inductor'){ R+=COIL_R; L+=COIL_L; }
+      }
+      const I=SUPPLY_EMF/R;
+      const sw=Math.min(42, 34*I/REF_CURRENT);
+      const tau=L>0 ? L/R : 0;
+      for(const id of members){ loopHasInductor.set(id, L>0); loopSwing.set(id, sw); loopTau.set(id, tau); }
+      loopInfo.push({ R, L, tau, I });
+      loadRef.count+=localLoad.count; // the induced-pulse path below still uses the overall tally
     }
   }
 
@@ -1324,6 +1382,7 @@ function evaluateCircuit(){
     if(litNodes.has(nodeKey(c.id,'a')) && litNodes.has(nodeKey(c.id,'b'))) liveIds.add(c.id);
   }
   lab().liveComponentIds=liveIds;
+  lab()._loopInfo=loopInfo;
 
   let activeCount=0;
   document.querySelectorAll('.comp').forEach(div=>{
@@ -1345,21 +1404,25 @@ function evaluateCircuit(){
     const needle=div.querySelector('.needle');
     if(needle && isMeter){
       const dir = compDirection.get(comp.id) || 1;
-      const target = on ? dir*swing : 0;
+      const ownSwing = loopSwing.has(comp.id) ? loopSwing.get(comp.id) : swing;
+      const target = on ? dir*ownSwing : 0;
+      const tau = loopTau.get(comp.id)||0;
       needle.style.transformOrigin = (t.w*0.5)+'px '+(t.h*0.8125)+'px';
-      if(loopHasInductor.get(comp.id)){
-        // ease toward the target instead of snapping — a real R-L circuit's
-        // current rises/falls as 1-e^(-t/τ), not instantly, so let the
-        // needle visibly lag the resistor branch's the same way it would in
-        // the real apparatus.
+      if(tau>0.01){
+        // i(t) = I(1 - e^(-t/tau)) rising, I*e^(-t/tau) falling — stepped
+        // with the exact discrete solution against the wall clock, so the
+        // curve is the real one and does not depend on the frame rate.
         if(comp._needleLevel==null) comp._needleLevel=0;
-        comp._needleLevel += (target-comp._needleLevel)*0.06;
-        if(Math.abs(target-comp._needleLevel)<0.3) comp._needleLevel=target;
+        const now=(typeof performance!=='undefined'?performance.now():Date.now());
+        const dt=Math.min(0.1,(now-(comp._lastRampT==null?now:comp._lastRampT))/1000);
+        comp._lastRampT=now;
+        comp._needleLevel += (target-comp._needleLevel)*(1-Math.exp(-dt/tau));
+        if(Math.abs(target-comp._needleLevel)<0.15) comp._needleLevel=target;
         comp._ramping = comp._needleLevel!==target;
-        if(comp._ramping) startMeterRampLoop();
+        if(comp._ramping) startMeterRampLoop(); else comp._lastRampT=null;
         needle.style.transform = `rotate(${comp._needleLevel}deg)`;
       } else {
-        comp._needleLevel=target; comp._ramping=false;
+        comp._needleLevel=target; comp._ramping=false; comp._lastRampT=null;
         needle.style.transform = `rotate(${target}deg)`;
       }
     }
@@ -1539,6 +1602,27 @@ function renderPendulumReadout(){
   box.innerHTML=`<div class="pd-title">التخميد بالتيارات الدوامية</div>${rows}
     <div class="pd-note">قوة الكبح ∝ السرعة، وتعمل داخل المجال فقط — لذلك أقوى ما تكون في أسفل التأرجح</div>
     <div class="pd-note">الشقوق تقطع حلقات التيار: عرض w مقسّم إلى ${EDDY_STRIPS} شرائح ⇦ تخميد أقل بمقدار ${EDDY_STRIPS}×</div>`;
+}
+
+// Tab 8's read-out: each battery loop's resistance, inductance and the time
+// constant that follows, so "why is this one slower" has a number attached.
+function renderRLReadout(){
+  let box=document.getElementById('rlReadout');
+  const loops=(lab()._loopInfo||[]).filter(l=>l.L>0 || l.R>BASE_R);
+  const wantIt = loops.length && lab().components.some(c=>c.type==='inductor');
+  if(!wantIt){ if(box) box.remove(); return; }
+  if(!box){ box=document.createElement('div'); box.id='rlReadout'; box.className='rl-readout'; el.viewport.appendChild(box); }
+  const rows=loops.map(l=>`
+    <div class="rl-row">
+      <span class="rl-name">${l.L>0?'دائرة المحاثة':'دائرة المقاومة'}</span>
+      <span>R = <b>${l.R}</b> Ω</span>
+      <span>L = <b>${l.L}</b> هنري</span>
+      <span>τ = <b>${l.tau>0?l.tau.toFixed(2):'0'}</b> ث</span>
+      <span>I = <b>${l.I.toFixed(2)}</b> A</span>
+    </div>`).join('');
+  box.innerHTML=`<div class="rl-title">ثابت الزمن  τ = L / R</div>${rows}
+    <div class="rl-note">التياران يستقران عند <b>نفس</b> القيمة (نفس المقاومة) — الفرق في <b>زمن الوصول</b> فقط</div>
+    <div class="rl-note">i(t) = I(1 − e<sup>−t/τ</sup>) — يبلغ 63% عند τ و95% عند 3τ</div>`;
 }
 
 // Puts the actual numbers on screen — B, A, theta and the resulting Phi —
@@ -2068,6 +2152,111 @@ function select(kind,id){
 }
 
 /* ---- toolbar ---- */
+
+/* ---- one-click wiring -------------------------------------------------
+   Every experiment can assemble its own canonical circuit: the pieces the
+   activity calls for, placed where they belong and already wired. It is the
+   same drop/nest/wire path the user would take by hand — it just does not
+   make them do it — so switches still start open, props still nest, and
+   nothing is special-cased downstream. Meant as a starting point you then
+   poke at, not a replacement for building it yourself. */
+function place(type, cx, cy, extra){
+  const t=TYPES[type];
+  const c={ id:uid(), type, x:Math.round(cx-t.w/2), y:Math.round(cy-t.h/2), closed:!t.toggle };
+  if(t.init) t.init(c);
+  Object.assign(c, extra||{});
+  lab().components.push(c);
+  return c;
+}
+function join(a, ta, b, tb){ lab().wires.push({ id:uid(), a:{comp:a.id,term:ta}, b:{comp:b.id,term:tb} }); }
+// series chain: link[0].b -> link[1].a -> ... -> back round to the first
+function loopUp(...parts){
+  for(let i=0;i<parts.length;i++) join(parts[i],'b', parts[(i+1)%parts.length],'a');
+}
+// drop a prop onto a host exactly as nestUnder would after a drag
+function seat(prop, host){ nestUnder(prop, host); }
+
+const AUTO_BUILD = {
+  1: ()=>{ // magnet into a coil, read on a galvanometer
+    const coil=place('coilInduction',560,250), galv=place('galvanometer',560,470);
+    join(coil,'a',galv,'a'); join(coil,'b',galv,'b');
+    place('magnet',250,250);
+  },
+  2: ()=>{ // transformer: two coils on one core, switch in the primary
+    const core=place('ironCore',560,330);
+    const pri=place('coilPrimary',200,140,{rotated:true});
+    const sec=place('coilSecondary',900,140,{rotated:true});
+    seat(pri, core); seat(sec, core);
+    const batt=place('battery',180,560), sw=place('switch',420,560);
+    const galv=place('galvanometer',900,560);
+    loopUp(batt, sw, pri);
+    join(sec,'a',galv,'a'); join(sec,'b',galv,'b');
+  },
+  3: ()=>{ // mutual induction with a rheostat to vary the primary current
+    const pri=place('coilPrimary',380,220), sec=place('coilSecondary',760,220);
+    const batt=place('battery',180,470), sw=place('switch',400,470), rh=place('rheostat',620,470);
+    const galv=place('galvanometer',900,470);
+    loopUp(batt, sw, rh, pri);
+    join(sec,'a',galv,'a'); join(sec,'b',galv,'b');
+  },
+  4: ()=>{ // rod on rails through a field, read on a galvanometer
+    const rails=place('rails',430,300);
+    place('fieldSource',430,300);
+    const rod=place('rod',300,300);
+    seat(rod, rails);
+    const galv=place('galvanometer',830,540);
+    join(rails,'a',galv,'a'); join(rails,'b',galv,'b');
+  },
+  5: ()=>{ // a loop in a field, with the flux meter and a galvanometer on it
+    place('fieldSource',430,280);
+    const loop=place('flexLoop',430,280);
+    const fm=place('fluxMeter',300,600), galv=place('galvanometer',700,600);
+    join(loop,'a',fm,'a'); join(loop,'b',fm,'b');
+    join(loop,'a',galv,'a'); join(loop,'b',galv,'b');
+  },
+  6: ()=>{ // the closed ring and the cut one, side by side, with a magnet
+    place('ring',560,240);
+    place('ringOpen',560,470);
+    place('magnet',230,240);
+  },
+  7: ()=>{ // both bobs hung so they swing through the field
+    place('stand',430,180);
+    const solid=place('pendulumSolid',430,250);
+    place('fieldSource', solid.x+45, solid.y+4+128);
+    const slot=place('pendulumSlotted',830,250);
+    place('fieldSource', slot.x+45, slot.y+4+128);
+  },
+  8: ()=>{ // two independent loops to compare: resistor branch vs inductor branch
+    const b1=place('battery',150,170), s1=place('switch',390,170), r1=place('resistor',630,170), g1=place('galvanometer',880,170);
+    loopUp(b1, s1, r1, g1);
+    const b2=place('battery',150,450), s2=place('switch',390,450), i2=place('inductor',630,450), g2=place('galvanometer',880,450);
+    loopUp(b2, s2, i2, g2);
+  },
+  9: ()=>{ // self-induction: neon lamp straight across the coil
+    const batt=place('battery',200,220), sw=place('switch',450,220), ind=place('inductor',700,220);
+    loopUp(batt, sw, ind);
+    const neon=place('neonLamp',700,460);
+    join(neon,'a',ind,'a'); join(neon,'b',ind,'b');
+  },
+  10: ()=>{ // induction hob: pot sitting on a coil fed by the HF supply
+    const coil=place('flatCoil',430,380), ac=place('acHighFreq',430,580);
+    join(coil,'a',ac,'a'); join(coil,'b',ac,'b');
+    const pot=place('pot',430,380);
+    seat(pot, coil);
+    place('thermometer',650,340);
+  }
+};
+
+function autoBuild(){
+  const fn=AUTO_BUILD[activeTab]; if(!fn) return;
+  const l=lab();
+  l.components=[]; l.wires=[]; l.selected=null; l.inducedPulse=null;
+  l.energizedCoilIds=new Set(); l.liveComponentIds=new Set();
+  fn();
+  render();
+}
+el.autoBuildBtn.addEventListener('click', autoBuild);
+
 el.deleteBtn.addEventListener('click', deleteSelected);
 document.addEventListener('keydown', e=>{
   if((e.key==='Delete'||e.key==='Backspace') && document.activeElement.tagName!=='INPUT') deleteSelected();
