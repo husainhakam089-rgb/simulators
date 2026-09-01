@@ -1406,7 +1406,14 @@ function evaluateCircuit(){
       const dir = compDirection.get(comp.id) || 1;
       const ownSwing = loopSwing.has(comp.id) ? loopSwing.get(comp.id) : swing;
       const target = on ? dir*ownSwing : 0;
-      const tau = loopTau.get(comp.id)||0;
+      // Breaking an R-L loop does not stop its current dead. Once the switch
+      // opens the loop is gone from the maps above, but the collapsing field
+      // keeps driving the current down its own exponential — the very effect
+      // that flashes the neon lamp in tab 9 — so remember the time constant
+      // the loop had and keep falling with it, instead of snapping to zero.
+      const liveTau = loopTau.get(comp.id)||0;
+      if(liveTau>0) comp._tau=liveTau;
+      const tau = liveTau>0 ? liveTau : ((!on && comp._needleLevel) ? (comp._tau||0) : 0);
       needle.style.transformOrigin = (t.w*0.5)+'px '+(t.h*0.8125)+'px';
       if(tau>0.01){
         // i(t) = I(1 - e^(-t/tau)) rising, I*e^(-t/tau) falling — stepped
@@ -1420,6 +1427,9 @@ function evaluateCircuit(){
         if(Math.abs(target-comp._needleLevel)<0.15) comp._needleLevel=target;
         comp._ramping = comp._needleLevel!==target;
         if(comp._ramping) startMeterRampLoop(); else comp._lastRampT=null;
+        // fully settled at rest: forget the constant so a later purely
+        // resistive loop reads instantly again, as it should
+        if(!comp._ramping && target===0) comp._tau=0;
         needle.style.transform = `rotate(${comp._needleLevel}deg)`;
       } else {
         comp._needleLevel=target; comp._ramping=false; comp._lastRampT=null;
