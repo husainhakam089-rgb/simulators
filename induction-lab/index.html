@@ -519,7 +519,7 @@ const TYPES = {
   coilInduction:{ label:'ملف حث (سلك نحاسي)', w:150, h:70, hasTerminals:true, accepts:['magnet','ironCore'], svg:()=>coilSVG(150,70,'#d98a3d') },
   coilSmall:{ label:'ملف صغير (لفات أقل)', w:90, h:48, hasTerminals:true, accepts:['magnet','ironCore'], svg:()=>coilSVG(90,48,'#d98a3d',3) },
   inductor:{ label:'ملف محاثة', w:150, h:70, hasTerminals:true, accepts:['magnet','ironCore'], svg:()=>coilSVG(150,70,'#c9d3e6') },
-  flatCoil:{ label:'وشيعة حثية مسطحة', w:140, h:70, hasTerminals:true, svg:()=>`
+  flatCoil:{ label:'وشيعة حثية مسطحة', w:140, h:70, hasTerminals:true, accepts:['pot'], svg:()=>`
     <line x1="0" y1="35" x2="20" y2="35" stroke="#8a6d1a" stroke-width="4"/>
     <line x1="120" y1="35" x2="140" y2="35" stroke="#8a6d1a" stroke-width="4"/>
     ${[26,20,14,8].map(r=>`<ellipse cx="70" cy="35" rx="${r*2.2}" ry="${r}" fill="none" stroke="#d98a3d" stroke-width="3"/>`).join('')}` },
@@ -590,13 +590,26 @@ const TYPES = {
     <rect x="10" y="110" width="80" height="8" rx="2" fill="#4a5160"/>
     <line x1="50" y1="4" x2="50" y2="112" stroke="#4a5160" stroke-width="6"/>
     <line x1="50" y1="10" x2="90" y2="10" stroke="#4a5160" stroke-width="6"/>` },
-  pot:{ label:'إناء معدني', w:140, h:66, hasTerminals:false, svg:()=>`
-    <path d="M18 6 H122 L104 60 H36 Z" fill="#8891a0" stroke="#4a5160" stroke-width="2.5"/>
-    <ellipse cx="70" cy="6" rx="52" ry="7" fill="#aab2c0" stroke="#4a5160" stroke-width="2"/>` },
-  thermometer:{ label:'مؤشر حرارة', w:26, h:130, hasTerminals:false, svg:()=>`
+  // Tab 10: the pot itself just tints warmer as it heats (comp._temp, driven
+  // by updateCooktop() below) — the thermometer next to it is the real
+  // readout, but a plain metal pot slowly reddening as eddy currents heat
+  // its base is a nice, free confirmation of the same number.
+  pot:{ label:'إناء معدني', w:140, h:66, hasTerminals:false, nestable:true, svg:(comp)=>{
+    const temp=comp?(comp._temp||0):0;
+    const fill=`hsl(${220-190*temp} ${20+40*temp}% ${55-10*temp}%)`;
+    return `
+    <path d="M18 6 H122 L104 60 H36 Z" fill="${fill}" stroke="#4a5160" stroke-width="2.5"/>
+    <ellipse cx="70" cy="6" rx="52" ry="7" fill="#aab2c0" stroke="#4a5160" stroke-width="2"/>`; } },
+  // The mercury column's visible height (comp._temp, 0..1) is driven by the
+  // same updateCooktop() — it climbs from the bulb as the pot on the coil
+  // heats up, and sinks back down once the source is switched off.
+  thermometer:{ label:'مؤشر حرارة', w:26, h:130, hasTerminals:false, svg:(comp)=>{
+    const temp=comp?(comp._temp||0):0;
+    const mercuryTop=100-80*temp;
+    return `
     <line x1="13" y1="4" x2="13" y2="96" stroke="#c9d3e6" stroke-width="6" stroke-linecap="round"/>
     <circle cx="13" cy="110" r="14" fill="#ef5b6b" stroke="#8a6d1a" stroke-width="2"/>
-    <line x1="13" y1="20" x2="13" y2="100" stroke="#ef5b6b" stroke-width="2.5"/>` },
+    <line x1="13" y1="${mercuryTop}" x2="13" y2="100" stroke="#ef5b6b" stroke-width="2.5"/>`; } },
   areaVector:{ label:'متجه المساحة A', w:100, h:60, hasTerminals:false, svg:()=>`
     <line x1="10" y1="50" x2="80" y2="10" stroke="#7fe4ef" stroke-width="3" marker-end="url(#arrowA)"/>
     <text x="82" y="14" font-size="14" fill="#7fe4ef" font-weight="800">A</text>
@@ -724,7 +737,34 @@ function terminalPos(comp, term){
 }
 
 /* ---- rendering ---- */
-function render(){ renderComponents(); renderWires(); evaluateCircuit(); updateFluxMeters(); }
+function render(){ renderComponents(); renderWires(); evaluateCircuit(); updateFluxMeters(); updateCooktop(); }
+
+// Tab 10 (induction cooktop): the pot has to actually be resting on the flat
+// coil (nestedIn, same as a magnet dropped into a coil elsewhere) AND that
+// coil has to be live (wired into a complete loop with the AC source) for
+// eddy currents to be heating its base at all — otherwise it cools back down.
+// Both the pot's own tint and the thermometer's mercury column read the same
+// _temp value, easing toward its target over many frames so the rise/fall
+// is visibly gradual rather than an instant jump.
+let cooktopRAF=null;
+function updateCooktop(){
+  const coil=lab().components.find(c=>c.type==='flatCoil');
+  const pot=lab().components.find(c=>c.type==='pot');
+  const thermo=lab().components.find(c=>c.type==='thermometer');
+  if(!pot && !thermo) return;
+  const heating = !!(coil && pot && pot.nestedIn===coil.id && lab().liveComponentIds && lab().liveComponentIds.has(coil.id));
+  const target = heating ? 1 : 0;
+  const targets=[pot, thermo].filter(Boolean);
+  let stillMoving=false;
+  for(const c of targets){
+    if(c._temp==null) c._temp=0;
+    c._temp += (target-c._temp)*0.015;
+    if(Math.abs(target-c._temp)<0.01) c._temp=target; else stillMoving=true;
+  }
+  if(stillMoving){
+    if(cooktopRAF==null) cooktopRAF=requestAnimationFrame(()=>{ cooktopRAF=null; render(); });
+  }
+}
 
 // Tab 7 (eddy-current damping): a pendulum released mid-swing keeps
 // oscillating on its own — like the rest of the induced-current effects,
@@ -971,6 +1011,15 @@ function evaluateCircuit(){
     if(COIL_TYPES.includes(c.type) && litNodes.has(nodeKey(c.id,'a')) && litNodes.has(nodeKey(c.id,'b'))) energizedCoils.add(c.id);
   }
   lab().energizedCoilIds=energizedCoils;
+
+  // Any part currently carrying current — not just coils — e.g. tab 10's
+  // flat coil, which isn't a COIL_TYPES member but still needs to be
+  // recognized as "live" for the induction-cooktop heating check below.
+  const liveIds=new Set();
+  for(const c of lab().components){
+    if(litNodes.has(nodeKey(c.id,'a')) && litNodes.has(nodeKey(c.id,'b'))) liveIds.add(c.id);
+  }
+  lab().liveComponentIds=liveIds;
 
   let activeCount=0;
   document.querySelectorAll('.comp').forEach(div=>{
