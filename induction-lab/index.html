@@ -307,6 +307,10 @@
     position:absolute; bottom:-18px; width:100%; text-align:center;
     font-size:10.5px; color:var(--text-warm); pointer-events:none; white-space:nowrap;
   }
+  /* A background prop is deliberately overlapped by the parts working inside
+     it, so its label goes above instead — otherwise the two sit on the same
+     line and neither is readable. */
+  .comp.is-background .comp-label{ bottom:auto; top:-18px; }
 
   /* glow rays for anything "lit" (neon lamp) */
   .glow-rays{
@@ -533,12 +537,20 @@ const TYPES = {
     <rect x="52" y="2" width="48" height="44" rx="4" fill="#4d8dff" stroke="#1a1410" stroke-width="2"/>
     <text x="26" y="31" font-size="20" fill="#fff" text-anchor="middle" font-weight="900">N</text>
     <text x="76" y="31" font-size="20" fill="#fff" text-anchor="middle" font-weight="900">S</text>` },
-  fieldSource:{ label:'مصدر مجال منتظم', w:140, h:84, hasTerminals:false, background:true, svg:()=>`
-    <rect x="4" y="4" width="132" height="16" rx="3" fill="#ef5b6b" stroke="#1a1410" stroke-width="1.5"/>
-    <text x="70" y="16" font-size="11" fill="#fff" text-anchor="middle" font-weight="800">N</text>
-    <rect x="4" y="64" width="132" height="16" rx="3" fill="#4d8dff" stroke="#1a1410" stroke-width="1.5"/>
-    <text x="70" y="76" font-size="11" fill="#fff" text-anchor="middle" font-weight="800">S</text>
-    ${[20,50,80,110].map(x=>`<line x1="${x}" y1="24" x2="${x}" y2="60" stroke="#ffe9c7" stroke-width="2" marker-end="url(#arrowB)"/>`).join('')}
+  // The tinted band is not decoration: it marks the exact region the code
+  // treats as "inside the field", so you can see at a glance whether the rod
+  // (or a pendulum bob) is actually in it — the entire observation in tabs 4
+  // and 7 hinges on that, and an invisible boundary makes a working
+  // experiment look broken.
+  fieldSource:{ label:'مصدر مجال منتظم', w:240, h:104, hasTerminals:false, background:true, svg:()=>`
+    <rect x="0" y="22" width="240" height="60" fill="#7fb0ff" opacity="0.13"/>
+    <line x1="0" y1="22" x2="0" y2="82" stroke="#7fb0ff" stroke-width="1.5" stroke-dasharray="4 4" opacity="0.75"/>
+    <line x1="240" y1="22" x2="240" y2="82" stroke="#7fb0ff" stroke-width="1.5" stroke-dasharray="4 4" opacity="0.75"/>
+    <rect x="4" y="4" width="232" height="18" rx="3" fill="#ef5b6b" stroke="#1a1410" stroke-width="1.5"/>
+    <text x="120" y="18" font-size="12" fill="#fff" text-anchor="middle" font-weight="800">N</text>
+    <rect x="4" y="82" width="232" height="18" rx="3" fill="#4d8dff" stroke="#1a1410" stroke-width="1.5"/>
+    <text x="120" y="96" font-size="12" fill="#fff" text-anchor="middle" font-weight="800">S</text>
+    ${[24,60,96,132,168,204].map(x=>`<line x1="${x}" y1="26" x2="${x}" y2="76" stroke="#ffe9c7" stroke-width="2" marker-end="url(#arrowB)"/>`).join('')}
     <defs><marker id="arrowB" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#ffe9c7"/></marker></defs>` },
   ironCore:{ label:'قلب حديدي مطاوع', w:240, h:160, hasTerminals:false, nestable:true, accepts:COIL_TYPES, twoLegs:true, svg:()=>`
     <path d="M6 6 H234 V154 H6 Z M36 36 H204 V124 H36 Z" fill="#8891a0" stroke="#4a5160" stroke-width="2" fill-rule="evenodd"/>
@@ -566,13 +578,16 @@ const TYPES = {
     <ellipse cx="55" cy="55" rx="46" ry="46" fill="none" stroke="#e8a860" stroke-width="3"/>
     <path id="ringTrack-${comp?comp.id:'preview'}" d="M55 9 A46 46 0 1 1 54.99 9 Z" fill="none" stroke="none"/>
     ${dots}`; } },
-  rails:{ label:'قضيبان موصلان', w:220, h:90, hasTerminals:true, accepts:['rod'], isRailTrack:true,
-    terminalOffsets:()=>({ a:{x:210,y:14}, b:{x:210,y:76} }), svg:()=>`
-    <line x1="10" y1="14" x2="210" y2="14" stroke="#c9d3e6" stroke-width="6" stroke-linecap="round"/>
-    <line x1="10" y1="76" x2="210" y2="76" stroke="#c9d3e6" stroke-width="6" stroke-linecap="round"/>
+  // Deliberately long: the rod needs real room to slide *into* the field
+  // region and back out of it again, which is the whole observation — a
+  // short track leaves it half in the field wherever you put it.
+  rails:{ label:'قضيبان موصلان', w:440, h:90, hasTerminals:true, accepts:['rod'], isRailTrack:true,
+    terminalOffsets:()=>({ a:{x:430,y:14}, b:{x:430,y:76} }), svg:()=>`
+    <line x1="10" y1="14" x2="430" y2="14" stroke="#c9d3e6" stroke-width="6" stroke-linecap="round"/>
+    <line x1="10" y1="76" x2="430" y2="76" stroke="#c9d3e6" stroke-width="6" stroke-linecap="round"/>
     <line x1="10" y1="14" x2="10" y2="76" stroke="#8a6d1a" stroke-width="5"/>
-    <circle cx="210" cy="14" r="7" fill="#ffdd88" stroke="#8a6d1a" stroke-width="1.5"/>
-    <circle cx="210" cy="76" r="7" fill="#ffdd88" stroke="#8a6d1a" stroke-width="1.5"/>` },
+    <circle cx="430" cy="14" r="7" fill="#ffdd88" stroke="#8a6d1a" stroke-width="1.5"/>
+    <circle cx="430" cy="76" r="7" fill="#ffdd88" stroke="#8a6d1a" stroke-width="1.5"/>` },
   rod:{ label:'ساق معدنية', w:26, h:100, hasTerminals:false, nestable:true, slidesOnRails:true, svg:()=>`
     <rect x="6" y="2" width="14" height="96" rx="4" fill="#e8a860" stroke="#8a6d1a" stroke-width="2"/>` },
   pendulumSolid:{ label:'بندول مصمت', w:90, h:150, hasTerminals:false, pendulum:true, svg:()=>`
@@ -828,7 +843,7 @@ function renderComponents(){
     const t=TYPES[comp.type];
     const s=effSize(comp);
     const div=document.createElement('div');
-    div.className='comp'+(comp.type==='neonLamp'?' neon':'')+(comp.rotated?' rotated':'');
+    div.className='comp'+(comp.type==='neonLamp'?' neon':'')+(comp.rotated?' rotated':'')+(t.background?' is-background':'');
     div.dataset.id=comp.id;
     div.style.left=comp.x+'px'; div.style.top=comp.y+'px';
     div.style.width=s.w+'px'; div.style.height=s.h+'px';
@@ -1175,6 +1190,15 @@ el.viewport.addEventListener('drop', e=>{
   // click it once to close the circuit.
   const comp={ id:uid(), type, x:pos.x-t.w/2, y:pos.y-t.h/2, closed:!TYPES[type].toggle };
   lab().components.push(comp);
+  // Dropping a prop straight onto its host from the palette snaps it in, the
+  // same as dragging it there afterwards would. Without this a rod dropped
+  // right onto the rails (or a magnet into a coil, a pot onto the cooktop
+  // coil) *looks* seated but isn't — so the rails never conduct and nothing
+  // works, with no visible reason why.
+  if(t.nestable){
+    const target=findNestTarget(comp);
+    if(target) nestUnder(comp, target);
+  }
   render();
 });
 
@@ -1413,7 +1437,12 @@ document.addEventListener('mousemove', e=>{
     // above the track stays fixed at whatever nestUnder() set it to.
     if(TYPES[comp.type].slidesOnRails && comp.nestedIn){
       const host=findComp(comp.nestedIn);
-      if(host && TYPES[host.type].isRailTrack) newY=comp.y;
+      if(host && TYPES[host.type].isRailTrack){
+        newY=comp.y;
+        // and it can't slide off the end of its own track either
+        const hs=effSize(host), ds=effSize(comp);
+        newX=Math.max(host.x+6, Math.min(host.x+hs.w-ds.w-16, newX));
+      }
     }
     const delta={ x:newX-comp.x, y:newY-comp.y };
     comp.x=newX; comp.y=newY;
