@@ -533,7 +533,7 @@ const TYPES = {
     <rect x="52" y="2" width="48" height="44" rx="4" fill="#4d8dff" stroke="#1a1410" stroke-width="2"/>
     <text x="26" y="31" font-size="20" fill="#fff" text-anchor="middle" font-weight="900">N</text>
     <text x="76" y="31" font-size="20" fill="#fff" text-anchor="middle" font-weight="900">S</text>` },
-  fieldSource:{ label:'مصدر مجال منتظم', w:140, h:84, hasTerminals:false, svg:()=>`
+  fieldSource:{ label:'مصدر مجال منتظم', w:140, h:84, hasTerminals:false, background:true, svg:()=>`
     <rect x="4" y="4" width="132" height="16" rx="3" fill="#ef5b6b" stroke="#1a1410" stroke-width="1.5"/>
     <text x="70" y="16" font-size="11" fill="#fff" text-anchor="middle" font-weight="800">N</text>
     <rect x="4" y="64" width="132" height="16" rx="3" fill="#4d8dff" stroke="#1a1410" stroke-width="1.5"/>
@@ -546,9 +546,26 @@ const TYPES = {
     <line x1="234" y1="6" x2="204" y2="36" stroke="#6c7688" stroke-width="1.5"/>
     <line x1="6" y1="154" x2="36" y2="124" stroke="#6c7688" stroke-width="1.5"/>
     <line x1="234" y1="154" x2="204" y2="124" stroke="#6c7688" stroke-width="1.5"/>` },
-  ring:{ label:'حلقة موصلة', w:110, h:110, hasTerminals:false, svg:()=>`
-    <ellipse cx="55" cy="55" rx="46" ry="46" fill="none" stroke="#d98a3d" stroke-width="9"/>
-    <ellipse cx="55" cy="55" rx="46" ry="46" fill="none" stroke="#e8a860" stroke-width="3"/>` },
+  // Lenz's law (tab 6): a magnet dragged in/out of this ring is the induced
+  // source, matched via `accepts` just like the coil experiments — but with
+  // no terminals to route through the wire-graph engine, the induced current
+  // is shown directly on the ring itself: a glowing stroke plus dots
+  // orbiting the loop, reversing direction with the magnet's motion.
+  ring:{ label:'حلقة موصلة', w:110, h:110, hasTerminals:false, accepts:['magnet'], svg:(comp)=>{
+    const pulse=comp && lab().inducedPulse;
+    const active = pulse && pulse.coilId===comp.id;
+    const reverse = active && pulse.dir<0;
+    const dots = active ? [0,1,2,3].map(i=>`
+      <circle r="4.5" fill="#ffcf5c">
+        <animateMotion dur="1.6s" repeatCount="indefinite" begin="${-(1.6/4)*i}s"${reverse?' keyPoints="1;0" keyTimes="0;1" calcMode="linear"':''}>
+          <mpath href="#ringTrack-${comp.id}"/>
+        </animateMotion>
+      </circle>`).join('') : '';
+    return `
+    <ellipse cx="55" cy="55" rx="46" ry="46" fill="none" stroke="${active?'#ffcf5c':'#d98a3d'}" stroke-width="9"/>
+    <ellipse cx="55" cy="55" rx="46" ry="46" fill="none" stroke="#e8a860" stroke-width="3"/>
+    <path id="ringTrack-${comp?comp.id:'preview'}" d="M55 9 A46 46 0 1 1 54.99 9 Z" fill="none" stroke="none"/>
+    ${dots}`; } },
   rails:{ label:'قضيبان موصلان', w:220, h:90, hasTerminals:true, accepts:['rod'], isRailTrack:true,
     terminalOffsets:()=>({ a:{x:210,y:14}, b:{x:210,y:76} }), svg:()=>`
     <line x1="10" y1="14" x2="210" y2="14" stroke="#c9d3e6" stroke-width="6" stroke-linecap="round"/>
@@ -707,11 +724,19 @@ function terminalPos(comp, term){
 }
 
 /* ---- rendering ---- */
-function render(){ renderComponents(); renderWires(); evaluateCircuit(); }
+function render(){ renderComponents(); renderWires(); evaluateCircuit(); updateFluxMeters(); }
 
 function renderComponents(){
   el.world.innerHTML='';
-  for(const comp of lab().components){
+  // A `background` prop (e.g. the field-region indicator in the rails/rod
+  // and pendulum experiments) is meant to be seen through, not clicked —
+  // it's deliberately drawn overlapping the real interactive pieces (a rod
+  // sliding on rails, a pendulum swinging through the field) to show the
+  // field region they sit inside. Rendering it first keeps it at the back
+  // of the stack so those pieces stay clickable/draggable on top of it,
+  // without touching the unrelated nestedIn stacking order below.
+  const ordered=[...lab().components].sort((a,b)=>(TYPES[a.type].background?0:1)-(TYPES[b.type].background?0:1));
+  for(const comp of ordered){
     const t=TYPES[comp.type];
     const s=effSize(comp);
     const div=document.createElement('div');
@@ -903,16 +928,73 @@ function evaluateCircuit(){
   }
 
   if(lab().components.length===0){ el.circuitStatus.innerHTML='اسحب الأدوات وابدأ التركيب'; return; }
+  // A ring has no terminals to run through the wire-graph engine at all — its
+  // induced current is purely the visual on the ring itself (see its own
+  // svg()) — so report it here directly rather than through inducedActive.
+  const ringPulse = pulse && findComp(pulse.coilId) && findComp(pulse.coilId).type==='ring';
+  if(ringPulse){
+    el.circuitStatus.innerHTML = `تيار <b>محتث</b> بالحلقة — لاحظ أن اتجاهه ينعكس بين تقريب المغناطيس وإبعاده <b>(قانون لنز)</b>`;
+    return;
+  }
   if(inducedActive){
     el.circuitStatus.innerHTML = pulse.reason==='switch'
       ? 'تيار <b>محتث لحظي</b> بالملف المجاور — نتيجة تغيّر التيار عند غلق/فتح المفتاح'
       : 'تيار <b>محتث</b> أثناء الحركة — سيتوقف فور توقفك';
     return;
   }
-  if(sources.length===0){ el.circuitStatus.innerHTML='وصّل الملف بجلفانومتر وحرّك مغناطيسًا داخله، أو أضف مصدر جهد <b>(للأدوات الكهربائية فقط)</b>'; return; }
+  if(sources.length===0){
+    const hasRing=lab().components.some(c=>c.type==='ring');
+    const hasRails=lab().components.some(c=>TYPES[c.type].isRailTrack);
+    const hasFluxMeter=lab().components.some(c=>c.type==='fluxMeter');
+    el.circuitStatus.innerHTML = hasRing
+      ? 'حرّك المغناطيس يدويًا داخل وخارج الحلقة الموصلة ولاحظ اتجاه التيار المحتث'
+      : hasRails
+      ? 'حرّك الساق المعدنية على القضيبين وهي داخل المجال المغناطيسي لتوليد قوة دافعة كهربائية حركية'
+      : hasFluxMeter
+      ? 'دوّر الملف (اضغط مرتين) أو حرّكه داخل/خارج المجال ولاحظ قراءة مقياس الفيض'
+      : 'وصّل الملف بجلفانومتر وحرّك مغناطيسًا داخله، أو أضف مصدر جهد <b>(للأدوات الكهربائية فقط)</b>';
+    return;
+  }
   el.circuitStatus.innerHTML = anyLoop
     ? 'الدارة <b>مكتملة</b> — لاحظ استجابة الجلفانومتر/المصباح'
     : 'الدارة <b>غير مكتملة</b>';
+}
+
+function rectOverlapFrac(a, aSize, b, bSize){
+  const ix=Math.max(0, Math.min(a.x+aSize.w, b.x+bSize.w)-Math.max(a.x, b.x));
+  const iy=Math.max(0, Math.min(a.y+aSize.h, b.y+bSize.h)-Math.max(a.y, b.y));
+  const aArea=aSize.w*aSize.h;
+  return aArea>0 ? Math.min(1, (ix*iy)/aArea) : 0;
+}
+
+// Experiment 5 (Φ = B·A·cosθ) has no battery at all — the flux a coil sees
+// comes straight from its geometry against the field source: the angle term
+// from the coil's own rotation relative to the field's (vertical) lines —
+// aligned once you turn it upright, near-zero lying flat across them — and
+// the area term from how much of the coil's footprint actually overlaps the
+// field region. A fluxMeter wired to the coil reads that value directly,
+// independent of the normal wire-current machinery above.
+function updateFluxMeters(){
+  for(const fm of lab().components.filter(c=>c.type==='fluxMeter')){
+    const div=document.querySelector(`.comp[data-id="${fm.id}"]`); if(!div) continue;
+    const wire=lab().wires.find(w=>{
+      const other = w.a.comp===fm.id ? findComp(w.b.comp) : (w.b.comp===fm.id ? findComp(w.a.comp) : null);
+      return other && other.type==='coilInduction';
+    });
+    const coil = wire ? findComp(wire.a.comp===fm.id ? wire.b.comp : wire.a.comp) : null;
+    const field = lab().components.find(c=>c.type==='fieldSource');
+    let flux=0;
+    if(coil && field){
+      const cosFactor = coil.rotated ? 1 : 0.12; // coil axis vertical (through the field) vs lying across it
+      flux = cosFactor * rectOverlapFrac(coil, effSize(coil), field, effSize(field));
+    }
+    div.classList.toggle('active', flux>0.05);
+    const needle=div.querySelector('.needle');
+    if(needle){
+      needle.style.transformOrigin=(TYPES.fluxMeter.w*0.5)+'px '+(TYPES.fluxMeter.h*0.8125)+'px';
+      needle.style.transform=`rotate(${flux*40}deg)`;
+    }
+  }
 }
 
 function animateCurrent(pathEl, wireId, reverse){
