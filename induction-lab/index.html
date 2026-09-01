@@ -1321,12 +1321,17 @@ function fireInductionForEnergizeChanges(targetLab, before){
     const secondary=findCoupledCoil(c);
     if(secondary){
       targetLab.inducedPulse={ coilId:secondary.id, dir: now?1:-1, reason:'switch' };
+      // Long enough that a person clicking the switch and then looking at
+      // the meter actually catches the deflection before it resets — a
+      // fixed 450ms round-trip (click, glance, register what you saw) is
+      // realistically too fast to see, which read as "nothing happened"
+      // even though the pulse fired correctly every time.
       setTimeout(()=>{
         if(targetLab.inducedPulse && targetLab.inducedPulse.coilId===secondary.id){
           targetLab.inducedPulse=null;
           if(lab()===targetLab) render();
         }
-      }, 450);
+      }, 1800);
       continue;
     }
     // Self-induction (tab 9): a neon lamp wired straight across this coil's
