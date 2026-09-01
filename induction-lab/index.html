@@ -834,6 +834,29 @@ function tickMeterRamps(){
 }
 function startMeterRampLoop(){ if(meterRampRAF==null) meterRampRAF=requestAnimationFrame(tickMeterRamps); }
 
+// How long a released motion-induced reading takes to die away. Long enough
+// that you can stop dragging, look over at the meter, and still catch it.
+const PULSE_FADE_MS=1100;
+let pulseFadeRAF=null;
+// Motion has stopped — start the reading winding down rather than cutting it
+// dead on the same frame the mouse comes up.
+function fadeOutMotionPulse(targetLab){
+  const p=targetLab.inducedPulse;
+  if(!p || p.reason!=='motion' || p.fadeStart) return;
+  p.fadeStart=Date.now();
+  if(pulseFadeRAF==null) pulseFadeRAF=requestAnimationFrame(tickPulseFade);
+}
+function tickPulseFade(){
+  // Retire the pulse *before* drawing, so this frame paints the settled state
+  // — indicators drawn inside renderComponents() (tab 6's ring) would
+  // otherwise keep their last lit frame forever once the loop stops.
+  const p=lab().inducedPulse;
+  if(p && p.fadeStart && Date.now()-p.fadeStart>=PULSE_FADE_MS) lab().inducedPulse=null;
+  render();
+  const still=lab().inducedPulse;
+  pulseFadeRAF = (still && still.fadeStart) ? requestAnimationFrame(tickPulseFade) : null;
+}
+
 function renderComponents(){
   el.world.innerHTML='';
   // A `background` prop (e.g. the field-region indicator in the rails/rod
@@ -1008,9 +1031,23 @@ function evaluateCircuit(){
 
   // A magnet in motion momentarily turns the coil it's approaching/leaving
   // into its own EMF source — direction depends on which way it's moving,
-  // and it's cleared the instant the drag stops (see the mouse handlers).
+  // and it starts dying away the moment the motion stops (see the mouse
+  // handlers, which hand it to fadeOutMotionPulse rather than cutting it).
+  const sourceLoop=anyLoop; // was anything already lit by a real battery/AC source?
   let inducedActive=false;
+  // A motion pulse that has been released is on its way out: its strength
+  // winds down over PULSE_FADE_MS instead of vanishing between two frames.
+  // Physically it's the meter's own needle settling back; practically it's
+  // the difference between seeing the reading and never knowing it happened,
+  // because while you're dragging you're watching the rod, not the meter.
+  // (expiry itself is handled in tickPulseFade, before the frame is drawn —
+  // clearing it here would be too late for anything renderComponents() has
+  // already painted this frame, e.g. tab 6's ring)
+  let pulseFade=1;
   const pulse=lab().inducedPulse;
+  if(pulse && pulse.fadeStart){
+    pulseFade=Math.max(0, 1-(Date.now()-pulse.fadeStart)/PULSE_FADE_MS);
+  }
   if(pulse && findComp(pulse.coilId)){
     const terms = pulse.dir>0 ? ['a','b'] : ['b','a'];
     if(processLoop(pulse.coilId, terms[0], terms[1], litNodes, wireDirection, compDirection, loadRef)){ anyLoop=true; inducedActive=true; }
@@ -1020,7 +1057,10 @@ function evaluateCircuit(){
   // Deflection magnitude: like a real meter, a heavier resistive load in the
   // loop means less current, so a smaller swing — same idea as the bulb
   // brightness in circuit-simulator.
-  const swing = anyLoop ? Math.max(14, 34 / (1 + resistiveLoad*0.5)) : 0;
+  let swing = anyLoop ? Math.max(14, 34 / (1 + resistiveLoad*0.5)) : 0;
+  // Only the induced reading fades — a meter held up by a real source keeps
+  // reading steadily.
+  if(inducedActive && !sourceLoop) swing*=pulseFade;
 
   // Track which coils are currently carrying current, so a *step change*
   // (a switch just opening/closing) can be detected from outside this
@@ -1481,8 +1521,10 @@ document.addEventListener('mousemove', e=>{
         }
         dragCtx.lastRodX=rodCenterX;
       } else {
+        // slid out past the edge of the field — the EMF stops, but let the
+        // reading wind down the same way it does when you let go
         dragCtx.lastRodX=null;
-        if(lab().inducedPulse && lab().inducedPulse.coilId===comp.nestedIn) lab().inducedPulse=null;
+        if(lab().inducedPulse && lab().inducedPulse.coilId===comp.nestedIn) fadeOutMotionPulse(lab());
       }
     }
     // dragging a nestable prop (magnet / iron core) previews the coil it would snap into
@@ -1514,8 +1556,9 @@ document.addEventListener('mousemove', e=>{
         }
         dragCtx.lastDist=found.dist;
       } else {
+        // carried out of range of any coil — same wind-down as letting go
         dragCtx.lastDist=null;
-        lab().inducedPulse=null;
+        fadeOutMotionPulse(lab());
       }
     }
     render();
@@ -1569,10 +1612,10 @@ document.addEventListener('mouseup', e=>{
       }
     }
     nestHoverId=null;
-    // motion stops -> any drag-induced current stops immediately (a switch-
-    // triggered pulse clears itself on its own timer, untouched by this)
+    // motion stops -> the drag-induced current dies away (a switch-triggered
+    // pulse clears itself on its own timer, untouched by this)
     if(comp && (TYPES[comp.type].induces || TYPES[comp.type].slidesOnRails || (COIL_TYPES.includes(comp.type) && lab().inducedPulse && lab().inducedPulse.reason==='motion'))){
-      lab().inducedPulse=null;
+      fadeOutMotionPulse(lab());
     }
     dragCtx=null; render();
   }
