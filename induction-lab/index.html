@@ -327,6 +327,13 @@
   .comp.active.neon .glow-rays .ray{
     background:linear-gradient(rgba(255,90,190,0), #ff5abe 55%, rgba(255,90,190,0));
   }
+  /* an ordinary lamp glows warm, and its glass/filament light up with it */
+  .comp.bulb .glass, .comp.bulb .filament{ transition:fill .15s ease, stroke .15s ease; }
+  .comp.active.bulb .glass{ fill:#fff2a8; stroke:#ffcf5c; }
+  .comp.active.bulb .filament{ stroke:#ff9d2e; stroke-width:2.6; }
+  .comp.active.bulb .glow-rays .ray{
+    background:linear-gradient(rgba(255,215,120,0), #ffd978 55%, rgba(255,215,120,0));
+  }
   /* a live coil's field glow: shorter, gold, reads as "field" rather than "light" */
   .glow-rays.field .ray{
     height:60px; top:-60px;
@@ -435,34 +442,34 @@
 const EXPERIMENTS = {
   1: { title:'توليد التيار المحتث', subtitle:'حرّك المغناطيس بالقرب من الملف لتوليد تيار محتث',
     steps:['اسحب الملف والمغناطيس والجلفانومتر إلى الكانفاس.','وصّل طرفي الملف بالجلفانومتر بسحب سلك بين نقطتي الاتصال.','قرّب المغناطيس من الملف يدويًا ولاحظ اتجاه إبرة الجلفانومتر أثناء الحركة فقط.','أبعد المغناطيس ولاحظ اختلاف اتجاه الانحراف، وأنه يعود صفرًا إذا توقفت.','جرّب الملف الأصغر أيضًا، أو ركّب دارة بطارية ومفتاح لمقارنة مصدر ثابت بمصدر ناتج عن الحركة.'],
-    tools:['coilInduction','coilSmall','magnet','galvanometer','battery','switch'] },
+    tools:['coilInduction','coilSmall','magnet','galvanometer','battery','switch','bulb'] },
   2: { title:'اكتشاف فاراداي للحث الكهرومغناطيسي', subtitle:'ملفان على قلب من الحديد المطاوع — أغلق وافتح المفتاح ولاحظ الجلفانومتر',
     steps:['ضع القلب الحديدي، ولُف حوله الملف الابتدائي والملف الثانوي.','صل الملف الابتدائي بالبطارية والمفتاح.','صل الملف الثانوي بالجلفانومتر.','أغلق المفتاح فجأة ولاحظ انحراف المؤشر لحظيًا.','افتح المفتاح فجأة ولاحظ انحرافًا معاكسًا.'],
-    tools:['ironCore','coilPrimary','coilSecondary','battery','switch','galvanometer'] },
+    tools:['ironCore','coilPrimary','coilSecondary','battery','switch','galvanometer','bulb'] },
   3: { title:'نشاط الحث الكهرومغناطيسي المتبادل', subtitle:'ثلاث طرق لتوليد تيار محتث في الملف الثانوي',
     steps:['ركّب ملفين ابتدائي وثانوي، وصل الابتدائي ببطارية ومفتاح وريوستات، والثانوي بجلفانومتر.','أغلق وافتح المفتاح فجأة ولاحظ نبضة التيار.','غيّر الريوستات تدريجيًا ولاحظ ظهور تيار أثناء التغيير فقط.','قارن بين الطرق: التيار المحتث لا يظهر إلا عند تغيّر الفيض.'],
-    tools:['coilPrimary','coilSecondary','battery','switch','rheostat','galvanometer'] },
+    tools:['coilPrimary','coilSecondary','battery','switch','rheostat','galvanometer','bulb'] },
   4: { title:'القوة الدافعة الكهربائية الحركية (الحث الحركي)', subtitle:'حرّك الساق الموصلة على القضيبين المتوازيين داخل مجال مغناطيسي',
     steps:['ضع القضيبين المتوازيين وركّب الساق المعدنية عليهما.','ضع مصدر المجال المنتظم بحيث يشمل منطقة الساق.','صل طرفي القضيبين بمقاومة أو جلفانومتر.','حرّك الساق يدويًا وسجّل ملاحظاتك عن التيار الناشئ.'],
-    tools:['rails','rod','fieldSource','resistor','galvanometer'] },
+    tools:['rails','rod','fieldSource','resistor','galvanometer','bulb'] },
   5: { title:'طرائق تغيّر الفيض المغناطيسي', subtitle:'Φ = B·A·cosθ — الزاوية، المساحة، وكثافة الفيض',
     steps:['ضع الملف داخل منطقة المجال المنتظم.','استخدم متجه المساحة لتحديد اتجاه A، ووصّل مقياس الفيض للملف.','غيّر زاوية الملف أو موضعه ولاحظ تغيّر قراءة المقياس.','قارن الحالات: الفيض أقصاه عند θ=0 وصفر عند θ=90°.'],
-    tools:['coilInduction','fieldSource','areaVector','fluxMeter'] },
+    tools:['coilInduction','fieldSource','areaVector','fluxMeter','bulb'] },
   6: { title:'قانون لنز', subtitle:'اسحب المغناطيس يدويًا عبر حلقة موصلة مغلقة ولاحظ التيار المحتث',
     steps:['ضع الحلقة الموصلة على الكانفاس.','حرّك المغناطيس نحو الحلقة ببطء.','لاحظ اتجاه القطب المتكوّن على الحلقة أثناء الاقتراب.','أبعد المغناطيس ولاحظ انعكاس الحالة.'],
-    tools:['ring','magnet'] },
+    tools:['ring','magnet','bulb'] },
   7: { title:'نشاط تقليل التيارات الدوامية', subtitle:'بندول مصمت مقابل بندول مشقوق داخل مجال مغناطيسي',
     steps:['ثبّت الحامل، وعلّق البندول المصمت بين قطبي مصدر المجال.','أرجحه ولاحظ سرعة توقفه.','كرر بالبندول المشقوق وقارن مدة التأرجح.','ناقش سبب الفرق (التيارات الدوامية).'],
-    tools:['pendulumSolid','pendulumSlotted','fieldSource','stand'] },
+    tools:['pendulumSolid','pendulumSlotted','fieldSource','stand','bulb'] },
   8: { title:'تأثير المحاثة (دائرة RL)', subtitle:'دائرتان متوازيتان: مصباح مع مقاومة ومصباح مع ملف محاثة',
     steps:['صل دائرة أولى: بطارية + مفتاح + مقاومة + جلفانومتر.','صل دائرة ثانية: بطارية + مفتاح + ملف محاثة + جلفانومتر.','أغلق مفتاح كل دائرة وقارن سرعة استقرار المؤشر.'],
-    tools:['inductor','resistor','battery','switch','galvanometer'] },
+    tools:['inductor','resistor','battery','switch','galvanometer','bulb'] },
   9: { title:'تجربة الحث الذاتي (مصباح النيون)', subtitle:'مصباح النيون يومض فقط عند فتح الدائرة فجأة',
     steps:['صل الملف الكبير بالبطارية والمفتاح، ومصباح النيون على التوازي معهما.','أغلق المفتاح — لاحظ أن المصباح لا يضيء (الجهد منخفض).','افتح المفتاح فجأة وسجّل ملاحظتك عن ومضة المصباح.'],
-    tools:['inductor','battery','switch','neonLamp'] },
+    tools:['inductor','battery','switch','neonLamp','bulb'] },
   10:{ title:'الطباخ الحثي (موقد الحث الكهرومغناطيسي)', subtitle:'تيار متناوب يولّد مجالًا متغيرًا يحدث تيارات دوامية تُسخّن قاع الإناء',
     steps:['ضع الوشيعة الحثية المسطحة على الكانفاس.','صل الوشيعة بمصدر التيار المتناوب عالي التردد.','ضع الإناء المعدني فوق الوشيعة وراقب مؤشر الحرارة.'],
-    tools:['flatCoil','acHighFreq','pot','thermometer'] }
+    tools:['flatCoil','acHighFreq','pot','thermometer','bulb'] }
 };
 
 /* =========================================================================
@@ -532,6 +539,17 @@ const TYPES = {
     <line x1="100" y1="28" x2="140" y2="28" stroke="#8a6d1a" stroke-width="4"/>
     <rect class="glass" x="40" y="12" width="60" height="32" rx="16" fill="#3a1f33" stroke="#ff5abe" stroke-width="2"/>
     <line x1="52" y1="28" x2="88" y2="28" stroke="#ff5abe" stroke-width="2" stroke-dasharray="3 3"/>` },
+  // An ordinary lamp, available in every experiment: it lights whenever
+  // current actually reaches it, induced current included — so a momentary
+  // induced current shows up as a flicker of light, not just a needle
+  // twitch. (Unlike the neon lamp, which is special-cased in tab 9 to stay
+  // dark under steady low-voltage DC.)
+  bulb:{ label:'مصباح كهربائي', w:140, h:56, hasTerminals:true, svg:()=>`
+    <line x1="0" y1="28" x2="46" y2="28" stroke="#8a6d1a" stroke-width="4"/>
+    <line x1="94" y1="28" x2="140" y2="28" stroke="#8a6d1a" stroke-width="4"/>
+    <circle class="glass" cx="70" cy="28" r="24" fill="#fff8dc" stroke="#8a6d1a" stroke-width="2"/>
+    <path class="filament" d="M60 24 L65 33 L70 22 L75 33 L80 24" fill="none" stroke="#8a6d1a" stroke-width="2"/>
+    <rect x="63" y="49" width="14" height="6" rx="1" fill="#777"/>` },
   magnet:{ label:'مغناطيس قضيبي', w:104, h:48, hasTerminals:false, nestable:true, induces:true, svg:()=>`
     <rect x="2" y="2" width="48" height="44" rx="4" fill="#ef5b6b" stroke="#1a1410" stroke-width="2"/>
     <rect x="52" y="2" width="48" height="44" rx="4" fill="#4d8dff" stroke="#1a1410" stroke-width="2"/>
@@ -871,7 +889,7 @@ function renderComponents(){
     const t=TYPES[comp.type];
     const s=effSize(comp);
     const div=document.createElement('div');
-    div.className='comp'+(comp.type==='neonLamp'?' neon':'')+(comp.rotated?' rotated':'')+(t.background?' is-background':'');
+    div.className='comp'+(comp.type==='neonLamp'?' neon':'')+(comp.type==='bulb'?' bulb':'')+(comp.rotated?' rotated':'')+(t.background?' is-background':'');
     div.dataset.id=comp.id;
     div.style.left=comp.x+'px'; div.style.top=comp.y+'px';
     div.style.width=s.w+'px'; div.style.height=s.h+'px';
@@ -904,7 +922,7 @@ function renderComponents(){
       // the instant a primary loop closes, before any secondary is even
       // wired up. Reuses the same glow-rays plumbing as the neon lamp.
       const rays=document.createElement('div'); rays.className='glow-rays'+(COIL_TYPES.includes(comp.type)?' field':'');
-      const n = comp.type==='neonLamp' ? 14 : (COIL_TYPES.includes(comp.type) ? 12 : 0);
+      const n = (comp.type==='neonLamp'||comp.type==='bulb') ? 14 : (COIL_TYPES.includes(comp.type) ? 12 : 0);
       for(let i=0;i<n;i++){ const r=document.createElement('div'); r.className='ray'; r.style.transform=`rotate(${i*(360/n)}deg)`; rays.appendChild(r); }
       div.appendChild(rays);
       ['a','b'].forEach(term=>{
@@ -1095,7 +1113,7 @@ function evaluateCircuit(){
     // ordinary steady current.
     if(comp.type==='neonLamp') on = !!(inducedActive && pulse && pulse.coilId===comp.id);
     const isMeter = comp.type==='galvanometer' || comp.type==='fluxMeter';
-    const isIndicator = comp.type==='neonLamp' || isMeter || COIL_TYPES.includes(comp.type);
+    const isIndicator = comp.type==='neonLamp' || comp.type==='bulb' || isMeter || COIL_TYPES.includes(comp.type);
     div.classList.toggle('active', on && isIndicator);
     if(on) activeCount++;
     const needle=div.querySelector('.needle');
