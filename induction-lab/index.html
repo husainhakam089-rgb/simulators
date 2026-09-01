@@ -976,7 +976,15 @@ function evaluateCircuit(){
   document.querySelectorAll('.comp').forEach(div=>{
     const comp=findComp(div.dataset.id); if(!comp) return;
     const t=TYPES[comp.type]; if(!t.hasTerminals) return;
-    const on = litNodes.has(nodeKey(comp.id,'a')) && litNodes.has(nodeKey(comp.id,'b'));
+    let on = litNodes.has(nodeKey(comp.id,'a')) && litNodes.has(nodeKey(comp.id,'b'));
+    // A neon lamp needs a good ~90V to ionize — a steady low-voltage DC loop
+    // can't supply that, so even sitting in parallel with an always-on
+    // inductor (same two wire-connected nodes -> same litNodes reachability)
+    // it should stay dark. It only flashes on the brief high-voltage spike a
+    // collapsing inductor field produces when its loop is suddenly broken —
+    // i.e. only while it's the induced pulse's own target below, never from
+    // ordinary steady current.
+    if(comp.type==='neonLamp') on = !!(inducedActive && pulse && pulse.coilId===comp.id);
     const isMeter = comp.type==='galvanometer' || comp.type==='fluxMeter';
     const isIndicator = comp.type==='neonLamp' || isMeter || COIL_TYPES.includes(comp.type);
     div.classList.toggle('active', on && isIndicator);
@@ -1020,7 +1028,10 @@ function evaluateCircuit(){
     return;
   }
   if(inducedActive){
-    el.circuitStatus.innerHTML = pulse.reason==='switch'
+    const pulseComp=findComp(pulse.coilId);
+    el.circuitStatus.innerHTML = pulseComp && pulseComp.type==='neonLamp'
+      ? 'ومضة <b>الحث الذاتي</b> — انهيار المجال المفاجئ عند فتح المفتاح يولّد فرق جهد عالٍ للحظة'
+      : pulse.reason==='switch'
       ? 'تيار <b>محتث لحظي</b> بالملف المجاور — نتيجة تغيّر التيار عند غلق/فتح المفتاح'
       : 'تيار <b>محتث</b> أثناء الحركة — سيتوقف فور توقفك';
     return;
@@ -1229,6 +1240,29 @@ function nestUnder(dragComp, target){
 // shortly after. Call this around ANY edit that can change a loop's
 // completion, not just the switch — otherwise a primary energized by simply
 // finishing its wiring (switch already closed) would never induce anything.
+// "Same electrical node" via wires only (never through a component's own
+// body) — used to recognize a neon lamp wired straight across a coil's own
+// two terminals, the standard self-induction demo wiring (tab 9).
+function isDirectlyParallel(a, b){
+  function wireReach(start){
+    const seen=new Set([start]); const queue=[start];
+    while(queue.length){
+      const cur=queue.shift();
+      for(const w of lab().wires){
+        const na=nodeKey(w.a.comp,w.a.term), nb=nodeKey(w.b.comp,w.b.term);
+        if(na===cur && !seen.has(nb)){ seen.add(nb); queue.push(nb); }
+        if(nb===cur && !seen.has(na)){ seen.add(na); queue.push(na); }
+      }
+    }
+    return seen;
+  }
+  const aA=nodeKey(a.id,'a'), aB=nodeKey(a.id,'b'), bA=nodeKey(b.id,'a'), bB=nodeKey(b.id,'b');
+  const reachA=wireReach(aA);
+  if(reachA.has(bA)) return wireReach(aB).has(bB);
+  if(reachA.has(bB)) return wireReach(aB).has(bA);
+  return false;
+}
+
 function fireInductionForEnergizeChanges(targetLab, before){
   const after=targetLab.energizedCoilIds || new Set();
   for(const c of targetLab.components){
@@ -1236,14 +1270,34 @@ function fireInductionForEnergizeChanges(targetLab, before){
     const was=before.has(c.id), now=after.has(c.id);
     if(was===now) continue; // this coil's current didn't change — no induction from it
     const secondary=findCoupledCoil(c);
-    if(!secondary) continue;
-    targetLab.inducedPulse={ coilId:secondary.id, dir: now?1:-1, reason:'switch' };
-    setTimeout(()=>{
-      if(targetLab.inducedPulse && targetLab.inducedPulse.coilId===secondary.id){
-        targetLab.inducedPulse=null;
-        if(lab()===targetLab) render();
+    if(secondary){
+      targetLab.inducedPulse={ coilId:secondary.id, dir: now?1:-1, reason:'switch' };
+      setTimeout(()=>{
+        if(targetLab.inducedPulse && targetLab.inducedPulse.coilId===secondary.id){
+          targetLab.inducedPulse=null;
+          if(lab()===targetLab) render();
+        }
+      }, 450);
+      continue;
+    }
+    // Self-induction (tab 9): a neon lamp wired straight across this coil's
+    // own terminals only flashes on the *break* — the field's sudden
+    // collapse as current drops to zero is what produces the brief
+    // high-voltage spike a neon needs to ionize. A steady low-voltage DC
+    // supply can never get there, on close or otherwise, matching the
+    // curriculum's own "closing it doesn't light the lamp" observation.
+    if(was && !now){
+      const lamp=targetLab.components.find(x=>x.type==='neonLamp' && isDirectlyParallel(c,x));
+      if(lamp){
+        targetLab.inducedPulse={ coilId:lamp.id, dir:1, reason:'switch' };
+        setTimeout(()=>{
+          if(targetLab.inducedPulse && targetLab.inducedPulse.coilId===lamp.id){
+            targetLab.inducedPulse=null;
+            if(lab()===targetLab) render();
+          }
+        }, 250); // a neon flash is brief — much shorter than the transformer-pulse window above
       }
-    }, 450);
+    }
   }
 }
 
