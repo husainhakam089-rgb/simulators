@@ -575,11 +575,11 @@ const TYPES = {
     <circle cx="210" cy="76" r="7" fill="#ffdd88" stroke="#8a6d1a" stroke-width="1.5"/>` },
   rod:{ label:'ساق معدنية', w:26, h:100, hasTerminals:false, nestable:true, slidesOnRails:true, svg:()=>`
     <rect x="6" y="2" width="14" height="96" rx="4" fill="#e8a860" stroke="#8a6d1a" stroke-width="2"/>` },
-  pendulumSolid:{ label:'بندول مصمت', w:90, h:150, hasTerminals:false, svg:()=>`
+  pendulumSolid:{ label:'بندول مصمت', w:90, h:150, hasTerminals:false, pendulum:true, svg:()=>`
     <line x1="45" y1="0" x2="45" y2="110" stroke="#5a6a8c" stroke-width="3"/>
     <circle cx="45" cy="0" r="5" fill="#3a2a18"/>
     <rect x="15" y="110" width="60" height="36" rx="6" fill="#8891a0" stroke="#4a5160" stroke-width="2"/>` },
-  pendulumSlotted:{ label:'بندول مشقوق', w:90, h:150, hasTerminals:false, svg:()=>`
+  pendulumSlotted:{ label:'بندول مشقوق', w:90, h:150, hasTerminals:false, pendulum:true, svg:()=>`
     <line x1="45" y1="0" x2="45" y2="110" stroke="#5a6a8c" stroke-width="3"/>
     <circle cx="45" cy="0" r="5" fill="#3a2a18"/>
     <rect x="15" y="110" width="60" height="36" rx="6" fill="#8891a0" stroke="#4a5160" stroke-width="2"/>
@@ -726,6 +726,42 @@ function terminalPos(comp, term){
 /* ---- rendering ---- */
 function render(){ renderComponents(); renderWires(); evaluateCircuit(); updateFluxMeters(); }
 
+// Tab 7 (eddy-current damping): a pendulum released mid-swing keeps
+// oscillating on its own — like the rest of the induced-current effects,
+// this runs independent of the wire-graph engine, driven by comp._swingAngle
+// (see renderComponents()'s pivot-rotation transform) decaying over time. The
+// solid bob picks up strong extra damping only while it's actually swinging
+// through the field (real eddy currents braking it); the slotted one barely
+// feels it at all, since the slot breaks up the loops that would carry them —
+// that contrast is the whole point of the experiment. Walks every tab's
+// state (not just the active one) so a pendulum left swinging keeps going
+// even if you switch away and back.
+let pendulumRAF=null;
+function tickPendulums(){
+  let any=false;
+  for(const key of Object.keys(labs)){
+    const l=labs[key];
+    const field=l.components.find(c=>c.type==='fieldSource');
+    for(const c of l.components){
+      if(!c._swinging) continue;
+      any=true;
+      c._swingT=(c._swingT||0)+0.12;
+      const angleRad=(c._swingAngle||0)*Math.PI/180;
+      const bobX=c.x+effSize(c).w/2+55*Math.sin(angleRad);
+      const inField=field && bobX>=field.x && bobX<=field.x+effSize(field).w;
+      let decay=0.999; // baseline friction, same for both — the point is the *extra* field damping
+      if(c.type==='pendulumSolid' && inField) decay=0.90;
+      else if(c.type==='pendulumSlotted' && inField) decay=0.995;
+      c._swingAmp*=decay;
+      c._swingAngle=c._swingAmp*Math.cos(c._swingT);
+      if(Math.abs(c._swingAmp)<1){ c._swingAmp=0; c._swingAngle=0; c._swinging=false; }
+    }
+  }
+  render();
+  pendulumRAF = any ? requestAnimationFrame(tickPendulums) : null;
+}
+function startPendulumLoop(){ if(pendulumRAF==null) pendulumRAF=requestAnimationFrame(tickPendulums); }
+
 function renderComponents(){
   el.world.innerHTML='';
   // A `background` prop (e.g. the field-region indicator in the rails/rod
@@ -752,7 +788,14 @@ function renderComponents(){
     // the artwork itself always keeps its original w×h viewBox — rotation is
     // a plain CSS turn on the whole <svg>, centered in the (possibly
     // swapped) outer box, so no per-icon math is needed to support it
-    body.innerHTML=`<svg viewBox="0 0 ${t.w} ${t.h}" style="width:${t.w}px;height:${t.h}px;transform:${comp.rotated?'rotate(90deg)':'none'};">${t.svg(comp)}</svg>`;
+    // A pendulum swings about its fixed top anchor rather than flipping like
+    // everything else — its own transient _swingAngle (see tickPendulums())
+    // drives a rotation about that anchor point instead of the usual
+    // whole-box rotate/none pair.
+    const svgStyle = t.pendulum
+      ? `transform:rotate(${comp._swingAngle||0}deg);transform-origin:45px 4px;`
+      : `transform:${comp.rotated?'rotate(90deg)':'none'};`;
+    body.innerHTML=`<svg viewBox="0 0 ${t.w} ${t.h}" style="width:${t.w}px;height:${t.h}px;${svgStyle}">${t.svg(comp)}</svg>`;
     div.appendChild(body);
 
     if(t.toggle){
@@ -946,12 +989,20 @@ function evaluateCircuit(){
     const hasRing=lab().components.some(c=>c.type==='ring');
     const hasRails=lab().components.some(c=>TYPES[c.type].isRailTrack);
     const hasFluxMeter=lab().components.some(c=>c.type==='fluxMeter');
-    el.circuitStatus.innerHTML = hasRing
+    const swingingPendulum=lab().components.find(c=>TYPES[c.type].pendulum && c._swinging);
+    const hasPendulum=lab().components.some(c=>TYPES[c.type].pendulum);
+    el.circuitStatus.innerHTML = swingingPendulum
+      ? (swingingPendulum.type==='pendulumSolid'
+          ? 'البندول المصمت يتباطأ بسرعة داخل المجال — <b>تيارات دوامية</b> تعاكس حركته'
+          : 'البندول المشقوق يتأرجح بحرية تقريبًا — الشق يمنع تكوّن حلقات تيار دوامي كبيرة')
+      : hasRing
       ? 'حرّك المغناطيس يدويًا داخل وخارج الحلقة الموصلة ولاحظ اتجاه التيار المحتث'
       : hasRails
       ? 'حرّك الساق المعدنية على القضيبين وهي داخل المجال المغناطيسي لتوليد قوة دافعة كهربائية حركية'
       : hasFluxMeter
       ? 'دوّر الملف (اضغط مرتين) أو حرّكه داخل/خارج المجال ولاحظ قراءة مقياس الفيض'
+      : hasPendulum
+      ? 'اسحب كرة البندول جانبًا داخل مجال المصدر ثم أفلتها لاحظ سرعة توقفه'
       : 'وصّل الملف بجلفانومتر وحرّك مغناطيسًا داخله، أو أضف مصدر جهد <b>(للأدوات الكهربائية فقط)</b>';
     return;
   }
@@ -1199,6 +1250,16 @@ document.addEventListener('mousemove', e=>{
     if(dx>3||dy>3) dragCtx.moved=true;
     const p=clientToWorld(e.clientX,e.clientY);
     const comp=findComp(dragCtx.id); if(!comp) return;
+    // A pendulum never translates — pulling it sideways tilts it about its
+    // fixed top anchor instead, exactly like drawing back a real pendulum
+    // before letting it go (see mouseup, which turns this into a swing).
+    if(TYPES[comp.type].pendulum){
+      const pivotX=comp.x+effSize(comp).w/2;
+      comp._swingAngle=Math.max(-55, Math.min(55, (p.x-pivotX)/2));
+      comp._swinging=false; // a manual hold overrides any swing already in progress
+      render();
+      return;
+    }
     let newX=p.x-dragCtx.offX, newY=p.y-dragCtx.offY;
     // A rod already resting on rails only slides horizontally — its height
     // above the track stays fixed at whatever nestUnder() set it to.
@@ -1291,6 +1352,13 @@ document.addEventListener('mouseup', e=>{
       if(target) nestUnder(comp, target);
       else comp.nestedIn=null;
     }
+    // Letting go after pulling a pendulum back starts it swinging on its
+    // own from wherever it was released — same idea as "أرجحه ولاحظ سرعة
+    // توقفه" in the curriculum's own steps.
+    if(comp && dragCtx.moved && TYPES[comp.type].pendulum && Math.abs(comp._swingAngle||0)>3){
+      comp._swingAmp=comp._swingAngle; comp._swingT=0; comp._swinging=true;
+      startPendulumLoop();
+    }
     if(comp && !dragCtx.moved){
       // Detected by timing rather than the native 'dblclick' event: render()
       // below tears down and rebuilds every .comp div, so by the time the
@@ -1299,8 +1367,8 @@ document.addEventListener('mouseup', e=>{
       const now=Date.now();
       const isDoubleClick = lastClickCompId===comp.id && (now-lastClickTime)<400;
       lastClickTime=now; lastClickCompId=comp.id;
-      if(isDoubleClick){
-        comp.rotated=!comp.rotated;
+      if(isDoubleClick && !TYPES[comp.type].pendulum){
+        comp.rotated=!comp.rotated; // flipping a hanging pendulum sideways has no physical meaning — skip it
       } else if(TYPES[comp.type].toggle){
         toggleSwitchWithInduction(comp);
         select('comp', comp.id);
