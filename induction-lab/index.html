@@ -549,11 +549,14 @@ const TYPES = {
   ring:{ label:'حلقة موصلة', w:110, h:110, hasTerminals:false, svg:()=>`
     <ellipse cx="55" cy="55" rx="46" ry="46" fill="none" stroke="#d98a3d" stroke-width="9"/>
     <ellipse cx="55" cy="55" rx="46" ry="46" fill="none" stroke="#e8a860" stroke-width="3"/>` },
-  rails:{ label:'قضيبان موصلان', w:220, h:90, hasTerminals:false, svg:()=>`
+  rails:{ label:'قضيبان موصلان', w:220, h:90, hasTerminals:true, accepts:['rod'], isRailTrack:true,
+    terminalOffsets:()=>({ a:{x:210,y:14}, b:{x:210,y:76} }), svg:()=>`
     <line x1="10" y1="14" x2="210" y2="14" stroke="#c9d3e6" stroke-width="6" stroke-linecap="round"/>
     <line x1="10" y1="76" x2="210" y2="76" stroke="#c9d3e6" stroke-width="6" stroke-linecap="round"/>
-    <line x1="10" y1="14" x2="10" y2="76" stroke="#8a6d1a" stroke-width="5"/>` },
-  rod:{ label:'ساق معدنية', w:26, h:100, hasTerminals:false, svg:()=>`
+    <line x1="10" y1="14" x2="10" y2="76" stroke="#8a6d1a" stroke-width="5"/>
+    <circle cx="210" cy="14" r="7" fill="#ffdd88" stroke="#8a6d1a" stroke-width="1.5"/>
+    <circle cx="210" cy="76" r="7" fill="#ffdd88" stroke="#8a6d1a" stroke-width="1.5"/>` },
+  rod:{ label:'ساق معدنية', w:26, h:100, hasTerminals:false, nestable:true, slidesOnRails:true, svg:()=>`
     <rect x="6" y="2" width="14" height="96" rx="4" fill="#e8a860" stroke="#8a6d1a" stroke-width="2"/>` },
   pendulumSolid:{ label:'بندول مصمت', w:90, h:150, hasTerminals:false, svg:()=>`
     <line x1="45" y1="0" x2="45" y2="110" stroke="#5a6a8c" stroke-width="3"/>
@@ -688,6 +691,16 @@ function effSize(comp){
   return comp.rotated ? { w:t.h, h:t.w } : { w:t.w, h:t.h };
 }
 function terminalPos(comp, term){
+  const t=TYPES[comp.type];
+  // Most parts have one lead per side (left/right, or top/bottom once
+  // rotated) so the plain formula covers them. A few — like the rails,
+  // whose two leads are both on the same (open) end — need exact custom
+  // points instead; rotation isn't supported for those (none of them
+  // currently need it).
+  if(t.terminalOffsets){
+    const off=t.terminalOffsets()[term];
+    return { x: comp.x+off.x, y: comp.y+off.y };
+  }
   const s=effSize(comp);
   if(comp.rotated) return { x: comp.x+s.w/2, y: term==='a'?comp.y:comp.y+s.h };
   return { x: term==='a'?comp.x:comp.x+s.w, y: comp.y+s.h/2 };
@@ -734,6 +747,10 @@ function renderComponents(){
       ['a','b'].forEach(term=>{
         const dot=document.createElement('div');
         dot.className='terminal '+term; dot.dataset.comp=comp.id; dot.dataset.term=term;
+        if(t.terminalOffsets){
+          const off=t.terminalOffsets()[term];
+          dot.style.left=off.x+'px'; dot.style.top=off.y+'px'; dot.style.right='auto'; dot.style.marginTop='-8px'; dot.style.marginLeft='-8px';
+        }
         div.appendChild(dot);
       });
     }
@@ -777,7 +794,13 @@ function buildGraph(excludeInternalId){
   const addEdge=(n1,n2,kind,id)=>{ if(!adj.has(n1))adj.set(n1,[]); if(!adj.has(n2))adj.set(n2,[]); adj.get(n1).push({to:n2,kind,id}); adj.get(n2).push({to:n1,kind,id}); };
   for(const comp of lab().components){
     if(!TYPES[comp.type].hasTerminals || comp.id===excludeInternalId) continue;
-    const conducts = TYPES[comp.type].toggle ? !!comp.closed : true;
+    // A switch only bridges its two leads when closed; rails only bridge
+    // theirs when a rod is actually resting across them (the rod is what
+    // completes a rails+rod circuit — no rod, no connection, exactly like
+    // an open switch).
+    let conducts=true;
+    if(TYPES[comp.type].toggle) conducts=!!comp.closed;
+    else if(TYPES[comp.type].isRailTrack) conducts=lab().components.some(c=>c.nestedIn===comp.id && c.type==='rod');
     if(conducts) addEdge(nodeKey(comp.id,'a'), nodeKey(comp.id,'b'), 'comp', comp.id);
   }
   for(const w of lab().wires) addEdge(nodeKey(w.a.comp,w.a.term), nodeKey(w.b.comp,w.b.term), 'wire', w.id);
@@ -1011,6 +1034,11 @@ function nestUnder(dragComp, target){
     const legInset = ts.w*0.15;
     dragComp.x = onLeft ? target.x + legInset - ds.w/2 : target.x + ts.w - legInset - ds.w/2;
     dragComp.y = target.y + (ts.h-ds.h)/2;
+  } else if(TYPES[target.type].isRailTrack && TYPES[dragComp.type].slidesOnRails){
+    // The rod keeps whatever horizontal position it was dropped at (that's
+    // the whole point — it slides along the track) and only snaps
+    // vertically, centered between the two rails.
+    dragComp.y = target.y + (ts.h-ds.h)/2;
   } else {
     dragComp.x = target.x + (ts.w-ds.w)/2;
     dragComp.y = target.y + (ts.h-ds.h)/2;
@@ -1018,17 +1046,17 @@ function nestUnder(dragComp, target){
   dragComp.nestedIn = target.id;
 }
 
-// Flipping a switch is a step change in current, not motion — so instead of
-// the continuous drag-based pulse, this compares which coils were energized
-// just before and just after the flip. Any coil whose current just
-// appeared/disappeared fires one momentary pulse into its nearest coupled
-// coil (e.g. a transformer's secondary), exactly like the curriculum's own
-// "close/open the switch suddenly" step — then clears itself shortly after.
-function toggleSwitchWithInduction(sw){
-  const targetLab=lab();
-  const before=new Set(targetLab.energizedCoilIds || []);
-  sw.closed=!sw.closed;
-  render();
+// Any step change in current — a switch flip, but just as much a wire being
+// connected/removed to complete or break the loop, or the source/coil itself
+// being deleted — is a transient, not motion. This compares which coils were
+// energized just before and just after the change; any coil whose current
+// just appeared/disappeared fires one momentary pulse into its nearest
+// coupled coil (e.g. a transformer's secondary), exactly like the
+// curriculum's own "close/open the switch suddenly" step, then clears itself
+// shortly after. Call this around ANY edit that can change a loop's
+// completion, not just the switch — otherwise a primary energized by simply
+// finishing its wiring (switch already closed) would never induce anything.
+function fireInductionForEnergizeChanges(targetLab, before){
   const after=targetLab.energizedCoilIds || new Set();
   for(const c of targetLab.components){
     if(!COIL_TYPES.includes(c.type)) continue;
@@ -1044,6 +1072,14 @@ function toggleSwitchWithInduction(sw){
       }
     }, 450);
   }
+}
+
+function toggleSwitchWithInduction(sw){
+  const targetLab=lab();
+  const before=new Set(targetLab.energizedCoilIds || []);
+  sw.closed=!sw.closed;
+  render();
+  fireInductionForEnergizeChanges(targetLab, before);
   render();
 }
 
@@ -1081,12 +1117,38 @@ document.addEventListener('mousemove', e=>{
     if(dx>3||dy>3) dragCtx.moved=true;
     const p=clientToWorld(e.clientX,e.clientY);
     const comp=findComp(dragCtx.id); if(!comp) return;
-    const newX=p.x-dragCtx.offX, newY=p.y-dragCtx.offY;
+    let newX=p.x-dragCtx.offX, newY=p.y-dragCtx.offY;
+    // A rod already resting on rails only slides horizontally — its height
+    // above the track stays fixed at whatever nestUnder() set it to.
+    if(TYPES[comp.type].slidesOnRails && comp.nestedIn){
+      const host=findComp(comp.nestedIn);
+      if(host && TYPES[host.type].isRailTrack) newY=comp.y;
+    }
     const delta={ x:newX-comp.x, y:newY-comp.y };
     comp.x=newX; comp.y=newY;
     // dragging a coil/inductor carries whatever is nested inside it along for the ride
     if(TYPES[comp.type].accepts){
       lab().components.forEach(c=>{ if(c.nestedIn===comp.id){ c.x+=delta.x; c.y+=delta.y; } });
+    }
+    // Sliding the rod along its rails while it's inside a field region is a
+    // motional EMF: a momentary source appears in the rails' own loop
+    // (bridged by the rod), direction flipping with which way it moves,
+    // exactly like the drag-induction pulses above — but gated on actually
+    // overlapping a field source, since outside the field there's no EMF.
+    if(TYPES[comp.type].slidesOnRails && comp.nestedIn){
+      const host=findComp(comp.nestedIn);
+      const field=lab().components.find(c=>c.type==='fieldSource');
+      const rodCenterX=comp.x+effSize(comp).w/2;
+      const inField = field && rodCenterX>=field.x && rodCenterX<=field.x+effSize(field).w;
+      if(host && inField){
+        if(dragCtx.lastRodX!=null && rodCenterX!==dragCtx.lastRodX){
+          lab().inducedPulse={ coilId:host.id, dir: rodCenterX>dragCtx.lastRodX?1:-1, reason:'motion' };
+        }
+        dragCtx.lastRodX=rodCenterX;
+      } else {
+        dragCtx.lastRodX=null;
+        if(lab().inducedPulse && lab().inducedPulse.coilId===comp.nestedIn) lab().inducedPulse=null;
+      }
     }
     // dragging a nestable prop (magnet / iron core) previews the coil it would snap into
     if(TYPES[comp.type].nestable){
@@ -1129,7 +1191,14 @@ document.addEventListener('mouseup', e=>{
   if(wireCtx){
     const targetTerm=document.elementFromPoint(e.clientX,e.clientY)?.closest('.terminal');
     if(targetTerm && !(targetTerm.dataset.comp===wireCtx.fromComp && targetTerm.dataset.term===wireCtx.fromTerm)){
-      lab().wires.push({ id:uid(), a:{comp:wireCtx.fromComp,term:wireCtx.fromTerm}, b:{comp:targetTerm.dataset.comp,term:targetTerm.dataset.term} });
+      const targetLab=lab();
+      const before=new Set(targetLab.energizedCoilIds || []);
+      targetLab.wires.push({ id:uid(), a:{comp:wireCtx.fromComp,term:wireCtx.fromTerm}, b:{comp:targetTerm.dataset.comp,term:targetTerm.dataset.term} });
+      tempWireEl?.remove(); tempWireEl=null; wireCtx=null;
+      render(); // a wire that just completed a loop can energize a coil on its own — no switch flip required
+      fireInductionForEnergizeChanges(targetLab, before);
+      render();
+      return;
     }
     tempWireEl?.remove(); tempWireEl=null; wireCtx=null; render(); return;
   }
@@ -1160,7 +1229,7 @@ document.addEventListener('mouseup', e=>{
     nestHoverId=null;
     // motion stops -> any drag-induced current stops immediately (a switch-
     // triggered pulse clears itself on its own timer, untouched by this)
-    if(comp && (TYPES[comp.type].induces || (COIL_TYPES.includes(comp.type) && lab().inducedPulse && lab().inducedPulse.reason==='motion'))){
+    if(comp && (TYPES[comp.type].induces || TYPES[comp.type].slidesOnRails || (COIL_TYPES.includes(comp.type) && lab().inducedPulse && lab().inducedPulse.reason==='motion'))){
       lab().inducedPulse=null;
     }
     dragCtx=null; render();
@@ -1185,13 +1254,18 @@ document.addEventListener('keydown', e=>{
 });
 function deleteSelected(){
   const sel=lab().selected; if(!sel) return;
+  const targetLab=lab();
+  const before=new Set(targetLab.energizedCoilIds || []);
   if(sel.kind==='comp'){
-    lab().components=lab().components.filter(c=>c.id!==sel.id);
-    lab().wires=lab().wires.filter(w=>w.a.comp!==sel.id && w.b.comp!==sel.id);
-    lab().components.forEach(c=>{ if(c.nestedIn===sel.id) c.nestedIn=null; }); // release anything that was nested inside it
+    targetLab.components=targetLab.components.filter(c=>c.id!==sel.id);
+    targetLab.wires=targetLab.wires.filter(w=>w.a.comp!==sel.id && w.b.comp!==sel.id);
+    targetLab.components.forEach(c=>{ if(c.nestedIn===sel.id) c.nestedIn=null; }); // release anything that was nested inside it
   }
-  else lab().wires=lab().wires.filter(w=>w.id!==sel.id);
-  lab().selected=null; render();
+  else targetLab.wires=targetLab.wires.filter(w=>w.id!==sel.id);
+  targetLab.selected=null;
+  render(); // removing a wire/switch/battery can de-energize a coil just as surely as opening a switch does
+  fireInductionForEnergizeChanges(targetLab, before);
+  render();
 }
 el.clearBtn.addEventListener('click', ()=>{
   if(lab().components.length===0 && lab().wires.length===0) return;
