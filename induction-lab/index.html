@@ -762,6 +762,18 @@ function tickPendulums(){
 }
 function startPendulumLoop(){ if(pendulumRAF==null) pendulumRAF=requestAnimationFrame(tickPendulums); }
 
+// Tab 8 (R-L delay): re-running render() advances every ramping meter's
+// needle one step closer to its target (see the needle-setting block in
+// evaluateCircuit()) — this just keeps that happening every frame until
+// they've all settled.
+let meterRampRAF=null;
+function tickMeterRamps(){
+  render();
+  const stillRamping=lab().components.some(c=>c._ramping);
+  meterRampRAF = stillRamping ? requestAnimationFrame(tickMeterRamps) : null;
+}
+function startMeterRampLoop(){ if(meterRampRAF==null) meterRampRAF=requestAnimationFrame(tickMeterRamps); }
+
 function renderComponents(){
   el.world.innerHTML='';
   // A `background` prop (e.g. the field-region indicator in the rails/rod
@@ -895,12 +907,13 @@ function bfsPathEdges(adj,start,target){
 // every wire/component edge along that path. Shared by real sources
 // (battery/AC, always a->b) and a coil that a moving magnet is inducing a
 // current in (direction flips with the magnet's motion).
-function processLoop(hostId, startTerm, targetTerm, litNodes, wireDirection, compDirection, loadRef){
+function processLoop(hostId, startTerm, targetTerm, litNodes, wireDirection, compDirection, loadRef, membersOut){
   const adj=buildGraph(hostId);
   const startN=nodeKey(hostId,startTerm), targetN=nodeKey(hostId,targetTerm);
   const reach=bfsReachable(adj,startN);
   if(!reach.has(targetN)) return false;
   for(const n of reach) litNodes.add(n);
+  if(membersOut) for(const n of reach) membersOut.add(n.split('|')[0]);
   for(const c of lab().components){
     if((c.type==='resistor'||c.type==='rheostat') && reach.has(nodeKey(c.id,'a'))) loadRef.count++;
   }
@@ -917,8 +930,20 @@ function evaluateCircuit(){
   const litNodes=new Set(); const wireDirection=new Map(); const compDirection=new Map();
   let anyLoop=false; const loadRef={count:0};
 
+  // Tab 8's whole point is comparing two independent loops side by side — a
+  // resistor branch and an inductor branch, each with its own battery and
+  // switch — so track, per loop, whether an inductor sits in it. A meter in
+  // an inductive loop eases its needle toward the new value instead of
+  // snapping (see the needle-setting block below), the same way a real coil's
+  // back-EMF delays its current from jumping straight to steady-state.
+  const loopHasInductor=new Map();
   for(const src of sources){
-    if(processLoop(src.id,'a','b', litNodes, wireDirection, compDirection, loadRef)) anyLoop=true;
+    const members=new Set();
+    if(processLoop(src.id,'a','b', litNodes, wireDirection, compDirection, loadRef, members)){
+      anyLoop=true;
+      const inductive=[...members].some(id=>{ const c=findComp(id); return c && c.type==='inductor'; });
+      for(const id of members) loopHasInductor.set(id, inductive);
+    }
   }
 
   // A magnet in motion momentarily turns the coil it's approaching/leaving
@@ -959,8 +984,23 @@ function evaluateCircuit(){
     const needle=div.querySelector('.needle');
     if(needle && isMeter){
       const dir = compDirection.get(comp.id) || 1;
+      const target = on ? dir*swing : 0;
       needle.style.transformOrigin = (t.w*0.5)+'px '+(t.h*0.8125)+'px';
-      needle.style.transform = on ? `rotate(${dir*swing}deg)` : 'rotate(0deg)';
+      if(loopHasInductor.get(comp.id)){
+        // ease toward the target instead of snapping — a real R-L circuit's
+        // current rises/falls as 1-e^(-t/τ), not instantly, so let the
+        // needle visibly lag the resistor branch's the same way it would in
+        // the real apparatus.
+        if(comp._needleLevel==null) comp._needleLevel=0;
+        comp._needleLevel += (target-comp._needleLevel)*0.06;
+        if(Math.abs(target-comp._needleLevel)<0.3) comp._needleLevel=target;
+        comp._ramping = comp._needleLevel!==target;
+        if(comp._ramping) startMeterRampLoop();
+        needle.style.transform = `rotate(${comp._needleLevel}deg)`;
+      } else {
+        comp._needleLevel=target; comp._ramping=false;
+        needle.style.transform = `rotate(${target}deg)`;
+      }
     }
   });
 
