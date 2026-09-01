@@ -422,6 +422,22 @@
   .handle.size{ border-radius:4px; background:var(--accent-amber); box-shadow:0 0 0 3px rgba(255,207,92,.22); }
   .handle:active{ cursor:grabbing; }
 
+  /* the reach of a live coil's field — concentric lines out to a dashed edge */
+  .field-reach{
+    position:absolute; border-radius:50%; pointer-events:none; z-index:0;
+    border:2px dashed rgba(255,207,92,.42);
+    background:
+      repeating-radial-gradient(circle, rgba(255,207,92,.085) 0 1.5px, transparent 1.5px 58px),
+      radial-gradient(circle, rgba(255,207,92,.15), rgba(255,207,92,.045) 52%, transparent 74%);
+    animation:reachPulse 3.4s ease-in-out infinite;
+  }
+  .field-reach .fr-label{
+    position:absolute; left:50%; top:6px; transform:translateX(-50%);
+    font-size:11px; color:rgba(255,207,92,.72); white-space:nowrap;
+  }
+  @keyframes reachPulse{ 0%,100%{opacity:.85;} 50%{opacity:1;} }
+  @media (prefers-reduced-motion:reduce){ .field-reach{ animation:none; } }
+
   /* wires */
   .wire-border{ stroke:#2a1c0c; stroke-width:15; stroke-linecap:round; fill:none; }
   .wire-fill{ stroke:url(#wireStripe); stroke-width:11; stroke-linecap:round; fill:none; cursor:pointer; }
@@ -1097,6 +1113,21 @@ function tickPulseFade(){
 
 function renderComponents(){
   el.world.innerHTML='';
+  // A live coil is an electromagnet, so show how far its field actually
+  // carries: concentric lines fading outwards to a dashed edge drawn at
+  // exactly COUPLING_REACH — a second coil inside that edge picks up an
+  // induced current, one outside it does not.
+  for(const comp of (lab().energizedCoilIds ? lab().components : [])){
+    if(!COIL_TYPES.includes(comp.type) || !lab().energizedCoilIds.has(comp.id)) continue;
+    const s=effSize(comp);
+    const halo=document.createElement('div');
+    halo.className='field-reach';
+    halo.style.left=(comp.x+s.w/2-COUPLING_REACH)+'px';
+    halo.style.top=(comp.y+s.h/2-COUPLING_REACH)+'px';
+    halo.style.width=halo.style.height=(COUPLING_REACH*2)+'px';
+    halo.innerHTML='<span class="fr-label">مدى المجال المغناطيسي</span>';
+    el.world.appendChild(halo);
+  }
   // A `background` prop (e.g. the field-region indicator in the rails/rod
   // and pendulum experiments) is meant to be seen through, not clicked —
   // it's deliberately drawn overlapping the real interactive pieces (a rod
@@ -1360,12 +1391,15 @@ function evaluateCircuit(){
   let swing = anyLoop ? Math.max(14, 34 / (1 + resistiveLoad*0.5)) : 0;
   // Only the induced reading fades — a meter held up by a real source keeps
   // reading steadily.
-  if(inducedActive && !sourceLoop){
-    swing*=pulseFade;
-    // a pulse can carry its own strength (tab 5 scales it by |dPhi/dt|, so a
-    // quick squeeze kicks harder than a slow one)
-    if(pulse && pulse.strength!=null) swing*=pulse.strength;
-  }
+  // How hard the *induced* reading should read. A pulse can carry its own
+  // strength — tab 5 scales it by |dPhi/dt|, tab 3 by how far the secondary
+  // sits from the primary — and it fades once the motion stops. This is kept
+  // separate from `swing` because a meter sitting in its own battery-driven
+  // loop must go on reading that loop steadily; only a meter lit purely by
+  // the pulse is scaled by it.
+  let inducedScale = pulseFade;
+  if(pulse && pulse.strength!=null) inducedScale*=pulse.strength;
+  if(inducedActive && !sourceLoop) swing*=inducedScale;
 
   // Track which coils are currently carrying current, so a *step change*
   // (a switch just opening/closing) can be detected from outside this
@@ -1412,7 +1446,8 @@ function evaluateCircuit(){
       const liveTau=loopTau.get(comp.id)||0;
       if(liveTau>0) comp._tau=liveTau;
       const tau = liveTau>0 ? liveTau : ((!on && comp._lit) ? (comp._tau||0) : 0);
-      const target = on ? 1 : 0;
+      const litBySource = loopSwing.has(comp.id);
+      const target = on ? (litBySource ? 1 : (inducedActive ? Math.max(0.15, inducedScale) : 1)) : 0;
       if(comp._lit==null) comp._lit=0;
       if(tau>0.01){
         const nw=(typeof performance!=='undefined'?performance.now():Date.now());
@@ -1433,7 +1468,11 @@ function evaluateCircuit(){
     const needle=div.querySelector('.needle');
     if(needle && isMeter){
       const dir = compDirection.get(comp.id) || 1;
-      const ownSwing = loopSwing.has(comp.id) ? loopSwing.get(comp.id) : swing;
+      // in a source loop -> that loop's own steady current; otherwise it is
+      // the induced pulse driving it, so it carries the pulse's strength
+      const inSourceLoop = loopSwing.has(comp.id);
+      let ownSwing = inSourceLoop ? loopSwing.get(comp.id) : swing;
+      if(!inSourceLoop && inducedActive && sourceLoop) ownSwing*=inducedScale;
       const target = on ? dir*ownSwing : 0;
       // Breaking an R-L loop does not stop its current dead. Once the switch
       // opens the loop is gone from the maps above, but the collapsing field
@@ -1775,20 +1814,33 @@ function findNestTarget(dragComp){
 // one's current induces a momentary pulse in the other, independent of any
 // wire between them (there usually isn't one — that's the whole point of a
 // transformer/mutual-induction setup).
+// How far a live coil's field still reaches another one. This single number
+// is both the physics and the picture: the dashed ring drawn round an
+// energised coil is rendered at exactly this radius, so a secondary inside
+// the ring couples and one outside it does not — no guessing where the
+// invisible boundary sits.
+const COUPLING_REACH=470;
+// Coupling weakens with separation rather than cutting out at the edge: a
+// secondary right against the primary gets the full kick, one out near the
+// limit still responds, just faintly. (A real dipole falls off far harder
+// than this; the floor keeps the far case legible instead of invisible.)
+function couplingStrength(dist){
+  const k=1-Math.pow(Math.min(1,dist/COUPLING_REACH),1.6);
+  return Math.max(0.3, Math.min(1, k));
+}
 function findCoupledCoil(coil){
   const cs=effSize(coil);
   const cCenter={ x:coil.x+cs.w/2, y:coil.y+cs.h/2 };
-  const MARGIN=200; // wide enough to still count two coils on opposite legs of the same core as coupled
   let best=null, bestDist=Infinity;
   for(const c of lab().components){
     if(c.id===coil.id || !COIL_TYPES.includes(c.type)) continue;
     const os=effSize(c);
     const oCenter={ x:c.x+os.w/2, y:c.y+os.h/2 };
     const dist=Math.hypot(cCenter.x-oCenter.x, cCenter.y-oCenter.y);
-    if(dist>MARGIN) continue;
+    if(dist>COUPLING_REACH) continue;
     if(dist<bestDist){ bestDist=dist; best=c; }
   }
-  return best;
+  return best ? { comp:best, dist:bestDist } : null;
 }
 
 // A wider proximity check than findNestTarget: used to detect "the magnet is
@@ -1797,7 +1849,11 @@ function findCoupledCoil(coil){
 function findInductionCoil(dragComp){
   const ds=effSize(dragComp);
   const dCenter={ x:dragComp.x+ds.w/2, y:dragComp.y+ds.h/2 };
-  const MARGIN=90;
+  // A magnet has to be brought right up to a coil, as it does in tab 1.
+  // Two coils are a different case — a live coil is an electromagnet whose
+  // field carries as far as COUPLING_REACH — so moving one near another
+  // works over the same distance the drawn range shows.
+  const MAGNET_MARGIN=90;
   let best=null, bestDist=Infinity;
   for(const c of lab().components){
     if(c.id===dragComp.id) continue;
@@ -1810,9 +1866,11 @@ function findInductionCoil(dragComp){
     const compatible = (ct.accepts && ct.accepts.includes(dragComp.type)) || (COIL_TYPES.includes(c.type) && COIL_TYPES.includes(dragComp.type));
     if(!compatible) continue;
     const cs=effSize(c);
-    if(dCenter.x < c.x-MARGIN || dCenter.x > c.x+cs.w+MARGIN || dCenter.y < c.y-MARGIN || dCenter.y > c.y+cs.h+MARGIN) continue;
+    const coilPair = COIL_TYPES.includes(c.type) && COIL_TYPES.includes(dragComp.type);
     const cCenter={ x:c.x+cs.w/2, y:c.y+cs.h/2 };
     const dist=Math.hypot(dCenter.x-cCenter.x, dCenter.y-cCenter.y);
+    if(coilPair){ if(dist>COUPLING_REACH) continue; }
+    else if(dCenter.x < c.x-MAGNET_MARGIN || dCenter.x > c.x+cs.w+MAGNET_MARGIN || dCenter.y < c.y-MAGNET_MARGIN || dCenter.y > c.y+cs.h+MAGNET_MARGIN) continue;
     if(dist<bestDist){ bestDist=dist; best=c; }
   }
   return best ? { comp:best, dist:bestDist } : null;
@@ -1886,9 +1944,11 @@ function fireInductionForEnergizeChanges(targetLab, before){
     if(!COIL_TYPES.includes(c.type)) continue;
     const was=before.has(c.id), now=after.has(c.id);
     if(was===now) continue; // this coil's current didn't change — no induction from it
-    const secondary=findCoupledCoil(c);
-    if(secondary){
-      targetLab.inducedPulse={ coilId:secondary.id, dir: now?1:-1, reason:'switch' };
+    const hit=findCoupledCoil(c);
+    if(hit){
+      const secondary=hit.comp;
+      targetLab.inducedPulse={ coilId:secondary.id, dir: now?1:-1, reason:'switch',
+                               strength: couplingStrength(hit.dist) };
       // Long enough that a person clicking the switch and then looking at
       // the meter actually catches the deflection before it resets — a
       // fixed 450ms round-trip (click, glance, register what you saw) is
@@ -2108,7 +2168,8 @@ document.addEventListener('mousemove', e=>{
         const pulseCoil = dragIsSource ? found.comp : comp; // whichever side has no source of its own
         if(dragCtx.lastDist!=null && found.dist!==dragCtx.lastDist){
           const dir = found.dist < dragCtx.lastDist ? 1 : -1;
-          lab().inducedPulse = { coilId:pulseCoil.id, dir, reason:'motion' };
+          lab().inducedPulse = { coilId:pulseCoil.id, dir, reason:'motion',
+                                 strength: couplingStrength(found.dist) };
           dragCtx.lastDir=dir;
         }
         dragCtx.lastDist=found.dist;
