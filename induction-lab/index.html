@@ -211,6 +211,7 @@
     backdrop-filter:blur(2px);
   }
   .icon-btn:hover{ background:rgba(40,28,12,.85); }
+  [hidden]{ display:none !important; } /* .icon-btn sets display:flex, which outranks a bare [hidden] */
   .icon-btn.danger{ color:#ffb4b4; }
   .icon-btn.danger:hover{ background:rgba(120,20,20,.6); }
 
@@ -380,20 +381,20 @@
 
   /* tab 7: the two bobs, measured */
   .pend-readout{
-    position:absolute; right:14px; bottom:14px; z-index:5;
-    background:rgba(16,26,45,.94); border:1px solid #2f445f; border-radius:10px;
-    padding:10px 14px; font-size:12px; color:#e8eef8; pointer-events:none;
-    box-shadow:0 6px 18px rgba(0,0,0,.4); min-width:330px;
+    position:absolute; right:12px; bottom:12px; z-index:5;
+    background:rgba(16,26,45,.94); border:1px solid #2f445f; border-radius:9px;
+    padding:7px 9px; font-size:10.5px; color:#e8eef8; pointer-events:none;
+    box-shadow:0 6px 18px rgba(0,0,0,.4); width:236px;
   }
-  .pend-readout .pd-title{ font-weight:800; color:var(--accent-amber); margin-bottom:6px; font-size:13px; }
-  .pend-readout .pd-row{ display:flex; gap:10px; align-items:baseline; padding:3px 6px; border-radius:6px; }
+  .pend-readout .pd-title{ font-weight:800; color:var(--accent-amber); margin-bottom:4px; font-size:11.5px; }
+  .pend-readout .pd-row{ display:flex; gap:6px; align-items:baseline; padding:2px 4px; border-radius:5px; white-space:nowrap; }
   .pend-readout .pd-row.pd-in{ background:rgba(255,207,92,.12); }
-  .pend-readout .pd-name{ min-width:42px; font-weight:800; color:#7fe4ef; }
+  .pend-readout .pd-name{ min-width:34px; font-weight:800; color:#7fe4ef; }
   .pend-readout .pd-tag{ color:#9fb3d0; }
   .pend-readout .pd-row b{ color:#fff; font-variant-numeric:tabular-nums; }
-  .pend-readout .pd-note{ margin-top:5px; color:#9fb3d0; font-size:11px; line-height:1.6; }
-  .pend-readout .pd-key{ width:9px; height:9px; border-radius:2px; display:inline-block; flex:none; }
-  .pend-readout .pd-chart-t{ margin:7px 0 2px; font-size:11px; color:#9fb3d0; }
+  .pend-readout .pd-note{ margin-top:4px; color:#9fb3d0; font-size:9.5px; line-height:1.5; }
+  .pend-readout .pd-key{ width:8px; height:8px; border-radius:2px; display:inline-block; flex:none; }
+  .pend-readout .pd-chart-t{ margin:5px 0 1px; font-size:9.5px; color:#9fb3d0; }
   .pend-readout .pd-chart{ display:block; width:100%; height:auto; }
 
   .icon-btn.build{
@@ -1178,7 +1179,8 @@ function renderComponents(){
   // carries: concentric lines fading outwards to a dashed edge drawn at
   // exactly COUPLING_REACH — a second coil inside that edge picks up an
   // induced current, one outside it does not.
-  for(const comp of (lab().energizedCoilIds ? lab().components : [])){
+  const otherCoils=lab().components.filter(c=>COIL_TYPES.includes(c.type)).length;
+  for(const comp of (lab().energizedCoilIds && otherCoils>1 ? lab().components : [])){
     if(!COIL_TYPES.includes(comp.type) || !lab().energizedCoilIds.has(comp.id)) continue;
     const s=effSize(comp);
     const halo=document.createElement('div');
@@ -1740,12 +1742,12 @@ function renderPendulumReadout(){
       <span>v=<b>${(c._speed||0).toFixed(2)}</b></span>
       <span>كبح=<b>${(c._brake||0).toFixed(2)}</b></span>
       <span>تأرجحات=<b>${c._swings||0}</b></span>
-      <span class="pd-tag">${moving?(inF?'داخل المجال':'خارج المجال'):'ساكن'}</span>
+      <span class="pd-tag">${moving?(inF?'داخل':'خارج'):'ساكن'}</span>
     </div>`;
   }).join('');
 
   // --- the decay curve: amplitude at each turning point against time ---
-  const W=330, H=118, PADL=34, PADR=48, PADT=12, PADB=20;
+  const W=236, H=86, PADL=26, PADR=40, PADT=8, PADB=16;
   const traces=pends.filter(c=>(c._decay||[]).length>1);
   let chart='';
   if(traces.length){
@@ -1756,7 +1758,7 @@ function renderPendulumReadout(){
     const grid=[0,0.5,1].map(f=>{
       const y=Y(maxA*f);
       return `<line x1="${PADL}" y1="${y.toFixed(1)}" x2="${W-PADR}" y2="${y.toFixed(1)}" stroke="#2f445f" stroke-width="1"/>
-              <text x="${PADL-5}" y="${(y+3.5).toFixed(1)}" font-size="9" fill="#9fb3d0" text-anchor="end">${Math.round(maxA*f)}°</text>`;
+              <text x="${PADL-4}" y="${(y+3).toFixed(1)}" font-size="8" fill="#9fb3d0" text-anchor="end">${Math.round(maxA*f)}°</text>`;
     }).join('');
     const lines=traces.map(c=>{
       const sr=SERIES[c.type];
@@ -1764,23 +1766,23 @@ function renderPendulumReadout(){
       const last=c._decay[c._decay.length-1];
       // direct label at the end of each line, so identity never rests on colour alone
       return `<path d="${d}" fill="none" stroke="${sr.c}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-              <circle cx="${X(last.t).toFixed(1)}" cy="${Y(last.amp).toFixed(1)}" r="3.5" fill="${sr.c}" stroke="#101a2d" stroke-width="2"/>
-              <text x="${(X(last.t)+7).toFixed(1)}" y="${(Y(last.amp)+3.5).toFixed(1)}" font-size="10" fill="#cfdcee">${sr.name}</text>`;
+              <circle cx="${X(last.t).toFixed(1)}" cy="${Y(last.amp).toFixed(1)}" r="3" fill="${sr.c}" stroke="#101a2d" stroke-width="2"/>
+              <text x="${(X(last.t)+6).toFixed(1)}" y="${(Y(last.amp)+3).toFixed(1)}" font-size="9" fill="#cfdcee">${sr.name}</text>`;
     }).join('');
     chart=`<div class="pd-chart-t">اضمحلال السعة مع الزمن</div>
       <svg class="pd-chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="منحنى اضمحلال سعة التأرجح للبندولين">
         ${grid}
         <line x1="${PADL}" y1="${H-PADB}" x2="${W-PADR}" y2="${H-PADB}" stroke="#3c5478" stroke-width="1"/>
-        <text x="${W-PADR}" y="${H-6}" font-size="9" fill="#9fb3d0" text-anchor="end">${maxT.toFixed(1)} ث</text>
-        <text x="${PADL}" y="${H-6}" font-size="9" fill="#9fb3d0">0</text>
+        <text x="${W-PADR}" y="${H-5}" font-size="8" fill="#9fb3d0" text-anchor="end">${maxT.toFixed(1)} ث</text>
+        <text x="${PADL}" y="${H-5}" font-size="8" fill="#9fb3d0">0</text>
         ${lines}
       </svg>`;
   }
 
   el.releaseBothBtn.hidden = pends.length<2;
   box.innerHTML=`<div class="pd-title">التخميد بالتيارات الدوامية</div>${rows}${chart}
-    <div class="pd-note">قوة الكبح ∝ السرعة، وتعمل داخل المجال فقط — لذلك أقوى ما تكون في أسفل التأرجح وتنعدم عند طرفيه</div>
-    <div class="pd-note">الشقوق تقطع حلقات التيار: عرض w مقسّم إلى ${EDDY_STRIPS} شرائح ⇦ تخميد أقل بمقدار ${EDDY_STRIPS}×</div>`;
+    <div class="pd-note">الكبح ∝ السرعة وداخل المجال فقط ⇦ أقوى في الأسفل</div>
+    <div class="pd-note">الشقوق تقطع الحلقات: ${EDDY_STRIPS} شرائح ⇦ تخميد أقل ${EDDY_STRIPS}×</div>`;
 }
 
 // Tab 8's read-out: each battery loop's resistance, inductance and the time
@@ -1800,7 +1802,8 @@ function renderRLReadout(){
       <span>I = <b>${l.I.toFixed(2)}</b> A</span>
     </div>`).join('');
   box.innerHTML=`<div class="rl-title">ثابت الزمن  τ = L / R</div>${rows}
-    <div class="rl-note">التياران يستقران عند <b>نفس</b> القيمة (نفس المقاومة) — الفرق في <b>زمن الوصول</b> فقط</div>
+    <div class="rl-note">مقاومة الفرعين <b>متساوية</b> (مقاومة سلك الملف تقابلها المقاومة في الفرع الآخر) ⇦ المصباحان يستقران عند <b>نفس السطوع</b></div>
+    <div class="rl-note">الفرق في <b>زمن الوصول</b> وحده: مصباح المقاومة يضيء فورًا، ومصباح الملف يتدرّج</div>
     <div class="rl-note">i(t) = I(1 − e<sup>−t/τ</sup>) — يبلغ 63% عند τ و95% عند 3τ</div>`;
 }
 
@@ -2426,11 +2429,17 @@ const AUTO_BUILD = {
     const slot=place('pendulumSlotted',830,250);
     place('fieldSource', slot.x+45, slot.y+4+128);
   },
-  8: ()=>{ // two independent loops to compare: resistor branch vs inductor branch
-    const b1=place('battery',150,170), s1=place('switch',390,170), r1=place('resistor',630,170), g1=place('galvanometer',880,170);
-    loopUp(b1, s1, r1, g1);
-    const b2=place('battery',150,450), s2=place('switch',390,450), i2=place('inductor',630,450), g2=place('galvanometer',880,450);
-    loopUp(b2, s2, i2, g2);
+  8: ()=>{ // the textbook comparison: a lamp behind a resistor vs a lamp behind a coil
+    // Both branches are given the SAME total resistance — the coil's own
+    // winding resistance is matched by the resistor in the other branch — so
+    // the two lamps settle at exactly the same brightness. The only thing
+    // that differs is how long each takes to get there, which is the point.
+    const b1=place('battery',120,150), s1=place('switch',330,150), r1=place('resistor',545,150),
+          l1=place('bulb',760,150), g1=place('galvanometer',985,150);
+    loopUp(b1, s1, r1, l1, g1);
+    const b2=place('battery',120,430), s2=place('switch',330,430), i2=place('inductor',545,430),
+          l2=place('bulb',760,430), g2=place('galvanometer',985,430);
+    loopUp(b2, s2, i2, l2, g2);
   },
   9: ()=>{ // self-induction: neon lamp straight across the coil
     const batt=place('battery',200,220), sw=place('switch',450,220), ind=place('inductor',700,220);
