@@ -1423,6 +1423,22 @@ function evaluateCircuit(){
     }
   }
 
+  // When a coil's own loop is broken, its current only keeps flowing if some
+  // closed path still remains around it — a lamp or resistor across its
+  // terminals to freewheel through, as in tab 9. Testing the coil's own two
+  // terminals against the rest of the circuit answers exactly that: if they
+  // are still joined, current decays round that path as I*e^(-t/tau); if the
+  // switch simply broke a series loop, there is nowhere to go and the current
+  // stops at once (in reality, into a spark across the opening contacts).
+  const freewheel=new Set();
+  for(const c of lab().components){
+    if(c.type!=='inductor' && !COIL_TYPES.includes(c.type)) continue;
+    const fwNodes=new Set(), fwMembers=new Set();
+    if(processLoop(c.id,'a','b', fwNodes, new Map(), new Map(), {count:0}, fwMembers)){
+      for(const id of fwMembers) freewheel.add(id);
+    }
+  }
+
   // A magnet in motion momentarily turns the coil it's approaching/leaving
   // into its own EMF source — direction depends on which way it's moving,
   // and it starts dying away the moment the motion stops (see the mouse
@@ -1508,7 +1524,8 @@ function evaluateCircuit(){
     if(comp.type==='bulb'){
       const liveTau=loopTau.get(comp.id)||0;
       if(liveTau>0) comp._tau=liveTau;
-      const tau = liveTau>0 ? liveTau : ((!on && comp._lit) ? (comp._tau||0) : 0);
+      const tau = liveTau>0 ? liveTau
+                : ((!on && comp._lit && freewheel.has(comp.id)) ? (comp._tau||0) : 0);
       const litBySource = loopSwing.has(comp.id);
       const target = on ? (litBySource ? 1 : (inducedActive ? Math.max(0.15, inducedScale) : 1)) : 0;
       if(comp._lit==null) comp._lit=0;
@@ -1544,7 +1561,8 @@ function evaluateCircuit(){
       // the loop had and keep falling with it, instead of snapping to zero.
       const liveTau = loopTau.get(comp.id)||0;
       if(liveTau>0) comp._tau=liveTau;
-      const tau = liveTau>0 ? liveTau : ((!on && comp._needleLevel) ? (comp._tau||0) : 0);
+      const tau = liveTau>0 ? liveTau
+                : ((!on && comp._needleLevel && freewheel.has(comp.id)) ? (comp._tau||0) : 0);
       needle.style.transformOrigin = (t.w*0.5)+'px '+(t.h*0.8125)+'px';
       if(tau>0.01){
         // i(t) = I(1 - e^(-t/tau)) rising, I*e^(-t/tau) falling — stepped
