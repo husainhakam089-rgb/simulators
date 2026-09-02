@@ -392,6 +392,9 @@
   .pend-readout .pd-tag{ color:#9fb3d0; }
   .pend-readout .pd-row b{ color:#fff; font-variant-numeric:tabular-nums; }
   .pend-readout .pd-note{ margin-top:5px; color:#9fb3d0; font-size:11px; line-height:1.6; }
+  .pend-readout .pd-key{ width:9px; height:9px; border-radius:2px; display:inline-block; flex:none; }
+  .pend-readout .pd-chart-t{ margin:7px 0 2px; font-size:11px; color:#9fb3d0; }
+  .pend-readout .pd-chart{ display:block; width:100%; height:auto; }
 
   .icon-btn.build{
     width:auto; padding:0 14px; font-size:12.5px; font-weight:800; white-space:nowrap;
@@ -523,6 +526,7 @@
         <button id="zoomInBtn" class="icon-btn" title="تكبير">🔍+</button>
         <button id="deleteBtn" class="icon-btn danger" title="حذف العنصر المحدد">🗑</button>
         <button id="autoBuildBtn" class="icon-btn build" title="ربط الدائرة تلقائيًا حسب التجربة">⚡ ربط تلقائي</button>
+        <button id="releaseBothBtn" class="icon-btn build" title="أفلت البندولين من نفس الزاوية في نفس اللحظة" hidden>⇄ أطلق الاثنين معًا</button>
       </div>
       <div class="status-pill" id="circuitStatus">اسحب الأدوات وابدأ التركيب</div>
     </div>
@@ -779,6 +783,16 @@ const TYPES = {
   pendulumSolid:{ label:'بندول مصمت', w:90, h:150, hasTerminals:false, pendulum:true, svg:(comp)=>{
     const on=comp && comp._inField && comp._swinging;
     const k=on ? Math.min(1, (comp._speed||0)/1.6) : 0;
+    // the retarding force itself: an arrow opposing the motion, its length the
+    // actual force, so you see it grow with speed and vanish at the turning points
+    const bv = comp && comp._swinging ? (comp._omega||0) : 0;
+    const bf = comp && comp._inField ? Math.min(46, (comp._brake||0)*26) : 0;
+    const brake = bf>4 ? `<g transform="translate(45 128)">
+      <line x1="0" y1="0" x2="${bv>0?-bf:bf}" y2="0" stroke="#ff6b6b" stroke-width="3.5" marker-end="url(#brakeA)"/>
+      <text x="${bv>0?-bf-4:bf+4}" y="-9" font-size="10" fill="#ff8b8b" text-anchor="${bv>0?'end':'start'}" font-weight="700">قوة الكبح</text>
+    </g>
+    <defs><marker id="brakeA" markerWidth="7" markerHeight="7" refX="3.5" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z" fill="#ff6b6b"/></marker></defs>` : '';
+
     const swirl = k>0.05 ? `
       <ellipse cx="32" cy="128" rx="12" ry="9" fill="none" stroke="#ffcf5c" stroke-width="2.2" opacity="${(0.35+0.65*k).toFixed(2)}"/>
       <ellipse cx="58" cy="128" rx="12" ry="9" fill="none" stroke="#ffcf5c" stroke-width="2.2" opacity="${(0.35+0.65*k).toFixed(2)}"/>
@@ -788,10 +802,20 @@ const TYPES = {
     <line x1="45" y1="0" x2="45" y2="110" stroke="#5a6a8c" stroke-width="3"/>
     <circle cx="45" cy="0" r="5" fill="#3a2a18"/>
     <rect x="15" y="110" width="60" height="36" rx="6" fill="#8891a0" stroke="${on?'#ffcf5c':'#4a5160'}" stroke-width="2"/>
-    ${swirl}`; } },
+    ${swirl}${brake}`; } },
   pendulumSlotted:{ label:'بندول مشقوق', w:90, h:150, hasTerminals:false, pendulum:true, svg:(comp)=>{
     const on=comp && comp._inField && comp._swinging;
     const k=on ? Math.min(1, (comp._speed||0)/1.6) : 0;
+    // the retarding force itself: an arrow opposing the motion, its length the
+    // actual force, so you see it grow with speed and vanish at the turning points
+    const bv = comp && comp._swinging ? (comp._omega||0) : 0;
+    const bf = comp && comp._inField ? Math.min(46, (comp._brake||0)*26) : 0;
+    const brake = bf>4 ? `<g transform="translate(45 128)">
+      <line x1="0" y1="0" x2="${bv>0?-bf:bf}" y2="0" stroke="#ff6b6b" stroke-width="3.5" marker-end="url(#brakeA)"/>
+      <text x="${bv>0?-bf-4:bf+4}" y="-9" font-size="10" fill="#ff8b8b" text-anchor="${bv>0?'end':'start'}" font-weight="700">قوة الكبح</text>
+    </g>
+    <defs><marker id="brakeA" markerWidth="7" markerHeight="7" refX="3.5" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z" fill="#ff6b6b"/></marker></defs>` : '';
+
     // one narrow loop per strip: same law, far less of it
     const swirl = k>0.05 ? [21,39,57,69].map(x=>`<ellipse cx="${x}" cy="128" rx="3.4" ry="8" fill="none" stroke="#ffcf5c" stroke-width="1.6" opacity="${(0.3+0.5*k).toFixed(2)}"/>`).join('') : '';
     return `
@@ -803,7 +827,7 @@ const TYPES = {
     <line x1="48" y1="114" x2="48" y2="142" stroke="#4a2c11" stroke-width="3.4"/>
     <line x1="57" y1="114" x2="57" y2="142" stroke="#4a2c11" stroke-width="3.4"/>
     <line x1="66" y1="114" x2="66" y2="142" stroke="#4a2c11" stroke-width="3.4"/>
-    ${swirl}`; } },
+    ${swirl}${brake}`; } },
   stand:{ label:'حامل', w:100, h:120, hasTerminals:false, svg:()=>`
     <rect x="10" y="110" width="80" height="8" rx="2" fill="#4a5160"/>
     <line x1="50" y1="4" x2="50" y2="112" stroke="#4a5160" stroke-width="6"/>
@@ -881,6 +905,7 @@ const el = {
   clearBtn: document.getElementById('clearBtn'),
   zoomInBtn: document.getElementById('zoomInBtn'),
   autoBuildBtn: document.getElementById('autoBuildBtn'),
+  releaseBothBtn: document.getElementById('releaseBothBtn'),
   zoomOutBtn: document.getElementById('zoomOutBtn'),
   viewModeBtn: document.getElementById('viewModeBtn'),
   canvasWrap: document.querySelector('.canvas-wrap'),
@@ -1065,15 +1090,51 @@ function tickPendulums(ts){
         c._inField=inField; c._gamma=gamma;
       }
       c._speed=Math.abs(c._omega||0)*PEND_L;        // bob speed, m/s
+      c._brake=(c._gamma||0)*Math.abs(c._omega||0)*PEND_L; // retarding force per unit mass, N/kg
+      // Count a swing each time the bob turns round.
+      const wSign=Math.sign(c._omega||0);
+      if(c._lastSign && wSign && wSign!==c._lastSign) c._swings=(c._swings||0)+1;
+      if(wSign) c._lastSign=wSign;
+      c._runT=(c._runT||0)+dt;
+      // Sample the amplitude envelope on a timer rather than only at turning
+      // points: a heavily damped bob can die before it ever completes one, and
+      // the curve that matters most would then be the one curve missing.
+      c._env=Math.max(c._env||0, Math.abs(c._swingAngle||0));
+      if((c._runT-(c._sampleT||0))>=0.09){
+        c._sampleT=c._runT;
+        c._decay=c._decay||[];
+        c._decay.push({ t:c._runT, amp:c._env });
+        c._env=Math.abs(c._swingAngle||0);
+        if(c._decay.length>400) c._decay.shift();
+      }
       // energy per unit mass: stop once it has essentially settled
       const thNow=(c._swingAngle||0)*Math.PI/180;
       const E=0.5*Math.pow((c._omega||0)*PEND_L,2) + G_ACCEL*PEND_L*(1-Math.cos(thNow));
-      if(E<0.0015){ c._omega=0; c._swingAngle=0; c._swinging=false; c._speed=0; c._inField=false; }
+      if(E<0.0015){ c._omega=0; c._swingAngle=0; c._swinging=false; c._speed=0; c._brake=0; c._inField=false; }
     }
   }
   render();
   pendulumRAF = any ? requestAnimationFrame(tickPendulums) : null;
 }
+// Let go from rest at whatever angle it is being held at, and start a clean
+// record of the decay.
+function releasePendulum(c, angle){
+  if(angle!=null) c._swingAngle=angle;
+  c._omega=0; c._lastT=null; c._runT=0; c._swings=0; c._lastSign=0;
+  c._decay=[{t:0, amp:Math.abs(c._swingAngle||0)}]; c._env=Math.abs(c._swingAngle||0); c._sampleT=0;
+  c._swinging=true;
+  startPendulumLoop();
+}
+// The comparison only means anything if both start from the same angle at the
+// same instant — done by hand, one always gets a head start or a bigger pull.
+function releaseBothPendulums(){
+  const pends=lab().components.filter(c=>TYPES[c.type].pendulum);
+  if(!pends.length) return;
+  const start=45;
+  for(const c of pends) releasePendulum(c, start);
+  render();
+}
+
 function startPendulumLoop(){ if(pendulumRAF==null) pendulumRAF=requestAnimationFrame(tickPendulums); }
 
 // Tab 8 (R-L delay): re-running render() advances every ramping meter's
@@ -1661,24 +1722,64 @@ function renderLenzReadout(){
 function renderPendulumReadout(){
   let box=document.getElementById('pendReadout');
   const pends=lab().components.filter(c=>TYPES[c.type].pendulum);
-  if(!pends.length){ if(box) box.remove(); return; }
+  if(!pends.length){ if(box) box.remove(); if(el.releaseBothBtn) el.releaseBothBtn.hidden=true; return; }
   if(!box){
     box=document.createElement('div'); box.id='pendReadout'; box.className='pend-readout';
     el.viewport.appendChild(box);
   }
+  // Two series, identity-coded, in a fixed order that never depends on which
+  // one happens to still be swinging. Both hues validated against this panel.
+  const SERIES={ pendulumSolid:{ c:'#c9821c', name:'مصمت' }, pendulumSlotted:{ c:'#1d94ad', name:'مشقوق' } };
+
   const rows=pends.map(c=>{
-    const inF=!!c._inField, moving=!!c._swinging;
+    const sr=SERIES[c.type]; const inF=!!c._inField, moving=!!c._swinging;
     const g=(c._gamma==null?GAMMA_AIR:c._gamma);
-    const name=c.type==='pendulumSolid'?'مصمت':'مشقوق';
     return `<div class="pd-row${inF?' pd-in':''}">
-      <span class="pd-name">${name}</span>
-      <span>v = <b>${(c._speed||0).toFixed(2)}</b> م/ث</span>
+      <span class="pd-key" style="background:${sr.c}"></span>
+      <span class="pd-name">${sr.name}</span>
+      <span>v=<b>${(c._speed||0).toFixed(2)}</b></span>
+      <span>كبح=<b>${(c._brake||0).toFixed(2)}</b></span>
+      <span>تأرجحات=<b>${c._swings||0}</b></span>
       <span class="pd-tag">${moving?(inF?'داخل المجال':'خارج المجال'):'ساكن'}</span>
-      <span>γ = <b>${g.toFixed(2)}</b> ث⁻¹</span>
     </div>`;
   }).join('');
-  box.innerHTML=`<div class="pd-title">التخميد بالتيارات الدوامية</div>${rows}
-    <div class="pd-note">قوة الكبح ∝ السرعة، وتعمل داخل المجال فقط — لذلك أقوى ما تكون في أسفل التأرجح</div>
+
+  // --- the decay curve: amplitude at each turning point against time ---
+  const W=330, H=118, PADL=34, PADR=48, PADT=12, PADB=20;
+  const traces=pends.filter(c=>(c._decay||[]).length>1);
+  let chart='';
+  if(traces.length){
+    const maxT=Math.max(1.5, ...traces.map(c=>c._decay[c._decay.length-1].t));
+    const maxA=Math.max(10, ...traces.map(c=>Math.max(...c._decay.map(d=>d.amp))));
+    const X=t=>PADL+(t/maxT)*(W-PADL-PADR);
+    const Y=a=>H-PADB-(a/maxA)*(H-PADT-PADB);
+    const grid=[0,0.5,1].map(f=>{
+      const y=Y(maxA*f);
+      return `<line x1="${PADL}" y1="${y.toFixed(1)}" x2="${W-PADR}" y2="${y.toFixed(1)}" stroke="#2f445f" stroke-width="1"/>
+              <text x="${PADL-5}" y="${(y+3.5).toFixed(1)}" font-size="9" fill="#9fb3d0" text-anchor="end">${Math.round(maxA*f)}°</text>`;
+    }).join('');
+    const lines=traces.map(c=>{
+      const sr=SERIES[c.type];
+      const d=c._decay.map((pt,i)=>`${i?'L':'M'}${X(pt.t).toFixed(1)} ${Y(pt.amp).toFixed(1)}`).join(' ');
+      const last=c._decay[c._decay.length-1];
+      // direct label at the end of each line, so identity never rests on colour alone
+      return `<path d="${d}" fill="none" stroke="${sr.c}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+              <circle cx="${X(last.t).toFixed(1)}" cy="${Y(last.amp).toFixed(1)}" r="3.5" fill="${sr.c}" stroke="#101a2d" stroke-width="2"/>
+              <text x="${(X(last.t)+7).toFixed(1)}" y="${(Y(last.amp)+3.5).toFixed(1)}" font-size="10" fill="#cfdcee">${sr.name}</text>`;
+    }).join('');
+    chart=`<div class="pd-chart-t">اضمحلال السعة مع الزمن</div>
+      <svg class="pd-chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="منحنى اضمحلال سعة التأرجح للبندولين">
+        ${grid}
+        <line x1="${PADL}" y1="${H-PADB}" x2="${W-PADR}" y2="${H-PADB}" stroke="#3c5478" stroke-width="1"/>
+        <text x="${W-PADR}" y="${H-6}" font-size="9" fill="#9fb3d0" text-anchor="end">${maxT.toFixed(1)} ث</text>
+        <text x="${PADL}" y="${H-6}" font-size="9" fill="#9fb3d0">0</text>
+        ${lines}
+      </svg>`;
+  }
+
+  el.releaseBothBtn.hidden = pends.length<2;
+  box.innerHTML=`<div class="pd-title">التخميد بالتيارات الدوامية</div>${rows}${chart}
+    <div class="pd-note">قوة الكبح ∝ السرعة، وتعمل داخل المجال فقط — لذلك أقوى ما تكون في أسفل التأرجح وتنعدم عند طرفيه</div>
     <div class="pd-note">الشقوق تقطع حلقات التيار: عرض w مقسّم إلى ${EDDY_STRIPS} شرائح ⇦ تخميد أقل بمقدار ${EDDY_STRIPS}×</div>`;
 }
 
@@ -2210,8 +2311,7 @@ document.addEventListener('mouseup', e=>{
     // own from wherever it was released — same idea as "أرجحه ولاحظ سرعة
     // توقفه" in the curriculum's own steps.
     if(comp && dragCtx.moved && TYPES[comp.type].pendulum && Math.abs(comp._swingAngle||0)>3){
-      comp._omega=0; comp._lastT=null; comp._swinging=true; // let go from rest at that angle
-      startPendulumLoop();
+      releasePendulum(comp);
     }
     if(comp && !dragCtx.moved){
       // Detected by timing rather than the native 'dblclick' event: render()
@@ -2356,6 +2456,7 @@ function autoBuild(){
   render();
 }
 el.autoBuildBtn.addEventListener('click', autoBuild);
+el.releaseBothBtn.addEventListener('click', releaseBothPendulums);
 
 el.deleteBtn.addEventListener('click', deleteSelected);
 document.addEventListener('keydown', e=>{
