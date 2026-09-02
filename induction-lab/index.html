@@ -312,6 +312,9 @@
      it, so its label goes above instead — otherwise the two sit on the same
      line and neither is readable. */
   .comp.is-background .comp-label{ bottom:auto; top:-18px; }
+  /* a part seated inside/on another shares its footprint, so its label goes
+     above rather than landing on top of the host's */
+  .comp.is-nested .comp-label{ bottom:auto; top:-17px; }
 
   /* glow rays for anything "lit" (neon lamp) */
   .glow-rays{
@@ -378,6 +381,23 @@
   .lenz-readout .lz-force{ margin-top:5px; padding-top:5px; border-top:1px solid #2f445f; }
   .lenz-readout .lz-force b{ color:var(--accent-amber); font-size:14px; }
   .lenz-readout .lz-row i{ color:#9fb3d0; font-style:normal; }
+
+  /* tab 10: which pot works, and why */
+  .hob-readout{
+    position:absolute; right:12px; bottom:12px; z-index:5;
+    background:rgba(16,26,45,.94); border:1px solid #2f445f; border-radius:9px;
+    padding:7px 10px; font-size:10.5px; color:#e8eef8; pointer-events:none;
+    box-shadow:0 6px 18px rgba(0,0,0,.4); width:272px;
+  }
+  .hob-readout .hb-title{ font-weight:800; color:var(--accent-amber); margin-bottom:4px; font-size:11.5px; }
+  .hob-readout .hb-row{ display:flex; gap:6px; align-items:baseline; padding:2px 4px; border-radius:5px; white-space:nowrap; }
+  .hob-readout .hb-row.hb-on{ background:rgba(255,207,92,.12); }
+  .hob-readout .hb-name{ min-width:64px; font-weight:800; color:#7fe4ef; }
+  .hob-readout .hb-mag{ color:#9fb3d0; }
+  .hob-readout .hb-tag{ color:#ffcf5c; }
+  .hob-readout .hb-row b{ color:#fff; font-variant-numeric:tabular-nums; }
+  .hob-readout .hb-why{ color:#9fb3d0; font-size:9.5px; margin:0 4px 3px; line-height:1.45; }
+  .hob-readout .hb-note{ margin-top:4px; padding-top:4px; border-top:1px solid #2f445f; color:#9fb3d0; font-size:9.5px; line-height:1.5; }
 
   /* tab 7: the two bobs, measured */
   .pend-readout{
@@ -572,8 +592,8 @@ const EXPERIMENTS = {
     steps:['صل الملف الكبير بالبطارية والمفتاح، ومصباح النيون على التوازي معهما.','أغلق المفتاح — لاحظ أن المصباح لا يضيء (الجهد منخفض).','افتح المفتاح فجأة وسجّل ملاحظتك عن ومضة المصباح.'],
     tools:['inductor','battery','switch','neonLamp','bulb'] },
   10:{ title:'الطباخ الحثي (موقد الحث الكهرومغناطيسي)', subtitle:'تيار متناوب يولّد مجالًا متغيرًا يحدث تيارات دوامية تُسخّن قاع الإناء',
-    steps:['ضع الوشيعة الحثية المسطحة على الكانفاس.','صل الوشيعة بمصدر التيار المتناوب عالي التردد.','ضع الإناء المعدني فوق الوشيعة وراقب مؤشر الحرارة.'],
-    tools:['flatCoil','acHighFreq','pot','thermometer','bulb'] }
+    steps:['ضع الوشيعة الحثية المسطحة وصلها بمصدر التيار المتناوب عالي التردد.','ضع <b>إناء الحديد</b> فوق الوشيعة وراقب مؤشر الحرارة يرتفع.','بدّله بإناء <b>الألمنيوم</b>: يسخن قليلًا جدًا — موصل لكنه غير مغناطيسي ومقاومته ضئيلة.','جرّب الإناء <b>الزجاجي</b>: لا يسخن إطلاقًا — عازل لا تتولّد فيه تيارات دوامية.','استنتج القاعدة: ما يلتصق به المغناطيس هو ما يعمل على الموقد الحثي.'],
+    tools:['flatCoil','acHighFreq','pot','potAlu','potGlass','thermometer','bulb'] }
 };
 
 /* =========================================================================
@@ -634,7 +654,7 @@ const TYPES = {
   coilInduction:{ label:'ملف حث (سلك نحاسي)', w:150, h:70, hasTerminals:true, accepts:['magnet','ironCore'], svg:()=>coilSVG(150,70,'#d98a3d') },
   coilSmall:{ label:'ملف صغير (لفات أقل)', w:90, h:48, hasTerminals:true, accepts:['magnet','ironCore'], svg:()=>coilSVG(90,48,'#d98a3d',3) },
   inductor:{ label:'ملف محاثة', w:150, h:70, hasTerminals:true, accepts:['magnet','ironCore'], svg:()=>coilSVG(150,70,'#c9d3e6') },
-  flatCoil:{ label:'وشيعة حثية مسطحة', w:140, h:70, hasTerminals:true, accepts:['pot'], svg:()=>`
+  flatCoil:{ label:'وشيعة حثية مسطحة', w:140, h:70, hasTerminals:true, accepts:['pot','potAlu','potGlass'], svg:()=>`
     <line x1="0" y1="35" x2="20" y2="35" stroke="#8a6d1a" stroke-width="4"/>
     <line x1="120" y1="35" x2="140" y2="35" stroke="#8a6d1a" stroke-width="4"/>
     ${[26,20,14,8].map(r=>`<ellipse cx="70" cy="35" rx="${r*2.2}" ry="${r}" fill="none" stroke="#d98a3d" stroke-width="3"/>`).join('')}` },
@@ -837,12 +857,42 @@ const TYPES = {
   // by updateCooktop() below) — the thermometer next to it is the real
   // readout, but a plain metal pot slowly reddening as eddy currents heat
   // its base is a nice, free confirmation of the same number.
-  pot:{ label:'إناء معدني', w:140, h:66, hasTerminals:false, nestable:true, svg:(comp)=>{
-    const temp=comp?(comp._temp||0):0;
-    const fill=`hsl(${220-190*temp} ${20+40*temp}% ${55-10*temp}%)`;
-    return `
-    <path d="M18 6 H122 L104 60 H36 Z" fill="${fill}" stroke="#4a5160" stroke-width="2.5"/>
-    <ellipse cx="70" cy="6" rx="52" ry="7" fill="#aab2c0" stroke="#4a5160" stroke-width="2"/>`; } },
+  // Three pots, three outcomes — which is the whole point of an induction hob.
+  // heatFactor is how strongly each couples to the coil, and it follows from
+  // the material, not from taste:
+  //   cast iron   ferromagnetic, so it concentrates the flux into its base
+  //               (mu_r in the hundreds) AND has a high enough resistivity for
+  //               the induced currents to dissipate real power: heats hard.
+  //   aluminium   a fine conductor but NOT magnetic, so the flux is not drawn
+  //               in, and its very low resistivity means the eddy currents it
+  //               does carry dissipate little (P = I^2 R): barely warms.
+  //   glass       an insulator with no free charge carriers, so no eddy
+  //               current can be induced in it at all: nothing happens.
+  pot:{ label:'إناء حديد صب (مغناطيسي)', w:140, h:66, hasTerminals:false, nestable:true,
+    heatFactor:1.0, magnetic:true, note:'مغناطيسي ومقاومته عالية ⇦ تيارات دوامية قوية',
+    svg:(comp)=>{
+      const temp=comp?(comp._temp||0):0;
+      const fill=`hsl(${215-195*temp} ${14+46*temp}% ${38+8*temp}%)`;
+      return `
+      <path d="M18 6 H122 L104 60 H36 Z" fill="${fill}" stroke="#20262e" stroke-width="2.5"/>
+      <ellipse cx="70" cy="6" rx="52" ry="7" fill="#5c646f" stroke="#20262e" stroke-width="2"/>
+      <text x="70" y="40" font-size="13" fill="#e8eef8" text-anchor="middle" font-weight="800">Fe</text>`; } },
+  potAlu:{ label:'إناء ألمنيوم (غير مغناطيسي)', w:140, h:66, hasTerminals:false, nestable:true,
+    heatFactor:0.15, magnetic:false, note:'موصل لكنه غير مغناطيسي ومقاومته ضئيلة ⇦ تسخين ضعيف',
+    svg:(comp)=>{
+      const temp=comp?(comp._temp||0):0;
+      const fill=`hsl(${210-90*temp} ${8+30*temp}% ${72-6*temp}%)`;
+      return `
+      <path d="M18 6 H122 L104 60 H36 Z" fill="${fill}" stroke="#8b939e" stroke-width="2.5"/>
+      <ellipse cx="70" cy="6" rx="52" ry="7" fill="#d7dde5" stroke="#8b939e" stroke-width="2"/>
+      <text x="70" y="40" font-size="13" fill="#3a424d" text-anchor="middle" font-weight="800">Al</text>`; } },
+  potGlass:{ label:'إناء زجاجي (عازل)', w:140, h:66, hasTerminals:false, nestable:true,
+    heatFactor:0, magnetic:false, note:'عازل بلا إلكترونات حرة ⇦ لا تتولّد تيارات دوامية إطلاقًا',
+    svg:()=>`
+      <path d="M18 6 H122 L104 60 H36 Z" fill="rgba(150,205,225,.30)" stroke="#9fd4e6" stroke-width="2.5"/>
+      <ellipse cx="70" cy="6" rx="52" ry="7" fill="rgba(190,225,240,.55)" stroke="#9fd4e6" stroke-width="2"/>
+      <path d="M44 14 L36 52" stroke="rgba(255,255,255,.55)" stroke-width="3" stroke-linecap="round"/>
+      <text x="78" y="42" font-size="12" fill="#dff2fa" text-anchor="middle" font-weight="800">زجاج</text>` },
   // The mercury column's visible height (comp._temp, 0..1) is driven by the
   // same updateCooktop() — it climbs from the bulb as the pot on the coil
   // heats up, and sinks back down once the source is switched off.
@@ -982,7 +1032,7 @@ function terminalPos(comp, term){
 }
 
 /* ---- rendering ---- */
-function render(){ renderComponents(); renderWires(); evaluateCircuit(); updateFluxMeters(); updateCooktop(); renderLenzReadout(); renderPendulumReadout(); renderRLReadout(); }
+function render(){ renderComponents(); renderWires(); evaluateCircuit(); updateFluxMeters(); updateCooktop(); renderCooktopReadout(); renderLenzReadout(); renderPendulumReadout(); renderRLReadout(); }
 
 // Tab 10 (induction cooktop): the pot has to actually be resting on the flat
 // coil (nestedIn, same as a magnet dropped into a coil elsewhere) AND that
@@ -994,21 +1044,53 @@ function render(){ renderComponents(); renderWires(); evaluateCircuit(); updateF
 let cooktopRAF=null;
 function updateCooktop(){
   const coil=lab().components.find(c=>c.type==='flatCoil');
-  const pot=lab().components.find(c=>c.type==='pot');
+  const pots=lab().components.filter(c=>TYPES[c.type].heatFactor!=null);
   const thermo=lab().components.find(c=>c.type==='thermometer');
-  if(!pot && !thermo) return;
-  const heating = !!(coil && pot && pot.nestedIn===coil.id && lab().liveComponentIds && lab().liveComponentIds.has(coil.id));
-  const target = heating ? 1 : 0;
-  const targets=[pot, thermo].filter(Boolean);
-  let stillMoving=false;
-  for(const c of targets){
+  if(!pots.length && !thermo) return;
+  const coilLive = !!(coil && lab().liveComponentIds && lab().liveComponentIds.has(coil.id));
+  let stillMoving=false, seatedTemp=0;
+  for(const c of pots){
+    // only the pot actually sitting on a live coil is being driven, and even
+    // then it climbs only as far as its own material allows
+    const onCoil = coil && c.nestedIn===coil.id && coilLive;
+    const target = onCoil ? TYPES[c.type].heatFactor : 0;
     if(c._temp==null) c._temp=0;
     c._temp += (target-c._temp)*0.015;
-    if(Math.abs(target-c._temp)<0.01) c._temp=target; else stillMoving=true;
+    if(Math.abs(target-c._temp)<0.004) c._temp=target; else stillMoving=true;
+    if(onCoil) seatedTemp=Math.max(seatedTemp, c._temp);
   }
-  if(stillMoving){
-    if(cooktopRAF==null) cooktopRAF=requestAnimationFrame(()=>{ cooktopRAF=null; render(); });
+  if(thermo){
+    if(thermo._temp==null) thermo._temp=0;
+    thermo._temp += (seatedTemp-thermo._temp)*0.05;
+    if(Math.abs(seatedTemp-thermo._temp)<0.004) thermo._temp=seatedTemp; else stillMoving=true;
   }
+  if(stillMoving && cooktopRAF==null) cooktopRAF=requestAnimationFrame(()=>{ cooktopRAF=null; render(); });
+}
+
+// Tab 10's read-out: which pot is on the hob and why it does — or does not —
+// heat. The magnet test is the same one you would do in a shop: if a magnet
+// sticks to the base, the hob will work with it.
+function renderCooktopReadout(){
+  let box=document.getElementById('hobReadout');
+  const coil=lab().components.find(c=>c.type==='flatCoil');
+  const pots=lab().components.filter(c=>TYPES[c.type].heatFactor!=null);
+  if(!pots.length){ if(box) box.remove(); return; }
+  if(!box){ box=document.createElement('div'); box.id='hobReadout'; box.className='hob-readout'; el.viewport.appendChild(box); }
+  const coilLive = !!(coil && lab().liveComponentIds && lab().liveComponentIds.has(coil.id));
+  const rows=pots.map(c=>{
+    const t=TYPES[c.type], onCoil=coil && c.nestedIn===coil.id;
+    const pct=Math.round((c._temp||0)*100);
+    const state = !onCoil ? 'خارج الموقد' : (!coilLive ? 'الموقد مطفأ' : (t.heatFactor===0?'لا يسخن':(t.heatFactor<0.5?'يسخن قليلًا':'يسخن بقوة')));
+    return `<div class="hb-row${onCoil&&coilLive&&t.heatFactor>0?' hb-on':''}">
+      <span class="hb-name">${t.label.split(' (')[0]}</span>
+      <span class="hb-mag">${t.magnetic?'مغناطيسي ✓':'غير مغناطيسي ✗'}</span>
+      <span>حرارة <b>${pct}%</b></span>
+      <span class="hb-tag">${state}</span>
+    </div>
+    <div class="hb-why">${t.note}</div>`;
+  }).join('');
+  box.innerHTML=`<div class="hb-title">أي إناء يعمل على الموقد الحثي؟</div>${rows}
+    <div class="hb-note">اختبار المغناطيس: إن التصق بالقاع عمل الموقد معه — الحديد فقط يجذب الفيض ويقاوم التيار فيسخن</div>`;
 }
 
 // Tab 7 (eddy-current damping): a pendulum released mid-swing keeps
@@ -1203,7 +1285,7 @@ function renderComponents(){
     const t=TYPES[comp.type];
     const s=effSize(comp);
     const div=document.createElement('div');
-    div.className='comp'+(comp.type==='neonLamp'?' neon':'')+(comp.type==='bulb'?' bulb':'')+(comp.rotated?' rotated':'')+(t.background?' is-background':'');
+    div.className='comp'+(comp.type==='neonLamp'?' neon':'')+(comp.type==='bulb'?' bulb':'')+(comp.rotated?' rotated':'')+(t.background?' is-background':'')+(comp.nestedIn?' is-nested':'');
     div.dataset.id=comp.id;
     div.style.left=comp.x+'px'; div.style.top=comp.y+'px';
     div.style.width=s.w+'px'; div.style.height=s.h+'px';
@@ -2478,12 +2560,13 @@ const AUTO_BUILD = {
     const neon=place('neonLamp',700,460);
     join(neon,'a',ind,'a'); join(neon,'b',ind,'b');
   },
-  10: ()=>{ // induction hob: pot sitting on a coil fed by the HF supply
-    const coil=place('flatCoil',430,380), ac=place('acHighFreq',430,580);
+  10: ()=>{ // induction hob: the iron pot seated on the coil, the other two beside it to swap in
+    const coil=place('flatCoil',380,300), ac=place('acHighFreq',380,520);
     join(coil,'a',ac,'a'); join(coil,'b',ac,'b');
-    const pot=place('pot',430,380);
-    seat(pot, coil);
-    place('thermometer',650,340);
+    const iron=place('pot',380,262); seat(iron, coil);
+    place('thermometer',560,250);
+    place('potAlu',760,250);
+    place('potGlass',760,420);
   }
 };
 
