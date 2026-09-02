@@ -405,16 +405,16 @@
 
   /* tab 8: the R-L numbers */
   .rl-readout{
-    position:absolute; right:14px; bottom:14px; z-index:5;
-    background:rgba(16,26,45,.94); border:1px solid #2f445f; border-radius:10px;
-    padding:10px 14px; font-size:12px; color:#e8eef8; pointer-events:none;
-    box-shadow:0 6px 18px rgba(0,0,0,.4); min-width:360px;
+    position:absolute; right:12px; bottom:12px; z-index:5;
+    background:rgba(16,26,45,.94); border:1px solid #2f445f; border-radius:9px;
+    padding:7px 10px; font-size:10.5px; color:#e8eef8; pointer-events:none;
+    box-shadow:0 6px 18px rgba(0,0,0,.4); width:290px;
   }
-  .rl-readout .rl-title{ font-weight:800; color:var(--accent-amber); margin-bottom:6px; font-size:13px; }
-  .rl-readout .rl-row{ display:flex; gap:10px; align-items:baseline; padding:3px 0; }
-  .rl-readout .rl-name{ min-width:92px; font-weight:800; color:#7fe4ef; }
+  .rl-readout .rl-title{ font-weight:800; color:var(--accent-amber); margin-bottom:4px; font-size:11.5px; }
+  .rl-readout .rl-row{ display:flex; gap:7px; align-items:baseline; padding:2px 0; white-space:nowrap; }
+  .rl-readout .rl-name{ min-width:74px; font-weight:800; color:#7fe4ef; }
   .rl-readout .rl-row b{ color:#fff; font-variant-numeric:tabular-nums; }
-  .rl-readout .rl-note{ margin-top:4px; color:#9fb3d0; font-size:11px; line-height:1.6; }
+  .rl-readout .rl-note{ margin-top:3px; color:#9fb3d0; font-size:9.5px; line-height:1.5; }
   .rl-readout .rl-note b{ color:#e8eef8; }
 
   /* drag handles on the loop / field source */
@@ -1318,6 +1318,12 @@ const BASE_R=4;          // wiring + meter, ohms
 const RESISTOR_R=8;      // ohms
 const COIL_R=8;          // the inductor's own DC resistance, ohms
 const COIL_L=5;          // henries
+// Breaking a series inductive loop does not annihilate the current — the
+// collapsing field drives it on through the arc that strikes across the
+// opening contacts, which is exactly the self-induction kick you see on a
+// galvanometer. The arc is a poor conductor, so its resistance is high and
+// tau = L/R_arc is short: a visible flick rather than a slow fade.
+const ARC_R=28;          // ohms, the arc across opening contacts
 const REF_CURRENT=1.0;   // the current that reads full scale
 
 function buildGraph(excludeInternalId){
@@ -1417,7 +1423,10 @@ function evaluateCircuit(){
       const I=SUPPLY_EMF/R;
       const sw=Math.min(42, 34*I/REF_CURRENT);
       const tau=L>0 ? L/R : 0;
-      for(const id of members){ loopHasInductor.set(id, L>0); loopSwing.set(id, sw); loopTau.set(id, tau); }
+      for(const id of members){
+        loopHasInductor.set(id, L>0); loopSwing.set(id, sw); loopTau.set(id, tau);
+        const c=findComp(id); if(c && L>0) c._breakTau=L/ARC_R; // the arc's own, much shorter, constant
+      }
       loopInfo.push({ R, L, tau, I });
       loadRef.count+=localLoad.count; // the induced-pulse path below still uses the overall tally
     }
@@ -1525,7 +1534,9 @@ function evaluateCircuit(){
       const liveTau=loopTau.get(comp.id)||0;
       if(liveTau>0) comp._tau=liveTau;
       const tau = liveTau>0 ? liveTau
-                : ((!on && comp._lit && freewheel.has(comp.id)) ? (comp._tau||0) : 0);
+                : (!on && comp._lit
+                    ? (freewheel.has(comp.id) ? (comp._tau||0) : (comp._breakTau||0))
+                    : 0);
       const litBySource = loopSwing.has(comp.id);
       const target = on ? (litBySource ? 1 : (inducedActive ? Math.max(0.15, inducedScale) : 1)) : 0;
       if(comp._lit==null) comp._lit=0;
@@ -1536,7 +1547,7 @@ function evaluateCircuit(){
         comp._lit += (target-comp._lit)*(1-Math.exp(-dt/tau));
         if(Math.abs(target-comp._lit)<0.01) comp._lit=target;
         comp._ramping = comp._lit!==target;
-        if(comp._ramping) startMeterRampLoop(); else { comp._lastLitT=null; if(target===0) comp._tau=0; }
+        if(comp._ramping) startMeterRampLoop(); else { comp._lastLitT=null; if(target===0){ comp._tau=0; comp._breakTau=0; } }
       } else {
         comp._lit=target; comp._ramping=false; comp._lastLitT=null;
       }
@@ -1562,7 +1573,9 @@ function evaluateCircuit(){
       const liveTau = loopTau.get(comp.id)||0;
       if(liveTau>0) comp._tau=liveTau;
       const tau = liveTau>0 ? liveTau
-                : ((!on && comp._needleLevel && freewheel.has(comp.id)) ? (comp._tau||0) : 0);
+                : (!on && comp._needleLevel
+                    ? (freewheel.has(comp.id) ? (comp._tau||0) : (comp._breakTau||0))
+                    : 0);
       needle.style.transformOrigin = (t.w*0.5)+'px '+(t.h*0.8125)+'px';
       if(tau>0.01){
         // i(t) = I(1 - e^(-t/tau)) rising, I*e^(-t/tau) falling — stepped
@@ -1578,7 +1591,7 @@ function evaluateCircuit(){
         if(comp._ramping) startMeterRampLoop(); else comp._lastRampT=null;
         // fully settled at rest: forget the constant so a later purely
         // resistive loop reads instantly again, as it should
-        if(!comp._ramping && target===0) comp._tau=0;
+        if(!comp._ramping && target===0){ comp._tau=0; comp._breakTau=0; }
         needle.style.transform = `rotate(${comp._needleLevel}deg)`;
       } else {
         comp._needleLevel=target; comp._ramping=false; comp._lastRampT=null;
@@ -1820,8 +1833,8 @@ function renderRLReadout(){
       <span>I = <b>${l.I.toFixed(2)}</b> A</span>
     </div>`).join('');
   box.innerHTML=`<div class="rl-title">ثابت الزمن  τ = L / R</div>${rows}
-    <div class="rl-note">مقاومة الفرعين <b>متساوية</b> (مقاومة سلك الملف تقابلها المقاومة في الفرع الآخر) ⇦ المصباحان يستقران عند <b>نفس السطوع</b></div>
-    <div class="rl-note">الفرق في <b>زمن الوصول</b> وحده: مصباح المقاومة يضيء فورًا، ومصباح الملف يتدرّج</div>
+    <div class="rl-note">مقاومة الفرعين <b>متساوية</b> ⇦ نفس السطوع النهائي؛ الفرق في <b>زمن الوصول</b> وحده</div>
+    <div class="rl-note">وعند <b>فتح</b> المفتاح: انهيار المجال يدفع تيارًا لحظيًا عبر شرارة التلامس</div>
     <div class="rl-note">i(t) = I(1 − e<sup>−t/τ</sup>) — يبلغ 63% عند τ و95% عند 3τ</div>`;
 }
 
