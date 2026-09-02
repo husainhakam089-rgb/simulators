@@ -304,6 +304,17 @@
     content:''; position:absolute; left:50%; top:50%; width:26px; height:26px; margin:-13px 0 0 -13px;
     border-radius:50%; border:2px dashed rgba(255,233,199,.6); pointer-events:none;
   }
+  /* the part following your finger over from the palette */
+  .place-ghost{
+    position:fixed; z-index:60; pointer-events:none; opacity:.85;
+    transform:translate(-50%,-50%); filter:drop-shadow(0 6px 14px rgba(0,0,0,.5));
+  }
+  /* a finger dragging a part must not also scroll or pinch the page */
+  /* only the pieces you actually drag opt out of the browser's gestures —
+     the canvas itself must stay pannable, or on a small screen a finger can
+     never reach a part that sits beyond the visible area */
+  .comp, .handle, .terminal, .wire-hit, .palette-item{ touch-action:none; }
+  #viewport{ touch-action:pan-x pan-y; }
   .comp-label{
     position:absolute; bottom:-18px; width:100%; text-align:center;
     font-size:10.5px; color:var(--text-warm); pointer-events:none; white-space:nowrap;
@@ -381,6 +392,37 @@
   .lenz-readout .lz-force{ margin-top:5px; padding-top:5px; border-top:1px solid #2f445f; }
   .lenz-readout .lz-force b{ color:var(--accent-amber); font-size:14px; }
   .lenz-readout .lz-row i{ color:#9fb3d0; font-style:normal; }
+
+  /* a meter driven past the end of its scale */
+  .comp.pegged .needle{ stroke:#ff5a5a; }
+  .comp.pegged .comp-body{ filter:drop-shadow(0 0 6px rgba(255,90,90,.75)); }
+
+  /* the settings panel for whichever part is selected — sized for fingers */
+  .inspector{
+    position:absolute; left:12px; top:12px; z-index:6;
+    background:rgba(16,26,45,.96); border:1px solid #3a5680; border-radius:10px;
+    padding:9px 11px; width:236px; color:#e8eef8; font-size:11.5px;
+    box-shadow:0 8px 22px rgba(0,0,0,.45);
+  }
+  .inspector .ins-title{ font-weight:800; color:var(--accent-amber); font-size:12.5px; margin-bottom:6px; }
+  .inspector .ins-row{ margin-bottom:7px; }
+  .inspector .ins-head{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:3px; }
+  .inspector .ins-head span{ color:#cfdcee; }
+  .inspector .ins-head b{ color:#fff; font-variant-numeric:tabular-nums; font-size:13px; }
+  .inspector .ins-head i{ color:#9fb3d0; font-style:normal; font-size:10px; }
+  .inspector .ins-ctl{ display:flex; align-items:center; gap:7px; }
+  .inspector .ins-btn{
+    width:34px; height:34px; flex:none; border-radius:9px; cursor:pointer;
+    border:1px solid #3a5680; background:#1d2f4d; color:#e8eef8;
+    font-size:19px; line-height:1; font-weight:700; touch-action:manipulation;
+  }
+  .inspector .ins-btn:active{ background:#2a4570; }
+  .inspector .ins-range{ flex:1; min-width:0; height:30px; accent-color:var(--accent-amber); touch-action:none; }
+  .inspector .ins-note{
+    margin-top:5px; padding-top:5px; border-top:1px solid #2f445f;
+    color:#9fb3d0; font-size:10px; line-height:1.6;
+  }
+  .inspector .ins-note b{ color:var(--accent-amber); }
 
   /* tab 10: which pot works, and why */
   .hob-readout{
@@ -602,6 +644,33 @@ const EXPERIMENTS = {
    leads, can be wired, can conduct current).
    hasTerminals: false -> purely a positionable prop (magnet, rails, pot...).
    ========================================================================= */
+// The quantities a student can actually set on a part, and what each one
+// really does. N is the important one: Faraday's law is eps = -N dPhi/dt, so
+// turns belong in the physics, not just in how many loops we draw. The
+// reference is 5 turns — the number the artwork has always shown — so a coil
+// left alone behaves exactly as it did before.
+const TURNS_REF=5;
+const PARAMS={
+  turns:    { label:'عدد اللفات N', min:2,  max:20,  step:1,    unit:'لفة' },
+  emf:      { label:'الجهد',        min:2,  max:24,  step:1,    unit:'فولت' },
+  ohms:     { label:'المقاومة',     min:2,  max:40,  step:1,    unit:'أوم' },
+  strength: { label:'كثافة الفيض B',min:0,  max:2,   step:0.05, unit:'تسلا' }
+};
+// which knobs each kind of part offers
+function paramsOf(comp){
+  const t=TYPES[comp.type], out=[];
+  if(COIL_TYPES.includes(comp.type)) out.push('turns');
+  if(comp.type==='battery') out.push('emf');
+  if(comp.type==='resistor'||comp.type==='rheostat') out.push('ohms');
+  if(comp.type==='fieldSource') out.push('strength');
+  return out;
+}
+const turnsOf = c => (c && c.turns) || TURNS_REF;
+// A coil's own inductance grows as the square of its turns — the standard
+// result — so winding more turns both induces more EMF and slows the
+// circuit down, which is exactly what the textbook says happens.
+const inductanceOf = c => COIL_L*Math.pow(turnsOf(c)/TURNS_REF,2);
+
 const COIL_TYPES=['coilPrimary','coilSecondary','coilInduction','coilSmall','inductor'];
 
 // The eddy currents themselves, drawn in the base of a pan standing on a
@@ -667,11 +736,11 @@ const TYPES = {
     <text x="65" y="34" font-size="13" fill="#2a3550" text-anchor="middle" font-weight="700">G</text>
     <line class="needle" x1="65" y1="65" x2="65" y2="30" stroke="#c0384a" stroke-width="2.5" stroke-linecap="round" transform-origin="65px 65px"/>
     <circle cx="65" cy="65" r="4" fill="#3a2a18"/>` },
-  coilPrimary:{ label:'ملف ابتدائي', w:150, h:70, hasTerminals:true, accepts:['magnet','ironCore'], svg:()=>coilSVG(150,70,'#c9d3e6') },
-  coilSecondary:{ label:'ملف ثانوي', w:150, h:70, hasTerminals:true, accepts:['magnet','ironCore'], svg:()=>coilSVG(150,70,'#e8c99b') },
-  coilInduction:{ label:'ملف حث (سلك نحاسي)', w:150, h:70, hasTerminals:true, accepts:['magnet','ironCore'], svg:()=>coilSVG(150,70,'#d98a3d') },
-  coilSmall:{ label:'ملف صغير (لفات أقل)', w:90, h:48, hasTerminals:true, accepts:['magnet','ironCore'], svg:()=>coilSVG(90,48,'#d98a3d',3) },
-  inductor:{ label:'ملف محاثة', w:150, h:70, hasTerminals:true, accepts:['magnet','ironCore'], svg:()=>coilSVG(150,70,'#c9d3e6') },
+  coilPrimary:{ label:'ملف ابتدائي', w:150, h:70, hasTerminals:true, accepts:['magnet','ironCore'], svg:(comp)=>coilSVG(150,70,'#c9d3e6',turnsOf(comp)) },
+  coilSecondary:{ label:'ملف ثانوي', w:150, h:70, hasTerminals:true, accepts:['magnet','ironCore'], svg:(comp)=>coilSVG(150,70,'#e8c99b',turnsOf(comp)) },
+  coilInduction:{ label:'ملف حث (سلك نحاسي)', w:150, h:70, hasTerminals:true, accepts:['magnet','ironCore'], svg:(comp)=>coilSVG(150,70,'#d98a3d',turnsOf(comp)) },
+  coilSmall:{ label:'ملف صغير (لفات أقل)', w:90, h:48, hasTerminals:true, accepts:['magnet','ironCore'], init:c=>{ c.turns=3; }, svg:(comp)=>coilSVG(90,48,'#d98a3d',turnsOf(comp)) },
+  inductor:{ label:'ملف محاثة', w:150, h:70, hasTerminals:true, accepts:['magnet','ironCore'], svg:(comp)=>coilSVG(150,70,'#c9d3e6',turnsOf(comp)) },
   flatCoil:{ label:'وشيعة حثية مسطحة', w:140, h:70, hasTerminals:true, accepts:['pot','potAlu','potGlass'], hostUnder:true, svg:()=>`
     <line x1="0" y1="35" x2="20" y2="35" stroke="#8a6d1a" stroke-width="4"/>
     <line x1="120" y1="35" x2="140" y2="35" stroke="#8a6d1a" stroke-width="4"/>
@@ -1011,7 +1080,37 @@ function switchTab(id){
     item.draggable=true;
     item.dataset.type=type;
     item.innerHTML=`<div class="palette-icon"><svg viewBox="0 0 ${t.w} ${t.h}">${t.svg()}</svg></div><div class="palette-label">${t.label}</div>`;
-    item.addEventListener('dragstart', e=>{ e.dataTransfer.setData('text/plain', type); e.dataTransfer.effectAllowed='copy'; });
+    item.addEventListener('dragstart', e=>{ nativeDrag=true; e.dataTransfer.setData('text/plain', type); e.dataTransfer.effectAllowed='copy'; });
+    // HTML5 drag-and-drop never fires on a touchscreen, so a finger could not
+    // place a single tool. This pointer path does the same job for touch and
+    // pen — press the tool, drag a ghost of it onto the canvas, let go — and
+    // stands down whenever the browser's own drag takes over instead.
+    item.addEventListener('pointerdown', e=>{
+      if(e.pointerType==='mouse') return;   // the mouse keeps the native drag
+      e.preventDefault();
+      placeCtx={ type, ghost:null };
+      item.setPointerCapture(e.pointerId);
+    });
+    item.addEventListener('pointermove', e=>{
+      if(!placeCtx || placeCtx.type!==type) return;
+      if(!placeCtx.ghost){
+        const g=document.createElement('div'); g.className='place-ghost';
+        g.innerHTML=`<svg viewBox="0 0 ${t.w} ${t.h}" width="${t.w}" height="${t.h}">${t.svg()}</svg>`;
+        document.body.appendChild(g); placeCtx.ghost=g;
+      }
+      placeCtx.ghost.style.left=e.clientX+'px';
+      placeCtx.ghost.style.top=e.clientY+'px';
+    });
+    const finishPlace=e=>{
+      if(!placeCtx || placeCtx.type!==type) return;
+      placeCtx.ghost?.remove();
+      const r=el.viewport.getBoundingClientRect();
+      const inside = e.clientX>=r.left && e.clientX<=r.right && e.clientY>=r.top && e.clientY<=r.bottom;
+      if(inside) addComponentAt(type, e.clientX, e.clientY);
+      placeCtx=null;
+    };
+    item.addEventListener('pointerup', finishPlace);
+    item.addEventListener('pointercancel', ()=>{ placeCtx?.ghost?.remove(); placeCtx=null; });
     el.paletteGrid.appendChild(item);
   });
   applyZoom();
@@ -1052,7 +1151,7 @@ function terminalPos(comp, term){
 }
 
 /* ---- rendering ---- */
-function render(){ renderComponents(); renderWires(); evaluateCircuit(); updateFluxMeters(); updateCooktop(); renderCooktopReadout(); renderLenzReadout(); renderPendulumReadout(); renderRLReadout(); }
+function render(){ renderComponents(); renderWires(); evaluateCircuit(); updateFluxMeters(); updateCooktop(); renderCooktopReadout(); renderLenzReadout(); renderPendulumReadout(); renderRLReadout(); renderInspector(); }
 
 // Tab 10 (induction cooktop): the pot has to actually be resting on the flat
 // coil (nestedIn, same as a magnet dropped into a coil elsewhere) AND that
@@ -1091,6 +1190,61 @@ function updateCooktop(){
     if(Math.abs(seatedTemp-thermo._temp)<0.004) thermo._temp=seatedTemp; else stillMoving=true;
   }
   if(stillMoving && cooktopRAF==null) cooktopRAF=requestAnimationFrame(()=>{ cooktopRAF=null; render(); });
+}
+
+// Tap a part and its own settings appear here. Big +/- buttons and a wide
+// slider, because this has to be usable with a finger on a phone as much as
+// with a mouse.
+function renderInspector(){
+  let box=document.getElementById('inspector');
+  const sel=lab().selected;
+  const comp = sel && sel.kind==='comp' ? findComp(sel.id) : null;
+  const keys = comp ? paramsOf(comp) : [];
+  if(!comp || !keys.length){ if(box) box.remove(); return; }
+  if(!box){
+    box=document.createElement('div'); box.id='inspector'; box.className='inspector';
+    el.viewport.appendChild(box);
+    box.addEventListener('pointerdown', e=>e.stopPropagation()); // don't deselect while adjusting
+  }
+  const rows=keys.map(k=>{
+    const P=PARAMS[k];
+    const v = comp[k]!=null ? comp[k] : (k==='turns'?TURNS_REF : k==='emf'?SUPPLY_EMF : k==='ohms'?RESISTOR_R : FIELD_DEFAULT_B);
+    const shown = P.step<1 ? (+v).toFixed(2) : Math.round(v);
+    return `<div class="ins-row">
+      <div class="ins-head"><span>${P.label}</span><b>${shown} <i>${P.unit}</i></b></div>
+      <div class="ins-ctl">
+        <button class="ins-btn" data-k="${k}" data-d="-1">−</button>
+        <input class="ins-range" type="range" data-k="${k}"
+               min="${P.min}" max="${P.max}" step="${P.step}" value="${v}">
+        <button class="ins-btn" data-k="${k}" data-d="1">+</button>
+      </div>
+    </div>`;
+  }).join('');
+  // what the setting means for this particular part, so it is not a bare number
+  let note='';
+  if(COIL_TYPES.includes(comp.type)){
+    const n=turnsOf(comp);
+    note=`<div class="ins-note">القوة الدافعة المحتثة ∝ N ⇦ الآن <b>${(n/TURNS_REF).toFixed(1)}×</b> مقارنةً بـ ${TURNS_REF} لفات`
+       + (comp.type==='inductor' ? `<br>ومحاثة الملف ∝ N² ⇦ L = <b>${inductanceOf(comp).toFixed(1)}</b> هنري` : '')
+       + `</div>`;
+  }
+  box.innerHTML=`<div class="ins-title">${TYPES[comp.type].label}</div>${rows}${note}`;
+
+  const setVal=(k,val)=>{
+    const P=PARAMS[k];
+    comp[k]=Math.max(P.min, Math.min(P.max, +(+val).toFixed(2)));
+    render();
+  };
+  box.querySelectorAll('.ins-range').forEach(r=>{
+    r.addEventListener('input', e=>setVal(e.target.dataset.k, e.target.value));
+  });
+  box.querySelectorAll('.ins-btn').forEach(b=>{
+    b.addEventListener('click', e=>{
+      const k=e.target.dataset.k, P=PARAMS[k];
+      const cur = comp[k]!=null ? comp[k] : (k==='turns'?TURNS_REF : k==='emf'?SUPPLY_EMF : k==='ohms'?RESISTOR_R : FIELD_DEFAULT_B);
+      setVal(k, cur + (+e.target.dataset.d)*P.step);
+    });
+  });
 }
 
 // Tab 10's read-out: which pot is on the hob and why it does — or does not —
@@ -1433,6 +1587,7 @@ const COIL_L=5;          // henries
 // galvanometer. The arc is a poor conductor, so its resistance is high and
 // tau = L/R_arc is short: a visible flick rather than a slow fade.
 const ARC_R=28;          // ohms, the arc across opening contacts
+const METER_FULL_SCALE=42; // degrees — the end of the galvanometer's dial
 const REF_CURRENT=1.0;   // the current that reads full scale
 
 function buildGraph(excludeInternalId){
@@ -1523,20 +1678,21 @@ function evaluateCircuit(){
     const localLoad={count:0};
     if(processLoop(src.id,'a','b', litNodes, wireDirection, compDirection, localLoad, members)){
       anyLoop=true;
-      let R=BASE_R, L=0;
+      let R=BASE_R, L=0, emf=SUPPLY_EMF;
       for(const id of members){
         const c=findComp(id); if(!c) continue;
-        if(c.type==='resistor'||c.type==='rheostat') R+=RESISTOR_R;
-        if(c.type==='inductor'){ R+=COIL_R; L+=COIL_L; }
+        if(c.type==='resistor'||c.type==='rheostat') R+=(c.ohms||RESISTOR_R);
+        if(c.type==='inductor'){ R+=COIL_R; L+=inductanceOf(c); } // L grows as N^2
+        if(c.type==='battery') emf=(c.emf||SUPPLY_EMF);
       }
-      const I=SUPPLY_EMF/R;
+      const I=emf/R;
       const sw=Math.min(42, 34*I/REF_CURRENT);
       const tau=L>0 ? L/R : 0;
       for(const id of members){
         loopHasInductor.set(id, L>0); loopSwing.set(id, sw); loopTau.set(id, tau);
         const c=findComp(id); if(c && L>0) c._breakTau=L/ARC_R; // the arc's own, much shorter, constant
       }
-      loopInfo.push({ R, L, tau, I });
+      loopInfo.push({ R, L, tau, I, emf });
       loadRef.count+=localLoad.count; // the induced-pulse path below still uses the overall tally
     }
   }
@@ -1596,6 +1752,8 @@ function evaluateCircuit(){
   // the pulse is scaled by it.
   let inducedScale = pulseFade;
   if(pulse && pulse.strength!=null) inducedScale*=pulse.strength;
+  // (no cap here — the physics stays linear in N; it is the *meter* that
+  // runs out of dial, clamped at full scale below, exactly as a real one does)
   if(inducedActive && !sourceLoop) swing*=inducedScale;
 
   // Track which coils are currently carrying current, so a *step change*
@@ -1647,7 +1805,7 @@ function evaluateCircuit(){
                     ? (freewheel.has(comp.id) ? (comp._tau||0) : (comp._breakTau||0))
                     : 0);
       const litBySource = loopSwing.has(comp.id);
-      const target = on ? (litBySource ? 1 : (inducedActive ? Math.max(0.15, inducedScale) : 1)) : 0;
+      const target = on ? (litBySource ? 1 : (inducedActive ? Math.max(0.15, Math.min(1, inducedScale)) : 1)) : 0;
       if(comp._lit==null) comp._lit=0;
       if(tau>0.01){
         const nw=(typeof performance!=='undefined'?performance.now():Date.now());
@@ -1673,7 +1831,12 @@ function evaluateCircuit(){
       const inSourceLoop = loopSwing.has(comp.id);
       let ownSwing = inSourceLoop ? loopSwing.get(comp.id) : swing;
       if(!inSourceLoop && inducedActive && sourceLoop) ownSwing*=inducedScale;
-      const target = on ? dir*ownSwing : 0;
+      // A needle cannot leave its dial: past full scale it simply pegs, and
+      // the meter is marked so the reading is not mistaken for a number.
+      const raw = on ? dir*ownSwing : 0;
+      const pegged = Math.abs(raw) > METER_FULL_SCALE;
+      const target = pegged ? Math.sign(raw)*METER_FULL_SCALE : raw;
+      div.classList.toggle('pegged', pegged);
       // Breaking an R-L loop does not stop its current dead. Once the switch
       // opens the loop is gone from the maps above, but the collapsing field
       // keeps driving the current down its own exponential — the very effect
@@ -2005,29 +2168,30 @@ function animateCurrent(pathEl, wireId, reverse){
 }
 
 /* ---- drop from palette ---- */
+let placeCtx=null, nativeDrag=false;
+// One place where a new part is created, whichever way it was dropped in.
+function addComponentAt(type, clientX, clientY){
+  const t=TYPES[type]; if(!t) return null;
+  const pos=clientToWorld(clientX, clientY);
+  const comp={ id:uid(), type, x:pos.x-t.w/2, y:pos.y-t.h/2, closed:!TYPES[type].toggle };
+  if(t.init) t.init(comp);
+  lab().components.push(comp);
+  if(t.nestable){ const target=findNestTarget(comp); if(target) nestUnder(comp, target); }
+  render();
+  return comp;
+}
 el.viewport.addEventListener('dragover', e=>e.preventDefault());
 el.viewport.addEventListener('drop', e=>{
   e.preventDefault();
-  const type=e.dataTransfer.getData('text/plain'); if(!type || !TYPES[type]) return;
-  const t=TYPES[type];
-  const pos=clientToWorld(e.clientX, e.clientY);
-  // A freshly dropped switch starts OPEN (like a real one) so wiring a
-  // battery/coil loop doesn't silently start energized before you touch it —
-  // click it once to close the circuit.
-  const comp={ id:uid(), type, x:pos.x-t.w/2, y:pos.y-t.h/2, closed:!TYPES[type].toggle };
-  if(t.init) t.init(comp); // types with their own state (a loop's radius/tilt, a field's strength)
-  lab().components.push(comp);
-  // Dropping a prop straight onto its host from the palette snaps it in, the
-  // same as dragging it there afterwards would. Without this a rod dropped
-  // right onto the rails (or a magnet into a coil, a pot onto the cooktop
-  // coil) *looks* seated but isn't — so the rails never conduct and nothing
-  // works, with no visible reason why.
-  if(t.nestable){
-    const target=findNestTarget(comp);
-    if(target) nestUnder(comp, target);
-  }
-  render();
+  nativeDrag=false;
+  const type=e.dataTransfer.getData('text/plain');
+  // A freshly placed switch starts OPEN (like a real one) so wiring a
+  // battery/coil loop doesn't silently start energized before you touch it,
+  // and a nestable prop dropped straight onto its host snaps in — both live
+  // in addComponentAt(), shared with the touch path.
+  addComponentAt(type, e.clientX, e.clientY);
 });
+
 
 /* ---- drag / wire / select / nesting ---- */
 let dragCtx=null, wireCtx=null, tempWireEl=null, nestHoverId=null, handleCtx=null;
@@ -2199,8 +2363,11 @@ function fireInductionForEnergizeChanges(targetLab, before){
     const hit=findCoupledCoil(c);
     if(hit){
       const secondary=hit.comp;
+      // Faraday: the flux the primary makes goes as its own turns, and the
+      // EMF that flux induces goes as the secondary's — so both count.
+      const turnsGain=(turnsOf(c)/TURNS_REF)*(turnsOf(secondary)/TURNS_REF);
       targetLab.inducedPulse={ coilId:secondary.id, dir: now?1:-1, reason:'switch',
-                               strength: couplingStrength(hit.dist) };
+                               strength: couplingStrength(hit.dist)*turnsGain };
       // Long enough that a person clicking the switch and then looking at
       // the meter actually catches the deflection before it resets — a
       // fixed 450ms round-trip (click, glance, register what you saw) is
@@ -2244,7 +2411,7 @@ function toggleSwitchWithInduction(sw){
   render();
 }
 
-el.world.addEventListener('mousedown', e=>{
+el.world.addEventListener('pointerdown', e=>{
   const handleEl=e.target.closest('.handle');
   if(handleEl){
     e.stopPropagation();
@@ -2292,7 +2459,7 @@ el.world.addEventListener('mousedown', e=>{
   }
 });
 
-document.addEventListener('mousemove', e=>{
+document.addEventListener('pointermove', e=>{
   if(handleCtx){
     const c=findComp(handleCtx.id); if(!c){ handleCtx=null; return; }
     const p=clientToWorld(e.clientX,e.clientY);
@@ -2373,7 +2540,7 @@ document.addEventListener('mousemove', e=>{
       const inField = field && rodCenterX>=field.x && rodCenterX<=field.x+effSize(field).w;
       if(host && inField){
         if(dragCtx.lastRodX!=null && rodCenterX!==dragCtx.lastRodX){
-          lab().inducedPulse={ coilId:host.id, dir: rodCenterX>dragCtx.lastRodX?1:-1, reason:'motion' };
+          lab().inducedPulse={ coilId:host.id, dir: rodCenterX>dragCtx.lastRodX?1:-1, reason:'motion', strength:1 };
         }
         dragCtx.lastRodX=rodCenterX;
       } else {
@@ -2421,7 +2588,7 @@ document.addEventListener('mousemove', e=>{
         if(dragCtx.lastDist!=null && found.dist!==dragCtx.lastDist){
           const dir = found.dist < dragCtx.lastDist ? 1 : -1;
           lab().inducedPulse = { coilId:pulseCoil.id, dir, reason:'motion',
-                                 strength: couplingStrength(found.dist) };
+                                 strength: couplingStrength(found.dist)*(turnsOf(pulseCoil)/TURNS_REF) };
           dragCtx.lastDir=dir;
         }
         dragCtx.lastDist=found.dist;
@@ -2435,7 +2602,8 @@ document.addEventListener('mousemove', e=>{
   }
 });
 
-document.addEventListener('mouseup', e=>{
+document.addEventListener('pointercancel', ()=>{ if(dragCtx||handleCtx||wireCtx){ handleCtx=null; dragCtx=null; wireCtx=null; tempWireEl?.remove(); tempWireEl=null; render(); } });
+document.addEventListener('pointerup', e=>{
   if(handleCtx){ handleCtx=null; fadeOutMotionPulse(lab()); render(); return; }
   if(wireCtx){
     const targetTerm=document.elementFromPoint(e.clientX,e.clientY)?.closest('.terminal');
@@ -2491,8 +2659,8 @@ document.addEventListener('mouseup', e=>{
   }
 });
 
-el.wireLayer.addEventListener('mousedown', e=>{ const hit=e.target.closest('.wire-hit'); if(hit) select('wire', hit.dataset.wireId); });
-el.viewport.addEventListener('mousedown', e=>{ if(e.target===el.viewport||e.target===el.world) select(null); });
+el.wireLayer.addEventListener('pointerdown', e=>{ const hit=e.target.closest('.wire-hit'); if(hit) select('wire', hit.dataset.wireId); });
+el.viewport.addEventListener('pointerdown', e=>{ if(e.target===el.viewport||e.target===el.world) select(null); });
 
 
 function select(kind,id){
