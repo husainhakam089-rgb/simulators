@@ -1235,6 +1235,11 @@ function updateCooktop(){
 // Tap a part and its own settings appear here. Big +/- buttons and a wide
 // slider, because this has to be usable with a finger on a phone as much as
 // with a mouse.
+// Overlay panels live on the stage beside the canvas, never inside it: the
+// canvas scrolls, and anything appended to it scrolls away too — which on a
+// small screen carries the settings panel and the read-outs clean out of view.
+const overlayHost = () => el.viewport.parentElement || el.viewport;
+
 function renderInspector(){
   let box=document.getElementById('inspector');
   const sel=lab().selected;
@@ -1243,7 +1248,7 @@ function renderInspector(){
   if(!comp || !keys.length){ if(box) box.remove(); return; }
   if(!box){
     box=document.createElement('div'); box.id='inspector'; box.className='inspector';
-    el.viewport.appendChild(box);
+    overlayHost().appendChild(box);
     box.addEventListener('pointerdown', e=>e.stopPropagation()); // don't deselect while adjusting
   }
   const rows=keys.map(k=>{
@@ -1273,7 +1278,32 @@ function renderInspector(){
        + (comp.type==='inductor' ? `<br>ومحاثة الملف ∝ N² ⇦ L = <b>${inductanceOf(comp).toFixed(1)}</b> هنري` : '')
        + `</div>`;
   }
-  box.innerHTML=`<div class="ins-title">${TYPES[comp.type].label}</div>${rows}${note}`;
+  // Rebuild only when the selection or its set of settings actually changes.
+  // render() runs every frame while anything is animating, and replacing this
+  // panel's DOM each time tore the buttons out from under your finger between
+  // press and release, so they never fired at all.
+  const sig=comp.id+'|'+keys.join(',');
+  if(box.dataset.sig!==sig){
+    box.dataset.sig=sig;
+    box.innerHTML=`<div class="ins-title">${TYPES[comp.type].label}</div>${rows}${note}`;
+  } else {
+    // same part, same knobs: just refresh what it says
+    const frag=document.createElement('div');
+    frag.innerHTML=`<div class="ins-title">${TYPES[comp.type].label}</div>${rows}${note}`;
+    const oldHeads=box.querySelectorAll('.ins-head b'), newHeads=frag.querySelectorAll('.ins-head b');
+    oldHeads.forEach((n,i)=>{ if(newHeads[i]) n.innerHTML=newHeads[i].innerHTML; });
+    const oldNote=box.querySelector('.ins-note'), newNote=frag.querySelector('.ins-note');
+    if(oldNote&&newNote) oldNote.innerHTML=newNote.innerHTML;
+    const oldTog=box.querySelectorAll('.ins-toggle'), newTog=frag.querySelectorAll('.ins-toggle');
+    oldTog.forEach((n,i)=>{ if(newTog[i]) n.textContent=newTog[i].textContent; });
+    // leave a slider alone while it is being dragged
+    box.querySelectorAll('.ins-range').forEach(r=>{
+      if(r.dataset.dragging) return;
+      const v=comp[r.dataset.k];
+      if(v!=null && String(v)!==r.value) r.value=v;
+    });
+    return;
+  }
 
   const setVal=(k,val)=>{
     const P=PARAMS[k];
@@ -1283,6 +1313,9 @@ function renderInspector(){
   };
   box.querySelectorAll('.ins-range').forEach(r=>{
     r.addEventListener('input', e=>setVal(e.target.dataset.k, e.target.value));
+    r.addEventListener('pointerdown', e=>{ e.target.dataset.dragging='1'; });
+    const done=e=>{ delete e.target.dataset.dragging; };
+    r.addEventListener('pointerup', done); r.addEventListener('pointercancel', done);
   });
   box.querySelectorAll('.ins-toggle').forEach(b=>{
     b.addEventListener('click', e=>{ comp[e.target.dataset.k]=!comp[e.target.dataset.k]; render(); });
@@ -1304,7 +1337,7 @@ function renderCooktopReadout(){
   const coil=lab().components.find(c=>c.type==='flatCoil');
   const pots=lab().components.filter(c=>TYPES[c.type].heatFactor!=null);
   if(!pots.length){ if(box) box.remove(); return; }
-  if(!box){ box=document.createElement('div'); box.id='hobReadout'; box.className='hob-readout'; el.viewport.appendChild(box); }
+  if(!box){ box=document.createElement('div'); box.id='hobReadout'; box.className='hob-readout'; overlayHost().appendChild(box); }
   const coilLive = !!(coil && lab().liveComponentIds && lab().liveComponentIds.has(coil.id));
   const rows=pots.map(c=>{
     const t=TYPES[c.type], onCoil=coil && c.nestedIn===coil.id;
@@ -2150,7 +2183,7 @@ function renderLenzReadout(){
   if(!st && !openNote){ if(box) box.remove(); return; }
   if(!box){
     box=document.createElement('div'); box.id='lenzReadout'; box.className='lenz-readout';
-    el.viewport.appendChild(box);
+    overlayHost().appendChild(box);
   }
   if(openNote){
     box.innerHTML=`
@@ -2176,7 +2209,7 @@ function renderPendulumReadout(){
   if(!pends.length){ if(box) box.remove(); if(el.releaseBothBtn) el.releaseBothBtn.hidden=true; return; }
   if(!box){
     box=document.createElement('div'); box.id='pendReadout'; box.className='pend-readout';
-    el.viewport.appendChild(box);
+    overlayHost().appendChild(box);
   }
   // Two series, identity-coded, in a fixed order that never depends on which
   // one happens to still be swinging. Both hues validated against this panel.
@@ -2241,7 +2274,7 @@ function renderRLReadout(){
   const loops=(lab()._loopInfo||[]).filter(l=>l.L>0 || l.R>BASE_R);
   const wantIt = loops.length && lab().components.some(c=>c.type==='inductor');
   if(!wantIt){ if(box) box.remove(); return; }
-  if(!box){ box=document.createElement('div'); box.id='rlReadout'; box.className='rl-readout'; el.viewport.appendChild(box); }
+  if(!box){ box=document.createElement('div'); box.id='rlReadout'; box.className='rl-readout'; overlayHost().appendChild(box); }
   const rows=loops.map(l=>`
     <div class="rl-row">
       <span class="rl-name">${l.L>0?'دائرة المحاثة':'دائرة المقاومة'}</span>
@@ -2263,7 +2296,7 @@ function renderFluxReadout(f){
   if(!f){ if(box) box.remove(); return; }
   if(!box){
     box=document.createElement('div'); box.id='fluxReadout'; box.className='flux-readout';
-    el.viewport.appendChild(box);
+    overlayHost().appendChild(box);
   }
   const cos=Math.cos(f.theta*Math.PI/180);
   box.innerHTML=`
