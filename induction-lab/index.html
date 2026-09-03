@@ -491,6 +491,7 @@
     border-radius:50%; background:#7fe4ef; border:2px solid #0d1b2e; cursor:grab; z-index:4;
     box-shadow:0 0 0 3px rgba(127,228,239,.22);
   }
+  .handle.turn{ background:#ff9d5c; box-shadow:0 0 0 3px rgba(255,157,92,.22); }
   .handle.size{ border-radius:4px; background:var(--accent-amber); box-shadow:0 0 0 3px rgba(255,207,92,.22); }
   .handle:active{ cursor:grabbing; }
 
@@ -661,6 +662,7 @@ const PARAMS={
   emf:      { label:'الجهد',        min:2,  max:24,  step:1,    unit:'فولت' },
   ohms:     { label:'المقاومة',     min:2,  max:40,  step:1,    unit:'أوم' },
   strength: { label:'كثافة الفيض B',min:0,  max:2,   step:0.05, unit:'تسلا' },
+  angle:    { label:'زاوية الميل',   min:0,  max:355, step:5,    unit:'°' },
   flip:     { label:'اقلب القطبين',  toggle:true }
 };
 // which knobs each kind of part offers
@@ -670,7 +672,7 @@ function paramsOf(comp){
   if(comp.type==='battery') out.push('emf');
   if(comp.type==='resistor'||comp.type==='rheostat') out.push('ohms');
   if(comp.type==='fieldSource') out.push('strength');
-  if(comp.type==='magnet') out.push('flip');
+  if(comp.type==='magnet') out.push('angle','flip');
   return out;
 }
 const turnsOf = c => (c && c.turns) || TURNS_REF;
@@ -804,7 +806,7 @@ const TYPES = {
   // NORTH pole — the case every textbook figure draws, and the one the
   // "approaching gives an anticlockwise current" rule is stated for. Flip
   // swaps them, so the reversed case can be shown as well.
-  magnet:{ label:'مغناطيس قضيبي', w:104, h:48, hasTerminals:false, nestable:true, induces:true, svg:(comp)=>{
+  magnet:{ label:'مغناطيس قضيبي', w:104, h:48, hasTerminals:false, nestable:true, induces:true, freeTurn:true, svg:(comp)=>{
     const f = comp && comp.flip;                       // flipped -> N on the left
     const leftIsN = !!f;
     return `
@@ -1147,9 +1149,30 @@ function clientToWorld(clientX, clientY){
 // and moves its two leads from left/right to top/bottom; every place that
 // reasons about a component's footprint or terminal position goes through
 // effSize()/terminalPos() so it stays correct either way.
+// A part that turns to any angle no longer fits its own drawn rectangle, so
+// report the box the rotated artwork really occupies — otherwise its grab
+// area drifts away from where you can see it.
+function compAngle(comp){
+  const t=TYPES[comp.type];
+  if(!t.freeTurn) return comp.rotated ? 90 : 0;
+  return ((comp.angle||0)%360+360)%360;
+}
 function effSize(comp){
   const t=TYPES[comp.type];
+  if(TYPES[comp.type].freeTurn){
+    const a=compAngle(comp)*Math.PI/180, c=Math.abs(Math.cos(a)), s2=Math.abs(Math.sin(a));
+    return { w: Math.round(t.w*c + t.h*s2), h: Math.round(t.w*s2 + t.h*c) };
+  }
   return comp.rotated ? { w:t.h, h:t.w } : { w:t.w, h:t.h };
+}
+// Turning a part keeps its centre where it is, rather than letting the box
+// grow off to one side and drag the artwork with it.
+function setAngle(comp, deg){
+  const before=effSize(comp);
+  const cx=comp.x+before.w/2, cy=comp.y+before.h/2;
+  comp.angle=((deg%360)+360)%360;
+  const after=effSize(comp);
+  comp.x=Math.round(cx-after.w/2); comp.y=Math.round(cy-after.h/2);
 }
 function terminalPos(comp, term){
   const t=TYPES[comp.type];
@@ -1254,7 +1277,8 @@ function renderInspector(){
 
   const setVal=(k,val)=>{
     const P=PARAMS[k];
-    comp[k]=Math.max(P.min, Math.min(P.max, +(+val).toFixed(2)));
+    const v=Math.max(P.min, Math.min(P.max, +(+val).toFixed(2)));
+    if(k==='angle') setAngle(comp, v); else comp[k]=v;
     render();
   };
   box.querySelectorAll('.ins-range').forEach(r=>{
@@ -1514,6 +1538,8 @@ function renderComponents(){
     // whole-box rotate/none pair.
     const svgStyle = t.pendulum
       ? `transform:rotate(${comp._swingAngle||0}deg);transform-origin:45px 4px;`
+      : t.freeTurn
+      ? `transform:rotate(${compAngle(comp)}deg);`
       : `transform:${comp.rotated?'rotate(90deg)':'none'};`;
     body.innerHTML=`<svg viewBox="0 0 ${t.w} ${t.h}" style="width:${t.w}px;height:${t.h}px;${svgStyle}">${t.svg(comp)}</svg>`;
     div.appendChild(body);
@@ -1558,6 +1584,16 @@ function renderComponents(){
       ang.style.left=(cx+Math.sin(th)*(r+30))+'px'; ang.style.top=(cy+Math.cos(th)*(r+30))+'px';
       ang.title='أدر الحلقة — يغيّر الزاوية θ بين A و B';
       div.appendChild(ang);
+    }
+    if(t.freeTurn){
+      const sz=effSize(comp), a=compAngle(comp)*Math.PI/180;
+      const R=Math.max(TYPES[comp.type].w,TYPES[comp.type].h)/2+18;
+      const h=document.createElement('div'); h.className='handle turn';
+      h.dataset.handle='turn'; h.dataset.comp=comp.id;
+      h.style.left=(sz.w/2+Math.cos(a)*R)+'px';
+      h.style.top=(sz.h/2+Math.sin(a)*R)+'px';
+      h.title='أدر المغناطيس إلى أي زاوية';
+      div.appendChild(h);
     }
     if(t.background && comp.type==='fieldSource'){
       const st=document.createElement('div'); st.className='handle strength';
@@ -2052,11 +2088,13 @@ function magnetNearPole(mag, ring){
   const ms=effSize(mag), rs=effSize(ring);
   const mc={ x:mag.x+ms.w/2, y:mag.y+ms.h/2 };
   const rc={ x:ring.x+rs.w/2, y:ring.y+rs.h/2 };
-  // unflipped the magnet reads S | N left-to-right, so the end nearer the
-  // ring is N when the magnet sits to its left
-  const leftEnd = mag.flip ? 'N' : 'S', rightEnd = mag.flip ? 'S' : 'N';
-  if(mag.rotated) return mc.y < rc.y ? rightEnd : leftEnd; // rotated: left end goes to the top
-  return mc.x < rc.x ? rightEnd : leftEnd;
+  // The magnet is drawn S | N left-to-right, so at zero its north end points
+  // along +x; turning it turns that axis with it. Whichever end the ring lies
+  // towards is the end facing it — true at any angle, not just the four.
+  const a=compAngle(mag)*Math.PI/180;
+  const nx=Math.cos(a)*(mag.flip?-1:1), ny=Math.sin(a)*(mag.flip?-1:1);
+  const dot=nx*(rc.x-mc.x)+ny*(rc.y-mc.y);
+  return dot>=0 ? 'N' : 'S';
 }
 
 // The full Lenz picture for the ring currently carrying an induced current:
@@ -2580,6 +2618,10 @@ document.addEventListener('pointermove', e=>{
       // turn the loop: only theta changes, A is untouched
       const cx=c.x+120, cy=c.y+96;
       c.tilt=Math.atan2(p.x-cx, p.y-cy)*180/Math.PI;
+    } else if(handleCtx.kind==='turn'){
+      const sz=effSize(c);
+      const cx=c.x+sz.w/2, cy=c.y+sz.h/2;
+      setAngle(c, Math.atan2(p.y-cy, p.x-cx)*180/Math.PI);
     } else if(handleCtx.kind==='strength'){
       // stronger / weaker field: only B changes
       const h=effSize(c).h;
@@ -2749,7 +2791,9 @@ document.addEventListener('pointerup', e=>{
       const now=Date.now();
       const isDoubleClick = lastClickCompId===comp.id && (now-lastClickTime)<400;
       lastClickTime=now; lastClickCompId=comp.id;
-      if(isDoubleClick && !TYPES[comp.type].pendulum){
+      if(isDoubleClick && TYPES[comp.type].freeTurn){
+        setAngle(comp, compAngle(comp)+45);   // a quick quarter-of-a-right-angle step
+      } else if(isDoubleClick && !TYPES[comp.type].pendulum){
         comp.rotated=!comp.rotated; // flipping a hanging pendulum sideways has no physical meaning — skip it
       } else if(TYPES[comp.type].toggle){
         toggleSwitchWithInduction(comp);
