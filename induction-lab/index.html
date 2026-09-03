@@ -418,6 +418,11 @@
     font-size:19px; line-height:1; font-weight:700; touch-action:manipulation;
   }
   .inspector .ins-btn:active{ background:#2a4570; }
+  .inspector .ins-toggle{
+    width:100%; min-height:36px; border-radius:9px; cursor:pointer;
+    border:1px solid #3a5680; background:#1d2f4d; color:#e8eef8;
+    font-size:11.5px; font-weight:700; touch-action:manipulation;
+  }
   .inspector .ins-range{ flex:1; min-width:0; height:30px; accent-color:var(--accent-amber); touch-action:none; }
   .inspector .ins-note{
     margin-top:5px; padding-top:5px; border-top:1px solid #2f445f;
@@ -655,7 +660,8 @@ const PARAMS={
   turns:    { label:'عدد اللفات N', min:2,  max:20,  step:1,    unit:'لفة' },
   emf:      { label:'الجهد',        min:2,  max:24,  step:1,    unit:'فولت' },
   ohms:     { label:'المقاومة',     min:2,  max:40,  step:1,    unit:'أوم' },
-  strength: { label:'كثافة الفيض B',min:0,  max:2,   step:0.05, unit:'تسلا' }
+  strength: { label:'كثافة الفيض B',min:0,  max:2,   step:0.05, unit:'تسلا' },
+  flip:     { label:'اقلب القطبين',  toggle:true }
 };
 // which knobs each kind of part offers
 function paramsOf(comp){
@@ -664,6 +670,7 @@ function paramsOf(comp){
   if(comp.type==='battery') out.push('emf');
   if(comp.type==='resistor'||comp.type==='rheostat') out.push('ohms');
   if(comp.type==='fieldSource') out.push('strength');
+  if(comp.type==='magnet') out.push('flip');
   return out;
 }
 const turnsOf = c => (c && c.turns) || TURNS_REF;
@@ -793,11 +800,18 @@ const TYPES = {
     <circle class="glass" cx="70" cy="28" r="24" fill="#fff8dc" stroke="#8a6d1a" stroke-width="2"/>
     <path class="filament" d="M60 24 L65 33 L70 22 L75 33 L80 24" fill="none" stroke="#8a6d1a" stroke-width="2"/>
     <rect x="63" y="49" width="14" height="6" rx="1" fill="#777"/>` },
-  magnet:{ label:'مغناطيس قضيبي', w:104, h:48, hasTerminals:false, nestable:true, induces:true, svg:()=>`
-    <rect x="2" y="2" width="48" height="44" rx="4" fill="#ef5b6b" stroke="#1a1410" stroke-width="2"/>
-    <rect x="52" y="2" width="48" height="44" rx="4" fill="#4d8dff" stroke="#1a1410" stroke-width="2"/>
-    <text x="26" y="31" font-size="20" fill="#fff" text-anchor="middle" font-weight="900">N</text>
-    <text x="76" y="31" font-size="20" fill="#fff" text-anchor="middle" font-weight="900">S</text>` },
+  // Poles drawn S-then-N, so pushing the magnet to the right leads with its
+  // NORTH pole — the case every textbook figure draws, and the one the
+  // "approaching gives an anticlockwise current" rule is stated for. Flip
+  // swaps them, so the reversed case can be shown as well.
+  magnet:{ label:'مغناطيس قضيبي', w:104, h:48, hasTerminals:false, nestable:true, induces:true, svg:(comp)=>{
+    const f = comp && comp.flip;                       // flipped -> N on the left
+    const leftIsN = !!f;
+    return `
+    <rect x="2" y="2" width="48" height="44" rx="4" fill="${leftIsN?'#ef5b6b':'#4d8dff'}" stroke="#1a1410" stroke-width="2"/>
+    <rect x="52" y="2" width="48" height="44" rx="4" fill="${leftIsN?'#4d8dff':'#ef5b6b'}" stroke="#1a1410" stroke-width="2"/>
+    <text x="26" y="31" font-size="20" fill="#fff" text-anchor="middle" font-weight="900">${leftIsN?'N':'S'}</text>
+    <text x="76" y="31" font-size="20" fill="#fff" text-anchor="middle" font-weight="900">${leftIsN?'S':'N'}</text>`; } },
   // The tinted band is not decoration: it marks the exact region the code
   // treats as "inside the field", so you can see at a glance whether the rod
   // (or a pendulum bob) is actually in it — the entire observation in tabs 4
@@ -1211,6 +1225,11 @@ function renderInspector(){
   }
   const rows=keys.map(k=>{
     const P=PARAMS[k];
+    if(P.toggle){
+      return `<div class="ins-row">
+        <button class="ins-toggle" data-k="${k}">${P.label} — الآن ${comp[k]?'N | S':'S | N'}</button>
+      </div>`;
+    }
     const v = comp[k]!=null ? comp[k] : (k==='turns'?TURNS_REF : k==='emf'?SUPPLY_EMF : k==='ohms'?RESISTOR_R : FIELD_DEFAULT_B);
     const shown = P.step<1 ? (+v).toFixed(2) : Math.round(v);
     return `<div class="ins-row">
@@ -1240,6 +1259,9 @@ function renderInspector(){
   };
   box.querySelectorAll('.ins-range').forEach(r=>{
     r.addEventListener('input', e=>setVal(e.target.dataset.k, e.target.value));
+  });
+  box.querySelectorAll('.ins-toggle').forEach(b=>{
+    b.addEventListener('click', e=>{ comp[e.target.dataset.k]=!comp[e.target.dataset.k]; render(); });
   });
   box.querySelectorAll('.ins-btn').forEach(b=>{
     b.addEventListener('click', e=>{
@@ -2030,8 +2052,11 @@ function magnetNearPole(mag, ring){
   const ms=effSize(mag), rs=effSize(ring);
   const mc={ x:mag.x+ms.w/2, y:mag.y+ms.h/2 };
   const rc={ x:ring.x+rs.w/2, y:ring.y+rs.h/2 };
-  if(mag.rotated) return mc.y < rc.y ? 'S' : 'N'; // above the ring -> its lower (S) end faces it
-  return mc.x < rc.x ? 'S' : 'N';                 // left of the ring -> its right (S) end faces it
+  // unflipped the magnet reads S | N left-to-right, so the end nearer the
+  // ring is N when the magnet sits to its left
+  const leftEnd = mag.flip ? 'N' : 'S', rightEnd = mag.flip ? 'S' : 'N';
+  if(mag.rotated) return mc.y < rc.y ? rightEnd : leftEnd; // rotated: left end goes to the top
+  return mc.x < rc.x ? rightEnd : leftEnd;
 }
 
 // The full Lenz picture for the ring currently carrying an induced current:
