@@ -620,8 +620,8 @@ const EXPERIMENTS = {
     steps:['ضع القلب الحديدي، ولُف حوله الملف الابتدائي والملف الثانوي.','صل الملف الابتدائي بالبطارية والمفتاح.','صل الملف الثانوي بالجلفانومتر.','أغلق المفتاح فجأة ولاحظ انحراف المؤشر لحظيًا.','افتح المفتاح فجأة ولاحظ انحرافًا معاكسًا.'],
     tools:['ironCore','coilPrimary','coilSecondary','battery','switch','galvanometer','bulb'] },
   3: { title:'نشاط الحث الكهرومغناطيسي المتبادل', subtitle:'ثلاث طرق لتوليد تيار محتث في الملف الثانوي',
-    steps:['ركّب ملفين متجاورين، وصل الابتدائي ببطارية ومفتاح وريوستات، والثانوي بجلفانومتر.','<b>الملفان ثابتان في كل ما يأتي</b> — الحركة ليست شرطًا، الشرط أن يتغيّر الفيض.','١) أغلق المفتاح ثم افتحه: نبضة تيار في كل مرة، باتجاهين متعاكسين.','٢) أدر الريوستات تدريجيًا: يسري تيار <b>ما دمت تدير</b> ويتوقف حين تتوقف.','٣) بدّل البطارية بمصدر جهد متردد: التيار <b>مستمر بلا انقطاع</b> لأن الفيض لا يكفّ عن التغيّر — وهذا مبدأ المحوّلة.','٤) حرّك أحد الملفين: طريقة رابعة، وليست الوحيدة.'],
-    tools:['coilPrimary','coilSecondary','battery','ac','switch','rheostat','galvanometer','bulb'] },
+    steps:['ركّب ملفين <b>متجاورين</b>، وصل الابتدائي ببطارية ومفتاح، والثانوي بجلفانومتر أو مصباح.','<b>الملفان ثابتان في كل ما يأتي</b> — الحركة ليست شرطًا، الشرط أن يتغيّر الفيض.','١) <b>أغلق</b> المفتاح: نبضة تيار في الثانوي.','٢) <b>افتح</b> المفتاح: نبضة أخرى <b>بالاتجاه المعاكس</b>.','٣) بدّل البطارية بمصدر جهد متردد: التيار <b>مستمر بلا انقطاع</b> لأن الفيض لا يكفّ عن التغيّر — وهذا مبدأ المحوّلة.','٤) حرّك أحد الملفين: طريقة رابعة، وليست الوحيدة.','تنبيه: إن باعدت بين الملفين كثيرًا ضعف الاقتران حتى ينعدم — واللوحة تنبّهك.'],
+    tools:['coilPrimary','coilSecondary','battery','ac','switch','galvanometer','bulb'] },
   4: { title:'القوة الدافعة الكهربائية الحركية (الحث الحركي)', subtitle:'حرّك الساق الموصلة على القضيبين المتوازيين داخل مجال مغناطيسي',
     steps:['ضع القضيبين المتوازيين وركّب الساق المعدنية عليهما.','ضع مصدر المجال المنتظم بحيث يشمل منطقة الساق.','صل طرفي القضيبين بمقاومة أو جلفانومتر.','حرّك الساق يدويًا وسجّل ملاحظاتك عن التيار الناشئ.'],
     tools:['rails','rod','fieldSource','resistor','galvanometer','bulb'] },
@@ -1530,8 +1530,11 @@ function renderComponents(){
   // exactly COUPLING_REACH — a second coil inside that edge picks up an
   // induced current, one outside it does not.
   const otherCoils=lab().components.filter(c=>COIL_TYPES.includes(c.type)).length;
-  for(const comp of (lab().energizedCoilIds && otherCoils>1 ? lab().components : [])){
-    if(!COIL_TYPES.includes(comp.type) || !lab().energizedCoilIds.has(comp.id)) continue;
+  const selId = lab().selected && lab().selected.kind==='comp' ? lab().selected.id : null;
+  for(const comp of (otherCoils>1 ? lab().components : [])){
+    if(!COIL_TYPES.includes(comp.type)) continue;
+    const live = lab().energizedCoilIds && lab().energizedCoilIds.has(comp.id);
+    if(!live && comp.id!==selId) continue;   // lit, or the one you are placing
     const s=effSize(comp);
     const halo=document.createElement('div');
     halo.className='field-reach';
@@ -2059,6 +2062,21 @@ function evaluateCircuit(){
       ? 'تيار <b>محتث لحظي</b> بالملف المجاور — نتيجة تغيّر التيار عند غلق/فتح المفتاح'
       : 'تيار <b>محتث</b> أثناء الحركة — سيتوقف فور توقفك';
     return;
+  }
+  // Two coils too far apart couple too weakly to show anything, and with the
+  // switch open there is no field ring to see either — so the setup looks
+  // right and simply does nothing. Say so rather than leave it a mystery.
+  const coilsHere=lab().components.filter(c=>COIL_TYPES.includes(c.type));
+  if(coilsHere.length>=2 && !inducedActive){
+    let nearest=Infinity;
+    for(let i=0;i<coilsHere.length;i++) for(let j=i+1;j<coilsHere.length;j++){
+      const a=coilsHere[i], b=coilsHere[j], as=effSize(a), bs=effSize(b);
+      nearest=Math.min(nearest, Math.hypot((a.x+as.w/2)-(b.x+bs.w/2), (a.y+as.h/2)-(b.y+bs.h/2)));
+    }
+    if(nearest>COUPLING_REACH){
+      el.circuitStatus.innerHTML=`الملفان <b>متباعدان</b> (${Math.round(nearest)} مقابل مدى ${COUPLING_REACH}) — قرّبهما ليحدث اقتران`;
+      return;
+    }
   }
   if(sources.length===0){
     const hasRing=lab().components.some(c=>c.type==='ring'||c.type==='ringOpen');
@@ -2907,9 +2925,8 @@ const AUTO_BUILD = {
     const sec=place('coilSecondary',675,300,{rotated:true});
     const batt=place('battery',235,180);
     const sw=place('switch',235,395,{rotated:true});
-    const rh=place('rheostat',400,540);
     const galv=place('galvanometer',935,300);
-    loopUp(batt, pri, rh, sw);
+    loopUp(batt, pri, sw);
     join(sec,'a',galv,'a'); join(sec,'b',galv,'b');
   },
   4: ()=>{ // rod on rails through a field, read on a galvanometer
