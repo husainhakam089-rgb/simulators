@@ -304,6 +304,7 @@
     content:''; position:absolute; left:50%; top:50%; width:26px; height:26px; margin:-13px 0 0 -13px;
     border-radius:50%; border:2px dashed rgba(255,233,199,.6); pointer-events:none;
   }
+  .hoop-front{ position:absolute; pointer-events:none; z-index:3; }
   /* the part following your finger over from the palette */
   .place-ghost{
     position:fixed; z-index:60; pointer-events:none; opacity:.85;
@@ -834,12 +835,15 @@ const TYPES = {
   // and by the right-hand rule, seen from the magnet's side, a near face
   // that is N carries current anticlockwise, a near face that is S carries
   // it clockwise. lenzState() below works exactly this out.
-  ring:{ label:'حلقة موصلة', w:110, h:110, hasTerminals:false, accepts:['magnet'], svg:(comp)=>{
+  // A hoop standing with its axis horizontal, so the magnet slides straight
+  // through the middle of it rather than merely past it — which is what the
+  // real demonstration looks like, and it makes the reversal obvious: on the
+  // way in the flux is growing, on the way out it is dying, so the current
+  // turns round as the magnet clears the centre.
+  ring:{ label:'حلقة موصلة', w:130, h:170, hasTerminals:false, accepts:['magnet'], noNest:true, hoop:true, svg:(comp)=>{
     const pulse=comp && lab().inducedPulse;
     const active = pulse && pulse.coilId===comp.id;
     const st = active ? lenzState(comp) : null;
-    // dots run along the track, which is drawn clockwise from the top —
-    // so reverse them when the induced current is anticlockwise
     const ccw = st && st.sense==='ccw';
     const dots = active ? [0,1,2,3].map(i=>`
       <circle r="4.5" fill="#ffcf5c">
@@ -847,26 +851,25 @@ const TYPES = {
           <mpath href="#ringTrack-${comp.id}"/>
         </animateMotion>
       </circle>`).join('') : '';
-    // tangential arrowheads at the top and bottom of the loop: the direction
-    // of the current, readable at a glance without watching the dots move
     const arrow=(x,y,pointRight)=>`<path d="M-8 -7 L8 0 L-8 7 Z" fill="#ffcf5c" stroke="#3a2a10" stroke-width="1" transform="translate(${x} ${y}) rotate(${pointRight?0:180})"/>`;
-    const arrows = active ? (ccw ? arrow(55,9,false)+arrow(55,101,true)
-                                 : arrow(55,9,true)+arrow(55,101,false)) : '';
+    const arrows = active ? (ccw ? arrow(65,20,false)+arrow(65,150,true)
+                                 : arrow(65,20,true)+arrow(65,150,false)) : '';
+    const col = active?'#ffcf5c':'#d98a3d';
     return `
-    <ellipse cx="55" cy="55" rx="46" ry="46" fill="none" stroke="${active?'#ffcf5c':'#d98a3d'}" stroke-width="9"/>
-    <ellipse cx="55" cy="55" rx="46" ry="46" fill="none" stroke="#e8a860" stroke-width="3"/>
-    <path id="ringTrack-${comp?comp.id:'preview'}" d="M55 9 A46 46 0 1 1 54.99 9 Z" fill="none" stroke="none"/>
+    <ellipse cx="65" cy="85" rx="38" ry="65" fill="none" stroke="${col}" stroke-width="9"/>
+    <ellipse cx="65" cy="85" rx="38" ry="65" fill="none" stroke="#e8a860" stroke-width="3"/>
+    <path id="ringTrack-${comp?comp.id:'preview'}" d="M65 20 A38 65 0 1 1 64.99 20 Z" fill="none" stroke="none"/>
     ${dots}${arrows}`; } },
   // The control case for the same experiment: an identical loop with a cut
   // in it. The EMF is induced exactly as before — the changing flux does not
   // care — but the circuit is broken, so no current can flow and there is no
   // opposing force. It is never given `accepts`, so nothing can ever make it
   // carry a pulse: the physics, not a special case in the drawing.
-  ringOpen:{ label:'حلقة مفتوحة (مقطوعة)', w:110, h:110, hasTerminals:false, openRing:true, svg:()=>`
-    <path d="M 55 9 A 46 46 0 1 1 40.2 12.4" fill="none" stroke="#8f9bb0" stroke-width="9" stroke-linecap="round"/>
-    <path d="M 55 9 A 46 46 0 1 1 40.2 12.4" fill="none" stroke="#aab6c8" stroke-width="3" stroke-linecap="round"/>
-    <line x1="52" y1="6" x2="46" y2="20" stroke="#ff7b7b" stroke-width="2.5" stroke-linecap="round"/>
-    <line x1="38" y1="9" x2="44" y2="23" stroke="#ff7b7b" stroke-width="2.5" stroke-linecap="round"/>` },
+  ringOpen:{ label:'حلقة مفتوحة (مقطوعة)', w:130, h:170, hasTerminals:false, openRing:true, noNest:true, hoop:true, svg:()=>`
+    <path d="M 65 20 A 38 65 0 1 1 52 22.6" fill="none" stroke="#8f9bb0" stroke-width="9" stroke-linecap="round"/>
+    <path d="M 65 20 A 38 65 0 1 1 52 22.6" fill="none" stroke="#aab6c8" stroke-width="3" stroke-linecap="round"/>
+    <line x1="62" y1="15" x2="55" y2="30" stroke="#ff7b7b" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="49" y1="18" x2="56" y2="33" stroke="#ff7b7b" stroke-width="2.5" stroke-linecap="round"/>` },
   // Deliberately long: the rod needs real room to slide *into* the field
   // region and back out of it again, which is the whole observation — a
   // short track leaves it half in the field wherever you put it.
@@ -1438,6 +1441,11 @@ function tickPulseFade(){
 
 function renderComponents(){
   el.world.innerHTML='';
+  // The near side of every hoop, painted last so anything passing through it
+  // is crossed by the rim in front — the difference between a magnet that is
+  // *through* the ring and one merely sitting over it.
+  const hoopFronts=[];
+
   // A live coil is an electromagnet, so show how far its field actually
   // carries: concentric lines fading outwards to a dashed edge drawn at
   // exactly COUPLING_REACH — a second coil inside that edge picks up an
@@ -1539,11 +1547,26 @@ function renderComponents(){
       div.appendChild(st);
     }
 
+    if(t.hoop){
+      const f=document.createElement('div');
+      f.className='hoop-front';
+      f.style.left=comp.x+'px'; f.style.top=comp.y+'px';
+      f.style.width=s.w+'px'; f.style.height=s.h+'px';
+      const active=lab().inducedPulse && lab().inducedPulse.coilId===comp.id;
+      const cut=!!t.openRing;
+      f.innerHTML=`<svg viewBox="0 0 ${t.w} ${t.h}" style="width:${t.w}px;height:${t.h}px;">
+        <path d="M27 85 A38 65 0 0 0 103 85" fill="none" stroke="${cut?'#8f9bb0':(active?'#ffcf5c':'#d98a3d')}" stroke-width="9" stroke-linecap="round"/>
+        <path d="M27 85 A38 65 0 0 0 103 85" fill="none" stroke="${cut?'#aab6c8':'#e8a860'}" stroke-width="3" stroke-linecap="round"/>
+      </svg>`;
+      hoopFronts.push(f);
+    }
+
     const label=document.createElement('div');
     label.className='comp-label'; label.textContent=t.label;
     div.appendChild(label);
     el.world.appendChild(div);
   }
+  for(const f of hoopFronts) el.world.appendChild(f);
 }
 
 function wirePathD(p1,p2){ const midX=(p1.x+p2.x)/2; return `M ${p1.x} ${p1.y} L ${midX} ${p1.y} L ${midX} ${p2.y} L ${p2.x} ${p2.y}`; }
@@ -2024,11 +2047,21 @@ function lenzState(ring){
   const opposite = near==='N' ? 'S' : 'N';
   // opposing the change: same pole while the flux grows, opposite as it dies
   const ringFace = approaching ? near : opposite;
+  // The pole appearing on the ring's near face is the same whichever side the
+  // magnet is on — but the student watches from ONE fixed side, and once the
+  // magnet has passed through, that near face is the one turned away. Reported
+  // from the magnet's own side the sense would read identically going in and
+  // coming out, which on screen is plainly wrong: the current does reverse as
+  // the magnet clears the centre. So convert to the viewer's fixed viewpoint.
+  const ms=effSize(mag), rs2=effSize(ring);
+  const magnetOnLeft = (mag.x+ms.w/2) < (ring.x+rs2.w/2);
+  const fromMagnetSide = ringFace==='N' ? 'ccw' : 'cw';
+  const sense = magnetOnLeft ? fromMagnetSide : (fromMagnetSide==='cw' ? 'ccw' : 'cw');
   return {
     approaching,
     magnetPole: near,
     ringFace,
-    sense: ringFace==='N' ? 'ccw' : 'cw',           // seen from the magnet's side
+    sense,
     force: approaching ? 'تنافر' : 'تجاذب',
     flux:  approaching ? 'يزداد' : 'يتناقص'
   };
@@ -2257,6 +2290,7 @@ function findNestTarget(dragComp){
   for(const c of lab().components){
     if(c.id===dragComp.id) continue;
     const ct=TYPES[c.type];
+    if(ct.noNest) continue;   // a hoop is passed through, never seated in
     if(!ct.accepts || !ct.accepts.includes(dragComp.type)) continue;
     const cs=effSize(c);
     if(dCenter.x < c.x-20 || dCenter.x > c.x+cs.w+20 || dCenter.y < c.y-20 || dCenter.y > c.y+cs.h+20) continue;
@@ -2791,10 +2825,10 @@ const AUTO_BUILD = {
     join(loop,'a',fm,'a'); join(loop,'b',fm,'b');
     join(loop,'a',galv,'a'); join(loop,'b',galv,'b');
   },
-  6: ()=>{ // the closed ring and the cut one, side by side, with a magnet
-    place('ring',560,240);
-    place('ringOpen',560,470);
-    place('magnet',230,240);
+  6: ()=>{ // both hoops on the same axis as the magnet, ready to be pushed through
+    place('ring',560,250);
+    place('ringOpen',560,500);
+    place('magnet',230,250);   // level with the closed hoop's centre
   },
   7: ()=>{ // both bobs hung so they swing through the field
     place('stand',430,180);
