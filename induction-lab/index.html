@@ -613,8 +613,8 @@ const EXPERIMENTS = {
     steps:['ضع القلب الحديدي، ولُف حوله الملف الابتدائي والملف الثانوي.','صل الملف الابتدائي بالبطارية والمفتاح.','صل الملف الثانوي بالجلفانومتر.','أغلق المفتاح فجأة ولاحظ انحراف المؤشر لحظيًا.','افتح المفتاح فجأة ولاحظ انحرافًا معاكسًا.'],
     tools:['ironCore','coilPrimary','coilSecondary','battery','switch','galvanometer','bulb'] },
   3: { title:'نشاط الحث الكهرومغناطيسي المتبادل', subtitle:'ثلاث طرق لتوليد تيار محتث في الملف الثانوي',
-    steps:['ركّب ملفين ابتدائي وثانوي، وصل الابتدائي ببطارية ومفتاح وريوستات، والثانوي بجلفانومتر.','أغلق وافتح المفتاح فجأة ولاحظ نبضة التيار.','غيّر الريوستات تدريجيًا ولاحظ ظهور تيار أثناء التغيير فقط.','قارن بين الطرق: التيار المحتث لا يظهر إلا عند تغيّر الفيض.'],
-    tools:['coilPrimary','coilSecondary','battery','switch','rheostat','galvanometer','bulb'] },
+    steps:['ركّب ملفين متجاورين، وصل الابتدائي ببطارية ومفتاح وريوستات، والثانوي بجلفانومتر.','<b>الملفان ثابتان في كل ما يأتي</b> — الحركة ليست شرطًا، الشرط أن يتغيّر الفيض.','١) أغلق المفتاح ثم افتحه: نبضة تيار في كل مرة، باتجاهين متعاكسين.','٢) أدر الريوستات تدريجيًا: يسري تيار <b>ما دمت تدير</b> ويتوقف حين تتوقف.','٣) بدّل البطارية بمصدر جهد متردد: التيار <b>مستمر بلا انقطاع</b> لأن الفيض لا يكفّ عن التغيّر — وهذا مبدأ المحوّلة.','٤) حرّك أحد الملفين: طريقة رابعة، وليست الوحيدة.'],
+    tools:['coilPrimary','coilSecondary','battery','ac','switch','rheostat','galvanometer','bulb'] },
   4: { title:'القوة الدافعة الكهربائية الحركية (الحث الحركي)', subtitle:'حرّك الساق الموصلة على القضيبين المتوازيين داخل مجال مغناطيسي',
     steps:['ضع القضيبين المتوازيين وركّب الساق المعدنية عليهما.','ضع مصدر المجال المنتظم بحيث يشمل منطقة الساق.','صل طرفي القضيبين بمقاومة أو جلفانومتر.','حرّك الساق يدويًا وسجّل ملاحظاتك عن التيار الناشئ.'],
     tools:['rails','rod','fieldSource','resistor','galvanometer','bulb'] },
@@ -1588,6 +1588,8 @@ const COIL_L=5;          // henries
 // tau = L/R_arc is short: a visible flick rather than a slow fade.
 const ARC_R=28;          // ohms, the arc across opening contacts
 const METER_FULL_SCALE=42; // degrees — the end of the galvanometer's dial
+let acRAF=null;
+const AC_HZ=0.8;         // slowed right down so the alternation is watchable
 const REF_CURRENT=1.0;   // the current that reads full scale
 
 function buildGraph(excludeInternalId){
@@ -1647,6 +1649,7 @@ function processLoop(hostId, startTerm, targetTerm, litNodes, wireDirection, com
 }
 
 function evaluateCircuit(){
+  let acLive=false;
   const sources=lab().components.filter(c=>SOURCE_TYPES.includes(c.type));
   const litNodes=new Set(); const wireDirection=new Map(); const compDirection=new Map();
   let anyLoop=false; const loadRef={count:0};
@@ -1672,6 +1675,7 @@ function evaluateCircuit(){
   //       the resistor branch and the two settle at the SAME reading — the
   //       only difference is the time it takes, which is the whole lesson.
   const loopHasInductor=new Map(), loopSwing=new Map(), loopTau=new Map();
+  const coilCurrent=new Map(), coilAC=new Map();
   const loopInfo=[];
   for(const src of sources){
     const members=new Set();
@@ -1688,8 +1692,10 @@ function evaluateCircuit(){
       const I=emf/R;
       const sw=Math.min(42, 34*I/REF_CURRENT);
       const tau=L>0 ? L/R : 0;
+      const loopIsAC=[...members].some(id=>{ const c=findComp(id); return c && (c.type==='ac'||c.type==='acHighFreq'); });
       for(const id of members){
         loopHasInductor.set(id, L>0); loopSwing.set(id, sw); loopTau.set(id, tau);
+        coilCurrent.set(id, I); coilAC.set(id, loopIsAC);
         const c=findComp(id); if(c && L>0) c._breakTau=L/ARC_R; // the arc's own, much shorter, constant
       }
       loopInfo.push({ R, L, tau, I, emf });
@@ -1710,6 +1716,44 @@ function evaluateCircuit(){
     const fwNodes=new Set(), fwMembers=new Set();
     if(processLoop(c.id,'a','b', fwNodes, new Map(), new Map(), {count:0}, fwMembers)){
       for(const id of fwMembers) freewheel.add(id);
+    }
+  }
+
+  // A secondary sitting still still carries current whenever the PRIMARY's
+  // current changes — nothing has to move. Two ways that happens:
+  //
+  //   varying a rheostat (or the supply) changes I in the primary, so the
+  //   flux through the secondary changes for as long as you keep turning it;
+  //   an AC supply changes I continuously, so the secondary carries current
+  //   the whole time and never needs a switch touched at all.
+  //
+  // Both are Faraday exactly as the steady-DC case is: what induces is
+  // dPhi/dt, not being near a field.
+  for(const c of lab().components){
+    if(!COIL_TYPES.includes(c.type)) continue;
+    const nowI=coilCurrent.get(c.id)||0;
+    const wasI=c._lastI==null?nowI:c._lastI;
+    c._lastI=nowI;
+    if(coilAC.get(c.id) && nowI>0.0001){
+      // an alternating primary: the coupled coil never stops responding
+      const hit=findCoupledCoil(c);
+      if(hit){
+        const phase=Math.sin(Date.now()/1000*2*Math.PI*AC_HZ);
+        const gain=(turnsOf(c)/TURNS_REF)*(turnsOf(hit.comp)/TURNS_REF);
+        lab().inducedPulse={ coilId:hit.comp.id, dir: phase>=0?1:-1, reason:'ac',
+                             strength: couplingStrength(hit.dist)*gain*Math.abs(phase) };
+        acLive=true;
+      }
+    } else if(wasI>0.001 && nowI>0.001 && Math.abs(nowI-wasI)>0.003){
+      // the current changed while staying on — a rheostat being turned
+      const hit=findCoupledCoil(c);
+      if(hit){
+        const gain=(turnsOf(c)/TURNS_REF)*(turnsOf(hit.comp)/TURNS_REF);
+        lab().inducedPulse={ coilId:hit.comp.id, dir: nowI<wasI?1:-1, reason:'motion',
+                             strength: Math.min(1.6, couplingStrength(hit.dist)*gain*Math.abs(nowI-wasI)*26),
+                             fadeStart: Date.now() };
+        if(pulseFadeRAF==null) pulseFadeRAF=requestAnimationFrame(tickPulseFade);
+      }
     }
   }
 
@@ -1805,7 +1849,10 @@ function evaluateCircuit(){
                     ? (freewheel.has(comp.id) ? (comp._tau||0) : (comp._breakTau||0))
                     : 0);
       const litBySource = loopSwing.has(comp.id);
-      const target = on ? (litBySource ? 1 : (inducedActive ? Math.max(0.15, Math.min(1, inducedScale)) : 1)) : 0;
+      const acDriven = pulse && pulse.reason==='ac' && pulse.coilId===comp.id;
+      const target = on ? (litBySource ? 1
+                        : acDriven ? 0.72                        // steady: the filament averages the alternation
+                        : (inducedActive ? Math.max(0.15, Math.min(1, inducedScale)) : 1)) : 0;
       if(comp._lit==null) comp._lit=0;
       if(tau>0.01){
         const nw=(typeof performance!=='undefined'?performance.now():Date.now());
@@ -1877,6 +1924,9 @@ function evaluateCircuit(){
     const path=document.getElementById('wirepath-'+w.id);
     if(path && active) animateCurrent(path, w.id, wireDirection.get(w.id)===-1);
   }
+
+  // an alternating supply never settles, so keep redrawing while it runs
+  if(acLive && acRAF==null) acRAF=requestAnimationFrame(()=>{ acRAF=null; render(); });
 
   if(lab().components.length===0){ el.circuitStatus.innerHTML='اسحب الأدوات وابدأ التركيب'; return; }
   // A ring has no terminals to run through the wire-graph engine at all — its
@@ -2712,9 +2762,12 @@ const AUTO_BUILD = {
     join(sec,'a',galv,'a'); join(sec,'b',galv,'b');
   },
   3: ()=>{ // mutual induction with a rheostat to vary the primary current
-    const pri=place('coilPrimary',380,220), sec=place('coilSecondary',760,220);
-    const batt=place('battery',180,470), sw=place('switch',400,470), rh=place('rheostat',620,470);
-    const galv=place('galvanometer',900,470);
+    // The coils sit close together, as they do on the bench: coupling falls
+    // off with separation, and parked far apart the secondary reads so
+    // faintly that the effect looks absent rather than weak.
+    const pri=place('coilPrimary',420,220), sec=place('coilSecondary',600,220);
+    const batt=place('battery',160,470), sw=place('switch',380,470), rh=place('rheostat',600,470);
+    const galv=place('galvanometer',870,470);
     loopUp(batt, sw, rh, pri);
     join(sec,'a',galv,'a'); join(sec,'b',galv,'b');
   },
