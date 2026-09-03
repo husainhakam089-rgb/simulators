@@ -2761,14 +2761,19 @@ const AUTO_BUILD = {
     loopUp(batt, sw, pri);
     join(sec,'a',galv,'a'); join(sec,'b',galv,'b');
   },
-  3: ()=>{ // mutual induction with a rheostat to vary the primary current
-    // The coils sit close together, as they do on the bench: coupling falls
-    // off with separation, and parked far apart the secondary reads so
-    // faintly that the effect looks absent rather than weak.
-    const pri=place('coilPrimary',420,220), sec=place('coilSecondary',600,220);
-    const batt=place('battery',160,470), sw=place('switch',380,470), rh=place('rheostat',600,470);
-    const galv=place('galvanometer',870,470);
-    loopUp(batt, sw, rh, pri);
+  3: ()=>{ // mutual induction: two upright coils facing each other
+    // Both coils stand vertical and close together so their axes line up —
+    // that is how you would set them on the bench, and coupling falls off
+    // fast with separation. The primary's loop hangs down the left (battery
+    // over switch, rheostat along the bottom), the secondary's runs out to
+    // the galvanometer on the right, so the two circuits stay visually apart.
+    const pri=place('coilPrimary',505,300,{rotated:true});
+    const sec=place('coilSecondary',675,300,{rotated:true});
+    const batt=place('battery',235,180);
+    const sw=place('switch',235,395,{rotated:true});
+    const rh=place('rheostat',400,540);
+    const galv=place('galvanometer',935,300);
+    loopUp(batt, pri, rh, sw);
     join(sec,'a',galv,'a'); join(sec,'b',galv,'b');
   },
   4: ()=>{ // rod on rails through a field, read on a galvanometer
