@@ -13,10 +13,19 @@ type Worker = {
 
 export type OcrStage = "idle" | "loading" | "reading" | "ready" | "unavailable";
 
+/**
+ * المسارات تُحسب من عنوان الصفحة لا من جذر النطاق، فيعمل التطبيق حين يُنشر
+ * داخل مجلد فرعي. و`corePath` يشير إلى ملف بعينه لا إلى مجلد: هكذا يتوقف
+ * الاختيار التلقائي بين نسخ المحرك ونشحن نسخة واحدة بدل ثلاث.
+ */
+function ocrUrl(file: string): string {
+  return new URL(`ocr/${file}`, document.baseURI).href;
+}
+
 const OCR_PATHS = {
-  workerPath: "/ocr/worker.min.js",
-  corePath: "/ocr/",
-  langPath: "/ocr",
+  workerPath: ocrUrl("worker.min.js"),
+  corePath: ocrUrl("tesseract-core-simd-lstm.wasm.js"),
+  langPath: ocrUrl("").replace(/\/$/, ""),
 };
 
 // وضع القراءة: التقسيم التلقائي (٣) أعطى أفضل نتيجة في الاختبار — يقرأ الصور

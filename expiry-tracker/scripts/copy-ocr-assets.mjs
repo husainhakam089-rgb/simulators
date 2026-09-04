@@ -8,13 +8,16 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const out = join(root, "public", "ocr");
 mkdirSync(out, { recursive: true });
 
-// نأخذ نسخ LSTM الثلاث فقط (لا نحتاج المحرك القديم): المتصفح يختار واحدة منها
-// حسب دعمه لـ SIMD، فلا يُنزَّل إلا ملف واحد على الجهاز.
+// نسخة واحدة من المحرك فقط.
+//
+// tesseract.js يختار تلقائياً بين ثلاث نسخ (relaxedsimd / simd / بلا simd) حسب
+// المعالج، فكنا نشحن الثلاث بينما الجهاز ينزّل واحدة — ٢٫٨ م.ب هدراً في كل نسخة
+// يوزّعها صاحب المحل. نثبّت نسخة SIMD ونمرّر مسار الملف نفسه لا المجلد، فيتوقف
+// الاختيار التلقائي. SIMD مدعوم منذ Chrome 91 و Safari 16.4، أي كل موبايل عملي.
+// الأجهزة الأقدم لا تُحمّل القراءة أصلاً، ويبقى التطبيق كاملاً بدونها.
 const files = [
   ["node_modules/tesseract.js/dist/worker.min.js", "worker.min.js"],
-  ["node_modules/tesseract.js-core/tesseract-core-relaxedsimd-lstm.wasm.js", "tesseract-core-relaxedsimd-lstm.wasm.js"],
   ["node_modules/tesseract.js-core/tesseract-core-simd-lstm.wasm.js", "tesseract-core-simd-lstm.wasm.js"],
-  ["node_modules/tesseract.js-core/tesseract-core-lstm.wasm.js", "tesseract-core-lstm.wasm.js"],
   ["node_modules/@tesseract.js-data/eng/4.0.0_best_int/eng.traineddata.gz", "eng.traineddata.gz"],
   // العربية تُحمَّل فقط عند تصوير علبة بلا باركود، لا في المسار الاعتيادي
   ["node_modules/@tesseract.js-data/ara/4.0.0_best_int/ara.traineddata.gz", "ara.traineddata.gz"],
