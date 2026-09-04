@@ -2,7 +2,7 @@
 // يرسم كراتين اصطناعية (خلفية، ضجيج، ميلان، طباعة باهتة) ويتحقق أن المحرك يقرأها.
 import { chromium } from 'playwright';
 
-const BASE = process.argv[2] ?? 'http://127.0.0.1:5173';
+const BASE = process.env.BASE ?? process.argv[2] ?? 'http://127.0.0.1:5173';
 const results = [];
 
 const browser = await chromium.launch({

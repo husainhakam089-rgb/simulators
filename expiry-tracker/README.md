@@ -218,15 +218,18 @@ supabase functions deploy send-digest-push --no-verify-jwt
 ## الاختبارات
 
 ```bash
-npm run test:dates                       # منطق قراءة التواريخ (٢٣ اختباراً، بلا متصفح)
+npm run test:dates                       # منطق قراءة التواريخ (٢٦ اختباراً، بلا متصفح)
 
-npx vite dev --port 5173 &
+npm run dev &                            # المنفذ ٥١٧٣
 npm run test:ocr                         # قراءة صور حقيقية بمحرك حقيقي
 npm run test:camera                      # المسار الكامل من الكاميرا
 
 npm run build && npx vite preview --port 4173 &
 npm run test:ui                          # شاشات المدير والعامل والعمل دون اتصال
 ```
+
+الاختبارات تتوقع المنفذ ٥١٧٣ للتطوير و٤١٧٣ للمعاينة. لمنفذ آخر مرّر
+`BASE=http://127.0.0.1:<port>` قبل الأمر.
 
 | الملف | ما يتحقق منه |
 |---|---|

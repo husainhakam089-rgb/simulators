@@ -1,6 +1,7 @@
 import { chromium } from 'playwright';
 
 const REF = 'uvjjnxemvamwzcturyfq';
+const BASE = process.env.BASE ?? 'http://127.0.0.1:4173';
 const OUT = process.argv[2] ?? './tests/screenshots';
 const log = [];
 const fail = (m) => { log.push('✗ ' + m); };
@@ -58,7 +59,7 @@ async function makePage(userId, handlers) {
     ]],
   ]);
 
-  await page.goto('http://127.0.0.1:4173/admin', { waitUntil: 'networkidle' });
+  await page.goto(BASE + '/admin', { waitUntil: 'networkidle' });
   await page.waitForTimeout(1200);
   const body = await page.textContent('body');
   body.includes('سوبرماركت التجربة') ? pass('لوحة المدير: اسم المحل ظاهر') : fail('اسم المحل غير ظاهر');
@@ -89,7 +90,7 @@ async function makePage(userId, handlers) {
     ['/rest/v1/rpc/record_batch', [{ batch_id: 'nb1', product_name: 'لبن ربيع ١ لتر', was_unknown: false }]],
   ]);
 
-  await page.goto('http://127.0.0.1:4173/admin', { waitUntil: 'networkidle' });
+  await page.goto(BASE + '/admin', { waitUntil: 'networkidle' });
   await page.waitForTimeout(1500);
   page.url().endsWith('/scan') ? pass('العامل يُحوَّل للكاميرا مباشرة، لا لوحة') : fail('مسار العامل: ' + page.url());
   const scanBody = await page.textContent('body');
