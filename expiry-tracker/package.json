@@ -14,25 +14,26 @@
     "prebuild": "node scripts/copy-ocr-assets.mjs",
     "test:dates": "esbuild src/lib/dateParse.ts --outfile=tests/.build/dateParse.js --format=esm --target=node18 && node --test tests/dateparse.test.mjs",
     "test:ocr": "node tests/ocr.test.mjs",
-    "test:camera": "node tests/make-carton.mjs tests/.build && node tests/camera.test.mjs tests/.build/carton.y4m ./tests/screenshots"
+    "test:camera": "node tests/make-carton.mjs tests/.build && node tests/camera.test.mjs tests/.build/carton.y4m ./tests/screenshots",
+    "postinstall": "node scripts/copy-ocr-assets.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.47.10",
+    "@tesseract.js-data/eng": "^1.0.0",
     "@zxing/browser": "^0.1.5",
     "@zxing/library": "^0.21.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.28.0",
     "tesseract.js": "^7.0.0",
+    "tesseract.js-core": "^7.0.0",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "@tesseract.js-data/eng": "^1.0.0",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.4",
     "playwright": "^1.49.1",
-    "tesseract.js-core": "^7.0.0",
     "typescript": "^5.6.3",
     "vite": "^5.4.11"
   }

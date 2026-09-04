@@ -36,7 +36,8 @@ cp .env.example .env       # جاهز بمفاتيح المشروع
 npm run dev                # http://localhost:5173
 ```
 
-`npm install` ينسخ ملفات محرك القراءة تلقائياً إلى `public/ocr` قبل التشغيل والبناء.
+`npm install` ينسخ ملفات محرك القراءة إلى `public/ocr` تلقائياً، وكذلك
+`npm run dev` و`npm run build` قبل تشغيلهما. لتكرارها يدوياً: `npm run ocr:assets`.
 
 ### على الموبايل
 
