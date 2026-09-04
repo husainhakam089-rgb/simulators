@@ -69,6 +69,9 @@ const cases = [
   // تاريخاً — الفراغ يعني الرجوع للتاريخ المحسوب، والخطأ يعني بضاعة تُتلف بلا سبب.
   { label: 'طباعة باهتة جداً ← يرجع فارغاً بدل أن يخترع', lines: [`EXP 25/12/${y + 1}`], expect: null, opts: { faint: true, rotate: -4 } },
   { label: 'خط صغير',               lines: ['LOT 4521A', `EXP ${y + 1}-11-30`], expect: `${y + 1}-11-30`, opts: { size: 34 } },
+  // الصيغة القصيرة بلا أي كلمة — الحالة التي طُلب فتحها
+  { label: 'صيغة قصيرة ٠٩/٢٧ بلا كلمة',  lines: ['NET 250 G', `09/${String(y + 1).slice(2)}`], expect: `${y + 1}-09-30` },
+  { label: 'صيغة قصيرة في الماضي تُرفض', lines: ['NET 250 G', `12/${String(y - 1).slice(2)}`], expect: null },
 ];
 
 for (const c of cases) {

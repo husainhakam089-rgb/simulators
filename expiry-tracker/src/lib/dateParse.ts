@@ -150,12 +150,19 @@ function datesInLine(line: string, today: Date): DateCandidate[] {
     if (mo >= 1 && mo <= 12) push(y, mo, lastDayOfMonth(y, mo), m[0], m.index!, false);
   }
 
-  // ٠٩/٢٦ — شهر/سنة بسنتين، نقبلها فقط مع كلمة مفتاحية لأنها تشبه أرقام التشغيلة
+  // ٠٩/٢٦ — شهر/سنة بسنتين. صيغة شائعة على البضاعة لكنها تشبه أرقام التشغيلة،
+  // فبلا كلمة مفتاحية لا نقبلها إلا إذا كان الناتج في المستقبل وضمن خمس سنوات:
+  // رقم تشغيلة عشوائي نادراً ما يقع في هذه النافذة الضيقة.
+  const todayISOLocal = iso(today.getFullYear(), today.getMonth() + 1, today.getDate());
   for (const m of line.matchAll(/(?<![\d\/.\-])(\d{1,2})[\/.\-](\d{2})(?![\d\/.\-])/g)) {
     const mo = Number(m[1]);
     const y = fullYear(Number(m[2]));
     if (mo < 1 || mo > 12) continue;
-    if (kindOfLine(line, m.index!) === "unknown") continue;
+    if (kindOfLine(line, m.index!) === "unknown") {
+      const candidate = iso(y, mo, lastDayOfMonth(y, mo));
+      if (candidate <= todayISOLocal) continue;
+      if (y > today.getFullYear() + 5) continue;
+    }
     push(y, mo, lastDayOfMonth(y, mo), m[0], m.index!, false);
   }
 

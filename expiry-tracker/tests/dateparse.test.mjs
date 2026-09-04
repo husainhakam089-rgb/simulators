@@ -92,9 +92,24 @@ test("لكن الرقم المضغوط مع كلمة صريحة يُقبل", () 
   assert.equal(read("EXP 18092027").expiry, "2027-09-18");
 });
 
-test("شهر/سنة بسنتين تُقبل فقط مع كلمة صريحة", () => {
-  assert.equal(read("09/27").expiry, null);
+test("شهر/سنة بسنتين بلا كلمة: تُقبل إن كانت في المستقبل وضمن خمس سنوات", () => {
+  assert.equal(read("09/27").expiry, "2027-09-30");
   assert.equal(read("EXP 09/27").expiry, "2027-09-30");
+});
+
+test("شهر/سنة بسنتين في الماضي بلا كلمة تُرفض (تشبه رقم تشغيلة)", () => {
+  assert.equal(read("12/25").expiry, null);
+  assert.equal(read("EXP 12/25").expiry, "2025-12-31");   // مع كلمة صريحة تُقبل
+});
+
+test("شهر/سنة بسنتين بعيدة جداً بلا كلمة تُرفض", () => {
+  assert.equal(read("09/33").expiry, null);
+  assert.equal(read("EXP 09/33").expiry, "2033-09-30");
+});
+
+test("الأرقام المجاورة لا تُقرأ كشهر/سنة", () => {
+  assert.equal(read("NET 500/25 G").expiry, null);
+  assert.equal(read("BATCH 45210").expiry, null);
 });
 
 test("تواريخ خارج المدى المعقول تُرفض", () => {
