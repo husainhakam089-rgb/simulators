@@ -60,9 +60,17 @@ for (const c of cases) {
       g.font = `bold ${i === 0 ? 62 : 40}px "Noto Kufi Arabic", sans-serif`;
       g.fillText(t, cv.width / 2, 200 + i * 130);
     });
+    // ضجيج بمولّد عشوائي مثبّت البذرة: أي سقوط لاحق يكون عطلاً حقيقياً لا حظاً
+    let seed = 0x9e3779b9;
+    const rnd = () => {
+      seed = (seed + 0x6D2B79F5) | 0;
+      let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
     const im = g.getImageData(0, 0, cv.width, cv.height);
     for (let i = 0; i < im.data.length; i += 4) {
-      const n = (Math.random() - 0.5) * 12;
+      const n = (rnd() - 0.5) * 12;
       im.data[i] += n; im.data[i + 1] += n; im.data[i + 2] += n;
     }
     g.putImageData(im, 0, 0);

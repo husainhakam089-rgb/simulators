@@ -17,7 +17,8 @@
     "test:camera": "node tests/make-carton.mjs tests/.build && node tests/camera.test.mjs tests/.build/carton.y4m ./tests/screenshots",
     "postinstall": "node scripts/copy-ocr-assets.mjs",
     "test:match": "esbuild src/lib/productMatch.ts --outfile=tests/.build/productMatch.js --format=esm --target=node18 && node --test tests/productmatch.test.mjs",
-    "test:package": "node tests/package.test.mjs"
+    "test:package": "node tests/package.test.mjs",
+    "test:auto": "node tests/make-carton.mjs tests/.build && node tests/make-package.mjs tests/.build && node tests/autofallback.test.mjs tests/.build/carton.y4m tests/.build/package.y4m ./tests/screenshots"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.47.10",

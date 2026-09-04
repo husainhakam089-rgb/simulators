@@ -3,7 +3,7 @@ import { useAuth } from "../../lib/auth";
 import { catalog, newClientId, type CatalogItem } from "../../lib/db";
 import { enqueueBatch, onSyncChange, refreshCatalog, syncNow } from "../../lib/sync";
 import { supabase } from "../../lib/supabase";
-import { captureFrame, createScanner } from "../../lib/scanner";
+import { captureFrame, createFrameWatcher, createScanner } from "../../lib/scanner";
 import { WORDS, addDays, arPlural, daysLeftLabel, formatDate, riskLevel, toISODate } from "../../lib/format";
 import { DatePicker } from "../../components/DatePicker";
 import { readDateFromImage, readPackage, warmUpOcr } from "../../lib/ocr";
@@ -36,6 +36,13 @@ const SOURCE_LABEL: Record<Pending["identifiedBy"], string> = {
 
 const DEFAULT_SHELF_DAYS = 180;
 
+// السقوط التلقائي على قراءة العلبة: لا يعمل إلا بعد أن يمرّ هذا الوقت بلا
+// باركود، والكاميرا ثابتة وأمامها شيء. العتبات مقيسة على صور كاميرا حقيقية.
+const NO_BARCODE_MS = 2500;
+const STEADY_MOTION = 6;    // متوسط فرق الإضاءة بين لقطتين
+const MIN_DETAIL = 12;      // انحراف معياري: أقل منه يعني عدسة أمام لا شيء
+const STEADY_SAMPLES = 2;
+
 export default function Scan() {
   const { profile, storeName, signOut } = useAuth();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -56,6 +63,8 @@ export default function Scan() {
   const paused = useRef(false);
   paused.current = pending !== null || manual || picking;
   const scanSeq = useRef(0);
+  const lastBarcodeAt = useRef(Date.now());
+  const [autoHint, setAutoHint] = useState(false);
 
   // ------------------------------------------------------ حالة المزامنة
   useEffect(() => {
@@ -96,6 +105,37 @@ export default function Scan() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // ------------------------------- السقوط التلقائي على قراءة العلبة
+  useEffect(() => {
+    const watcher = videoRef.current ? createFrameWatcher(videoRef.current) : null;
+    if (!watcher) return;
+    let steady = 0;
+
+    const timer = window.setInterval(() => {
+      if (paused.current) { steady = 0; setAutoHint(false); watcher.reset(); return; }
+
+      const waited = Date.now() - lastBarcodeAt.current;
+      if (waited < NO_BARCODE_MS) { steady = 0; setAutoHint(false); return; }
+
+      const s = watcher.sample();
+      if (!s) return;
+      setAutoHint(true);
+
+      // ثابتة وأمامها شيء؟ عندها نصوّر العلبة بلا ما ننتظر ضغطة
+      if (s.motion <= STEADY_MOTION && s.detail >= MIN_DETAIL) steady++;
+      else steady = 0;
+
+      if (steady >= STEADY_SAMPLES) {
+        steady = 0;
+        setAutoHint(false);
+        void beginConfirm(null);
+      }
+    }, 400);
+
+    return () => window.clearInterval(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const beep = useCallback(() => {
     try {
       const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -132,6 +172,7 @@ export default function Scan() {
    */
   async function beginConfirm(code: string | null) {
     lastCode.current = { code: code ?? "", at: Date.now() };
+    lastBarcodeAt.current = Date.now();
     paused.current = true;
     beep();
 
@@ -249,6 +290,7 @@ export default function Scan() {
   }
 
   async function handleScan(code: string) {
+    lastBarcodeAt.current = Date.now();   // رأينا باركوداً: لا داعي لقراءة العلبة
     if (paused.current) return;
     const now = Date.now();
     if (lastCode.current.code === code && now - lastCode.current.at < 4000) return;
@@ -279,6 +321,7 @@ export default function Scan() {
       tries: 0,
     });
 
+    lastBarcodeAt.current = Date.now();
     setSavedToday((n) => n + 1);
     setToast(p.known ? `حُفظ: ${p.productName}` : "حُفظ كصنف مجهول — سيراجعه المدير");
     window.setTimeout(() => setToast(null), 1800);
@@ -295,7 +338,7 @@ export default function Scan() {
     <div className="scanner">
       <video ref={videoRef} playsInline muted />
       <div className="frame" />
-      <div className="hint-text">وجّه الكاميرا نحو باركود الكارتون</div>
+      <div className="hint-text">وجّه الكاميرا نحو الباركود — أو على العلبة نفسها</div>
 
       <div className="bar">
         <div className="who">
@@ -316,8 +359,11 @@ export default function Scan() {
 
       <div className="footer">
         {cameraError && <div className="error">{cameraError}</div>}
+        {autoHint && (
+          <div className="auto-hint">ما شفت باركود — ثبّت الكاميرا على العلبة وأقرأ اسمها</div>
+        )}
         <button className="capture" onClick={() => void beginConfirm(null)}>
-          صوّر العلبة (بلا باركود)
+          اقرأ العلبة الآن
         </button>
         <button className="manual" onClick={() => setManual(true)}>إدخال الباركود يدوياً</button>
       </div>

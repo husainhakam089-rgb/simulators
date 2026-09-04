@@ -78,3 +78,47 @@ export function captureFrame(video: HTMLVideoElement): Promise<Blob | null> {
     canvas.toBlob((b) => resolve(b), "image/jpeg", 0.7);
   });
 }
+
+/**
+ * مراقب الإطار: يقيس الحركة والتفاصيل في صورة مصغّرة من الكاميرا.
+ *
+ * نستعمله للسقوط التلقائي على قراءة العلبة حين لا يوجد باركود: لا نصوّر إلا
+ * والكاميرا ثابتة وأمامها شيء فعلاً، حتى لا تنفتح شاشة التأكيد والعامل يمشي
+ * بالموبايل بيده.
+ */
+export function createFrameWatcher(video: HTMLVideoElement) {
+  const W = 64, H = 48;
+  const canvas = document.createElement("canvas");
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  let previous: Uint8ClampedArray | null = null;
+
+  return {
+    /** يرجع الحركة (٠..٢٥٥) ومقدار التفاصيل (انحراف معياري) أو null إن لم تجهز الصورة */
+    sample(): { motion: number; detail: number } | null {
+      if (!ctx || video.readyState < 2 || !video.videoWidth) return null;
+      ctx.drawImage(video, 0, 0, W, H);
+      const now = ctx.getImageData(0, 0, W, H).data;
+
+      let sum = 0, sumSq = 0, motion = 0;
+      for (let i = 0; i < now.length; i += 4) {
+        const g = (now[i] * 0.299 + now[i + 1] * 0.587 + now[i + 2] * 0.114);
+        sum += g; sumSq += g * g;
+        if (previous) motion += Math.abs(g - previous[i]);
+      }
+      const n = now.length / 4;
+      const mean = sum / n;
+      const detail = Math.sqrt(Math.max(0, sumSq / n - mean * mean));
+      const result = { motion: previous ? motion / n : 255, detail };
+
+      // نخزّن القيم الرمادية لمقارنة اللقطة القادمة
+      const copy = new Uint8ClampedArray(now.length);
+      for (let i = 0; i < now.length; i += 4) {
+        copy[i] = now[i] * 0.299 + now[i + 1] * 0.587 + now[i + 2] * 0.114;
+      }
+      previous = copy;
+      return result;
+    },
+    reset() { previous = null; },
+  };
+}

@@ -26,9 +26,17 @@ const run = async (label, lines, opts = {}) => {
     grad.addColorStop(0, 'rgba(255,255,255,0.18)');
     grad.addColorStop(1, 'rgba(0,0,0,0.16)');
     g.fillStyle = grad; g.fillRect(0, 0, c.width, c.height);
+    // ضجيج بمولّد عشوائي مثبّت البذرة: أي سقوط لاحق يكون عطلاً حقيقياً لا حظاً
+    let seed = 0x9e3779b9;
+    const rnd = () => {
+      seed = (seed + 0x6D2B79F5) | 0;
+      let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
     const img = g.getImageData(0, 0, c.width, c.height);
     for (let i = 0; i < img.data.length; i += 4) {
-      const n = (Math.random() - 0.5) * 26;
+      const n = (rnd() - 0.5) * 26;
       img.data[i] += n; img.data[i + 1] += n; img.data[i + 2] += n;
     }
     g.putImageData(img, 0, 0);
