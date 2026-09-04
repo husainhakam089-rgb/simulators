@@ -3,14 +3,16 @@ const DB_NAME = "expiry-tracker";
 const DB_VERSION = 1;
 
 export interface QueuedBatch {
-  id: string;               // client_id — يمنع التكرار عند إعادة الإرسال
+  id: string;                     // client_id — يمنع التكرار عند إعادة الإرسال
   barcode: string;
-  expiry_date: string;      // YYYY-MM-DD
+  expiry_date: string;            // YYYY-MM-DD
+  production_date?: string | null; // إن قُرئ من الصورة
   quantity: number;
   date_source: "ocr" | "calculated" | "manual";
   confidence: "high" | "low";
   received_at: string;
   product_name: string | null;
+  note?: string | null;           // سبب اختيار التاريخ — يراه المدير عند المراجعة
   photo?: Blob;
   tries: number;
   error?: string;

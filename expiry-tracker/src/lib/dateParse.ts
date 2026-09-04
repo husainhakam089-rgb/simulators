@@ -1,0 +1,290 @@
+/**
+ * قراءة التواريخ من نص خام (ناتج OCR) والتمييز بين تاريخ الإنتاج وتاريخ الانتهاء.
+ *
+ * منطق خالص بلا متصفح ولا شبكة — مُختبَر في tests/dateparse.test.mjs
+ */
+
+export type DateKind = "expiry" | "production" | "unknown";
+
+export interface DateCandidate {
+  iso: string;        // YYYY-MM-DD
+  raw: string;        // النص كما ظهر في الصورة
+  kind: DateKind;     // ما دلّت عليه الكلمة المفتاحية إن وُجدت
+  dayKnown: boolean;  // false إذا كان التاريخ شهر/سنة فقط
+  line: string;
+}
+
+export interface ReadResult {
+  expiry: string | null;
+  production: string | null;
+  confidence: "high" | "low";
+  reason: string;              // لماذا اختير هذا التاريخ — يظهر للمدير عند المراجعة
+  candidates: DateCandidate[];
+}
+
+const MONTHS: Record<string, number> = {
+  JAN: 1, FEB: 2, MAR: 3, APR: 4, MAY: 5, JUN: 6,
+  JUL: 7, AUG: 8, SEP: 9, OCT: 10, NOV: 11, DEC: 12,
+  JANUARY: 1, FEBRUARY: 2, MARCH: 3, APRIL: 4, JUNE: 6, JULY: 7,
+  AUGUST: 8, SEPTEMBER: 9, SEPT: 9, OCTOBER: 10, NOVEMBER: 11, DECEMBER: 12,
+};
+
+// كلمات الانتهاء والإنتاج — إنجليزية (أغلب الكراتين المستوردة) وعربية
+const EXPIRY_WORDS = [
+  "EXPIRY", "EXPIRE", "EXPIRES", "EXPIRATION", "EXP",
+  "BEST BEFORE", "BESTBEFORE", "BEST BY", "USE BY", "USEBY", "USE BEFORE",
+  "SELL BY", "BBE", "BBD", "VALID UNTIL", "VALID TO",
+  "الانتهاء", "انتهاء", "الصلاحية", "صلاحية", "صالح لغاية", "صالح حتى", "ينتهي",
+];
+const PRODUCTION_WORDS = [
+  "MANUFACTURE", "MANUFACTURED", "MANUFACTURING", "PRODUCTION", "PRODUCED",
+  "PACKED", "PACKING", "PACKAGED", "MFG", "MFD", "PRD", "PROD", "PKD",
+  "الإنتاج", "الانتاج", "إنتاج", "انتاج", "التعبئة", "تعبئة", "الصنع",
+];
+
+/** الأرقام العربية والفارسية ← لاتينية */
+export function normalizeDigits(s: string): string {
+  return s.replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - 0x0660))
+          .replace(/[۰-۹]/g, (d) => String(d.charCodeAt(0) - 0x06F0));
+}
+
+/** تنظيف مخرجات OCR: توحيد الفواصل وإزالة الضجيج */
+export function normalizeLine(s: string): string {
+  return normalizeDigits(s)
+    .toUpperCase()
+    .replace(/[|]/g, "1")
+    .replace(/[‐-―]/g, "-")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
+function pad(n: number) { return String(n).padStart(2, "0"); }
+
+function iso(y: number, m: number, d: number) {
+  return `${y}-${pad(m)}-${pad(d)}`;
+}
+
+function lastDayOfMonth(y: number, m: number) {
+  return new Date(y, m, 0).getDate();
+}
+
+function validDate(y: number, m: number, d: number): boolean {
+  if (m < 1 || m > 12 || d < 1) return false;
+  return d <= lastDayOfMonth(y, m);
+}
+
+function fullYear(y: number): number {
+  if (y >= 1000) return y;
+  return y < 70 ? 2000 + y : 1900 + y;
+}
+
+function kindOfLine(line: string, dateIndex: number): DateKind {
+  // الكلمة المفتاحية تسبق التاريخ عادةً — نفحص ما قبله أولاً ثم السطر كله
+  const before = line.slice(0, dateIndex);
+  const hasExp = EXPIRY_WORDS.some((w) => before.includes(w));
+  const hasPrd = PRODUCTION_WORDS.some((w) => before.includes(w));
+  if (hasExp && !hasPrd) return "expiry";
+  if (hasPrd && !hasExp) return "production";
+  if (hasExp && hasPrd) {
+    // كلاهما قبل التاريخ: الأقرب يفوز
+    const iExp = Math.max(...EXPIRY_WORDS.map((w) => before.lastIndexOf(w)));
+    const iPrd = Math.max(...PRODUCTION_WORDS.map((w) => before.lastIndexOf(w)));
+    return iExp > iPrd ? "expiry" : "production";
+  }
+  const after = line.slice(dateIndex);
+  if (EXPIRY_WORDS.some((w) => after.includes(w))) return "expiry";
+  if (PRODUCTION_WORDS.some((w) => after.includes(w))) return "production";
+  return "unknown";
+}
+
+/** كل التواريخ المعقولة في سطر واحد */
+function datesInLine(line: string, today: Date): DateCandidate[] {
+  const out: DateCandidate[] = [];
+  // الأنماط تُجرَّب من الأخص إلى الأعم، وأي تطابق يتداخل مع تطابق سابق يُهمَل
+  // حتى لا يُقرأ "18 SEP 2027" مرتين: مرة كتاريخ كامل ومرة كشهر وسنة.
+  const taken: [number, number][] = [];
+  const minYear = today.getFullYear() - 3;
+  const maxYear = today.getFullYear() + 12;
+
+  const push = (y: number, m: number, d: number, raw: string, at: number, dayKnown: boolean) => {
+    if (y < minYear || y > maxYear) return;
+    if (!validDate(y, m, d)) return;
+    const end = at + raw.length;
+    if (taken.some(([s, e]) => at < e && end > s)) return;
+    taken.push([at, end]);
+    out.push({ iso: iso(y, m, d), raw, kind: kindOfLine(line, at), dayKnown, line });
+  };
+
+  // ٢٠٢٦-٠٩-١٨ (سنة أولاً)
+  for (const m of line.matchAll(/(\d{4})[\/.\-](\d{1,2})[\/.\-](\d{1,2})/g)) {
+    push(Number(m[1]), Number(m[2]), Number(m[3]), m[0], m.index!, true);
+  }
+
+  // ١٨/٠٩/٢٠٢٦ أو ١٨.٠٩.٢٦ — العرف العراقي يوم/شهر/سنة
+  for (const m of line.matchAll(/(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2,4})/g)) {
+    let d = Number(m[1]), mo = Number(m[2]);
+    const y = fullYear(Number(m[3]));
+    // إن كان الأول أكبر من ١٢ فهو اليوم قطعاً؛ وإن كان الثاني أكبر من ١٢ فالترتيب أمريكي
+    if (d <= 12 && mo > 12) { const t = d; d = mo; mo = t; }
+    push(y, mo, d, m[0], m.index!, true);
+  }
+
+  // ١٨ SEP ٢٠٢٦
+  for (const m of line.matchAll(/(\d{1,2})\s?[-\/ ]?\s?([A-Z]{3,9})\s?[-\/ ]?\s?(\d{2,4})/g)) {
+    const mo = MONTHS[m[2]];
+    if (mo) push(fullYear(Number(m[3])), mo, Number(m[1]), m[0], m.index!, true);
+  }
+
+  // SEP ٢٠٢٦ — شهر وسنة فقط ← آخر يوم في الشهر
+  for (const m of line.matchAll(/\b([A-Z]{3,9})\s?[-\/ ]?\s?(\d{2,4})\b/g)) {
+    const mo = MONTHS[m[1]];
+    if (!mo) continue;
+    const y = fullYear(Number(m[2]));
+    push(y, mo, lastDayOfMonth(y, mo), m[0], m.index!, false);
+  }
+
+  // ٠٩/٢٠٢٦ — شهر/سنة ← آخر يوم في الشهر
+  for (const m of line.matchAll(/(?<![\d\/.\-])(\d{1,2})[\/.\-](\d{4})(?![\d\/.\-])/g)) {
+    const mo = Number(m[1]);
+    const y = Number(m[2]);
+    if (mo >= 1 && mo <= 12) push(y, mo, lastDayOfMonth(y, mo), m[0], m.index!, false);
+  }
+
+  // ٠٩/٢٦ — شهر/سنة بسنتين، نقبلها فقط مع كلمة مفتاحية لأنها تشبه أرقام التشغيلة
+  for (const m of line.matchAll(/(?<![\d\/.\-])(\d{1,2})[\/.\-](\d{2})(?![\d\/.\-])/g)) {
+    const mo = Number(m[1]);
+    const y = fullYear(Number(m[2]));
+    if (mo < 1 || mo > 12) continue;
+    if (kindOfLine(line, m.index!) === "unknown") continue;
+    push(y, mo, lastDayOfMonth(y, mo), m[0], m.index!, false);
+  }
+
+  // ١٨٠٩٢٦ / ١٨٠٩٢٠٢٦ — مضغوطة، وهي خطرة (تشبه رقم التشغيلة) فنشترط كلمة مفتاحية
+  for (const m of line.matchAll(/(?<!\d)(\d{6}|\d{8})(?!\d)/g)) {
+    if (kindOfLine(line, m.index!) === "unknown") continue;
+    const s = m[1];
+    const d = Number(s.slice(0, 2));
+    const mo = Number(s.slice(2, 4));
+    const y = fullYear(Number(s.slice(4)));
+    push(y, mo, d, m[0], m.index!, true);
+  }
+
+  return out;
+}
+
+export interface ReadOptions {
+  today?: Date;
+  /** العمر الافتراضي لمجموعة الصنف — يُستعمل لاشتقاق الانتهاء من تاريخ الإنتاج */
+  shelfLifeDays?: number | null;
+  /** ثقة محرك القراءة نفسه ٠–١٠٠ */
+  ocrConfidence?: number;
+}
+
+/**
+ * يقرأ نصاً كاملاً ويقرر تاريخ الانتهاء.
+ *
+ * الترتيب:
+ *  ١. كلمة مفتاحية صريحة (EXP / صلاحية) ← أعلى ثقة.
+ *  ٢. تاريخان بلا كلمات ← الأبعد انتهاء والأقرب إنتاج.
+ *  ٣. تاريخ واحد في المستقبل ← انتهاء.
+ *  ٤. تاريخ واحد في الماضي ← إنتاج إن كان + العمر الافتراضي يقع في المستقبل، وإلا فهو
+ *     صنف منتهٍ فعلاً. الحالتان ثقتهما منخفضة ويراجعهما المدير.
+ */
+export function readDatesFromText(text: string, opts: ReadOptions = {}): ReadResult {
+  const today = opts.today ?? new Date();
+  const todayISO = iso(today.getFullYear(), today.getMonth() + 1, today.getDate());
+
+  const lines = normalizeDigits(text).split(/\r?\n/).map(normalizeLine).filter(Boolean);
+  const candidates: DateCandidate[] = [];
+  for (const line of lines) candidates.push(...datesInLine(line, today));
+
+  const none: ReadResult = {
+    expiry: null, production: null, confidence: "low",
+    reason: "لم يُقرأ أي تاريخ من الصورة", candidates,
+  };
+  if (candidates.length === 0) return none;
+
+  const lowOcr = (opts.ocrConfidence ?? 100) < 55;
+  const marked = <T extends ReadResult>(r: T): T =>
+    (lowOcr ? { ...r, confidence: "low" as const, reason: `${r.reason} (قراءة غير واضحة)` } : r);
+
+  const expiries = candidates.filter((c) => c.kind === "expiry");
+  const productions = candidates.filter((c) => c.kind === "production");
+
+  // ١ — كلمة مفتاحية صريحة
+  if (expiries.length > 0) {
+    const pick = expiries.reduce((a, b) => (a.iso >= b.iso ? a : b));
+    return marked({
+      expiry: pick.iso,
+      production: productions.length ? productions.reduce((a, b) => (a.iso <= b.iso ? a : b)).iso : null,
+      confidence: "high",
+      reason: `قُرئ من الصورة بكلمة صريحة: ${pick.raw}`,
+      candidates,
+    });
+  }
+
+  // إنتاج صريح فقط ← نشتق الانتهاء من عمر المجموعة
+  if (productions.length > 0 && opts.shelfLifeDays) {
+    const prod = productions.reduce((a, b) => (a.iso <= b.iso ? a : b));
+    const d = new Date(prod.iso + "T00:00:00");
+    d.setDate(d.getDate() + opts.shelfLifeDays);
+    return marked({
+      expiry: iso(d.getFullYear(), d.getMonth() + 1, d.getDate()),
+      production: prod.iso,
+      confidence: "low",
+      reason: `قُرئ تاريخ الإنتاج (${prod.raw}) وأُضيف عمر المجموعة`,
+      candidates,
+    });
+  }
+
+  const unknown = candidates.filter((c) => c.kind === "unknown");
+  const uniq = [...new Map(unknown.map((c) => [c.iso, c])).values()].sort((a, b) => a.iso.localeCompare(b.iso));
+
+  // ٢ — تاريخان بلا كلمات: الأبعد انتهاء
+  if (uniq.length >= 2) {
+    const first = uniq[0], last = uniq[uniq.length - 1];
+    if (last.iso > todayISO) {
+      return marked({
+        expiry: last.iso,
+        production: first.iso <= todayISO ? first.iso : null,
+        confidence: "high",
+        reason: `تاريخان على الكارتون — الأبعد هو الانتهاء (${last.raw})`,
+        candidates,
+      });
+    }
+  }
+
+  // ٣ — تاريخ واحد في المستقبل
+  const future = uniq.filter((c) => c.iso > todayISO);
+  if (future.length > 0) {
+    const pick = future[future.length - 1];
+    return marked({
+      expiry: pick.iso, production: null, confidence: "high",
+      reason: `تاريخ واحد في المستقبل (${pick.raw})`, candidates,
+    });
+  }
+
+  // ٤ — تاريخ واحد في الماضي
+  if (uniq.length > 0) {
+    const pick = uniq[uniq.length - 1];
+    if (opts.shelfLifeDays) {
+      const d = new Date(pick.iso + "T00:00:00");
+      d.setDate(d.getDate() + opts.shelfLifeDays);
+      const derived = iso(d.getFullYear(), d.getMonth() + 1, d.getDate());
+      if (derived > todayISO) {
+        return {
+          expiry: derived, production: pick.iso, confidence: "low",
+          reason: `التاريخ المقروء (${pick.raw}) في الماضي — عُومل كتاريخ إنتاج`,
+          candidates,
+        };
+      }
+    }
+    return {
+      expiry: pick.iso, production: null, confidence: "low",
+      reason: `التاريخ المقروء (${pick.raw}) في الماضي — قد يكون الصنف منتهياً`,
+      candidates,
+    };
+  }
+
+  return none;
+}

@@ -4,3 +4,5 @@ dist
 *.local
 tests/screenshots
 *.tsbuildinfo
+public/ocr
+tests/.build

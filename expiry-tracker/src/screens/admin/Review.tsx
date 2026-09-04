@@ -8,13 +8,22 @@ interface Row {
   barcode: string | null;
   quantity: number;
   expiry_date: string;
+  production_date: string | null;
   days_left: number;
   confidence: string;
+  date_source: "ocr" | "calculated" | "manual";
+  note: string | null;
   is_unknown: boolean;
   received_at: string;
   received_by_name: string | null;
   photo_url: string | null;
 }
+
+const SOURCE_LABEL: Record<Row["date_source"], string> = {
+  ocr: "قُرئ من الصورة",
+  calculated: "محسوب من عمر المجموعة",
+  manual: "أدخله العامل",
+};
 
 export default function Review() {
   const [rows, setRows] = useState<Row[]>([]);
@@ -70,8 +79,13 @@ export default function Review() {
           </div>
           <div className="meta">
             {r.is_unknown && <span className="badge expired">باركود غير معروف</span>}{" "}
-            {r.confidence === "low" && <span className="badge warn">ثقة منخفضة</span>}
+            {r.confidence === "low" && <span className="badge warn">ثقة منخفضة</span>}{" "}
+            <span className="badge gray">{SOURCE_LABEL[r.date_source]}</span>
           </div>
+          {r.production_date && (
+            <div className="meta">تاريخ الإنتاج المقروء: {formatDate(r.production_date)}</div>
+          )}
+          {r.note && <div className="meta">{r.note}</div>}
 
           {photos[r.batch_id] && (
             <img src={photos[r.batch_id]} alt="صورة الكارتون"

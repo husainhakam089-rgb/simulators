@@ -54,11 +54,11 @@ export async function syncNow(): Promise<{ sent: number; failed: number }> {
           p_barcode: item.barcode,
           p_expiry_date: item.expiry_date,
           p_quantity: item.quantity,
-          p_production_date: null,
+          p_production_date: item.production_date ?? null,
           p_date_source: item.date_source,
           p_confidence: item.confidence,
           p_photo_url: photo_url,
-          p_note: null,
+          p_note: item.note ?? null,
           p_received_at: item.received_at,
         });
         if (error) throw new Error(error.message);

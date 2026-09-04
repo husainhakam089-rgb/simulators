@@ -6,15 +6,21 @@ import { supabase } from "../../lib/supabase";
 import { captureFrame, createScanner } from "../../lib/scanner";
 import { WORDS, addDays, arPlural, daysLeftLabel, formatDate, riskLevel, toISODate } from "../../lib/format";
 import { DatePicker } from "../../components/DatePicker";
+import { readDateFromImage, warmUpOcr } from "../../lib/ocr";
 
 interface Pending {
+  scanId: number;                  // يمنع وصول قراءة متأخرة لكارتون سابق
   barcode: string;
   productName: string | null;
   expiry: string;
-  dateSource: "calculated" | "manual";
+  dateSource: "calculated" | "manual" | "ocr";
+  confidence: "high" | "low";
   quantity: number;
   photo: Blob | null;
   known: boolean;
+  productionDate: string | null;
+  note: string | null;
+  ocr: "off" | "reading" | "found" | "notfound";
 }
 
 const DEFAULT_SHELF_DAYS = 180;
@@ -37,12 +43,14 @@ export default function Scan() {
 
   const paused = useRef(false);
   paused.current = pending !== null || manual;
+  const scanSeq = useRef(0);
 
   // ------------------------------------------------------ حالة المزامنة
   useEffect(() => {
     const off = onSyncChange((p) => setQueued(p));
     void syncNow();
     void refreshCatalog();
+    void warmUpOcr();   // يُحمَّل المحرك بينما يصوّر العامل أول كارتون
     const on = () => setOnline(true);
     const offl = () => setOnline(false);
     window.addEventListener("online", on);
@@ -114,15 +122,47 @@ export default function Scan() {
     const photo = videoRef.current ? await captureFrame(videoRef.current) : null;
     const item = await lookup(code);
     const shelf = item?.default_shelf_life_days ?? DEFAULT_SHELF_DAYS;
+    const scanId = ++scanSeq.current;
 
     setPending({
+      scanId,
       barcode: code,
       productName: item?.name ?? null,
       expiry: toISODate(addDays(new Date(), shelf)),
       dateSource: "calculated",
+      confidence: item ? "high" : "low",
       quantity: 1,
       photo,
       known: !!item,
+      productionDate: null,
+      note: null,
+      ocr: photo ? "reading" : "off",
+    });
+
+    // القراءة تجري بالخلفية ولا توقف العامل إطلاقاً
+    if (photo) void runOcr(photo, scanId, item?.default_shelf_life_days ?? null);
+  }
+
+  /**
+   * تُطبَّق نتيجة القراءة فقط إذا كان العامل ما زال على نفس الكارتون ولم يعدّل
+   * التاريخ بيده — لا نغيّر شيئاً تحت إصبعه.
+   */
+  async function runOcr(photo: Blob, scanId: number, shelfLifeDays: number | null) {
+    const result = await readDateFromImage(photo, { shelfLifeDays });
+    setPending((cur) => {
+      if (!cur || cur.scanId !== scanId) return cur;
+      if (cur.dateSource === "manual") return { ...cur, ocr: "off" };
+      if (!result.available) return { ...cur, ocr: "off" };
+      if (!result.expiry) return { ...cur, ocr: "notfound" };
+      return {
+        ...cur,
+        expiry: result.expiry,
+        productionDate: result.production,
+        dateSource: "ocr",
+        confidence: cur.known && result.confidence === "high" ? "high" : "low",
+        note: result.reason,
+        ocr: "found",
+      };
     });
   }
 
@@ -144,11 +184,13 @@ export default function Scan() {
       id: newClientId(),
       barcode: p.barcode,
       expiry_date: p.expiry,
+      production_date: p.productionDate,
       quantity: p.quantity,
       date_source: p.dateSource,
-      confidence: p.known ? "high" : "low",
+      confidence: p.known ? p.confidence : "low",
       received_at: new Date().toISOString(),
       product_name: p.productName,
+      note: p.note,
       photo: p.photo ?? undefined,
       tries: 0,
     });
@@ -243,12 +285,21 @@ export default function Scan() {
               </div>
             )}
 
-            <div className={`date-box ${level === "ok" ? "" : level}`}>
+            <div className={`date-box ${level === "ok" ? "" : level} ${pending.ocr === "found" ? "read-ok" : ""}`}>
               <div className="d">{formatDate(pending.expiry)}</div>
               <div className="left">{daysLeftLabel(daysLeft)}</div>
               <div className="src">
-                {pending.dateSource === "calculated" ? "محسوب من عمر المجموعة" : "أدخلته يدوياً"}
+                {pending.ocr === "reading" && <span className="reading">جارٍ قراءة التاريخ من الصورة…</span>}
+                {pending.ocr !== "reading" && (
+                  pending.dateSource === "ocr" ? "قُرئ من صورة الكارتون"
+                  : pending.dateSource === "manual" ? "أدخلته يدوياً"
+                  : pending.ocr === "notfound" ? "لم يظهر تاريخ في الصورة — محسوب من عمر المجموعة"
+                  : "محسوب من عمر المجموعة"
+                )}
               </div>
+              {pending.productionDate && (
+                <div className="src">تاريخ الإنتاج المقروء: {formatDate(pending.productionDate)}</div>
+              )}
             </div>
 
             <div className="qty">
@@ -271,7 +322,10 @@ export default function Scan() {
         <DatePicker
           initial={pending.expiry}
           onCancel={() => setEditingDate(false)}
-          onDone={(iso) => { setPending({ ...pending, expiry: iso, dateSource: "manual" }); setEditingDate(false); }}
+          onDone={(iso) => {
+            setPending({ ...pending, expiry: iso, dateSource: "manual", confidence: "high", note: null, ocr: "off" });
+            setEditingDate(false);
+          }}
         />
       )}
 

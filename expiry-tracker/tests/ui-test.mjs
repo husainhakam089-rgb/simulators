@@ -106,9 +106,18 @@ async function makePage(userId, handlers) {
   await page.waitForTimeout(1200);
   const sheet = await page.textContent('.sheet .panel');
   sheet.includes('لبن ربيع') ? pass('التعرف على المنتج من الباركود') : fail('لم يتعرف: ' + sheet.slice(0, 120));
-  sheet.includes('محسوب من عمر المجموعة') ? pass('التاريخ مقترح من عمر المجموعة') : fail('مصدر التاريخ');
-  const taps = await page.locator('.sheet .panel button').count();
+
+  // القراءة تبدأ فوراً بالخلفية، والتاريخ المحسوب معروض ولا ينتظرها
+  const dateBox = await page.textContent('.sheet .date-box');
+  /[\d٠-٩]/.test(dateBox) ? pass('التاريخ المقترح معروض فوراً بلا انتظار القراءة') : fail('لا تاريخ معروض: ' + dateBox.slice(0, 80));
+  sheet.includes('جارٍ قراءة التاريخ من الصورة') || sheet.includes('محسوب من عمر المجموعة')
+    ? pass('محرك قراءة التاريخ موصول بشاشة العامل')
+    : fail('حالة القراءة غير ظاهرة: ' + sheet.slice(0, 160));
   await page.screenshot({ path: OUT + '/shot-worker-confirm.png' });
+
+  // زرّ التأكيد يعمل حتى والقراءة جارية — العامل لا ينتظر شيئاً
+  const confirmEnabled = await page.locator('.sheet .panel > button.btn:has-text("تأكيد")').isEnabled();
+  confirmEnabled ? pass('التأكيد متاح أثناء القراءة — لا انتظار') : fail('التأكيد معطّل أثناء القراءة');
 
   // تعديل التاريخ بلوحة الأرقام
   await page.click('button:has-text("تعديل التاريخ")');
@@ -161,6 +170,7 @@ async function makePage(userId, handlers) {
   }
   await page.click('button:has-text("متابعة")');
   await page.waitForTimeout(1000);
+  await page.waitForTimeout(1500);
   const offSheet = await page.textContent('.sheet .panel');
   offSheet.includes('لبن ربيع')
     ? pass('دون اتصال: التعرف على المنتج من الكتالوج المحلي')

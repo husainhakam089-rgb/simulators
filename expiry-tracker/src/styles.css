@@ -239,3 +239,11 @@ th { color: var(--muted); font-size: 13px; font-weight: 600; }
 .spacer { height: 10px; }
 .link-btn { background: none; border: 0; color: var(--brand); font-weight: 700; text-decoration: underline; min-height: 44px; }
 .empty { text-align: center; color: var(--muted); padding: 40px 20px; }
+
+.sheet .date-box .src .reading { color: var(--brand); font-weight: 700; }
+.sheet .date-box.read-ok { animation: flash-read .6s ease-out; }
+@keyframes flash-read {
+  0%   { transform: scale(1); box-shadow: 0 0 0 0 rgba(15,123,108,.5); }
+  40%  { transform: scale(1.03); box-shadow: 0 0 0 10px rgba(15,123,108,0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(15,123,108,0); }
+}
