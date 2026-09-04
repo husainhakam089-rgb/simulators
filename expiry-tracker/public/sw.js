@@ -3,7 +3,7 @@ const CACHE = "expiry-shell-v2";
 const OCR_CACHE = "expiry-ocr-v1";   // ملفات محرك القراءة: كبيرة وثابتة
 
 self.addEventListener("install", (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(["/", "/manifest.webmanifest"])).catch(() => {}));
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(["./", "./manifest.webmanifest"])).catch(() => {}));
   self.skipWaiting();
 });
 
@@ -23,8 +23,8 @@ self.addEventListener("fetch", (e) => {
 
   // ملفات محرك القراءة وملفات البناء المبصومة لا تتغيّر أبداً:
   // مخزن أولاً، فلا تُنزَّل الميغابايتات إلا مرة واحدة على الجهاز.
-  if (path.startsWith("/ocr/") || path.startsWith("/assets/")) {
-    const store = path.startsWith("/ocr/") ? OCR_CACHE : CACHE;
+  if (path.includes("/ocr/") || path.includes("/assets/")) {
+    const store = path.includes("/ocr/") ? OCR_CACHE : CACHE;
     e.respondWith(
       caches.match(req).then((hit) => hit || fetch(req).then((res) => {
         if (res.ok) {
@@ -45,7 +45,7 @@ self.addEventListener("fetch", (e) => {
         caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {});
         return res;
       })
-      .catch(() => caches.match(req).then((r) => r || caches.match("/"))),
+      .catch(() => caches.match(req).then((r) => r || caches.match("./"))),
   );
 });
 
@@ -59,16 +59,22 @@ self.addEventListener("push", (event) => {
       lang: "ar",
       tag: data.tag,
       renotify: true,
-      badge: "/icons/icon-192.png",
-      icon: "/icons/icon-192.png",
+      badge: "./icons/icon-192.png",
+      icon: "./icons/icon-192.png",
       data: { url: data.url },
     }),
   );
 });
 
+// المسارات صارت بصيغة hash، فنحوّل أي مسار قديم قادم من الخادم
+function toHashPath(url) {
+  if (!url || url.startsWith("/#")) return url || "/#/admin/alerts";
+  return url.startsWith("/") ? `/#${url}` : url;
+}
+
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const url = event.notification.data?.url || "/admin/alerts";
+  const url = toHashPath(event.notification.data?.url);
   event.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
       for (const c of list) {

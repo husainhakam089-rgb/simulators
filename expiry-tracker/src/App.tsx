@@ -1,5 +1,5 @@
 import { Suspense, lazy, useEffect } from "react";
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { HashRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider, useAuth } from "./lib/auth";
 import { startAutoSync } from "./lib/sync";
 import Login from "./screens/Login";
@@ -75,10 +75,10 @@ function Routing() {
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <AuthProvider>
         <Routing />
       </AuthProvider>
-    </BrowserRouter>
+    </HashRouter>
   );
 }

@@ -43,7 +43,7 @@ await page.route(`**/${REF}.supabase.co/**`, (route) => {
   route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) });
 });
 
-await page.goto(BASE + '/scan', { waitUntil: 'networkidle' });
+await page.goto(BASE + '/#/scan', { waitUntil: 'networkidle' });
 
 // ننتظر أن تمسك الكاميرا الباركود وحدها — بلا أي لمسة
 await page.waitForSelector('.sheet .panel', { timeout: 30000 });

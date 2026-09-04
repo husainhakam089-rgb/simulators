@@ -59,14 +59,14 @@ async function makePage(userId, handlers) {
     ]],
   ]);
 
-  await page.goto(BASE + '/admin', { waitUntil: 'networkidle' });
+  await page.goto(BASE + '/#/admin', { waitUntil: 'networkidle' });
   await page.waitForTimeout(1200);
   const body = await page.textContent('body');
   body.includes('سوبرماركت التجربة') ? pass('لوحة المدير: اسم المحل ظاهر') : fail('اسم المحل غير ظاهر');
   body.includes('٢٫٤ مليون') ? pass('المبالغ بالأرقام العربية والملايين') : fail('تنسيق المبلغ: ' + body.slice(0, 200));
   await page.screenshot({ path: OUT + '/shot-admin-dashboard.png' });
 
-  await page.click('a[href="/admin/alerts"]');
+  await page.click('a[href="#/admin/alerts"]');
   await page.waitForTimeout(900);
   const alerts = await page.textContent('body');
   const iTomato = alerts.indexOf('معجون');
@@ -90,7 +90,7 @@ async function makePage(userId, handlers) {
     ['/rest/v1/rpc/record_batch', [{ batch_id: 'nb1', product_name: 'لبن ربيع ١ لتر', was_unknown: false }]],
   ]);
 
-  await page.goto(BASE + '/admin', { waitUntil: 'networkidle' });
+  await page.goto(BASE + '/#/admin', { waitUntil: 'networkidle' });
   await page.waitForTimeout(1500);
   page.url().endsWith('/scan') ? pass('العامل يُحوَّل للكاميرا مباشرة، لا لوحة') : fail('مسار العامل: ' + page.url());
   const scanBody = await page.textContent('body');
