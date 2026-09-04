@@ -4,7 +4,9 @@ const DB_VERSION = 1;
 
 export interface QueuedBatch {
   id: string;                     // client_id — يمنع التكرار عند إعادة الإرسال
-  barcode: string;
+  barcode: string | null;         // قد لا يوجد باركود إطلاقاً
+  product_id?: string | null;     // حين يُعرَف الصنف من اسمه على العلبة
+  identified_by?: "barcode" | "name" | "manual" | "unknown";
   expiry_date: string;            // YYYY-MM-DD
   production_date?: string | null; // إن قُرئ من الصورة
   quantity: number;
@@ -19,6 +21,7 @@ export interface QueuedBatch {
 }
 
 export interface CatalogItem {
+  product_id: string;
   barcode: string;
   name: string;
   category_name: string | null;
@@ -66,6 +69,7 @@ export const queue = {
 // ------------------------------------------------------------ الكتالوج
 export const catalog = {
   get: (barcode: string) => tx<CatalogItem | undefined>("catalog", "readonly", (s) => s.get(barcode)),
+  all: () => tx<CatalogItem[]>("catalog", "readonly", (s) => s.getAll()),
   count: () => tx<number>("catalog", "readonly", (s) => s.count()),
   async replaceAll(items: CatalogItem[]) {
     const db = await open();

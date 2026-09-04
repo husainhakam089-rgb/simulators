@@ -3,6 +3,7 @@
 // معنا في /ocr حتى تعمل داخل المخزن دون اتصال.
 
 import { readDatesFromText, type ReadResult } from "./dateParse";
+import { matchProduct, type CatalogItemLite, type MatchResult } from "./productMatch";
 
 type Worker = {
   recognize: (img: unknown) => Promise<{ data: { text: string; confidence: number } }>;
@@ -26,23 +27,37 @@ const PARAMS = {
   preserve_interword_spaces: "1",
 };
 
-let workerPromise: Promise<Worker | null> | null = null;
+// محركان: الإنجليزي وحده للتواريخ (سريع، وهو المسار الاعتيادي)،
+// والعربي+الإنجليزي لقراءة اسم المنتج من العلبة (أبطأ، ويُحمَّل عند الحاجة فقط).
+const workers: Record<"date" | "package", Promise<Worker | null> | null> = {
+  date: null,
+  package: null,
+};
 
-/** تُستدعى عند فتح شاشة العامل: تُحمّل المحرك مبكراً بينما يصوّر أول كارتون */
-export function warmUpOcr(): Promise<Worker | null> {
-  if (workerPromise) return workerPromise;
-  workerPromise = (async () => {
+function loadWorker(langs: string, label: string): Promise<Worker | null> {
+  return (async () => {
     try {
       const { createWorker } = await import("tesseract.js");
-      const worker = await createWorker("eng", 1, OCR_PATHS) as unknown as Worker;
+      const worker = await createWorker(langs, 1, OCR_PATHS) as unknown as Worker;
       await worker.setParameters(PARAMS);
       return worker;
     } catch (e) {
-      console.warn("تعذّر تحميل محرك قراءة التواريخ:", e);
+      console.warn(`تعذّر تحميل ${label}:`, e);
       return null;
     }
   })();
-  return workerPromise;
+}
+
+/** تُستدعى عند فتح شاشة العامل: تُحمّل المحرك مبكراً بينما يصوّر أول كارتون */
+export function warmUpOcr(): Promise<Worker | null> {
+  workers.date ??= loadWorker("eng", "محرك قراءة التواريخ");
+  return workers.date;
+}
+
+/** محرك قراءة العلبة — عربي وإنجليزي معاً، يُحمَّل عند أول استعمال */
+export function warmUpPackageOcr(): Promise<Worker | null> {
+  workers.package ??= loadWorker("ara+eng", "محرك قراءة العلبة");
+  return workers.package;
 }
 
 export async function ocrAvailable(): Promise<boolean> {
@@ -115,8 +130,57 @@ export async function readDateFromImage(
   }
 }
 
+/** لا تكبير لصور العلب — التكبير يفسد قراءة العربية */
+const PACKAGE_MIN_WIDTH = 900;
+
+export interface PackageReading {
+  available: boolean;
+  text: string;
+  date: ReadResult;
+  match: MatchResult;
+}
+
+/**
+ * يقرأ العلبة كاملة: اسم المنتج وتاريخ الانتهاء من نفس الصورة.
+ *
+ * تُستعمل حين لا يوجد باركود، أو حين يكون الباركود غير معروف — يطابق النص
+ * المقروء مع أصناف المحل بدل أن يترك الوجبة «صنفاً مجهولاً».
+ */
+export async function readPackage(
+  blob: Blob,
+  catalog: CatalogItemLite[],
+  opts: ReadOptions = {},
+): Promise<PackageReading> {
+  const empty: PackageReading = {
+    available: false, text: "",
+    date: { expiry: null, production: null, confidence: "low", reason: "قراءة العلبة غير متاحة", candidates: [] },
+    match: { best: null, candidates: [], confident: false },
+  };
+
+  const worker = await warmUpPackageOcr();
+  if (!worker) return empty;
+
+  // لا نكبّر الصورة هنا: قياساً على صور حقيقية، تكبير النص العربي الكبير
+  // يشوّهه ويُسقط السطر أحياناً كاملاً. التاريخ وحده يستفيد من التكبير،
+  // ولذلك يُقرأ بمسار منفصل.
+  const canvas = await prepare(blob, PACKAGE_MIN_WIDTH);
+  if (!canvas) return { ...empty, available: true };
+
+  try {
+    const { data } = await worker.recognize(canvas);
+    const date = readDatesFromText(data.text, { ...opts, ocrConfidence: data.confidence });
+    const match = matchProduct(data.text, catalog);
+    return { available: true, text: data.text, date, match };
+  } catch (e) {
+    console.warn("فشلت قراءة العلبة:", e);
+    return { ...empty, available: true };
+  }
+}
+
 export async function disposeOcr() {
-  const w = await workerPromise?.catch(() => null);
-  await w?.terminate().catch(() => {});
-  workerPromise = null;
+  for (const key of ["date", "package"] as const) {
+    const w = await workers[key]?.catch(() => null);
+    await w?.terminate().catch(() => {});
+    workers[key] = null;
+  }
 }

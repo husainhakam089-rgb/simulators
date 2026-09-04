@@ -15,10 +15,13 @@
     "test:dates": "esbuild src/lib/dateParse.ts --outfile=tests/.build/dateParse.js --format=esm --target=node18 && node --test tests/dateparse.test.mjs",
     "test:ocr": "node tests/ocr.test.mjs",
     "test:camera": "node tests/make-carton.mjs tests/.build && node tests/camera.test.mjs tests/.build/carton.y4m ./tests/screenshots",
-    "postinstall": "node scripts/copy-ocr-assets.mjs"
+    "postinstall": "node scripts/copy-ocr-assets.mjs",
+    "test:match": "esbuild src/lib/productMatch.ts --outfile=tests/.build/productMatch.js --format=esm --target=node18 && node --test tests/productmatch.test.mjs",
+    "test:package": "node tests/package.test.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.47.10",
+    "@tesseract.js-data/ara": "^1.0.0",
     "@tesseract.js-data/eng": "^1.0.0",
     "@zxing/browser": "^0.1.5",
     "@zxing/library": "^0.21.3",

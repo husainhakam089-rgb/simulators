@@ -16,6 +16,8 @@ const files = [
   ["node_modules/tesseract.js-core/tesseract-core-simd-lstm.wasm.js", "tesseract-core-simd-lstm.wasm.js"],
   ["node_modules/tesseract.js-core/tesseract-core-lstm.wasm.js", "tesseract-core-lstm.wasm.js"],
   ["node_modules/@tesseract.js-data/eng/4.0.0_best_int/eng.traineddata.gz", "eng.traineddata.gz"],
+  // العربية تُحمَّل فقط عند تصوير علبة بلا باركود، لا في المسار الاعتيادي
+  ["node_modules/@tesseract.js-data/ara/4.0.0_best_int/ara.traineddata.gz", "ara.traineddata.gz"],
 ];
 
 let total = 0;

@@ -6,12 +6,16 @@ import { supabase } from "../../lib/supabase";
 import { captureFrame, createScanner } from "../../lib/scanner";
 import { WORDS, addDays, arPlural, daysLeftLabel, formatDate, riskLevel, toISODate } from "../../lib/format";
 import { DatePicker } from "../../components/DatePicker";
-import { readDateFromImage, warmUpOcr } from "../../lib/ocr";
+import { readDateFromImage, readPackage, warmUpOcr } from "../../lib/ocr";
+import type { ProductMatch } from "../../lib/productMatch";
 
 interface Pending {
   scanId: number;                  // يمنع وصول قراءة متأخرة لكارتون سابق
-  barcode: string;
+  barcode: string | null;          // قد يكون بلا باركود إطلاقاً
+  productId: string | null;
   productName: string | null;
+  identifiedBy: "barcode" | "name" | "manual" | "unknown";
+  candidates: ProductMatch[];      // اقتراحات أخرى إن كانت المطابقة غير حاسمة
   expiry: string;
   dateSource: "calculated" | "manual" | "ocr";
   confidence: "high" | "low";
@@ -22,6 +26,13 @@ interface Pending {
   note: string | null;
   ocr: "off" | "reading" | "found" | "notfound";
 }
+
+const SOURCE_LABEL: Record<Pending["identifiedBy"], string> = {
+  barcode: "تعرّف بالباركود",
+  name: "تعرّف من اسم العلبة",
+  manual: "اخترته بيدك",
+  unknown: "صنف غير معروف",
+};
 
 const DEFAULT_SHELF_DAYS = 180;
 
@@ -40,9 +51,10 @@ export default function Scan() {
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [manual, setManual] = useState(false);
   const [manualCode, setManualCode] = useState("");
+  const [picking, setPicking] = useState(false);
 
   const paused = useRef(false);
-  paused.current = pending !== null || manual;
+  paused.current = pending !== null || manual || picking;
   const scanSeq = useRef(0);
 
   // ------------------------------------------------------ حالة المزامنة
@@ -104,6 +116,7 @@ export default function Scan() {
     const row = Array.isArray(data) ? data[0] : null;
     if (!row?.found) return null;
     return {
+      product_id: row.product_id,
       barcode,
       name: row.product_name,
       category_name: row.category_name,
@@ -113,21 +126,27 @@ export default function Scan() {
     };
   }
 
-  /** يفتح شاشة التأكيد لباركود معيّن — تُستدعى من الكاميرا ومن الإدخال اليدوي */
-  async function beginConfirm(code: string) {
-    lastCode.current = { code, at: Date.now() };
+  /**
+   * يفتح شاشة التأكيد. `code` قد يكون null حين يصوّر العامل علبة بلا باركود —
+   * عندها نتعرّف على الصنف من اسمه المطبوع عليها.
+   */
+  async function beginConfirm(code: string | null) {
+    lastCode.current = { code: code ?? "", at: Date.now() };
     paused.current = true;
     beep();
 
     const photo = videoRef.current ? await captureFrame(videoRef.current) : null;
-    const item = await lookup(code);
+    const item = code ? await lookup(code) : null;
     const shelf = item?.default_shelf_life_days ?? DEFAULT_SHELF_DAYS;
     const scanId = ++scanSeq.current;
 
     setPending({
       scanId,
       barcode: code,
+      productId: item?.product_id ?? null,
       productName: item?.name ?? null,
+      identifiedBy: item ? "barcode" : "unknown",
+      candidates: [],
       expiry: toISODate(addDays(new Date(), shelf)),
       dateSource: "calculated",
       confidence: item ? "high" : "low",
@@ -139,8 +158,71 @@ export default function Scan() {
       ocr: photo ? "reading" : "off",
     });
 
-    // القراءة تجري بالخلفية ولا توقف العامل إطلاقاً
-    if (photo) void runOcr(photo, scanId, item?.default_shelf_life_days ?? null);
+    if (!photo) return;
+    // كل القراءة تجري بالخلفية ولا توقف العامل إطلاقاً
+    if (item) void runOcr(photo, scanId, item.default_shelf_life_days ?? null);
+    else void runPackage(photo, scanId);
+  }
+
+  /**
+   * قراءة العلبة كاملة: اسم المنتج والتاريخ معاً. تُستعمل حين لا باركود، أو
+   * حين لا يكون الباركود في قائمة المحل.
+   */
+  async function runPackage(photo: Blob, scanId: number) {
+    const items = await catalog.all();
+    const result = await readPackage(photo, items, { shelfLifeDays: null });
+
+    setPending((cur) => {
+      if (!cur || cur.scanId !== scanId) return cur;
+      if (!result.available) return { ...cur, ocr: "off" };
+
+      // المطابقة تعمل على عناصر الكتالوج نفسها، فالعنصر الفائز هو المطلوب
+      const matched = result.match.confident
+        ? (result.match.best!.item as CatalogItem)
+        : undefined;
+
+      // إن عُرف الصنف نستعمل عمر مجموعته لحساب التاريخ حين لا يُقرأ من الصورة
+      const shelf = matched?.default_shelf_life_days ?? null;
+      const expiry = result.date.expiry
+        ?? (shelf ? toISODate(addDays(new Date(), shelf)) : cur.expiry);
+
+      return {
+        ...cur,
+        productId: matched?.product_id ?? cur.productId,
+        productName: matched?.name ?? cur.productName,
+        identifiedBy: matched ? "name" : cur.identifiedBy,
+        known: !!matched || cur.known,
+        candidates: result.match.candidates,
+        expiry: cur.dateSource === "manual" ? cur.expiry : expiry,
+        dateSource: cur.dateSource === "manual" ? "manual"
+          : result.date.expiry ? "ocr" : "calculated",
+        productionDate: result.date.production ?? cur.productionDate,
+        confidence: "low",   // التعرّف بالاسم يبقى للمراجعة دائماً
+        note: [matched ? `طوبق بالاسم من العلبة` : null, result.date.expiry ? result.date.reason : null]
+          .filter(Boolean).join(" — ") || null,
+        ocr: result.date.expiry ? "found" : "notfound",
+      };
+    });
+  }
+
+  /** العامل يختار الصنف من الاقتراحات بنفسه */
+  function pickCandidate(m: ProductMatch) {
+    const matched = m.item as CatalogItem;
+    setPending((cur) => {
+      if (!cur) return cur;
+      const shelf = matched.default_shelf_life_days ?? null;
+      return {
+        ...cur,
+        productId: matched.product_id ?? null,
+        productName: matched.name,
+        identifiedBy: "manual",
+        known: true,
+        expiry: cur.dateSource === "ocr" || cur.dateSource === "manual"
+          ? cur.expiry
+          : shelf ? toISODate(addDays(new Date(), shelf)) : cur.expiry,
+      };
+    });
+    setPicking(false);
   }
 
   /**
@@ -178,11 +260,13 @@ export default function Scan() {
     const p = pending;
     setPending(null);
     setEditingDate(false);
-    lastCode.current = { code: p.barcode, at: Date.now() };
+    lastCode.current = { code: p.barcode ?? "", at: Date.now() };
 
     await enqueueBatch({
       id: newClientId(),
       barcode: p.barcode,
+      product_id: p.productId,
+      identified_by: p.identifiedBy,
       expiry_date: p.expiry,
       production_date: p.productionDate,
       quantity: p.quantity,
@@ -232,6 +316,9 @@ export default function Scan() {
 
       <div className="footer">
         {cameraError && <div className="error">{cameraError}</div>}
+        <button className="capture" onClick={() => void beginConfirm(null)}>
+          صوّر العلبة (بلا باركود)
+        </button>
         <button className="manual" onClick={() => setManual(true)}>إدخال الباركود يدوياً</button>
       </div>
 
@@ -278,10 +365,23 @@ export default function Scan() {
         <div className="sheet">
           <div className="panel">
             <div className="product">{pending.productName ?? "صنف غير معروف"}</div>
-            <div className="barcode">{pending.barcode}</div>
-            {!pending.known && (
+            <div className="barcode">{pending.barcode ?? "بلا باركود"}</div>
+            <div className="ident">
+              <span className={`badge ${pending.identifiedBy === "barcode" ? "ok" : "warn"}`}>
+                {SOURCE_LABEL[pending.identifiedBy]}
+              </span>
+              {(pending.candidates.length > 0 || pending.known) && (
+                <button className="link-btn" onClick={() => setPicking(true)}>
+                  {pending.known ? "مو هذا الصنف؟" : "اختر الصنف"}
+                </button>
+              )}
+            </div>
+            {pending.ocr === "reading" && !pending.known && (
+              <div className="reading-note">جارٍ قراءة اسم الصنف من العلبة…</div>
+            )}
+            {!pending.known && pending.ocr !== "reading" && (
               <div className="error" style={{ marginTop: 12 }}>
-                هذا الباركود غير موجود في القائمة — سجّله وأكمل، المدير يراجعه لاحقاً.
+                ما عرفنا هذا الصنف — سجّله وأكمل، والمدير يراجعه بالصورة لاحقاً.
               </div>
             )}
 
@@ -314,6 +414,27 @@ export default function Scan() {
               <button className="btn secondary" onClick={() => setEditingDate(true)}>تعديل التاريخ</button>
               <button className="btn ghost" onClick={() => setPending(null)}>إلغاء</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {pending && picking && (
+        <div className="sheet" onClick={(e) => { if (e.target === e.currentTarget) setPicking(false); }}>
+          <div className="panel">
+            <div className="product">اختر الصنف</div>
+            <p className="muted" style={{ marginTop: 4 }}>
+              {pending.candidates.length > 0
+                ? "الأقرب لما قُرئ على العلبة:"
+                : "لم نتعرّف على شيء من العلبة."}
+            </p>
+            {pending.candidates.map((m) => (
+              <button key={m.item.barcode} className="candidate" onClick={() => pickCandidate(m)}>
+                <span className="cname">{m.item.name}</span>
+                {m.item.category_name && <span className="ccat">{m.item.category_name}</span>}
+              </button>
+            ))}
+            <div className="spacer" />
+            <button className="btn secondary" onClick={() => setPicking(false)}>رجوع</button>
           </div>
         </div>
       )}

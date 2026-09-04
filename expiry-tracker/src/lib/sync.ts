@@ -60,6 +60,8 @@ export async function syncNow(): Promise<{ sent: number; failed: number }> {
           p_photo_url: photo_url,
           p_note: item.note ?? null,
           p_received_at: item.received_at,
+          p_product_id: item.product_id ?? null,
+          p_identified_by: item.identified_by ?? null,
         });
         if (error) throw new Error(error.message);
         await queue.remove(item.id);
