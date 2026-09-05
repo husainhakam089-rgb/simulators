@@ -1,0 +1,8 @@
+node_modules
+dist
+.env
+*.local
+tests/screenshots
+*.tsbuildinfo
+public/ocr
+tests/.build
