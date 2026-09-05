@@ -270,3 +270,12 @@ th { color: var(--muted); font-size: 13px; font-weight: 600; }
   border-radius: var(--radius); padding: 10px 14px;
   font-size: 15px; font-weight: 600; text-align: center;
 }
+
+/* بطاقات الطاقم — أوضح من جدول على شاشة الموبايل */
+.card.member { padding: 14px; }
+.member-head { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
+.member-head > div:first-child { flex: 1; }
+.member-name { font-size: 17px; font-weight: 700; }
+.member-phone { color: var(--muted); font-size: 14px; }
+.member-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.member-actions .btn { width: auto; flex: 1 1 auto; padding: 0 14px; }

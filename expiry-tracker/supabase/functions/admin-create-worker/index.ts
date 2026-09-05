@@ -37,6 +37,28 @@ Deno.serve(async (req) => {
       return json({ ok: true });
     }
 
+    // ترقية عامل إلى مدير أو العكس — بلا حذف الحساب، فيبقى سجل ما صوّره باسمه
+    if (action === "set_role") {
+      const role = body.role === "admin" ? "admin" : "worker";
+      const { data: target } = await admin
+        .from("users").select("id, store_id, role, name").eq("id", body.user_id).single();
+      if (!target || target.store_id !== profile.store_id) return json({ error: "غير موجود" }, 404);
+
+      // لا نترك المحل بلا مدير: آخر مدير لا يُنزَّل إلى عامل
+      if (target.role === "admin" && role === "worker") {
+        const { count } = await admin
+          .from("users").select("id", { count: "exact", head: true })
+          .eq("store_id", profile.store_id).eq("role", "admin").eq("is_active", true);
+        if ((count ?? 0) <= 1) {
+          return json({ error: "لا يمكن إنزال آخر مدير — عيّن مديراً آخر أولاً" }, 400);
+        }
+      }
+
+      const { error } = await admin.from("users").update({ role }).eq("id", target.id);
+      if (error) return json({ error: error.message }, 400);
+      return json({ ok: true, role });
+    }
+
     if (action === "reset_pin") {
       const { data: target } = await admin
         .from("users").select("id, store_id").eq("id", body.user_id).single();

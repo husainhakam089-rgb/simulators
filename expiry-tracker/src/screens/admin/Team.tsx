@@ -1,8 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase, callFunction } from "../../lib/supabase";
 import { useAuth } from "../../lib/auth";
+import { arPlural } from "../../lib/format";
 
 interface Member { id: string; name: string; phone: string | null; role: "admin" | "worker" }
+
+const ADMINS: [string, string, string, string] =
+  ["مدير واحد", "مديران", "مديرين", "مديراً"];
+const WORKERS: [string, string, string, string] =
+  ["عامل واحد", "عاملان", "عمال", "عاملاً"];
 
 export default function Team() {
   const { profile } = useAuth();
@@ -31,6 +37,18 @@ export default function Team() {
     finally { setBusy(false); }
   }
 
+  async function setRole(m: Member) {
+    const next = m.role === "admin" ? "worker" : "admin";
+    const label = next === "admin" ? "مديراً" : "عاملاً";
+    if (!window.confirm(`اجعل ${m.name} ${label}؟`)) return;
+    setErr(null); setMsg(null);
+    try {
+      await callFunction("admin-create-worker", { action: "set_role", user_id: m.id, role: next });
+      setMsg(`${m.name} صار ${label}.`);
+      await load();
+    } catch (e) { setErr(String((e as Error).message)); }
+  }
+
   async function resetPin(m: Member) {
     const pin = window.prompt(`رمز جديد لـ ${m.name} (٦ أرقام على الأقل)`);
     if (!pin) return;
@@ -51,8 +69,11 @@ export default function Team() {
   return (
     <>
       <div className="card">
-        <h2>إضافة عامل</h2>
-        <p className="hint">العامل يدخل برقم هاتفه ورمزه، ولا يرى إلا الكاميرا.</p>
+        <h2>إضافة عامل أو مدير</h2>
+        <p className="hint">
+          العامل يدخل برقم هاتفه ورمزه ولا يرى إلا الكاميرا. المدير يرى اللوحة كاملة
+          ويصله الإشعار الصباحي — وتقدر تخلي أكثر من مدير.
+        </p>
         {msg && <div className="success">{msg}</div>}
         {err && <div className="error">{err}</div>}
         <form onSubmit={add}>
@@ -83,29 +104,35 @@ export default function Team() {
 
       <div className="card">
         <h2>الطاقم</h2>
-        <table>
-          <thead><tr><th>الاسم</th><th>الهاتف</th><th>الدور</th><th /></tr></thead>
-          <tbody>
-            {rows.map((m) => (
-              <tr key={m.id}>
-                <td>{m.name}</td>
-                <td dir="ltr" style={{ textAlign: "right" }}>{m.phone}</td>
-                <td>{m.role === "admin" ? "مدير" : "عامل"}</td>
-                <td>
-                  <div style={{ display: "flex", gap: 6 }}>
-                    <button className="btn small secondary" style={{ width: "auto", padding: "0 10px" }}
-                            onClick={() => void resetPin(m)}>رمز جديد</button>
-                    {m.id !== profile?.id && (
-                      <button className="btn small danger" style={{ width: "auto", padding: "0 10px" }}
-                              onClick={() => void remove(m)}>حذف</button>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <p className="hint">
+          {arPlural(rows.filter((m) => m.role === "admin").length, ADMINS)} و
+          {arPlural(rows.filter((m) => m.role === "worker").length, WORKERS)}.
+          الإشعار الصباحي يصل كل مدير سجّل جهازه.
+        </p>
       </div>
+
+      {rows.map((m) => (
+        <div className="card member" key={m.id}>
+          <div className="member-head">
+            <div>
+              <div className="member-name">{m.name}</div>
+              <div className="member-phone" dir="ltr">{m.phone}</div>
+            </div>
+            <span className={`badge ${m.role === "admin" ? "ok" : "gray"}`}>
+              {m.role === "admin" ? "مدير" : "عامل"}
+            </span>
+          </div>
+          <div className="member-actions">
+            <button className="btn small secondary" onClick={() => void setRole(m)}>
+              {m.role === "admin" ? "اجعله عاملاً" : "اجعله مديراً"}
+            </button>
+            <button className="btn small secondary" onClick={() => void resetPin(m)}>رمز جديد</button>
+            {m.id !== profile?.id && (
+              <button className="btn small danger" onClick={() => void remove(m)}>حذف</button>
+            )}
+          </div>
+        </div>
+      ))}
     </>
   );
 }
