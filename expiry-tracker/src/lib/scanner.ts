@@ -63,11 +63,17 @@ export function createScanner(video: HTMLVideoElement, onScan: ScanHandler) {
   };
 }
 
-/** لقطة إثبات من الكاميرا */
-export function captureFrame(video: HTMLVideoElement): Promise<Blob | null> {
+/**
+ * لقطة من الكاميرا بأعلى دقة متاحة.
+ *
+ * كانت تُصغَّر إلى ١٠٨٠ بكسل بجودة ٠٫٧، وهذا يمحو تفاصيل التاريخ المطبوع
+ * صغيراً على الكارتون قبل أن تصل للقراءة أصلاً. نحتفظ الآن بدقة الحسّاس
+ * كاملة حتى ٢٥٦٠ بكسل وبجودة عالية.
+ */
+export function captureFrame(video: HTMLVideoElement, maxWidth = 2560): Promise<Blob | null> {
   return new Promise((resolve) => {
     if (!video.videoWidth) return resolve(null);
-    const maxW = 1080;
+    const maxW = maxWidth;
     const scale = Math.min(1, maxW / video.videoWidth);
     const canvas = document.createElement("canvas");
     canvas.width = Math.round(video.videoWidth * scale);
@@ -75,7 +81,7 @@ export function captureFrame(video: HTMLVideoElement): Promise<Blob | null> {
     const ctx = canvas.getContext("2d");
     if (!ctx) return resolve(null);
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    canvas.toBlob((b) => resolve(b), "image/jpeg", 0.7);
+    canvas.toBlob((b) => resolve(b), "image/jpeg", 0.92);
   });
 }
 

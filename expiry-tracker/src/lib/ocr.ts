@@ -4,6 +4,7 @@
 
 import { readDatesFromText, type ReadResult } from "./dateParse";
 import { matchProduct, type CatalogItemLite, type MatchResult } from "./productMatch";
+import { blobToCanvas, cloneCanvas, crop, grayscale, mergeDotMatrix, upscale } from "./imageOps";
 
 type Worker = {
   recognize: (img: unknown) => Promise<{ data: { text: string; confidence: number } }>;
@@ -74,40 +75,58 @@ export async function ocrAvailable(): Promise<boolean> {
 }
 
 /**
- * تجهيز الصورة: تدرّج رمادي، وتكبير الصور الصغيرة فقط.
+ * تجهيز الصورة الأساسية: تدرّج رمادي بلا تكبير ولا شدّ تباين.
  *
- * ملاحظة مهمة: جرّبنا شدّ التباين (contrast stretch) فأفسد القراءة تماماً —
- * صورة الكاميرا فيها ضجيج حسّاس، وشدّ التباين يضخّمه حتى يغرق النص فيه.
- * محرك Tesseract يقوم ببنترة الصورة (Otsu) بنفسه وهو أفضل من أي معالجة نضيفها.
+ * ملاحظة مقيسة: شدّ التباين يضخّم ضجيج الحسّاس حتى يغرق النص، وتكبير النص
+ * العربي الكبير يشوّهه. لذلك المعالجة هنا خفيفة، والمحاولات الأثقل تأتي
+ * بالترتيب أدناه وفقط عند الحاجة.
  */
-export async function prepare(blob: Blob, minWidth = 1400): Promise<HTMLCanvasElement | null> {
+export async function prepare(blob: Blob, maxWidth = 2000): Promise<HTMLCanvasElement | null> {
   const bitmap = await createImageBitmap(blob).catch(() => null);
   if (!bitmap) return null;
-
-  const scale = Math.max(1, Math.min(2, minWidth / bitmap.width));
-  const canvas = document.createElement("canvas");
-  canvas.width = Math.round(bitmap.width * scale);
-  canvas.height = Math.round(bitmap.height * scale);
-  const ctx = canvas.getContext("2d", { willReadFrequently: true });
-  if (!ctx) return null;
-
-  ctx.imageSmoothingQuality = "high";
-  ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  const canvas = blobToCanvas(bitmap, maxWidth);
   bitmap.close?.();
-
-  const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  const px = img.data;
-  for (let i = 0; i < px.length; i += 4) {
-    const g = (px[i] * 0.299 + px[i + 1] * 0.587 + px[i + 2] * 0.114) | 0;
-    px[i] = px[i + 1] = px[i + 2] = g;
-  }
-  ctx.putImageData(img, 0, 0);
-  return canvas;
+  return grayscale(canvas);
 }
+
+/**
+ * محاولات قراءة التاريخ، من الأرخص إلى الأثقل. نتوقف عند أول تاريخ معقول.
+ *
+ * لماذا هذا الترتيب: تاريخ الصلاحية على الكارتون مطبوع بطابعة نقطية وحجمه
+ * جزء صغير من الصورة. القراءة المباشرة تفشل لأن الحرف نقاط منفصلة، ولأن
+ * ارتفاع الحرف أقل مما يحتاجه المحرك. فنكبّر، ثم نلحم النقاط ببنترة، ثم
+ * نضيّق على وسط الصورة حيث يوجّه العامل الكاميرا.
+ */
+interface DateAttempt {
+  name: string;
+  psm?: string;                      // وضع التقسيم: ٧ لسطر واحد
+  make: () => HTMLCanvasElement;
+}
+
+function dateAttempts(base: HTMLCanvasElement): DateAttempt[] {
+  const center = { x: 0.06, y: 0.18, w: 0.88, h: 0.64 };
+  // نصف قطر اللحم يتناسب مع التكبير: تباعد النقاط يكبر بنفس النسبة، فنصف قطر
+  // ثابت لا يلحم شيئاً بعد التكبير. النسبة ٢× معايَرة بصرياً على طباعة نقطية.
+  const merged = (c: HTMLCanvasElement, factor: number) =>
+    mergeDotMatrix(upscale(c, factor), factor * 2);
+
+  // قائمة قصيرة عمداً وبميزانية وقت: العامل ينتظر، وكل محاولة نصف ثانية.
+  return [
+    { name: "خام", make: () => base },
+    { name: "لحم النقاط ٣×", make: () => merged(cloneCanvas(base), 3) },
+    { name: "وسط الصورة لحم ٣×", make: () => merged(crop(base, center), 3) },
+    // سطر واحد على وسط الصورة: أفضل ما أعطى مع التواريخ المطبوعة نقطياً
+    { name: "سطر واحد لحم ٤×", psm: "7", make: () => merged(crop(base, center), 4) },
+  ];
+}
+
+/** سقف زمني لمحاولات قراءة التاريخ — بعده نكتفي ونترك التاريخ المحسوب */
+const DATE_BUDGET_MS = 2500;
 
 export interface ReadOptions {
   shelfLifeDays?: number | null;
   today?: Date;
+  budgetMs?: number;
 }
 
 /**
@@ -117,7 +136,7 @@ export interface ReadOptions {
 export async function readDateFromImage(
   blob: Blob,
   opts: ReadOptions = {},
-): Promise<ReadResult & { available: boolean }> {
+): Promise<ReadResult & { available: boolean; attempt?: string }> {
   const empty = {
     expiry: null, production: null, confidence: "low" as const,
     reason: "قراءة التاريخ غير متاحة", candidates: [], available: false,
@@ -126,13 +145,24 @@ export async function readDateFromImage(
   const worker = await warmUpOcr();
   if (!worker) return empty;
 
-  const canvas = await prepare(blob);
-  if (!canvas) return { ...empty, reason: "تعذّر تجهيز الصورة", available: true };
+  const base = await prepare(blob);
+  if (!base) return { ...empty, reason: "تعذّر تجهيز الصورة", available: true };
 
+  let fallback: (ReadResult & { available: boolean; attempt?: string }) | null = null;
+  const deadline = Date.now() + (opts.budgetMs ?? DATE_BUDGET_MS);
   try {
-    const { data } = await worker.recognize(canvas);
-    const result = readDatesFromText(data.text, { ...opts, ocrConfidence: data.confidence });
-    return { ...result, available: true };
+    for (const attempt of dateAttempts(base)) {
+      const canvas = attempt.make();
+      if (attempt.psm) await worker.setParameters({ ...PARAMS, tessedit_pageseg_mode: attempt.psm });
+      const { data } = await worker.recognize(canvas);
+      if (attempt.psm) await worker.setParameters(PARAMS);
+      const result = readDatesFromText(data.text, { ...opts, ocrConfidence: data.confidence });
+      if (result.expiry) return { ...result, available: true, attempt: attempt.name };
+      fallback ??= { ...result, available: true, attempt: attempt.name };
+      // لا نُبقي العامل ينتظر: نكتفي بما جرّبناه ونترك له التاريخ المحسوب
+      if (Date.now() > deadline) break;
+    }
+    return fallback ?? { ...empty, available: true };
   } catch (e) {
     console.warn("فشلت قراءة التاريخ:", e);
     return { ...empty, reason: "فشلت قراءة الصورة", available: true };
@@ -169,16 +199,22 @@ export async function readPackage(
   const worker = await warmUpPackageOcr();
   if (!worker) return empty;
 
-  // لا نكبّر الصورة هنا: قياساً على صور حقيقية، تكبير النص العربي الكبير
-  // يشوّهه ويُسقط السطر أحياناً كاملاً. التاريخ وحده يستفيد من التكبير،
-  // ولذلك يُقرأ بمسار منفصل.
-  const canvas = await prepare(blob, PACKAGE_MIN_WIDTH);
-  if (!canvas) return { ...empty, available: true };
+  // اسم المنتج كبير على العلبة ويُقرأ من الصورة كما هي — والتكبير يشوّه العربية
+  const base = await prepare(blob, PACKAGE_MIN_WIDTH);
+  if (!base) return { ...empty, available: true };
 
   try {
-    const { data } = await worker.recognize(canvas);
-    const date = readDatesFromText(data.text, { ...opts, ocrConfidence: data.confidence });
+    const { data } = await worker.recognize(base);
     const match = matchProduct(data.text, catalog);
+    let date = readDatesFromText(data.text, { ...opts, ocrConfidence: data.confidence });
+
+    // التاريخ أصغر وأصعب من الاسم: إن لم يظهر في القراءة الأولى نجرّب
+    // محاولات التكبير ولحم الطباعة النقطية بالمحرك الإنجليزي، وهو أدق للأرقام.
+    if (!date.expiry) {
+      const dateRead = await readDateFromImage(blob, opts);
+      if (dateRead.expiry) date = dateRead;
+    }
+
     return { available: true, text: data.text, date, match };
   } catch (e) {
     console.warn("فشلت قراءة العلبة:", e);

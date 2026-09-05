@@ -85,7 +85,13 @@ export default function Scan() {
     (async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 } },
+          // دقة عالية قدر المستطاع: تاريخ الصلاحية مطبوع صغيراً على الكارتون،
+          // وكل بكسل يضيع هنا يعني حرفاً لا يُقرأ لاحقاً
+          video: {
+            facingMode: { ideal: "environment" },
+            width: { ideal: 2560 },
+            height: { ideal: 1440 },
+          },
           audio: false,
         });
         streamRef.current = stream;

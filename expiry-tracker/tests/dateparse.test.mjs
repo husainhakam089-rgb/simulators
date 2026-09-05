@@ -144,3 +144,54 @@ test("كلمة عربية صريحة", () => {
   const r = read("تاريخ الانتاج ٠١/٠٩/٢٠٢٦", { shelfLifeDays: 90 });
   assert.equal(r.production, "2026-09-01");
 });
+
+test("إصلاح خلط الأرقام بالحروف داخل ما يشبه تاريخاً", () => {
+  // ما يقرأه المحرك فعلاً من طباعة نقطية: 8→B و 0→O
+  const r = read("EXP 1B/O9/2O27");
+  assert.equal(r.expiry, "2027-09-18");
+  assert.equal(r.confidence, "low", "التاريخ المُصلَح يبقى للمراجعة");
+  assert.match(r.reason, /أُصلح/);
+});
+
+test("الإصلاح لا يلمس ما أغلبه حروف", () => {
+  assert.equal(read("LOT ABC/DEF").expiry, null);
+  assert.equal(read("MADE IN/TURKEY").expiry, null);
+});
+
+test("الإصلاح لا يعمل إذا نجحت القراءة أصلاً", () => {
+  const r = read("EXP 18/09/2027");
+  assert.equal(r.expiry, "2027-09-18");
+  assert.equal(r.confidence, "high", "قراءة سليمة تبقى عالية الثقة");
+});
+
+test("إصلاح ببنية التاريخ: شهر مستحيل وبدل واحد يصلحه", () => {
+  // ما قرأه المحرك فعلاً من طباعة صناعية: 0 صارت 8
+  const r = read("EXP 18/89/2027");
+  assert.equal(r.expiry, "2027-09-18");
+  assert.equal(r.confidence, "low");
+});
+
+test("بنية التاريخ لا تُصلح حين يصلح أكثر من بدل", () => {
+  // 18/13/2027: الشهر ١٣ خطأ، وبدائل كثيرة تصلحه (12 و 10 و 18→...) فنترك
+  const r = read("EXP 18/33/2027");
+  assert.equal(r.expiry, null, "تعدد الاحتمالات يعني تخميناً، فلا نخترع");
+});
+
+test("بنية التاريخ لا تلمس تاريخاً صحيحاً", () => {
+  const r = read("EXP 18/09/2027");
+  assert.equal(r.expiry, "2027-09-18");
+  assert.equal(r.confidence, "high");
+});
+
+test("حشو أصفار غير متسق يخفض الثقة — قد يكون رقم ضاع", () => {
+  // «18/09/2027» تُقرأ أحياناً «18/8/2027»: تاريخ صحيح شكلاً وخاطئ فعلاً
+  const r = read("EXP 18/8/2027");
+  assert.equal(r.expiry, "2027-08-18");
+  assert.equal(r.confidence, "low", "تاريخ خاطئ معقول أخطر من لا تاريخ");
+  assert.match(r.reason, /الشهر/);
+});
+
+test("الحشو المتسق يبقى عالي الثقة", () => {
+  assert.equal(read("EXP 18/09/2027").confidence, "high");
+  assert.equal(read("EXP 8/9/2027").confidence, "high", "الخانة الواحدة في الطرفين متسقة");
+});

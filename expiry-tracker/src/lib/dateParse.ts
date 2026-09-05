@@ -11,6 +11,8 @@ export interface DateCandidate {
   raw: string;        // النص كما ظهر في الصورة
   kind: DateKind;     // ما دلّت عليه الكلمة المفتاحية إن وُجدت
   dayKnown: boolean;  // false إذا كان التاريخ شهر/سنة فقط
+  /** حشو أصفار غير متسق: علامة على رقم ضاع في القراءة */
+  padSuspect?: boolean;
   line: string;
 }
 
@@ -46,6 +48,81 @@ const PRODUCTION_WORDS = [
 export function normalizeDigits(s: string): string {
   return s.replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - 0x0660))
           .replace(/[۰-۹]/g, (d) => String(d.charCodeAt(0) - 0x06F0));
+}
+
+/**
+ * إصلاح خلط الأرقام بالحروف داخل ما يشبه التاريخ فقط.
+ *
+ * الطباعة النقطية على الكراتين تجعل المحرك يقرأ 8 حرفَ B و 0 حرفَ O و 1 حرفَ l.
+ * نصلح هذا الخلط، لكن **داخل المقاطع التي تشبه تاريخاً أصلاً** (أرقام وفواصل)
+ * لا في كل النص، وإلا حوّلنا كلمات سليمة إلى أرقام مخترعة. وكل تاريخ نتج عن
+ * إصلاك يُحفظ بثقة منخفضة ويظهر للعامل قبل التأكيد.
+ */
+const DIGIT_FIXES: Record<string, string> = {
+  B: "8", O: "0", D: "0", Q: "0", I: "1", L: "1", "|": "1",
+  S: "5", Z: "2", T: "7", G: "6", A: "4", E: "8",
+};
+
+// الفاصلة بين أجزاء التاريخ تُقرأ هي الأخرى خطأً على الطباعة النقطية
+const SEPARATORS = ",;:'`%!¡\\|*";
+
+export function repairDateDigits(line: string): string {
+  const sep = `[\\/.\\-${SEPARATORS}]`;
+  const part = "[0-9A-Z|]{1,4}";
+  const re = new RegExp(`${part}(?:${sep}${part}){1,2}`, "g");
+  return line.replace(re, (token) => {
+    const digits = (token.match(/[0-9]/g) ?? []).length;
+    const letters = (token.match(/[A-Z]/g) ?? []).length;
+    // لا نلمس مقطعاً أغلبه حروف — قد يكون اسماً أو رمزاً لا تاريخاً
+    if (digits < 2 || letters > digits) return token;
+    return token
+      .replace(/[A-Z|]/g, (ch) => DIGIT_FIXES[ch] ?? ch)
+      .replace(new RegExp(`[${SEPARATORS}]`, "g"), "/");
+  });
+}
+
+/**
+ * إصلاح ببنية التاريخ: حين يقرأ المحرك «18/89/2027» نعرف أن الشهر ٨٩ مستحيل.
+ *
+ * نجرّب **بدلاً واحداً فقط** من أزواج الخلط المعروفة (٠↔٨ و ١↔٧ …) ونقبل
+ * النتيجة فقط إذا أعطى بدلٌ واحد لا غيره تاريخاً صحيحاً داخل المدى. القيد هنا
+ * هو بنية التاريخ نفسها، لا التخمين: يوم ١–٣١، شهر ١–١٢، وسنة معقولة. وإن
+ * صلح أكثر من بدل تركنا المقطع كما هو بدل أن نخترع.
+ */
+const CONFUSABLE: Record<string, string[]> = {
+  "0": ["8", "6", "9"], "8": ["0", "6", "3", "9"], "6": ["0", "8", "5"],
+  "9": ["0", "8", "4"], "1": ["7", "4"], "7": ["1", "2"],
+  "5": ["6", "8", "3"], "3": ["8", "9"], "2": ["7", "1"], "4": ["9", "1"],
+};
+
+function partsAreValidDate(a: number, b: number, c: number, today: Date): boolean {
+  const y = fullYear(c);
+  return y >= today.getFullYear() - 3 && y <= today.getFullYear() + 12
+    && b >= 1 && b <= 12 && a >= 1 && a <= lastDayOfMonth(y, b);
+}
+
+export function repairDateByStructure(line: string, today: Date): string {
+  return line.replace(/(?<!\d)(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2,4})(?!\d)/g, (token, d, m, y) => {
+    if (partsAreValidDate(Number(d), Number(m), Number(y), today)) return token;
+
+    const parts = [d, m, y];
+    const fixes: string[] = [];
+    for (let pi = 0; pi < 3; pi++) {
+      for (let ci = 0; ci < parts[pi].length; ci++) {
+        for (const alt of CONFUSABLE[parts[pi][ci]] ?? []) {
+          const swapped = [...parts];
+          swapped[pi] = parts[pi].slice(0, ci) + alt + parts[pi].slice(ci + 1);
+          const [A, B, C] = swapped.map(Number);
+          if (partsAreValidDate(A, B, C, today)) {
+            const candidate = swapped.join("/");
+            if (!fixes.includes(candidate)) fixes.push(candidate);
+          }
+        }
+      }
+    }
+    // بدلٌ واحد فقط يُقبل — تعدد الاحتمالات يعني تخميناً، فنترك المقطع
+    return fixes.length === 1 ? fixes[0] : token;
+  });
 }
 
 /** تنظيف مخرجات OCR: توحيد الفواصل وإزالة الضجيج */
@@ -106,13 +183,16 @@ function datesInLine(line: string, today: Date): DateCandidate[] {
   const minYear = today.getFullYear() - 3;
   const maxYear = today.getFullYear() + 12;
 
-  const push = (y: number, m: number, d: number, raw: string, at: number, dayKnown: boolean) => {
+  const push = (
+    y: number, m: number, d: number, raw: string, at: number, dayKnown: boolean,
+    padSuspect = false,
+  ) => {
     if (y < minYear || y > maxYear) return;
     if (!validDate(y, m, d)) return;
     const end = at + raw.length;
     if (taken.some(([s, e]) => at < e && end > s)) return;
     taken.push([at, end]);
-    out.push({ iso: iso(y, m, d), raw, kind: kindOfLine(line, at), dayKnown, line });
+    out.push({ iso: iso(y, m, d), raw, kind: kindOfLine(line, at), dayKnown, padSuspect, line });
   };
 
   // ٢٠٢٦-٠٩-١٨ (سنة أولاً)
@@ -126,7 +206,11 @@ function datesInLine(line: string, today: Date): DateCandidate[] {
     const y = fullYear(Number(m[3]));
     // إن كان الأول أكبر من ١٢ فهو اليوم قطعاً؛ وإن كان الثاني أكبر من ١٢ فالترتيب أمريكي
     if (d <= 12 && mo > 12) { const t = d; d = mo; mo = t; }
-    push(y, mo, d, m[0], m.index!, true);
+    // الطباعة الصناعية تحشو بالأصفار: «18/09/2027». فإن جاء جزء بخانة واحدة
+    // بينما جاره بخانتين، فالأرجح أن رقماً ضاع في القراءة — نقبله بثقة منخفضة
+    // بدل أن نعطي تاريخاً خاطئاً معقولاً.
+    const padSuspect = m[1].length !== m[2].length && m[3].length === 4;
+    push(y, mo, d, m[0], m.index!, true, padSuspect);
   }
 
   // ١٨ SEP ٢٠٢٦
@@ -205,6 +289,18 @@ export function readDatesFromText(text: string, opts: ReadOptions = {}): ReadRes
   const candidates: DateCandidate[] = [];
   for (const line of lines) candidates.push(...datesInLine(line, today));
 
+  // إن لم يظهر شيء، نجرّب الإصلاح: خلط الحروف بالأرقام أولاً، ثم بنية التاريخ
+  let repaired = false;
+  if (candidates.length === 0) {
+    for (const line of lines) {
+      const fixed = repairDateByStructure(repairDateDigits(line), today);
+      if (fixed !== line) {
+        const found = datesInLine(fixed, today);
+        if (found.length > 0) { candidates.push(...found); repaired = true; }
+      }
+    }
+  }
+
   const none: ReadResult = {
     expiry: null, production: null, confidence: "low",
     reason: "لم يُقرأ أي تاريخ من الصورة", candidates,
@@ -212,8 +308,18 @@ export function readDatesFromText(text: string, opts: ReadOptions = {}): ReadRes
   if (candidates.length === 0) return none;
 
   const lowOcr = (opts.ocrConfidence ?? 100) < 55;
-  const marked = <T extends ReadResult>(r: T): T =>
-    (lowOcr ? { ...r, confidence: "low" as const, reason: `${r.reason} (قراءة غير واضحة)` } : r);
+  const suspect = (iso: string | null) =>
+    !!iso && candidates.some((c) => c.iso === iso && c.padSuspect);
+
+  const marked = <T extends ReadResult>(r: T): T => {
+    if (repaired) {
+      return { ...r, confidence: "low" as const, reason: `${r.reason} — أُصلح خلط أرقام بحروف` };
+    }
+    if (suspect(r.expiry)) {
+      return { ...r, confidence: "low" as const, reason: `${r.reason} — تأكد من الشهر، قد يكون رقم ناقص` };
+    }
+    return lowOcr ? { ...r, confidence: "low" as const, reason: `${r.reason} (قراءة غير واضحة)` } : r;
+  };
 
   const expiries = candidates.filter((c) => c.kind === "expiry");
   const productions = candidates.filter((c) => c.kind === "production");
