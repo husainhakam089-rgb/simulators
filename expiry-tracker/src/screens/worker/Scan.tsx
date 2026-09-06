@@ -6,7 +6,8 @@ import { supabase } from "../../lib/supabase";
 import { captureBest, createFrameWatcher, createScanner, screenRectToRoi } from "../../lib/scanner";
 import { WORDS, addDays, arPlural, daysLeftLabel, formatDate, riskLevel, toISODate } from "../../lib/format";
 import { DatePicker } from "../../components/DatePicker";
-import { readDateFromImage, readPackage, warmUpOcr } from "../../lib/ocr";
+import { readDateSmart, readLabelSmart, warmUpOcr } from "../../lib/ocr";
+import { cloudConfigured } from "../../lib/cloudOcr";
 import type { ProductMatch } from "../../lib/productMatch";
 
 interface Pending {
@@ -72,7 +73,9 @@ export default function Scan() {
     const off = onSyncChange((p) => setQueued(p));
     void syncNow();
     void refreshCatalog();
-    void warmUpOcr();   // يُحمَّل المحرك بينما يصوّر العامل أول كارتون
+    // محرك الجهاز ٨ ميغابايت، ولا يُحمَّل إلا إن كان سيُستعمل فعلاً: حين لا
+    // تكون القراءة السحابية مضبوطة، أو حين يفتح العامل الشاشة بلا اتصال.
+    void cloudConfigured().then((on) => { if (!on) void warmUpOcr(); });
     const on = () => setOnline(true);
     const offl = () => setOnline(false);
     window.addEventListener("online", on);
@@ -230,11 +233,7 @@ export default function Scan() {
     const items = await catalog.all();
     // الاسم يُقرأ من الإطار كاملاً (اسم المنتج كبير)، والتاريخ من داخل إطار
     // التوجيه إن لم يظهر في القراءة الأولى
-    const result = await readPackage(photo, items, { shelfLifeDays: null });
-    if (!result.date.expiry && roi) {
-      const fromRoi = await readDateFromImage(roi, { shelfLifeDays: null });
-      if (fromRoi.expiry) result.date = fromRoi;
-    }
+    const result = await readLabelSmart(photo, roi, items, { shelfLifeDays: null });
 
     setPending((cur) => {
       if (!cur || cur.scanId !== scanId) return cur;
@@ -296,16 +295,12 @@ export default function Scan() {
    * التاريخ بيده — لا نغيّر شيئاً تحت إصبعه.
    */
   async function runOcr(photo: Blob, roi: Blob | null, scanId: number, shelfLifeDays: number | null) {
-    // ما داخل إطار التوجيه أولاً — النص فيه أكبر نسبةً فتُقرأ أدق
-    let result = roi ? await readDateFromImage(roi, { shelfLifeDays }) : null;
-    if (!result?.expiry) {
-      const full = await readDateFromImage(photo, { shelfLifeDays });
-      if (full.expiry || !result) result = full;
-    }
+    // القراءة السحابية أولاً ثم محرك الجهاز، وداخل إطار التوجيه قبل الإطار كاملاً
+    const result = await readDateSmart(photo, roi, { shelfLifeDays });
     setPending((cur) => {
       if (!cur || cur.scanId !== scanId) return cur;
       if (cur.dateSource === "manual") return { ...cur, ocr: "off" };
-      if (!result?.available) return { ...cur, ocr: "off" };
+      if (!result.available) return { ...cur, ocr: "off" };
       if (!result.expiry) return { ...cur, ocr: "notfound" };
 
       // تاريخ غير واثق لا يُعرض إطلاقاً.

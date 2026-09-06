@@ -15,6 +15,7 @@ export interface QueuedBatch {
   received_at: string;
   product_name: string | null;
   note?: string | null;           // سبب اختيار التاريخ — يراه المدير عند المراجعة
+  reread?: boolean;               // قُرئت سحابياً عند المزامنة — لا نكرّر الكلفة
   photo?: Blob;
   tries: number;
   error?: string;

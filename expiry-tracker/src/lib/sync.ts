@@ -1,6 +1,9 @@
 // رفع الوجبات المحفوظة محلياً عند عودة الاتصال.
 import { supabase } from "./supabase";
 import { queue, catalog, type QueuedBatch, type CatalogItem } from "./db";
+import { readTextInCloud } from "./cloudOcr";
+import { readDatesFromText } from "./dateParse";
+import { matchProduct } from "./productMatch";
 
 type Listener = (pending: number, syncing: boolean) => void;
 const listeners = new Set<Listener>();
@@ -32,6 +35,51 @@ async function uploadPhoto(storeId: string, item: QueuedBatch): Promise<string |
   return path;
 }
 
+/**
+ * قراءة متأخرة عند المزامنة.
+ *
+ * العامل قد يكون صوّر داخل المخزن بلا اتصال، فقرأ محرك الجهاز وحده أو لم يقرأ
+ * شيئاً وبقي التاريخ محسوباً. الصورة محفوظة معنا، فحين يعود الاتصال نقرأها
+ * سحابياً قبل الرفع. لا يمسّ هذا ما أدخله العامل بيده أبداً.
+ */
+async function reReadBeforeUpload(item: QueuedBatch): Promise<QueuedBatch> {
+  const needsDate = item.date_source === "calculated";
+  const needsProduct = !item.product_id;
+  // مرة واحدة لكل وجبة: لو تعثّر الرفع بعدها فالمحاولة الثانية لا تُعيد الكلفة
+  if (item.reread || !item.photo || (!needsDate && !needsProduct)) return item;
+
+  const res = await readTextInCloud(item.photo);
+  if (!res.ok) return item;
+
+  const out = { ...item, reread: true };
+  const notes = out.note ? [out.note] : [];
+
+  if (needsDate) {
+    const date = readDatesFromText(res.text, { ocrConfidence: 92 });
+    // نفس قاعدة الشاشة: تاريخ غير واثق لا يُعتمد. تاريخ خاطئ أسوأ من محسوب.
+    if (date.expiry && date.confidence === "high") {
+      out.expiry_date = date.expiry;
+      out.production_date = date.production ?? out.production_date ?? null;
+      out.date_source = "ocr";
+      notes.push(`قُرئ التاريخ عند المزامنة — ${date.reason}`);
+    }
+  }
+
+  if (needsProduct) {
+    const match = matchProduct(res.text, await catalog.all());
+    if (match.confident && match.best) {
+      const found = match.best.item as CatalogItem;
+      out.product_id = found.product_id;
+      out.product_name = found.name;
+      out.identified_by = "name";
+      notes.push("طوبق الصنف بالاسم عند المزامنة");
+    }
+  }
+
+  out.note = notes.join(" — ") || null;
+  return out;
+}
+
 export async function syncNow(): Promise<{ sent: number; failed: number }> {
   if (syncing || !navigator.onLine) return { sent: 0, failed: 0 };
   syncing = true;
@@ -46,7 +94,8 @@ export async function syncNow(): Promise<{ sent: number; failed: number }> {
     if (!session.session) return { sent, failed };
     const { data: storeId } = await supabase.rpc("current_store_id");
 
-    for (const item of items) {
+    for (const raw of items) {
+      const item = await reReadBeforeUpload(raw).catch(() => raw);
       try {
         const photo_url = storeId ? await uploadPhoto(storeId as string, item) : null;
         const { error } = await supabase.rpc("record_batch", {

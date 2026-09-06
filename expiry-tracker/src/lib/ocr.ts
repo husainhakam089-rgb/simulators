@@ -5,6 +5,7 @@
 import { readDatesFromText, type ReadResult } from "./dateParse";
 import { matchProduct, type CatalogItemLite, type MatchResult } from "./productMatch";
 import { blobToCanvas, cloneCanvas, crop, grayscale, mergeDotMatrix, upscale } from "./imageOps";
+import { readTextInCloud } from "./cloudOcr";
 
 type Worker = {
   recognize: (img: unknown) => Promise<{ data: { text: string; confidence: number } }>;
@@ -242,4 +243,105 @@ export async function disposeOcr() {
     await w?.terminate().catch(() => {});
     workers[key] = null;
   }
+}
+
+// ===================== القراءة السحابية أولاً، ومحرك الجهاز احتياطاً =====================
+//
+// محرك الجهاز أعمى تقريباً أمام الطباعة النقطية: قسناه على صور واقعية فأعطى
+// نحو ثلث التواريخ، وأعطى مرةً تاريخاً معقولاً وخاطئاً. الخدمة السحابية تقرأ
+// هذه الطباعة، فصارت هي المسار الأول. ويبقى محرك الجهاز يعمل بلا اتصال، أو
+// حين لا يكون مفتاح الخدمة مضبوطاً، أو حين تتعطل.
+
+/**
+ * ثقة النص القادم من السحابة. القراءة نظيفة فلا نخفّض ثقة التحليل بسببها،
+ * لكن قواعد التحليل نفسها تبقى كما هي: تاريخ يحتاج ترميم أرقام يظل «غير واثق».
+ */
+const CLOUD_CONFIDENCE = 92;
+
+export type ReadVia = "cloud" | "device" | "none";
+
+export interface SmartDate extends ReadResult {
+  available: boolean;
+  via: ReadVia;
+}
+
+/** الصور بالترتيب الذي نجرّبه: داخل إطار التوجيه أولاً — النص فيه أكبر نسبةً */
+function order(roi: Blob | null, photo: Blob | null): Blob[] {
+  return [roi, photo].filter((b): b is Blob => !!b);
+}
+
+function tagged(r: ReadResult, via: ReadVia): SmartDate {
+  const label = via === "cloud" ? "قراءة سحابية" : "قراءة داخل الجهاز";
+  return { ...r, available: true, via, reason: r.reason ? `${r.reason} — ${label}` : label };
+}
+
+/**
+ * يقرأ تاريخ الانتهاء: سحابياً إن أمكن، وإلا بمحرك الجهاز.
+ * لا يرمي استثناءً — الفشل يعني أننا نبقى على التاريخ المحسوب.
+ */
+export async function readDateSmart(
+  photo: Blob | null,
+  roi: Blob | null,
+  opts: ReadOptions = {},
+): Promise<SmartDate> {
+  let best: SmartDate | null = null;
+
+  for (const img of order(roi, photo)) {
+    const res = await readTextInCloud(img);
+    if (!res.ok) break;   // الخدمة غير متاحة الآن: لا معنى لمحاولة صورة ثانية
+    const parsed = readDatesFromText(res.text, { ...opts, ocrConfidence: CLOUD_CONFIDENCE });
+    if (parsed.expiry) return tagged(parsed, "cloud");
+    best ??= tagged(parsed, "cloud");
+  }
+
+  for (const img of order(roi, photo)) {
+    const parsed = await readDateFromImage(img, opts);
+    if (!parsed.available) continue;
+    if (parsed.expiry) return tagged(parsed, "device");
+    best ??= tagged(parsed, "device");
+  }
+
+  return best ?? {
+    expiry: null, production: null, confidence: "low",
+    reason: "قراءة التاريخ غير متاحة", candidates: [], available: false, via: "none",
+  };
+}
+
+export interface LabelReading extends PackageReading {
+  via: ReadVia;
+}
+
+/**
+ * يقرأ العلبة كاملة — الاسم والتاريخ — سحابياً إن أمكن.
+ *
+ * الاسم يُقرأ من الإطار كاملاً لأنه كبير على العلبة، والتاريخ قد يحتاج القصّ
+ * الضيّق. ولذلك قد يُنادى المزوّد مرتين على نفس الكارتون، وفقط عند الحاجة.
+ */
+export async function readLabelSmart(
+  photo: Blob,
+  roi: Blob | null,
+  items: CatalogItemLite[],
+  opts: ReadOptions = {},
+): Promise<LabelReading> {
+  const cloud = await readTextInCloud(photo);
+
+  if (cloud.ok) {
+    const match = matchProduct(cloud.text, items);
+    let date = tagged(
+      readDatesFromText(cloud.text, { ...opts, ocrConfidence: CLOUD_CONFIDENCE }),
+      "cloud",
+    );
+    if (!date.expiry) {
+      const closer = await readDateSmart(null, roi, opts);
+      if (closer.expiry) date = closer;
+    }
+    return { available: true, text: cloud.text, date, match, via: "cloud" };
+  }
+
+  const local = await readPackage(photo, items, opts);
+  if (!local.date.expiry) {
+    const closer = await readDateSmart(photo, roi, opts);
+    if (closer.expiry) return { ...local, date: closer, via: "device" };
+  }
+  return { ...local, via: local.available ? "device" : "none" };
 }

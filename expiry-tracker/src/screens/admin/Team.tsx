@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase, callFunction } from "../../lib/supabase";
 import { useAuth } from "../../lib/auth";
 import { arPlural } from "../../lib/format";
+import { cloudConfigured } from "../../lib/cloudOcr";
 
 interface Member { id: string; name: string; phone: string | null; role: "admin" | "worker" }
 
@@ -17,6 +18,7 @@ export default function Team() {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [cloudOn, setCloudOn] = useState<boolean | null>(null);
 
   const load = useCallback(async () => {
     const { data } = await supabase.from("users").select("id, name, phone, role").order("name");
@@ -24,6 +26,7 @@ export default function Team() {
   }, []);
 
   useEffect(() => { void load(); }, [load]);
+  useEffect(() => { void cloudConfigured().then(setCloudOn); }, []);
 
   async function add(e: React.FormEvent) {
     e.preventDefault();
@@ -68,6 +71,24 @@ export default function Team() {
 
   return (
     <>
+      <div className="card">
+        <h2>قراءة التواريخ</h2>
+        {/* المدير يحتاج جواباً مباشراً: هل القراءة الدقيقة شغّالة أم لا؟ */}
+        {cloudOn === true && (
+          <p className="hint">
+            ✅ القراءة الدقيقة شغّالة. التطبيق يقرأ التاريخ والاسم من صورة الكارتون،
+            وإن انقطع الإنترنت يقرأ داخل الموبايل ويعيد القراءة عند المزامنة.
+          </p>
+        )}
+        {cloudOn === false && (
+          <p className="hint">
+            ⚠️ القراءة الدقيقة غير مفعّلة — التطبيق يقرأ داخل الموبايل فقط، وقد لا
+            يقرأ التاريخ المطبوع نقطياً على الكارتون فيطلب من العامل إدخاله بيده.
+          </p>
+        )}
+        {cloudOn === null && <p className="hint">جارٍ فحص خدمة القراءة…</p>}
+      </div>
+
       <div className="card">
         <h2>إضافة عامل أو مدير</h2>
         <p className="hint">
