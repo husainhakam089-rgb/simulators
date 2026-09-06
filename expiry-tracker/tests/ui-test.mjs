@@ -133,6 +133,27 @@ async function makePage(userId, handlers) {
   await page.click('button:has-text("رجوع")');
   await page.waitForTimeout(300);
 
+  // لقطة ثانية موجَّهة على التاريخ: على الكارتون الحقيقي التاريخ في جهة
+  // والباركود في جهة أخرى، فقد لا يكون التاريخ في الصورة الأولى أصلاً
+  const reshoot = page.locator('.sheet .panel button:has-text("صوّر التاريخ وحده")');
+  if (await reshoot.count()) {
+    pass('يعرض لقطة ثانية للتاريخ حين لم يُقرأ');
+    await reshoot.click();
+    await page.waitForTimeout(400);
+    const aiming = await page.locator('.aim-footer').count();
+    const sheetHidden = await page.locator('.sheet .panel').count();
+    aiming === 1 && sheetHidden === 0
+      ? pass('اللقطة الثانية تفتح التوجيه وتُخفي الورقة ليرى العامل الكاميرا')
+      : fail(`التوجيه غير ظاهر (aim=${aiming} sheet=${sheetHidden})`);
+    await page.screenshot({ path: OUT + '/shot-worker-aim-date.png' });
+    await page.click('.aim-footer button:has-text("صوّر التاريخ")');
+    await page.waitForTimeout(1200);
+    const back = await page.locator('.sheet .panel').count();
+    back === 1 ? pass('بعد اللقطة الثانية يعود إلى شاشة التأكيد') : fail('لم يعد إلى التأكيد');
+  } else {
+    fail('لا زرّ لتصوير التاريخ وحده رغم أن التاريخ لم يُقرأ');
+  }
+
   // تأكيد → يجب أن يُحفظ محلياً فوراً
   await page.click('.sheet .panel > button.btn:has-text("تأكيد")');
   await page.waitForTimeout(900);

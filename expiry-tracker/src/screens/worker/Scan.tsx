@@ -26,6 +26,7 @@ interface Pending {
   productionDate: string | null;
   note: string | null;
   ocr: "off" | "reading" | "found" | "notfound" | "unsure";
+  shelfDays: number | null;        // عمر المجموعة — يلزم عند إعادة تصوير التاريخ
   // ما قرأته المحركات قبل أي تعديل — يُحفظ للقياس لا للعرض، فنعرف لاحقاً
   // كم مرة أصاب البرنامج على بضاعة هذا المحل بالذات
   readExpiry: string | null;
@@ -66,6 +67,7 @@ export default function Scan() {
   const [manual, setManual] = useState(false);
   const [manualCode, setManualCode] = useState("");
   const [picking, setPicking] = useState(false);
+  const [aimingDate, setAimingDate] = useState(false);
 
   const paused = useRef(false);
   paused.current = pending !== null || manual || picking;
@@ -225,6 +227,7 @@ export default function Scan() {
       productionDate: null,
       note: null,
       ocr: photo ? "reading" : "off",
+      shelfDays: item?.default_shelf_life_days ?? null,
       readExpiry: null,
       readEngine: null,
       readProductId: null,
@@ -341,6 +344,33 @@ export default function Scan() {
     });
   }
 
+  /**
+   * إعادة تصوير التاريخ وحده.
+   *
+   * على الكارتون الحقيقي الباركود في جهة والتاريخ في جهة أخرى غالباً. العامل
+   * يوجّه على الباركود، فقد لا يكون التاريخ في الصورة أصلاً — وحينها لا ينفع
+   * أي تحسين في القراءة، لأن ما لم يُصوَّر لا يُقرأ. فنعطيه لقطة ثانية موجَّهة
+   * على التاريخ وحده: لمسة لفتحها ولمسة للتصوير، وتبقى لوحة الأرقام متاحة.
+   *
+   * الصورة الأولى تبقى صورة الوجبة — فيها الصنف، وهي ما يراجعه المدير.
+   */
+  async function reshootDate() {
+    const cur = pending;
+    const video = videoRef.current;
+    if (!cur || !video) return;
+    setAimingDate(false);
+    beep();
+
+    const guide = guideRef.current;
+    const shot = await captureBest(video, {
+      roi: guide ? screenRectToRoi(video, guide.getBoundingClientRect()) : null,
+    });
+    if (!shot.full) return;
+
+    setPending((p) => (p && p.scanId === cur.scanId ? { ...p, ocr: "reading" } : p));
+    void runOcr(shot.full, shot.roi, cur.scanId, cur.shelfDays);
+  }
+
   async function handleScan(code: string) {
     lastBarcodeAt.current = Date.now();   // رأينا باركوداً: لا داعي لقراءة العلبة
     if (paused.current) return;
@@ -393,7 +423,9 @@ export default function Scan() {
     <div className="scanner">
       <video ref={videoRef} playsInline muted />
       <div className="frame" ref={guideRef} />
-      <div className="hint-text">حط الباركود أو تاريخ الصلاحية داخل الإطار</div>
+      {!aimingDate && (
+        <div className="hint-text">حط الباركود أو تاريخ الصلاحية داخل الإطار</div>
+      )}
 
       <div className="bar">
         <div className="who">
@@ -412,6 +444,9 @@ export default function Scan() {
         <button onClick={() => void signOut()}>خروج</button>
       </div>
 
+      {/* شريط الأسفل يُرفع أثناء توجيه لقطة التاريخ حتى لا يتراكب زرّان.
+          نحذفه من الشجرة لا نخفيه: قاعدة display في الـCSS تتغلّب على hidden. */}
+      {!aimingDate && (
       <div className="footer">
         {cameraError && <div className="error">{cameraError}</div>}
         {autoHint && (
@@ -422,6 +457,7 @@ export default function Scan() {
         </button>
         <button className="manual" onClick={() => setManual(true)}>إدخال الباركود يدوياً</button>
       </div>
+      )}
 
       {/* ---------------------------------------------- إدخال يدوي للباركود */}
       {manual && (
@@ -462,7 +498,7 @@ export default function Scan() {
       )}
 
       {/* ------------------------------------------------------ شاشة التأكيد */}
-      {pending && !editingDate && (
+      {pending && !editingDate && !aimingDate && (
         <div className="sheet">
           <div className="panel">
             <div className="product">{pending.productName ?? "صنف غير معروف"}</div>
@@ -512,6 +548,16 @@ export default function Scan() {
 
             <button className="btn" onClick={() => void confirm()}>تأكيد</button>
             <div className="spacer" />
+            {/* يظهر ما دام التاريخ محسوباً — حتى أثناء القراءة: العامل يرى
+                الكارتون بيده ويعرف قبلنا أن التاريخ ليس في الجهة المصوَّرة */}
+            {pending.dateSource === "calculated" && (
+              <>
+                <button className="btn" onClick={() => setAimingDate(true)}>
+                  📷 صوّر التاريخ وحده
+                </button>
+                <div className="spacer" />
+              </>
+            )}
             <div className="btn-row">
               <button
                 className={`btn ${pending.ocr === "unsure" || pending.ocr === "notfound" ? "" : "secondary"}`}
@@ -522,6 +568,15 @@ export default function Scan() {
               <button className="btn ghost" onClick={() => setPending(null)}>إلغاء</button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* ------------------------------- توجيه اللقطة الثانية على التاريخ */}
+      {pending && aimingDate && (
+        <div className="aim-footer">
+          <div className="aim-hint">وجّه المربّع على تاريخ الصلاحية</div>
+          <button className="capture" onClick={() => void reshootDate()}>صوّر التاريخ</button>
+          <button className="manual" onClick={() => setAimingDate(false)}>رجوع</button>
         </div>
       )}
 
