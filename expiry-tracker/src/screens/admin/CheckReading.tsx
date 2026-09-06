@@ -9,7 +9,7 @@ import { supabase } from "../../lib/supabase";
 import { readTextInCloud, cloudConfigured } from "../../lib/cloudOcr";
 import { readDatesFromText } from "../../lib/dateParse";
 import { matchProduct } from "../../lib/productMatch";
-import { readPackage } from "../../lib/ocr";
+import { readDateByAgreement, readPackage } from "../../lib/ocr";
 import { formatDate, formatNumber } from "../../lib/format";
 import type { CatalogItem } from "../../lib/db";
 
@@ -92,9 +92,20 @@ export default function CheckReading() {
 
       const t1 = performance.now();
       const local = await readPackage(file, items, {});
-      const device = local.available
-        ? analyze("داخل الجهاز", Math.round(performance.now() - t1), local.text, items)
-        : { ...EMPTY, label: "داخل الجهاز", ms: 0, failed: "المحرك غير متاح" };
+      let device: Engine;
+      if (local.available) {
+        device = analyze("داخل الجهاز", 0, local.text, items);
+        // التاريخ يمرّ بمسار المحركين نفسه الذي يستعمله العامل، لا بقراءة واحدة
+        const agreed = await readDateByAgreement(file, {});
+        if (agreed?.expiry) {
+          device.expiry = agreed.expiry;
+          device.confidence = agreed.confidence;
+          device.reason = agreed.reason;
+        }
+        device.ms = Math.round(performance.now() - t1);
+      } else {
+        device = { ...EMPTY, label: "داخل الجهاز", ms: 0, failed: "المحرك غير متاح" };
+      }
       setRows((prev) => prev.map((r) => (r.url === row.url ? { ...r, device, busy: false } : r)));
     }
   }, [items]);

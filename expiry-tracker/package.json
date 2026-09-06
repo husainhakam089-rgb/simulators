@@ -21,14 +21,18 @@
     "test:auto": "node tests/make-carton.mjs tests/.build && node tests/make-package.mjs tests/.build && node tests/autofallback.test.mjs tests/.build/carton.y4m tests/.build/package.y4m ./tests/screenshots",
     "test:photo": "node tests/photo.test.mjs",
     "test:capture": "node tests/capture.test.mjs",
-    "test:cloud": "node tests/cloud.test.mjs"
+    "test:cloud": "node tests/cloud.test.mjs",
+    "test:agree": "node tests/agreement.test.mjs"
   },
   "dependencies": {
+    "@gutenye/ocr-browser": "^1.4.8",
+    "@gutenye/ocr-models": "^1.4.2",
     "@supabase/supabase-js": "^2.47.10",
     "@tesseract.js-data/ara": "^1.0.0",
     "@tesseract.js-data/eng": "^1.0.0",
     "@zxing/browser": "^0.1.5",
     "@zxing/library": "^0.21.3",
+    "onnxruntime-web": "^1.29.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.28.0",

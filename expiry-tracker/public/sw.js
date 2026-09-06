@@ -23,8 +23,8 @@ self.addEventListener("fetch", (e) => {
 
   // ملفات محرك القراءة وملفات البناء المبصومة لا تتغيّر أبداً:
   // مخزن أولاً، فلا تُنزَّل الميغابايتات إلا مرة واحدة على الجهاز.
-  if (path.includes("/ocr/") || path.includes("/assets/")) {
-    const store = path.includes("/ocr/") ? OCR_CACHE : CACHE;
+  if (path.includes("/ocr/") || path.includes("/paddle/") || path.includes("/assets/")) {
+    const store = path.includes("/ocr/") || path.includes("/paddle/") ? OCR_CACHE : CACHE;
     e.respondWith(
       caches.match(req).then((hit) => hit || fetch(req).then((res) => {
         if (res.ok) {

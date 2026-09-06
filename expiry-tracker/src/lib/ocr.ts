@@ -6,6 +6,7 @@ import { readDatesFromText, type ReadResult } from "./dateParse";
 import { matchProduct, type CatalogItemLite, type MatchResult } from "./productMatch";
 import { blobToCanvas, cloneCanvas, crop, grayscale, mergeDotMatrix, upscale } from "./imageOps";
 import { readTextInCloud } from "./cloudOcr";
+import { detectLines, lineRect } from "./paddleOcr";
 
 type Worker = {
   recognize: (img: unknown) => Promise<{ data: { text: string; confidence: number } }>;
@@ -142,6 +143,8 @@ export interface ReadOptions {
   shelfLifeDays?: number | null;
   today?: Date;
   budgetMs?: number;
+  /** يجرّب كل المعالجات ويجمع كل ما رآه بدل التوقف عند أول تاريخ */
+  exhaustive?: boolean;
 }
 
 /**
@@ -151,10 +154,10 @@ export interface ReadOptions {
 export async function readDateFromImage(
   blob: Blob,
   opts: ReadOptions = {},
-): Promise<ReadResult & { available: boolean; attempt?: string }> {
+): Promise<ReadResult & { available: boolean; attempt?: string; all: string[] }> {
   const empty = {
     expiry: null, production: null, confidence: "low" as const,
-    reason: "قراءة التاريخ غير متاحة", candidates: [], available: false,
+    reason: "قراءة التاريخ غير متاحة", candidates: [], available: false, all: [],
   };
 
   const worker = await warmUpOcr();
@@ -163,7 +166,11 @@ export async function readDateFromImage(
   const base = await prepare(blob);
   if (!base) return { ...empty, reason: "تعذّر تجهيز الصورة", available: true };
 
+  let first: (ReadResult & { available: boolean; attempt?: string }) | null = null;
   let fallback: (ReadResult & { available: boolean; attempt?: string }) | null = null;
+  // كل ما رآه المحرك عبر المعالجات، لا أوّل ما رآه: نستعمله للمقارنة مع المحرك
+  // الثاني — «هل رأيت هذا التاريخ في أي محاولة؟» سؤال أنفع من «ما أفضل تخمينك؟»
+  const all: string[] = [];
   const deadline = Date.now() + (opts.budgetMs ?? DATE_BUDGET_MS);
   try {
     for (const attempt of dateAttempts(base)) {
@@ -172,12 +179,16 @@ export async function readDateFromImage(
       const { data } = await worker.recognize(canvas);
       if (attempt.psm) await worker.setParameters(PARAMS);
       const result = readDatesFromText(data.text, { ...opts, ocrConfidence: data.confidence });
-      if (result.expiry) return { ...result, available: true, attempt: attempt.name };
+      if (result.expiry) {
+        if (!all.includes(result.expiry)) all.push(result.expiry);
+        first ??= { ...result, available: true, attempt: attempt.name };
+        if (!opts.exhaustive) return { ...first, all };
+      }
       fallback ??= { ...result, available: true, attempt: attempt.name };
       // لا نُبقي العامل ينتظر: نكتفي بما جرّبناه ونترك له التاريخ المحسوب
       if (Date.now() > deadline) break;
     }
-    return fallback ?? { ...empty, available: true };
+    return { ...(first ?? fallback ?? { ...empty, available: true }), all };
   } catch (e) {
     console.warn("فشلت قراءة التاريخ:", e);
     return { ...empty, reason: "فشلت قراءة الصورة", available: true };
@@ -275,6 +286,75 @@ function tagged(r: ReadResult, via: ReadVia): SmartDate {
   return { ...r, available: true, via, reason: r.reason ? `${r.reason} — ${label}` : label };
 }
 
+/** سطر يستحق القصّ: فيه أرقام تكفي لتاريخ. لا نقصّ اسم المنتج بلا فائدة. */
+function looksDateish(text: string): boolean {
+  return (text.match(/[0-9\u0660-\u0669]/g) ?? []).length >= 4;
+}
+
+const MAX_CROPS = 2;   // سطران على الأكثر: كل قصّة نصف ثانية من انتظار العامل
+
+/**
+ * قراءة بمحركين مستقلّين داخل الجهاز، والقرار على اتفاقهما.
+ *
+ * Paddle يجد سطر التاريخ ويقرأه، ثم نقصّ السطر من الصورة الأصلية بدقتها
+ * الكاملة ونعطيه لـ Tesseract وحده — وهو يقرأ سطراً مقصوصاً أفضل بكثير مما
+ * يقرأ كارتوناً كاملاً. فإن أعطى المحركان نفس التاريخ فهذه ثقة عالية: خطأ
+ * واحد قد يقع، لكن أن يقع محركان مختلفان في نفس الخطأ بالضبط فاحتمال بعيد.
+ *
+ * يرجع null إن لم يتوفّر المحرك الثاني — عندها يبقى المسار القديم كما هو.
+ */
+export async function readDateByAgreement(
+  photo: Blob,
+  opts: ReadOptions,
+): Promise<SmartDate | null> {
+  const lines = await detectLines(photo);
+  if (!lines) return null;
+
+  const text = lines.map((l) => l.text).join("\n");
+  const paddle = readDatesFromText(text, { ...opts, ocrConfidence: CLOUD_CONFIDENCE });
+
+  const bitmap = await createImageBitmap(photo).catch(() => null);
+  const full = bitmap ? blobToCanvas(bitmap, bitmap.width) : null;
+  bitmap?.close?.();
+
+  const cropped: (ReadResult & { all: string[] })[] = [];
+  if (full) {
+    const wanted = lines.filter((l) => l.box && looksDateish(l.text)).slice(0, MAX_CROPS);
+    for (const line of wanted) {
+      const rect = lineRect(line.box!, full.width, full.height);
+      if (!rect) continue;
+      const canvas = crop(full, rect);
+      const blob = await new Promise<Blob | null>((r) => canvas.toBlob(r, "image/png"));
+      if (!blob) continue;
+      // هنا نستقصي كل المعالجات: هدفنا شاهد على تاريخ بعينه لا أسرع تخمين
+      cropped.push(await readDateFromImage(blob, { ...opts, exhaustive: true }));
+    }
+  }
+
+  const agreed = paddle.expiry
+    ? cropped.find((c) => c.all.includes(paddle.expiry!))
+    : undefined;
+  if (agreed) {
+    return {
+      ...paddle, confidence: "high", available: true, via: "device",
+      production: paddle.production ?? agreed.production,
+      reason: `${paddle.reason} — اتفق عليه محركا القراءة`,
+    };
+  }
+
+  // بلا اتفاق: نقبل قراءة واثقة من المحرك الأول وحده (سطر مقصوص نظيف)،
+  // وما عداها يبقى «غير واثق» فلا يُعرض — تاريخ خاطئ أسوأ من لا تاريخ.
+  const sure = cropped.find((c) => c.expiry && c.confidence === "high");
+  if (sure) return { ...sure, available: true, via: "device" };
+
+  const any = paddle.expiry ? paddle : cropped.find((c) => c.expiry);
+  if (any) {
+    return { ...any, confidence: "low", available: true, via: "device",
+             reason: `${any.reason} — لم يتفق المحركان` };
+  }
+  return { ...paddle, available: true, via: "device" };
+}
+
 /**
  * يقرأ تاريخ الانتهاء: سحابياً إن أمكن، وإلا بمحرك الجهاز.
  * لا يرمي استثناءً — الفشل يعني أننا نبقى على التاريخ المحسوب.
@@ -294,11 +374,20 @@ export async function readDateSmart(
     best ??= tagged(parsed, "cloud");
   }
 
+  // المحرك المحمَّل أصلاً أولاً: تاريخ مطبوع طباعة عادية يُقرأ هنا بلا تنزيل شيء
   for (const img of order(roi, photo)) {
     const parsed = await readDateFromImage(img, opts);
     if (!parsed.available) continue;
-    if (parsed.expiry) return tagged(parsed, "device");
-    best ??= tagged(parsed, "device");
+    if (parsed.expiry && parsed.confidence === "high") return tagged(parsed, "device");
+    if (parsed.expiry) best ??= tagged(parsed, "device");
+  }
+
+  // لم نصل إلى تاريخ موثوق: هنا فقط يستحق المحرك الثاني تنزيله. الطباعة
+  // النقطية تحتاج شاهدين، واتفاقهما هو ما يرفع التاريخ إلى «واثق».
+  if (photo) {
+    const agreed = await readDateByAgreement(photo, opts);
+    if (agreed?.expiry && agreed.confidence === "high") return agreed;
+    if (agreed?.expiry) best ??= agreed;
   }
 
   return best ?? {

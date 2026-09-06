@@ -1,4 +1,6 @@
 import { chromium } from 'playwright';
+import { readFileSync } from 'node:fs';
+import { renderPhotos } from './make-photo.mjs';
 
 const REF = 'uvjjnxemvamwzcturyfq';
 const BASE = process.env.BASE ?? 'http://127.0.0.1:4173';
@@ -208,13 +210,19 @@ async function makePage(userId, handlers) {
   await page.goto(BASE + '/#/admin/check', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(800);
 
-  // صورة صغيرة تكفي: النص السحابي مُعترَض، والمقصود قياس الشاشة لا المحرك
-  const jpeg = Buffer.from(
-    '/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0a' +
-    'HBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCAABAAEBAREA/8QAFAABAAAAAAAA' +
-    'AAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q==', 'base64');
-  await page.setInputFiles('input[type=file]', { name: 'carton.jpg', mimeType: 'image/jpeg', buffer: jpeg });
-  await page.waitForTimeout(4000);
+  // كارتون حقيقي الشكل: هذا يشغّل مساري القراءة فعلاً في نسخة البناء نفسها
+  const yr = new Date().getFullYear() + 1;
+  const [shot] = await renderPhotos('tests/.build/photos-ui', [{
+    name: 'carton', frameWidth: 1280, boxWidth: 0.6, titleScale: 0.035, textScale: 0.018,
+    dateScale: 0.018, dotMatrix: true, dotDensity: 0.7, rotate: -2, blur: 0.4,
+    lines: ['معجون طماطم الرافدين', 'صافي الوزن 800 غم', `EXP 18/09/${yr}`],
+  }]);
+  await page.setInputFiles('input[type=file]',
+    { name: 'carton.jpg', mimeType: 'image/jpeg', buffer: readFileSync(shot.file) });
+  // المحرك الثاني يُنزَّل ويُقلع عند أول استعمال: نمهله
+  await page.waitForFunction(() => document.body.textContent.includes('داخل الجهاز'), null,
+                             { timeout: 240000 }).catch(() => {});
+  await page.waitForTimeout(1000);
 
   const body = await page.textContent('body');
   body.includes('١٨‏/٠٩‏/٢٠٢٧') || body.includes('18/09/2027')

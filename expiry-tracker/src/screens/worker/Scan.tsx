@@ -75,7 +75,10 @@ export default function Scan() {
     void refreshCatalog();
     // محرك الجهاز ٨ ميغابايت، ولا يُحمَّل إلا إن كان سيُستعمل فعلاً: حين لا
     // تكون القراءة السحابية مضبوطة، أو حين يفتح العامل الشاشة بلا اتصال.
-    void cloudConfigured().then((on) => { if (!on) void warmUpOcr(); });
+    void cloudConfigured().then((on) => {
+      if (on) return;
+      void warmUpOcr();
+    });
     const on = () => setOnline(true);
     const offl = () => setOnline(false);
     window.addEventListener("online", on);
