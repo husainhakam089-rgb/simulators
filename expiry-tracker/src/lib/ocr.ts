@@ -334,7 +334,14 @@ export async function readDateByAgreement(
   const agreed = paddle.expiry
     ? cropped.find((c) => c.all.includes(paddle.expiry!))
     : undefined;
-  if (agreed) {
+
+  // اتفاق محركين ليس ضمانة إن كان الغموض في الصورة لا في المحرك.
+  //
+  // قِسناه: على كارتون واحد قرأ المحركان كلاهما «04» بدل «09» واتفقا على تاريخ
+  // خاطئ. السبب أن الخانة نفسها ملتبسة في الطباعة، فالخطأ مشترك لا مستقل.
+  // ولذلك: تاريخ احتاج إصلاح محارف لا يُرفع إلى «واثق» ولو اتفق عليه الاثنان —
+  // الإصلاح استنتاج منّا، والاتفاق عليه اتفاق على استنتاجنا لا على قراءتين.
+  if (agreed && !paddle.inferred && !agreed.inferred) {
     return {
       ...paddle, confidence: "high", available: true, via: "device",
       production: paddle.production ?? agreed.production,
@@ -384,8 +391,13 @@ export async function readDateSmart(
 
   // لم نصل إلى تاريخ موثوق: هنا فقط يستحق المحرك الثاني تنزيله. الطباعة
   // النقطية تحتاج شاهدين، واتفاقهما هو ما يرفع التاريخ إلى «واثق».
-  if (photo) {
-    const agreed = await readDateByAgreement(photo, opts);
+  //
+  // الإطار كامل أولاً — فيه اسم المنتج والتاريخ معاً — ثم قصّة إطار التوجيه
+  // إن لم ينجح: القصّة تُقتطع من دقة الحسّاس الكاملة، فالتاريخ فيها بكسلات
+  // أكثر، وهذا ما قد يفصل «18» عن «1B». وهي محاولة ثانية لا أولى حتى لا
+  // ندفع ثمنها في الحالة الشائعة.
+  for (const img of order(photo, roi)) {
+    const agreed = await readDateByAgreement(img, opts);
     if (agreed?.expiry && agreed.confidence === "high") return agreed;
     if (agreed?.expiry) best ??= agreed;
   }

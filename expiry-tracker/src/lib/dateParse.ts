@@ -22,6 +22,12 @@ export interface ReadResult {
   confidence: "high" | "low";
   reason: string;              // لماذا اختير هذا التاريخ — يظهر للمدير عند المراجعة
   candidates: DateCandidate[];
+  /**
+   * التاريخ لم يُقرأ كما هو بل استُنتج بعد إصلاح محارف أو خانة ناقصة.
+   * هذا استنتاج لا قراءة، ولا يُرفع إلى «واثق» مهما اتفق عليه أكثر من محرك:
+   * الغموض في الصورة نفسها، فالمحركان يقعان فيه معاً.
+   */
+  inferred?: boolean;
 }
 
 const MONTHS: Record<string, number> = {
@@ -313,10 +319,12 @@ export function readDatesFromText(text: string, opts: ReadOptions = {}): ReadRes
 
   const marked = <T extends ReadResult>(r: T): T => {
     if (repaired) {
-      return { ...r, confidence: "low" as const, reason: `${r.reason} — أُصلح خلط أرقام بحروف` };
+      return { ...r, confidence: "low" as const, inferred: true,
+               reason: `${r.reason} — أُصلح خلط أرقام بحروف` };
     }
     if (suspect(r.expiry)) {
-      return { ...r, confidence: "low" as const, reason: `${r.reason} — تأكد من الشهر، قد يكون رقم ناقص` };
+      return { ...r, confidence: "low" as const, inferred: true,
+               reason: `${r.reason} — تأكد من الشهر، قد يكون رقم ناقص` };
     }
     return lowOcr ? { ...r, confidence: "low" as const, reason: `${r.reason} (قراءة غير واضحة)` } : r;
   };
