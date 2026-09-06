@@ -37,6 +37,7 @@ export async function renderPhotos(outDir, cases) {
       g.fillStyle = c.faint ? 'rgba(25,25,25,0.72)' : '#171717';
       g.textAlign = 'center';
       const lines = c.lines;
+      let dateRect = null;
       const big = W * (c.titleScale ?? 0.045);
       const small = W * (c.textScale ?? 0.022);
       lines.forEach((t, i) => {
@@ -44,6 +45,15 @@ export async function renderPhotos(outDir, cases) {
         const size = i === 0 && c.titleScale ? big
           : isDate && c.dateScale ? W * c.dateScale : small;
         const yy = -bh/2 + bh * 0.3 + i * small * 1.9;
+        // نسجّل موضع سطر التاريخ في إحداثيات الإطار: العامل يصوّب الإطار عليه
+        if (isDate) {
+          const pt = new DOMMatrix(g.getTransform()).transformPoint(new DOMPoint(0, yy));
+          const halfW = W * 0.16, halfH = size * 1.4;
+          dateRect = {
+            x: (pt.x - halfW) / W, y: (pt.y - halfH) / H,
+            w: (halfW * 2) / W, h: (halfH * 2) / H,
+          };
+        }
         // تاريخ الصلاحية يُطبع على الكارتون بطابعة نقطية، لا بخط مصمت
         if (isDate && c.dotMatrix) {
           g.save();
@@ -101,11 +111,11 @@ export async function renderPhotos(outDir, cases) {
         im.data[i] += n; im.data[i+1] += n; im.data[i+2] += n;
       }
       g.putImageData(im, 0, 0);
-      return cv.toDataURL('image/jpeg', c.quality ?? 0.75).split(',')[1];
+      return { png: cv.toDataURL('image/jpeg', c.quality ?? 0.75).split(',')[1], dateRect };
     }, c);
     const file = `${outDir}/${c.name}.jpg`;
-    writeFileSync(file, Buffer.from(png, 'base64'));
-    out.push({ ...c, file });
+    writeFileSync(file, Buffer.from(png.png, 'base64'));
+    out.push({ ...c, file, dateRect: png.dateRect });
   }
   await browser.close();
   return out;

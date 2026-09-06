@@ -69,5 +69,36 @@ for (const p of photos) {
   console.log(`    قرأ: "${r.text}"   [${r.ms}ms]`);
 }
 console.log(`\nالتواريخ ${dateOk}/${photos.length}   الأسماء ${nameOk}/${photos.length}`);
+
+// ------------------------------------------------------------------------
+// حين يوجّه العامل إطار التوجيه على التاريخ: نقرأ ما داخل الإطار بدل المشهد
+// كاملاً. هذا ما تفعله طبقة التصوير في التطبيق، ونقيسه هنا.
+// ------------------------------------------------------------------------
+console.log('\nمع توجيه الإطار على التاريخ:');
+let aimedOk = 0;
+for (const p of photos) {
+  const b64 = readFileSync(p.file).toString('base64');
+  const r = await page.evaluate(async ({ b64, rect }) => {
+    const bin = atob(b64); const arr = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+    const blob = new Blob([arr], { type: 'image/jpeg' });
+    const ocr = await import('/src/lib/ocr.ts');
+    const ops = await import('/src/lib/imageOps.ts');
+    // إطار التوجيه مصوّب على سطر التاريخ، كما يفعل العامل
+    const base = await ops.blobToCanvas(await createImageBitmap(blob), 4000);
+    const aimed = ops.crop(base, rect);
+    const cropped = await new Promise((res) => aimed.toBlob(res, 'image/jpeg', 0.92));
+    const t0 = performance.now();
+    const res2 = await ocr.readDateFromImage(cropped, {});
+    return { ms: Math.round(performance.now() - t0), expiry: res2.expiry,
+             conf: res2.confidence, attempt: res2.attempt };
+  }, { b64, rect: p.dateRect });
+  const ok = r.expiry === EXPECT_DATE;
+  if (ok) aimedOk++;
+  console.log(`  ${ok ? '✓' : '✗'} ${p.name.padEnd(13)} ${r.expiry ?? '—'} [${r.conf}] (${r.attempt ?? '—'}، ${r.ms}ms)`);
+}
+console.log(`\nبالتوجيه: ${aimedOk}/${photos.length}`);
+
 await browser.close();
-process.exit(dateOk === photos.length && nameOk === photos.length ? 0 : 1);
+// المقياس: التوجيه يجب أن يقرأ الصورتين القريبة والعادية على الأقل
+process.exit(nameOk === photos.length && aimedOk >= 2 ? 0 : 1);

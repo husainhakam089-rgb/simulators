@@ -3,7 +3,7 @@ import { useAuth } from "../../lib/auth";
 import { catalog, newClientId, type CatalogItem } from "../../lib/db";
 import { enqueueBatch, onSyncChange, refreshCatalog, syncNow } from "../../lib/sync";
 import { supabase } from "../../lib/supabase";
-import { captureFrame, createFrameWatcher, createScanner } from "../../lib/scanner";
+import { captureBest, createFrameWatcher, createScanner, screenRectToRoi } from "../../lib/scanner";
 import { WORDS, addDays, arPlural, daysLeftLabel, formatDate, riskLevel, toISODate } from "../../lib/format";
 import { DatePicker } from "../../components/DatePicker";
 import { readDateFromImage, readPackage, warmUpOcr } from "../../lib/ocr";
@@ -24,7 +24,7 @@ interface Pending {
   known: boolean;
   productionDate: string | null;
   note: string | null;
-  ocr: "off" | "reading" | "found" | "notfound";
+  ocr: "off" | "reading" | "found" | "notfound" | "unsure";
 }
 
 const SOURCE_LABEL: Record<Pending["identifiedBy"], string> = {
@@ -46,6 +46,7 @@ const STEADY_SAMPLES = 2;
 export default function Scan() {
   const { profile, storeName, signOut } = useAuth();
   const videoRef = useRef<HTMLVideoElement>(null);
+  const guideRef = useRef<HTMLDivElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const lastCode = useRef<{ code: string; at: number }>({ code: "", at: 0 });
 
@@ -182,7 +183,17 @@ export default function Scan() {
     paused.current = true;
     beep();
 
-    const photo = videoRef.current ? await captureFrame(videoRef.current) : null;
+    // نصوّر عدة إطارات ونأخذ أوضحها، ونقتطع ما داخل إطار التوجيه بدقة كاملة:
+    // هناك يوجّه العامل الكاميرا، وهناك يكون التاريخ كبيراً في الصورة بدل أن
+    // يكون نقطة صغيرة وسط مشهد كامل.
+    const video = videoRef.current;
+    const guide = guideRef.current;
+    const shot = video
+      ? await captureBest(video, {
+          roi: guide ? screenRectToRoi(video, guide.getBoundingClientRect()) : null,
+        })
+      : { full: null, roi: null, sharpness: 0 };
+    const photo = shot.full;
     const item = code ? await lookup(code) : null;
     const shelf = item?.default_shelf_life_days ?? DEFAULT_SHELF_DAYS;
     const scanId = ++scanSeq.current;
@@ -207,17 +218,23 @@ export default function Scan() {
 
     if (!photo) return;
     // كل القراءة تجري بالخلفية ولا توقف العامل إطلاقاً
-    if (item) void runOcr(photo, scanId, item.default_shelf_life_days ?? null);
-    else void runPackage(photo, scanId);
+    if (item) void runOcr(photo, shot.roi, scanId, item.default_shelf_life_days ?? null);
+    else void runPackage(photo, shot.roi, scanId);
   }
 
   /**
    * قراءة العلبة كاملة: اسم المنتج والتاريخ معاً. تُستعمل حين لا باركود، أو
    * حين لا يكون الباركود في قائمة المحل.
    */
-  async function runPackage(photo: Blob, scanId: number) {
+  async function runPackage(photo: Blob, roi: Blob | null, scanId: number) {
     const items = await catalog.all();
+    // الاسم يُقرأ من الإطار كاملاً (اسم المنتج كبير)، والتاريخ من داخل إطار
+    // التوجيه إن لم يظهر في القراءة الأولى
     const result = await readPackage(photo, items, { shelfLifeDays: null });
+    if (!result.date.expiry && roi) {
+      const fromRoi = await readDateFromImage(roi, { shelfLifeDays: null });
+      if (fromRoi.expiry) result.date = fromRoi;
+    }
 
     setPending((cur) => {
       if (!cur || cur.scanId !== scanId) return cur;
@@ -230,7 +247,8 @@ export default function Scan() {
 
       // إن عُرف الصنف نستعمل عمر مجموعته لحساب التاريخ حين لا يُقرأ من الصورة
       const shelf = matched?.default_shelf_life_days ?? null;
-      const expiry = result.date.expiry
+      const dateTrusted = !!result.date.expiry && result.date.confidence === "high";
+      const expiry = (dateTrusted ? result.date.expiry : null)
         ?? (shelf ? toISODate(addDays(new Date(), shelf)) : cur.expiry);
 
       return {
@@ -240,14 +258,15 @@ export default function Scan() {
         identifiedBy: matched ? "name" : cur.identifiedBy,
         known: !!matched || cur.known,
         candidates: result.match.candidates,
-        expiry: cur.dateSource === "manual" ? cur.expiry : expiry,
+        // نفس القاعدة: لا نعتمد تاريخاً مقروءاً إلا إن كان واثقاً
+        expiry: cur.dateSource === "manual" || !dateTrusted ? cur.expiry : expiry,
         dateSource: cur.dateSource === "manual" ? "manual"
-          : result.date.expiry ? "ocr" : "calculated",
+          : dateTrusted ? "ocr" : "calculated",
         productionDate: result.date.production ?? cur.productionDate,
         confidence: "low",   // التعرّف بالاسم يبقى للمراجعة دائماً
         note: [matched ? `طوبق بالاسم من العلبة` : null, result.date.expiry ? result.date.reason : null]
           .filter(Boolean).join(" — ") || null,
-        ocr: result.date.expiry ? "found" : "notfound",
+        ocr: dateTrusted ? "found" : result.date.expiry ? "unsure" : "notfound",
       };
     });
   }
@@ -276,19 +295,34 @@ export default function Scan() {
    * تُطبَّق نتيجة القراءة فقط إذا كان العامل ما زال على نفس الكارتون ولم يعدّل
    * التاريخ بيده — لا نغيّر شيئاً تحت إصبعه.
    */
-  async function runOcr(photo: Blob, scanId: number, shelfLifeDays: number | null) {
-    const result = await readDateFromImage(photo, { shelfLifeDays });
+  async function runOcr(photo: Blob, roi: Blob | null, scanId: number, shelfLifeDays: number | null) {
+    // ما داخل إطار التوجيه أولاً — النص فيه أكبر نسبةً فتُقرأ أدق
+    let result = roi ? await readDateFromImage(roi, { shelfLifeDays }) : null;
+    if (!result?.expiry) {
+      const full = await readDateFromImage(photo, { shelfLifeDays });
+      if (full.expiry || !result) result = full;
+    }
     setPending((cur) => {
       if (!cur || cur.scanId !== scanId) return cur;
       if (cur.dateSource === "manual") return { ...cur, ocr: "off" };
-      if (!result.available) return { ...cur, ocr: "off" };
+      if (!result?.available) return { ...cur, ocr: "off" };
       if (!result.expiry) return { ...cur, ocr: "notfound" };
+
+      // تاريخ غير واثق لا يُعرض إطلاقاً.
+      //
+      // القياس أظهر أن القراءة قد تعطي «١٨/٠٨» بدل «١٨/٠٩»: تاريخ صحيح شكلاً
+      // وخاطئ فعلاً. وهذا أسوأ من لا تاريخ — يعني بضاعة سليمة تُتلف أو خربانة
+      // تُباع. فنُبقي التاريخ المحسوب ونطلب من العامل إدخاله.
+      if (result.confidence !== "high") {
+        return { ...cur, ocr: "unsure", note: result.reason };
+      }
+
       return {
         ...cur,
         expiry: result.expiry,
         productionDate: result.production,
         dateSource: "ocr",
-        confidence: cur.known && result.confidence === "high" ? "high" : "low",
+        confidence: cur.known ? "high" : "low",
         note: result.reason,
         ocr: "found",
       };
@@ -343,8 +377,8 @@ export default function Scan() {
   return (
     <div className="scanner">
       <video ref={videoRef} playsInline muted />
-      <div className="frame" />
-      <div className="hint-text">وجّه الكاميرا نحو الباركود — أو على العلبة نفسها</div>
+      <div className="frame" ref={guideRef} />
+      <div className="hint-text">حط الباركود أو تاريخ الصلاحية داخل الإطار</div>
 
       <div className="bar">
         <div className="who">
@@ -445,6 +479,7 @@ export default function Scan() {
                 {pending.ocr !== "reading" && (
                   pending.dateSource === "ocr" ? "قُرئ من صورة الكارتون"
                   : pending.dateSource === "manual" ? "أدخلته يدوياً"
+                  : pending.ocr === "unsure" ? "ما تأكدت من التاريخ — اقرأه من الكارتون وعدّله"
                   : pending.ocr === "notfound" ? "لم يظهر تاريخ في الصورة — محسوب من عمر المجموعة"
                   : "محسوب من عمر المجموعة"
                 )}
@@ -463,7 +498,12 @@ export default function Scan() {
             <button className="btn" onClick={() => void confirm()}>تأكيد</button>
             <div className="spacer" />
             <div className="btn-row">
-              <button className="btn secondary" onClick={() => setEditingDate(true)}>تعديل التاريخ</button>
+              <button
+                className={`btn ${pending.ocr === "unsure" || pending.ocr === "notfound" ? "" : "secondary"}`}
+                onClick={() => setEditingDate(true)}
+              >
+                تعديل التاريخ
+              </button>
               <button className="btn ghost" onClick={() => setPending(null)}>إلغاء</button>
             </div>
           </div>

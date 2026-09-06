@@ -19,7 +19,8 @@
     "test:match": "esbuild src/lib/productMatch.ts --outfile=tests/.build/productMatch.js --format=esm --target=node18 && node --test tests/productmatch.test.mjs",
     "test:package": "node tests/package.test.mjs",
     "test:auto": "node tests/make-carton.mjs tests/.build && node tests/make-package.mjs tests/.build && node tests/autofallback.test.mjs tests/.build/carton.y4m tests/.build/package.y4m ./tests/screenshots",
-    "test:photo": "node tests/photo.test.mjs"
+    "test:photo": "node tests/photo.test.mjs",
+    "test:capture": "node tests/capture.test.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.47.10",

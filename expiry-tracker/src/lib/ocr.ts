@@ -105,18 +105,32 @@ interface DateAttempt {
 
 function dateAttempts(base: HTMLCanvasElement): DateAttempt[] {
   const center = { x: 0.06, y: 0.18, w: 0.88, h: 0.64 };
+
+  // التكبير يتكيّف مع حجم الصورة لا ثابتاً: قد تصل صورة كاملة بعرض ٢٥٦٠ بكسل،
+  // وقد يصل قصٌّ ضيّق من داخل إطار التوجيه بعرض ٢٠٠. الهدف واحد: أن يصل ارتفاع
+  // الحرف إلى ما يحتاجه المحرك. عرض هدف ~١٦٠٠ بكسل قياساً على ما نجح.
+  const TARGET = 1600;
+  const factorFor = (c: HTMLCanvasElement) =>
+    Math.max(1, Math.min(6, Math.round((TARGET / c.width) * 2) / 2));
+
   // نصف قطر اللحم يتناسب مع التكبير: تباعد النقاط يكبر بنفس النسبة، فنصف قطر
   // ثابت لا يلحم شيئاً بعد التكبير. النسبة ٢× معايَرة بصرياً على طباعة نقطية.
-  const merged = (c: HTMLCanvasElement, factor: number) =>
-    mergeDotMatrix(upscale(c, factor), factor * 2);
+  const scaled = (c: HTMLCanvasElement) => upscale(c, factorFor(c));
+  const welded = (c: HTMLCanvasElement) => {
+    const f = factorFor(c);
+    return mergeDotMatrix(upscale(c, f), Math.max(1, Math.round(f * 2)));
+  };
 
+  const middle = crop(base, center);
   // قائمة قصيرة عمداً وبميزانية وقت: العامل ينتظر، وكل محاولة نصف ثانية.
   return [
     { name: "خام", make: () => base },
-    { name: "لحم النقاط ٣×", make: () => merged(cloneCanvas(base), 3) },
-    { name: "وسط الصورة لحم ٣×", make: () => merged(crop(base, center), 3) },
-    // سطر واحد على وسط الصورة: أفضل ما أعطى مع التواريخ المطبوعة نقطياً
-    { name: "سطر واحد لحم ٤×", psm: "7", make: () => merged(crop(base, center), 4) },
+    { name: "مكبّرة", make: () => scaled(cloneCanvas(base)) },
+    { name: "لحم النقاط", make: () => welded(cloneCanvas(base)) },
+    { name: "وسط الصورة مكبّراً", make: () => scaled(cloneCanvas(middle)) },
+    { name: "وسط الصورة لحماً", make: () => welded(cloneCanvas(middle)) },
+    // سطر واحد: أفضل ما أعطى مع التواريخ المطبوعة نقطياً
+    { name: "سطر واحد لحماً", psm: "7", make: () => welded(cloneCanvas(middle)) },
   ];
 }
 
