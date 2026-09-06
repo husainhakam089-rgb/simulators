@@ -26,6 +26,11 @@ interface Pending {
   productionDate: string | null;
   note: string | null;
   ocr: "off" | "reading" | "found" | "notfound" | "unsure";
+  // ما قرأته المحركات قبل أي تعديل — يُحفظ للقياس لا للعرض، فنعرف لاحقاً
+  // كم مرة أصاب البرنامج على بضاعة هذا المحل بالذات
+  readExpiry: string | null;
+  readEngine: string | null;
+  readProductId: string | null;
 }
 
 const SOURCE_LABEL: Record<Pending["identifiedBy"], string> = {
@@ -220,6 +225,9 @@ export default function Scan() {
       productionDate: null,
       note: null,
       ocr: photo ? "reading" : "off",
+      readExpiry: null,
+      readEngine: null,
+      readProductId: null,
     });
 
     if (!photo) return;
@@ -255,6 +263,9 @@ export default function Scan() {
 
       return {
         ...cur,
+        readExpiry: result.date.expiry ?? cur.readExpiry,
+        readEngine: result.date.expiry ? result.via : cur.readEngine,
+        readProductId: matched?.product_id ?? cur.readProductId,
         productId: matched?.product_id ?? cur.productId,
         productName: matched?.name ?? cur.productName,
         identifiedBy: matched ? "name" : cur.identifiedBy,
@@ -312,11 +323,14 @@ export default function Scan() {
       // وخاطئ فعلاً. وهذا أسوأ من لا تاريخ — يعني بضاعة سليمة تُتلف أو خربانة
       // تُباع. فنُبقي التاريخ المحسوب ونطلب من العامل إدخاله.
       if (result.confidence !== "high") {
-        return { ...cur, ocr: "unsure", note: result.reason };
+        return { ...cur, ocr: "unsure", note: result.reason,
+                 readExpiry: result.expiry, readEngine: result.via };
       }
 
       return {
         ...cur,
+        readExpiry: result.expiry,
+        readEngine: result.via,
         expiry: result.expiry,
         productionDate: result.production,
         dateSource: "ocr",
@@ -355,6 +369,9 @@ export default function Scan() {
       received_at: new Date().toISOString(),
       product_name: p.productName,
       note: p.note,
+      read_expiry: p.readExpiry,
+      read_engine: p.readEngine,
+      read_product_id: p.readProductId,
       photo: p.photo ?? undefined,
       tries: 0,
     });

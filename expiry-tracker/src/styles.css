@@ -294,3 +294,6 @@ th { color: var(--muted); font-size: 13px; font-weight: 600; }
 .check-engine p { margin: 2px 0; }
 .check-engine b.ok { color: var(--green); }
 .check-engine b.warn { color: var(--orange); }
+.field-acc { margin: 6px 0 0; padding-inline-start: 18px; font-size: 14px; line-height: 1.9; }
+.field-acc b.ok { color: var(--green); }
+.field-acc b.warn { color: var(--orange); }

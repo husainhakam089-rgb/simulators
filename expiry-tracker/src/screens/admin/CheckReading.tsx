@@ -26,6 +26,18 @@ interface Engine {
   failed: string | null;
 }
 
+/** القياس الحقيقي: ما قرأته المحركات مقابل ما اعتمده العامل فعلاً */
+interface Accuracy {
+  batches_total: number;
+  dates_read: number;
+  dates_kept: number;
+  dates_fixed: number;
+  dates_missed: number;
+  names_read: number;
+  names_kept: number;
+  names_fixed: number;
+}
+
 interface Row {
   name: string;
   url: string;
@@ -57,6 +69,7 @@ export default function CheckReading() {
   const [items, setItems] = useState<CatalogItem[]>([]);
   const [rows, setRows] = useState<Row[]>([]);
   const [cloudOn, setCloudOn] = useState<boolean | null>(null);
+  const [field, setField] = useState<Accuracy | null>(null);
   const [copied, setCopied] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -66,6 +79,11 @@ export default function CheckReading() {
       setItems((data ?? []) as CatalogItem[]);
     })();
     void cloudConfigured().then(setCloudOn);
+    void (async () => {
+      const { data } = await supabase.rpc("reading_accuracy", { p_days: 90 });
+      const row = Array.isArray(data) ? data[0] : data;
+      if (row) setField(row as Accuracy);
+    })();
   }, []);
 
   const run = useCallback(async (files: File[]) => {
@@ -132,6 +150,35 @@ export default function CheckReading() {
 
   return (
     <>
+      {field && field.batches_total > 0 && (
+        <div className="card">
+          <h2>دقة القراءة على بضاعتك — آخر ٩٠ يوماً</h2>
+          {/* هذا ليس تقديراً: كل سطر هنا محسوب من وجبات صوّرها عمالك فعلاً.
+              «صحّحه العامل» يعني أن القراءة كانت خاطئة — وهو الرقم الذي يهم. */}
+          <p className="hint">
+            من {formatNumber(field.batches_total)} وجبة:
+          </p>
+          <ul className="field-acc">
+            <li>
+              التاريخ: قرأه البرنامج في {formatNumber(field.dates_read)} —
+              اعتمده العامل كما هو <b className="ok">{formatNumber(field.dates_kept)}</b>،
+              وصحّحه <b className={field.dates_fixed ? "warn" : "ok"}>{formatNumber(field.dates_fixed)}</b>
+              {field.dates_read > 0 && (
+                <> ({formatNumber(Math.round((field.dates_kept / field.dates_read) * 100))}٪ صحيح)</>
+              )}
+            </li>
+            <li>
+              ولم يجد تاريخاً في {formatNumber(field.dates_missed)} صورة — أدخلها العامل بيده.
+            </li>
+            <li>
+              الصنف: تعرّف عليه بالاسم في {formatNumber(field.names_read)} —
+              صحيح <b className="ok">{formatNumber(field.names_kept)}</b>،
+              مغيَّر <b className={field.names_fixed ? "warn" : "ok"}>{formatNumber(field.names_fixed)}</b>
+            </li>
+          </ul>
+        </div>
+      )}
+
       <div className="card">
         <h2>جرّب القراءة على بضاعتك</h2>
         <p className="hint">

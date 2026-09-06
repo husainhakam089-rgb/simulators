@@ -205,6 +205,9 @@ async function makePage(userId, handlers) {
     ]],
     // نفس الردّ يخدم الفحص («هل المفتاح مضبوط؟») والقراءة نفسها
     ['/functions/v1/read-label', { ok: true, configured: true, text: 'معجون طماطم الرافدين ٨٠٠ غم\nEXP 18/09/2027\n' }],
+    // القياس الحقيقي من وجبات صوّرها العمال فعلاً
+    ['/rest/v1/rpc/reading_accuracy', [{ since: '2026-06-08', batches_total: 40, dates_read: 31,
+      dates_kept: 27, dates_fixed: 4, dates_missed: 6, names_read: 12, names_kept: 11, names_fixed: 1 }]],
   ]);
 
   await page.goto(BASE + '/#/admin/check', { waitUntil: 'domcontentloaded' });
@@ -234,6 +237,9 @@ async function makePage(userId, handlers) {
   body.includes('سحابي') && body.includes('داخل الجهاز')
     ? pass('جرّب القراءة: يقارن المحركين جنباً إلى جنب')
     : fail('جرّب القراءة: لا مقارنة بين المحركين');
+  body.includes('دقة القراءة على بضاعتك') && body.includes('٨٧٪')
+    ? pass('جرّب القراءة: يعرض الدقة المقيسة على بضاعة المحل')
+    : fail('جرّب القراءة: لا قياس حقيقي — ' + (body.match(/دقة القراءة[\s\S]{0,160}/) ?? [''])[0]);
   await page.screenshot({ path: OUT + '/shot-admin-check.png', fullPage: true });
 
   errs.length === 0 ? pass('لا أخطاء JS في شاشة جرّب القراءة') : fail('أخطاء: ' + errs.join(' | '));

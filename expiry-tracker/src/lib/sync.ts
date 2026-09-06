@@ -61,6 +61,8 @@ async function reReadBeforeUpload(item: QueuedBatch): Promise<QueuedBatch> {
       out.expiry_date = date.expiry;
       out.production_date = date.production ?? out.production_date ?? null;
       out.date_source = "ocr";
+      out.read_expiry = date.expiry;
+      out.read_engine = "cloud";
       notes.push(`قُرئ التاريخ عند المزامنة — ${date.reason}`);
     }
   }
@@ -72,6 +74,7 @@ async function reReadBeforeUpload(item: QueuedBatch): Promise<QueuedBatch> {
       out.product_id = found.product_id;
       out.product_name = found.name;
       out.identified_by = "name";
+      out.read_product_id = found.product_id;
       notes.push("طوبق الصنف بالاسم عند المزامنة");
     }
   }
@@ -111,6 +114,9 @@ export async function syncNow(): Promise<{ sent: number; failed: number }> {
           p_received_at: item.received_at,
           p_product_id: item.product_id ?? null,
           p_identified_by: item.identified_by ?? null,
+          p_read_expiry: item.read_expiry ?? null,
+          p_read_engine: item.read_engine ?? null,
+          p_read_product_id: item.read_product_id ?? null,
         });
         if (error) throw new Error(error.message);
         await queue.remove(item.id);

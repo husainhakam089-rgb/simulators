@@ -16,6 +16,10 @@ export interface QueuedBatch {
   product_name: string | null;
   note?: string | null;           // سبب اختيار التاريخ — يراه المدير عند المراجعة
   reread?: boolean;               // قُرئت سحابياً عند المزامنة — لا نكرّر الكلفة
+  // ما قرأته المحركات قبل أي تعديل من العامل — لقياس الدقة على بضاعة المحل
+  read_expiry?: string | null;
+  read_engine?: string | null;
+  read_product_id?: string | null;
   photo?: Blob;
   tries: number;
   error?: string;
