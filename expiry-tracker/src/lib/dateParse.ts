@@ -317,7 +317,30 @@ export function readDatesFromText(text: string, opts: ReadOptions = {}): ReadRes
   const suspect = (iso: string | null) =>
     !!iso && candidates.some((c) => c.iso === iso && c.padSuspect);
 
+  /**
+   * شاهد من خارج الصورة.
+   *
+   * حين نضطر لإصلاح محارف يبقى التاريخ استنتاجاً، ولا ينفع أن نصدّقه لمجرد أن
+   * محركاً ثانياً استنتج مثلنا — الغموض في الطباعة يقع فيه الاثنان. لكن إن كان
+   * على الكارتون تاريخ إنتاج مقروء، وكان الفرق بينه وبين ما استنتجناه يساوي عمر
+   * هذه المجموعة الذي أدخله المدير، فهذه شهادة من نوع آخر: رقم لم يأتِ من
+   * البكسلات أصلاً. تصادفها مع الاستنتاج بعيد، فنقبل التاريخ.
+   */
+  const matchesShelfLife = (r: ReadResult): boolean => {
+    if (!r.expiry || !r.production || !opts.shelfLifeDays) return false;
+    const days = Math.round(
+      (Date.parse(r.expiry + "T00:00:00") - Date.parse(r.production + "T00:00:00")) / 86400000,
+    );
+    // تسامح: العمر اسمي، والطابعة قد تُدوّر إلى آخر الشهر
+    const slack = Math.max(31, Math.round(opts.shelfLifeDays * 0.05));
+    return Math.abs(days - opts.shelfLifeDays) <= slack;
+  };
+
   const marked = <T extends ReadResult>(r: T): T => {
+    if ((repaired || suspect(r.expiry)) && matchesShelfLife(r)) {
+      return { ...r, confidence: "high" as const,
+               reason: `${r.reason} — وطابق الفرقُ عمرَ المجموعة` };
+    }
     if (repaired) {
       return { ...r, confidence: "low" as const, inferred: true,
                reason: `${r.reason} — أُصلح خلط أرقام بحروف` };
