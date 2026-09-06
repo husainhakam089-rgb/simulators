@@ -38,7 +38,10 @@ await page.route(`**/${REF}.supabase.co/**`, (route) => {
   const body = u.includes('/rest/v1/users')
     ? { id: 'worker-1', store_id: 'store-1', name: 'كرار', phone: '0771', role: 'worker', stores: { name: 'سوبرماركت التجربة' } }
     : u.includes('worker_catalog')
-      ? [{ barcode: '6281000012345', name: 'لبن ربيع ١ لتر', category_name: 'ألبان وأجبان', default_shelf_life_days: 14, alert_before_days: 3, is_perishable: true }]
+      // معلّبات لا ألبان: الكارتون في الفيديو مطبوع عليه ٢٥/١٢/٢٠٢٧، ولبنٌ
+      // عمره أربعة عشر يوماً لا ينتهي بعد سنة — والبرنامج صار يرفض هذا
+      // التناقض بحق. فالثابتة كانت غير واقعية، لا القاعدة.
+      ? [{ barcode: '6281000012345', name: 'معجون طماطم الرافدين ٨٠٠غم', category_name: 'معلبات', default_shelf_life_days: 730, alert_before_days: 30, is_perishable: false }]
       : [];
   route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) });
 });
@@ -48,7 +51,7 @@ await page.goto(BASE + '/#/scan', { waitUntil: 'networkidle' });
 // ننتظر أن تمسك الكاميرا الباركود وحدها — بلا أي لمسة
 await page.waitForSelector('.sheet .panel', { timeout: 30000 });
 const scanned = await page.textContent('.sheet .panel');
-const okProduct = scanned.includes('لبن ربيع');
+const okProduct = scanned.includes('معجون طماطم');
 console.log(`${okProduct ? '✓' : '✗'} الكاميرا مسحت الباركود وتعرّفت على المنتج بلا لمسة واحدة`);
 
 // ثم ننتظر أن تنتهي القراءة وتُحدَّث شاشة التأكيد

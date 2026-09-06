@@ -99,6 +99,11 @@ async function makePage(userId, handlers) {
   /سعر|كلفة|دينار/.test(scanBody) ? fail('ظهرت أسعار في شاشة العامل!') : pass('لا أسعار إطلاقاً في شاشة العامل');
   await page.screenshot({ path: OUT + '/shot-worker-camera.png' });
 
+  // الشاشة تلتقط تلقائياً حين تثبت الكاميرا، والكاميرا الوهمية ثابتة دائماً —
+  // فقد تكون ورقة تأكيد فُتحت من تلقائها. نغلقها قبل أن نبدأ الإدخال اليدوي.
+  const stray = page.locator('.sheet .panel button:has-text("إلغاء")');
+  if (await stray.count()) { await stray.click(); await page.waitForTimeout(300); }
+
   // مسار الإدخال اليدوي → شاشة التأكيد
   await page.click('text=إدخال الباركود يدوياً');
   await page.waitForTimeout(300);

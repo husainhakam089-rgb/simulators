@@ -379,7 +379,27 @@ export function readDatesFromText(text: string, opts: ReadOptions = {}): ReadRes
     return Math.abs(days - opts.shelfLifeDays) <= slack;
   };
 
+  /**
+   * سقف معقولية: تاريخ أبعد مما يعيشه هذا الصنف أصلاً ليس تاريخه.
+   *
+   * الحليب عمره أسبوعان، فإن خرجت القراءة بتاريخ بعد ثلاث سنوات فالرقم مقروء
+   * خطأً لا مطبوع كذلك — سنة قُرئت ٢٠٢٩ بدل ٢٠٢٧ مثلاً. والبضاعة تصل المحل
+   * بعد إنتاجها بمدة، فالمتبقي لها دائماً أقل من عمرها الكامل. نترك هامشاً
+   * سخياً لأن العمر المُدخل تقديري، ثم لا نثق بما تجاوزه.
+   */
+  const beyondShelfLife = (r: ReadResult): boolean => {
+    if (!r.expiry || !opts.shelfLifeDays) return false;
+    const slack = Math.max(60, Math.round(opts.shelfLifeDays * 0.2));
+    const limit = new Date(today.getTime());
+    limit.setDate(limit.getDate() + opts.shelfLifeDays + slack);
+    return r.expiry > iso(limit.getFullYear(), limit.getMonth() + 1, limit.getDate());
+  };
+
   const marked = <T extends ReadResult>(r: T): T => {
+    if (beyondShelfLife(r)) {
+      return { ...r, confidence: "low" as const, inferred: true,
+               reason: `${r.reason} — أبعد من عمر هذه المجموعة، تأكّد منه` };
+    }
     if ((repaired || suspect(r.expiry)) && matchesShelfLife(r)) {
       return { ...r, confidence: "high" as const,
                reason: `${r.reason} — وطابق الفرقُ عمرَ المجموعة` };
