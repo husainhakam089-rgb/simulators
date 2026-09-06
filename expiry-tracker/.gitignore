@@ -1,0 +1,10 @@
+node_modules
+dist
+.env
+*.local
+tests/screenshots
+*.tsbuildinfo
+public/ocr
+public/paddle
+tests/.build
+vite.config.ts.timestamp-*
