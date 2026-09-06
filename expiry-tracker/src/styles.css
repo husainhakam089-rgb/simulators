@@ -279,3 +279,18 @@ th { color: var(--muted); font-size: 13px; font-weight: 600; }
 .member-phone { color: var(--muted); font-size: 14px; }
 .member-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .member-actions .btn { width: auto; flex: 1 1 auto; padding: 0 14px; }
+
+/* ------------------------------------------------ شاشة «جرّب القراءة» */
+.check-row { display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap; }
+.check-shot {
+  width: 140px; border-radius: var(--radius); border: 1px solid var(--line);
+  object-fit: cover;
+}
+.check-engines { flex: 1 1 240px; display: flex; flex-direction: column; gap: 10px; }
+.check-engine {
+  border-inline-start: 4px solid var(--line); padding-inline-start: 10px;
+  font-size: 14px; line-height: 1.7;
+}
+.check-engine p { margin: 2px 0; }
+.check-engine b.ok { color: var(--green); }
+.check-engine b.warn { color: var(--orange); }

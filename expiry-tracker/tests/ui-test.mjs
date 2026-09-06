@@ -193,5 +193,43 @@ async function makePage(userId, handlers) {
   errs.length === 0 ? pass('لا أخطاء JS في شاشة العامل') : fail('أخطاء: ' + errs.join(' | '));
 }
 
+// ------------------------------------------- شاشة «جرّب القراءة» للمدير
+{
+  const { page, errs } = await makePage('admin-1', [
+    ['/rest/v1/users', { id: 'admin-1', store_id: 'store-1', name: 'حسين', phone: '0770', role: 'admin', stores: { name: 'سوبرماركت التجربة' } }],
+    ['/rest/v1/rpc/worker_catalog', [
+      { barcode: '628', name: 'معجون طماطم الرافدين ٨٠٠غم', category_name: 'معلبات', default_shelf_life_days: 540, alert_before_days: 30, is_perishable: true },
+      { barcode: '627', name: 'زيت دوار الشمس زير ١ لتر', category_name: 'زيوت', default_shelf_life_days: 365, alert_before_days: 30, is_perishable: true },
+    ]],
+    // نفس الردّ يخدم الفحص («هل المفتاح مضبوط؟») والقراءة نفسها
+    ['/functions/v1/read-label', { ok: true, configured: true, text: 'معجون طماطم الرافدين ٨٠٠ غم\nEXP 18/09/2027\n' }],
+  ]);
+
+  await page.goto(BASE + '/#/admin/check', { waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(800);
+
+  // صورة صغيرة تكفي: النص السحابي مُعترَض، والمقصود قياس الشاشة لا المحرك
+  const jpeg = Buffer.from(
+    '/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0a' +
+    'HBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCAABAAEBAREA/8QAFAABAAAAAAAA' +
+    'AAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q==', 'base64');
+  await page.setInputFiles('input[type=file]', { name: 'carton.jpg', mimeType: 'image/jpeg', buffer: jpeg });
+  await page.waitForTimeout(4000);
+
+  const body = await page.textContent('body');
+  body.includes('١٨‏/٠٩‏/٢٠٢٧') || body.includes('18/09/2027')
+    ? pass('جرّب القراءة: عرض التاريخ الذي قرأه')
+    : fail('جرّب القراءة: لا تاريخ — ' + body.slice(0, 200));
+  body.includes('الرافدين')
+    ? pass('جرّب القراءة: طابق الصنف من قائمة المحل')
+    : fail('جرّب القراءة: لم يطابق الصنف');
+  body.includes('سحابي') && body.includes('داخل الجهاز')
+    ? pass('جرّب القراءة: يقارن المحركين جنباً إلى جنب')
+    : fail('جرّب القراءة: لا مقارنة بين المحركين');
+  await page.screenshot({ path: OUT + '/shot-admin-check.png', fullPage: true });
+
+  errs.length === 0 ? pass('لا أخطاء JS في شاشة جرّب القراءة') : fail('أخطاء: ' + errs.join(' | '));
+}
+
 await browser.close();
 console.log(log.join('\n'));

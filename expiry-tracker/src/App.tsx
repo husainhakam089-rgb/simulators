@@ -15,6 +15,7 @@ const Categories = lazy(() => import("./screens/admin/Categories"));
 const Import = lazy(() => import("./screens/admin/Import"));
 const Compliance = lazy(() => import("./screens/admin/Compliance"));
 const Team = lazy(() => import("./screens/admin/Team"));
+const CheckReading = lazy(() => import("./screens/admin/CheckReading"));
 
 const Loading = <div className="empty">لحظة…</div>;
 
@@ -67,6 +68,7 @@ function Routing() {
         <Route path="import" element={<Suspense fallback={Loading}><Import /></Suspense>} />
         <Route path="compliance" element={<Suspense fallback={Loading}><Compliance /></Suspense>} />
         <Route path="team" element={<Suspense fallback={Loading}><Team /></Suspense>} />
+        <Route path="check" element={<Suspense fallback={Loading}><CheckReading /></Suspense>} />
       </Route>
       <Route path="*" element={<Navigate to="/admin" replace />} />
     </Routes>

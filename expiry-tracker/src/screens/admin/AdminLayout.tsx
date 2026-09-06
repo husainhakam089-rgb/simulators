@@ -9,6 +9,7 @@ const TABS = [
   { to: "/admin/import", label: "استيراد الأصناف" },
   { to: "/admin/compliance", label: "الالتزام" },
   { to: "/admin/team", label: "الطاقم" },
+  { to: "/admin/check", label: "جرّب القراءة" },
 ];
 
 export default function AdminLayout() {
