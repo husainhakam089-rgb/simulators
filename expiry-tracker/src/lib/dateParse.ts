@@ -42,13 +42,33 @@ const EXPIRY_WORDS = [
   "EXPIRY", "EXPIRE", "EXPIRES", "EXPIRATION", "EXP",
   "BEST BEFORE", "BESTBEFORE", "BEST BY", "USE BY", "USEBY", "USE BEFORE",
   "SELL BY", "BBE", "BBD", "VALID UNTIL", "VALID TO",
+  "EXP.DATE", "EXPIRY DATE", "BEST BEFORE END",
   "الانتهاء", "انتهاء", "الصلاحية", "صلاحية", "صالح لغاية", "صالح حتى", "ينتهي",
+  "تنتهي", "آخر استعمال", "اخر استعمال", "يفضل استهلاكه قبل", "يستهلك قبل",
 ];
 const PRODUCTION_WORDS = [
   "MANUFACTURE", "MANUFACTURED", "MANUFACTURING", "PRODUCTION", "PRODUCED",
   "PACKED", "PACKING", "PACKAGED", "MFG", "MFD", "PRD", "PROD", "PKD",
   "الإنتاج", "الانتاج", "إنتاج", "انتاج", "التعبئة", "تعبئة", "الصنع",
 ];
+
+/**
+ * أسماء الشهور العربية — بالتسمية الشامية/العراقية وبالتسمية الخليجية معاً،
+ * فالبضاعة في المحل الواحد تأتي من الاثنتين. مرتّبة الأطول أولاً حتى لا يلتقط
+ * «كانون» وحده ما هو «كانون الأول».
+ */
+const ARABIC_MONTHS: [string, number][] = [
+  ["كانون الثاني", 1], ["كانون الأول", 12], ["كانون الاول", 12],
+  ["تشرين الأول", 10], ["تشرين الاول", 10], ["تشرين الثاني", 11],
+  ["شباط", 2], ["آذار", 3], ["اذار", 3], ["نيسان", 4], ["أيار", 5], ["ايار", 5],
+  ["حزيران", 6], ["تموز", 7], ["آب", 8], ["أيلول", 9], ["ايلول", 9],
+  ["يناير", 1], ["فبراير", 2], ["مارس", 3], ["أبريل", 4], ["ابريل", 4],
+  ["مايو", 5], ["يونيو", 6], ["يونيه", 6], ["يوليو", 7], ["يوليه", 7],
+  ["أغسطس", 8], ["اغسطس", 8], ["سبتمبر", 9], ["أكتوبر", 10], ["اكتوبر", 10],
+  ["نوفمبر", 11], ["ديسمبر", 12],
+];
+
+const ARABIC_MONTH_RE = ARABIC_MONTHS.map(([w]) => w).join("|");
 
 /** الأرقام العربية والفارسية ← لاتينية */
 export function normalizeDigits(s: string): string {
@@ -254,6 +274,29 @@ function datesInLine(line: string, today: Date): DateCandidate[] {
       if (y > today.getFullYear() + 5) continue;
     }
     push(y, mo, lastDayOfMonth(y, mo), m[0], m.index!, false);
+  }
+
+  // ١٨ أيلول ٢٠٢٧ — أسماء الشهور العربية، شائعة على بضاعة السوق العربي
+  for (const m of line.matchAll(new RegExp(`(\\d{1,2})\\s+(${ARABIC_MONTH_RE})\\s+(\\d{2,4})`, "g"))) {
+    const mo = ARABIC_MONTHS.find(([w]) => w === m[2])?.[1];
+    if (mo) push(fullYear(Number(m[3])), mo, Number(m[1]), m[0], m.index!, true);
+  }
+
+  // أيلول ٢٠٢٧ — شهر عربي وسنة ← آخر يوم في الشهر
+  for (const m of line.matchAll(new RegExp(`(${ARABIC_MONTH_RE})\\s+(\\d{4})`, "g"))) {
+    const mo = ARABIC_MONTHS.find(([w]) => w === m[1])?.[1];
+    if (!mo) continue;
+    const y = Number(m[2]);
+    push(y, mo, lastDayOfMonth(y, mo), m[0], m.index!, false);
+  }
+
+  // ١٨ ٠٩ ٢٠٢٧ — الطابعات الصناعية تفصل بمسافات لا بشرطات. تشبه رقم تشغيلة
+  // تماماً، فلا تُقبل إلا مع كلمة مفتاحية صريحة.
+  for (const m of line.matchAll(/(?<!\d)(\d{1,2})\s+(\d{1,2})\s+(\d{4})(?!\d)/g)) {
+    if (kindOfLine(line, m.index!) === "unknown") continue;
+    let d = Number(m[1]), mo = Number(m[2]);
+    if (d <= 12 && mo > 12) { const t = d; d = mo; mo = t; }
+    push(Number(m[3]), mo, d, m[0], m.index!, true);
   }
 
   // ١٨٠٩٢٦ / ١٨٠٩٢٠٢٦ — مضغوطة، وهي خطرة (تشبه رقم التشغيلة) فنشترط كلمة مفتاحية
