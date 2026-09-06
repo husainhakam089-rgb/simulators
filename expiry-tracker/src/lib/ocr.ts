@@ -2,10 +2,10 @@
 // المحرك (Tesseract) يُحمَّل عند أول استعمال ويبقى في الذاكرة، وملفاته مستضافة
 // معنا في /ocr حتى تعمل داخل المخزن دون اتصال.
 
-import { readDatesFromText, type ReadResult } from "./dateParse";
+import { isBeyondShelfLife, readDatesFromText, type ReadResult } from "./dateParse";
 import { matchProduct, type CatalogItemLite, type MatchResult } from "./productMatch";
 import { blobToCanvas, cloneCanvas, crop, grayscale, mergeDotMatrix, upscale } from "./imageOps";
-import { readTextInCloud } from "./cloudOcr";
+import { readTextInCloud, type CloudFields } from "./cloudOcr";
 import { detectLines, lineRect } from "./paddleOcr";
 
 type Worker = {
@@ -276,6 +276,35 @@ export interface SmartDate extends ReadResult {
   via: ReadVia;
 }
 
+/**
+ * نتيجة الوكيل كما هي، لا مُعاد استخراجها من نصّه.
+ *
+ * حين يفصل الوكيل الحقول بنفسه لا معنى لأن نعيد تحليل نصّه بقواعدنا: هو رأى
+ * الصورة ونحن لم نرَها. لكن سقف المعقولية يبقى فوقه — عمر المجموعة رقم أدخله
+ * المدير ولا علاقة له بالبكسلات، فيصلح حَكَماً على أي قارئ مهما كان.
+ */
+function fromAgent(fields: CloudFields, opts: ReadOptions): SmartDate | null {
+  if (!fields?.expiry_date) return null;
+  const beyond = isBeyondShelfLife(
+    fields.expiry_date, opts.shelfLifeDays ?? null, opts.today ?? new Date(),
+  );
+  const printed = fields.expiry_raw ? ` (${fields.expiry_raw})` : "";
+  return {
+    expiry: fields.expiry_date,
+    production: fields.production_date ?? null,
+    confidence: fields.sure && !beyond ? "high" : "low",
+    inferred: !fields.sure,
+    candidates: [],
+    available: true,
+    via: "cloud",
+    reason: beyond
+      ? `قرأه وكيل القراءة${printed} — لكنه أبعد من عمر هذه المجموعة، تأكّد منه`
+      : fields.sure
+        ? `قرأه وكيل القراءة من الصورة${printed}`
+        : `وكيل القراءة لم يتأكد من كل رقم${printed}${fields.note ? ` — ${fields.note}` : ""}`,
+  };
+}
+
 /** الصور بالترتيب الذي نجرّبه: داخل إطار التوجيه أولاً — النص فيه أكبر نسبةً */
 function order(roi: Blob | null, photo: Blob | null): Blob[] {
   return [roi, photo].filter((b): b is Blob => !!b);
@@ -376,9 +405,13 @@ export async function readDateSmart(
   for (const img of order(roi, photo)) {
     const res = await readTextInCloud(img);
     if (!res.ok) break;   // الخدمة غير متاحة الآن: لا معنى لمحاولة صورة ثانية
+
+    const agent = res.fields ? fromAgent(res.fields, opts) : null;
+    if (agent?.confidence === "high") return agent;
+
     const parsed = readDatesFromText(res.text, { ...opts, ocrConfidence: CLOUD_CONFIDENCE });
     if (parsed.expiry) return tagged(parsed, "cloud");
-    best ??= tagged(parsed, "cloud");
+    best ??= agent ?? tagged(parsed, "cloud");
   }
 
   // المحرك المحمَّل أصلاً أولاً: تاريخ مطبوع طباعة عادية يُقرأ هنا بلا تنزيل شيء
@@ -427,8 +460,11 @@ export async function readLabelSmart(
   const cloud = await readTextInCloud(photo);
 
   if (cloud.ok) {
-    const match = matchProduct(cloud.text, items);
-    let date = tagged(
+    // اسم المنتج من الوكيل أنظف من النص الخام: يطابق اسماً باسم بدل أن يطابق
+    // كل ما على العلبة من أوزان وشعارات
+    const match = matchProduct(cloud.fields?.product_name || cloud.text, items);
+    let date = cloud.fields ? fromAgent(cloud.fields, opts) : null;
+    date ??= tagged(
       readDatesFromText(cloud.text, { ...opts, ocrConfidence: CLOUD_CONFIDENCE }),
       "cloud",
     );

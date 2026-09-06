@@ -48,10 +48,26 @@ export async function blobToJpegBase64(
   return canvas.toDataURL("image/jpeg", quality);
 }
 
+/**
+ * حقول جاهزة من وكيل القراءة: يقرأ الصورة ويفصل الاسم عن التاريخ بنفسه، بدل
+ * أن نستخرجها نحن بقواعد من نصّ مكسّر. و`sure` هو تعهّده بأن كل محرف في
+ * التاريخ كان واضحاً — وما دونه يبقى للعامل.
+ */
+export interface CloudFields {
+  verbatim_text?: string;
+  product_name: string | null;
+  expiry_raw: string | null;
+  expiry_date: string | null;
+  production_date: string | null;
+  sure: boolean;
+  note: string | null;
+}
+
 export interface CloudRead {
   ok: boolean;
   text: string;
   reason: string | null;
+  fields?: CloudFields | null;
 }
 
 const OFFLINE: CloudRead = { ok: false, text: "", reason: "offline" };
@@ -65,13 +81,12 @@ export async function readTextInCloud(blob: Blob): Promise<CloudRead> {
   if (!image) return { ok: false, text: "", reason: "encode_failed" };
 
   try {
-    const res = await callFunction<{ ok?: boolean; text?: string; reason?: string }>(
-      "read-label",
-      { image },
-    );
+    const res = await callFunction<{
+      ok?: boolean; text?: string; reason?: string; fields?: CloudFields;
+    }>("read-label", { image });
     if (res?.ok && typeof res.text === "string") {
       availability = "on";
-      return { ok: true, text: res.text, reason: null };
+      return { ok: true, text: res.text, reason: null, fields: res.fields ?? null };
     }
     // «غير مضبوط» حالة دائمة حتى إعادة تحميل الصفحة؛ عطل المزوّد مؤقت
     if (res?.reason === "not_configured") availability = "off";
@@ -81,15 +96,23 @@ export async function readTextInCloud(blob: Blob): Promise<CloudRead> {
   }
 }
 
+/** أي مزوّد يقرأ فعلاً: وكيل مجاني، وكيل مدفوع، أو قارئ نصّ */
+export type CloudProvider = "gemini" | "agent" | "text" | null;
+
 /**
- * فحص بلا كلفة: هل مفتاح الخدمة مضبوط على الخادم؟
+ * فحص بلا كلفة: هل القراءة السحابية مضبوطة على الخادم، وبأي مزوّد؟
  * يراه المدير في شاشة الفريق ليعرف أن القراءة الدقيقة شغّالة فعلاً.
+ * يرجع null إن تعذّر الفحص (بلا اتصال مثلاً) — وهذا ليس «غير مضبوط».
  */
-export async function cloudConfigured(): Promise<boolean | null> {
+export async function cloudConfigured(): Promise<
+  { configured: boolean; provider: CloudProvider } | null
+> {
   if (!navigator.onLine) return null;
   try {
-    const res = await callFunction<{ configured?: boolean }>("read-label", { ping: true });
-    return !!res?.configured;
+    const res = await callFunction<{ configured?: boolean; provider?: CloudProvider }>(
+      "read-label", { ping: true },
+    );
+    return { configured: !!res?.configured, provider: res?.provider ?? null };
   } catch {
     return null;
   }

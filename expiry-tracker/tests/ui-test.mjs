@@ -230,7 +230,7 @@ async function makePage(userId, handlers) {
       { barcode: '627', name: 'زيت دوار الشمس زير ١ لتر', category_name: 'زيوت', default_shelf_life_days: 365, alert_before_days: 30, is_perishable: true },
     ]],
     // نفس الردّ يخدم الفحص («هل المفتاح مضبوط؟») والقراءة نفسها
-    ['/functions/v1/read-label', { ok: true, configured: true, text: 'معجون طماطم الرافدين ٨٠٠ غم\nEXP 18/09/2027\n' }],
+    ['/functions/v1/read-label', { ok: true, configured: true, provider: 'gemini', text: 'معجون طماطم الرافدين ٨٠٠ غم\nEXP 18/09/2027\n' }],
     // القياس الحقيقي من وجبات صوّرها العمال فعلاً
     ['/rest/v1/rpc/reading_accuracy', [{ since: '2026-06-08', batches_total: 40, dates_read: 31,
       dates_kept: 27, dates_fixed: 4, dates_missed: 6, names_read: 12, names_kept: 11, names_fixed: 1 }]],

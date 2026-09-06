@@ -330,6 +330,22 @@ export interface ReadOptions {
  *  ٤. تاريخ واحد في الماضي ← إنتاج إن كان + العمر الافتراضي يقع في المستقبل، وإلا فهو
  *     صنف منتهٍ فعلاً. الحالتان ثقتهما منخفضة ويراجعهما المدير.
  */
+/**
+ * هل التاريخ أبعد مما يعيشه هذا الصنف أصلاً؟ (انظر الشرح عند استعماله أدناه)
+ * مُصدَّرة لأن القراءة السحابية تمرّ بنفس السقف ولا تُستثنى منه.
+ */
+export function isBeyondShelfLife(
+  expiry: string | null,
+  shelfLifeDays: number | null,
+  today: Date = new Date(),
+): boolean {
+  if (!expiry || !shelfLifeDays) return false;
+  const slack = Math.max(60, Math.round(shelfLifeDays * 0.2));
+  const limit = new Date(today.getTime());
+  limit.setDate(limit.getDate() + shelfLifeDays + slack);
+  return expiry > iso(limit.getFullYear(), limit.getMonth() + 1, limit.getDate());
+}
+
 export function readDatesFromText(text: string, opts: ReadOptions = {}): ReadResult {
   const today = opts.today ?? new Date();
   const todayISO = iso(today.getFullYear(), today.getMonth() + 1, today.getDate());
@@ -387,13 +403,8 @@ export function readDatesFromText(text: string, opts: ReadOptions = {}): ReadRes
    * بعد إنتاجها بمدة، فالمتبقي لها دائماً أقل من عمرها الكامل. نترك هامشاً
    * سخياً لأن العمر المُدخل تقديري، ثم لا نثق بما تجاوزه.
    */
-  const beyondShelfLife = (r: ReadResult): boolean => {
-    if (!r.expiry || !opts.shelfLifeDays) return false;
-    const slack = Math.max(60, Math.round(opts.shelfLifeDays * 0.2));
-    const limit = new Date(today.getTime());
-    limit.setDate(limit.getDate() + opts.shelfLifeDays + slack);
-    return r.expiry > iso(limit.getFullYear(), limit.getMonth() + 1, limit.getDate());
-  };
+  const beyondShelfLife = (r: ReadResult): boolean =>
+    isBeyondShelfLife(r.expiry, opts.shelfLifeDays ?? null, today);
 
   const marked = <T extends ReadResult>(r: T): T => {
     if (beyondShelfLife(r)) {

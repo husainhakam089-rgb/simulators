@@ -78,7 +78,7 @@ export default function CheckReading() {
       const { data } = await supabase.rpc("worker_catalog");
       setItems((data ?? []) as CatalogItem[]);
     })();
-    void cloudConfigured().then(setCloudOn);
+    void cloudConfigured().then((c) => setCloudOn(c ? c.configured : null));
     void (async () => {
       const { data } = await supabase.rpc("reading_accuracy", { p_days: 90 });
       const row = Array.isArray(data) ? data[0] : data;

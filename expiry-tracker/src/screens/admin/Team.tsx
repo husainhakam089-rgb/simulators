@@ -19,6 +19,7 @@ export default function Team() {
   const [msg, setMsg] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [cloudOn, setCloudOn] = useState<boolean | null>(null);
+  const [provider, setProvider] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const { data } = await supabase.from("users").select("id, name, phone, role").order("name");
@@ -26,7 +27,12 @@ export default function Team() {
   }, []);
 
   useEffect(() => { void load(); }, [load]);
-  useEffect(() => { void cloudConfigured().then(setCloudOn); }, []);
+  useEffect(() => {
+    void cloudConfigured().then((c) => {
+      setCloudOn(c ? c.configured : null);
+      setProvider(c?.provider ?? null);
+    });
+  }, []);
 
   async function add(e: React.FormEvent) {
     e.preventDefault();
@@ -76,8 +82,11 @@ export default function Team() {
         {/* المدير يحتاج جواباً مباشراً: هل القراءة الدقيقة شغّالة أم لا؟ */}
         {cloudOn === true && (
           <p className="hint">
-            ✅ القراءة الدقيقة شغّالة. التطبيق يقرأ التاريخ والاسم من صورة الكارتون،
-            وإن انقطع الإنترنت يقرأ داخل الموبايل ويعيد القراءة عند المزامنة.
+            ✅ القراءة الدقيقة شغّالة
+            {provider === "gemini" && " — وكيل مجاني (Gemini)"}
+            {provider === "agent" && " — وكيل (Claude)"}
+            {provider === "text" && " — قارئ نصّ"}. التطبيق يقرأ التاريخ والاسم من صورة
+            الكارتون، وإن انقطع الإنترنت يقرأ داخل الموبايل ويعيد القراءة عند المزامنة.
           </p>
         )}
         {cloudOn === false && (

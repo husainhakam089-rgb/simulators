@@ -84,7 +84,71 @@ r = await page.evaluate(async () => {
 ok('يطابق اسم المنتج من النص السحابي', r.confident && r.name?.includes('الرافدين'), `${r.name}`);
 ok('يقرأ تاريخ الشهر/السنة معه', r.expiry === '2027-05-31', `${r.expiry}`);
 
-// -------------------------- ٤) مفتاح غير مضبوط: يسقط على الجهاز ولا يعاود النداء
+// ------------------------------ ٤) وكيل القراءة: حقول مفصولة جاهزة
+//
+// حين يفصل الوكيل الحقول بنفسه لا نعيد تحليل نصّه بقواعدنا — هو رأى الصورة.
+// لكن تعهّده بالوضوح (sure) وسقف عمر المجموعة يبقيان حاكمين فوقه.
+const agentReply = (fields) => ({
+  ok: true, text: fields.verbatim_text ?? '', fields: { sure: true, note: null, ...fields },
+});
+
+reply = agentReply({
+  verbatim_text: 'معجون طماطم الرافدين\nEXP 18/09/2027',
+  product_name: 'معجون طماطم الرافدين ٨٠٠غم',
+  expiry_raw: '18/09/2027', expiry_date: '2027-09-18', production_date: '2025-09-18', sure: true,
+});
+r = await page.evaluate(async () => {
+  const mod = await import('/src/lib/ocr.ts');
+  const res = await mod.readDateSmart(window.__img, null, { today: new Date(), shelfLifeDays: 730 });
+  return { expiry: res.expiry, production: res.production, conf: res.confidence, reason: res.reason };
+});
+ok('يعتمد تاريخ الوكيل كما هو', r.expiry === '2027-09-18' && r.conf === 'high', `${r.expiry} / ${r.conf}`);
+ok('ويأخذ معه تاريخ الإنتاج', r.production === '2025-09-18', `${r.production}`);
+ok('ويوضّح أن الوكيل هو من قرأه', /وكيل القراءة/.test(r.reason ?? ''), r.reason);
+
+reply = agentReply({
+  verbatim_text: 'EXP 1?/09/2027', product_name: null,
+  expiry_raw: '1?/09/2027', expiry_date: '2027-09-18', production_date: null,
+  sure: false, note: 'خانة اليوم غير واضحة',
+});
+r = await page.evaluate(async () => {
+  const mod = await import('/src/lib/ocr.ts');
+  const res = await mod.readDateSmart(window.__img, null, { today: new Date(), shelfLifeDays: 730 });
+  return { expiry: res.expiry, conf: res.confidence, reason: res.reason };
+});
+ok('وإن لم يتأكد الوكيل يبقى التاريخ غير موثوق', r.conf === 'low', `${r.expiry} / ${r.conf}`);
+
+reply = agentReply({
+  verbatim_text: 'EXP 18/09/2029', product_name: null,
+  expiry_raw: '18/09/2029', expiry_date: '2029-09-18', production_date: null, sure: true,
+});
+r = await page.evaluate(async () => {
+  const mod = await import('/src/lib/ocr.ts');
+  const res = await mod.readDateSmart(window.__img, null, { today: new Date(), shelfLifeDays: 14 });
+  return { expiry: res.expiry, conf: res.confidence, reason: res.reason };
+});
+ok('سقف عمر المجموعة يحكم على الوكيل أيضاً', r.conf === 'low' && /أبعد من عمر/.test(r.reason ?? ''),
+   `${r.conf} — ${r.reason}`);
+
+reply = agentReply({
+  verbatim_text: 'معجون طماطم الرافدين ٨٠٠ غم\nEXP 18/09/2027',
+  product_name: 'معجون طماطم الرافدين ٨٠٠غم',
+  expiry_raw: '18/09/2027', expiry_date: '2027-09-18', production_date: null, sure: true,
+});
+r = await page.evaluate(async () => {
+  const mod = await import('/src/lib/ocr.ts');
+  const items = [
+    { product_id: 'p1', name: 'معجون طماطم الرافدين ٨٠٠غم', default_shelf_life_days: 730 },
+    { product_id: 'p2', name: 'زيت دوار الشمس زير ١ لتر', default_shelf_life_days: 365 },
+  ];
+  const res = await mod.readLabelSmart(window.__img, null, items, { shelfLifeDays: 730 });
+  return { name: res.match.best?.item?.name ?? null, confident: res.match.confident,
+           expiry: res.date.expiry, conf: res.date.confidence };
+});
+ok('يطابق الصنف من اسم الوكيل لا من النص الخام', r.confident && r.name?.includes('الرافدين'), `${r.name}`);
+ok('ويأخذ تاريخ الوكيل في نفس القراءة', r.expiry === '2027-09-18' && r.conf === 'high', `${r.expiry}/${r.conf}`);
+
+// -------------------------- ٥) مفتاح غير مضبوط: يسقط على الجهاز ولا يعاود النداء
 reply = { ok: false, reason: 'not_configured' };
 await page.evaluate(async () => {
   const cloud = await import('/src/lib/cloudOcr.ts');
@@ -100,7 +164,7 @@ r = await page.evaluate(async () => {
 ok('يسقط على محرك الجهاز بلا مفتاح', r.first === 'device' || r.first === 'none', r.first);
 ok('لا يعاود نداء الخدمة بعد «غير مضبوط»', calls === 1, `${calls} نداء`);
 
-// -------------------------------------- ٥) حجم الإرسال: لا نرفع صورة عملاقة
+// -------------------------------------- ٦) حجم الإرسال: لا نرفع صورة عملاقة
 r = await page.evaluate(async () => {
   const cloud = await import('/src/lib/cloudOcr.ts');
   const c = document.createElement('canvas');
