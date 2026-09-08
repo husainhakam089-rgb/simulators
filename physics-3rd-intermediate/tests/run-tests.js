@@ -118,7 +118,7 @@ function run(){
 
       /* كل منزلق إلى أربع قيم: الأدنى، ٣٧٪، المنتصف، الأقصى */
       const ranges = Array.from(panel.querySelectorAll('input[type=range]'));
-      ranges.forEach(r=>{
+      ranges.forEach((r, ri)=>{
         const mn = Number(r.min), mx = Number(r.max), st = Number(r.step)||1;
         const snap = v => String(mn + Math.round((v-mn)/st)*st);
         [mn, mn+(mx-mn)*0.37, (mn+mx)/2, mx].forEach(v=>{
@@ -130,6 +130,11 @@ function run(){
           if (!txt || txt === 'NaN' || txt === 'undefined')
             fail('tab'+id, 'قيمة المنزلق المعروضة غير صالحة: «'+txt+'» لـ '+r.dataset.target);
         });
+        /* لقطة عند الحد الأقصى: هنا تظهر الأسهم الطويلة والنصوص الخارجة عن الإطار */
+        r.value = String(mx);
+        r.dispatchEvent(new window.Event('input', {bubbles:true}));
+        draw('tab'+id+' منزلق أقصى');
+        savePng('t'+id+'-max'+ri);
         /* أعِد المنزلق إلى قيمته الأصلية حتى لا تتلوث اللقطات اللاحقة */
         r.value = r.getAttribute('value');
         r.dispatchEvent(new window.Event('input', {bubbles:true}));
