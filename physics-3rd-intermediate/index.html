@@ -212,6 +212,9 @@
   main.app-main{
     flex:1; display:grid; grid-template-columns:340px 1fr; gap:18px; padding:18px; align-items:start;
   }
+  /* بدون هذا يرفض عمود الشبكة أن يضيق عن محتواه، فيتمدّد الرسم العريض
+     ويصير التمرير الأفقي للصفحة كلها بدل أن يكون داخل حاوية الرسم وحدها. */
+  main.app-main > *{ min-width:0; }
   @media (max-width:900px){
     main.app-main{grid-template-columns:1fr; padding:12px; gap:12px;}
     aside.sidebar{order:2; max-height:none;}
@@ -528,7 +531,13 @@
   }
   .rotate-hint span.ico{ font-size:16px; flex:0 0 auto; }
 
-  @media (max-width:760px){ .rotate-hint{ display:flex; } }
+  @media (max-width:760px){
+    .rotate-hint{ display:flex; }
+    /* على الجوال لا يُصغَّر الرسم حتى يصير نصّه غير مقروء، بل يُمنح عرضًا
+       أدنى ويُسحب أفقيًا داخل حاويته — كما يَعِد التلميح أعلاه. */
+    .canvas-scroll{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
+    .canvas-wrap{ min-width:620px; height:331px; padding-top:0; }  /* 620 × 0.5333 */
+  }
   @media (max-width:900px) and (orientation:landscape){ .rotate-hint{ display:none; } }
 </style>
 </head>
@@ -1267,7 +1276,8 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
 
     const frac = state.dtime>0 ? t/state.dtime : 0;
     const cx = (rx0+60) + frac*((rx1-90)-(rx0+60));
-    ctx.save(); ctx.beginPath(); ctx.rect(rx0, ry-45, rx1-rx0, 75); ctx.clip();
+    /* يشمل الـ clip موضع التسمية أسفل الطريق أيضًا، وإلا اختفت */
+    ctx.save(); ctx.beginPath(); ctx.rect(rx0, ry-45, rx1-rx0, 100); ctx.clip();
     car(cx, COLORS.capDefault, vN, 'v = '+vN.toFixed(1)+' m/s', 1, true);
     ctx.restore();
 
