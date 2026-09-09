@@ -102,6 +102,19 @@ function run(){
       if(!panel){ fail('tab'+id, 'لا توجد لوحة تحكم'); return; }
       if(!panel.classList.contains('active')) fail('tab'+id, 'لوحة التحكم لم تُفعَّل');
 
+      /* قيمة كل منزلق عند الفتح يجب أن تطابق قيمة الحالة التي يتحكم بها،
+         وإلا عرض الرسم قيمة والمنزلق قيمة أخرى حتى أول لمسة. */
+      panel.querySelectorAll('input[type=range][data-target]').forEach(r=>{
+        const path = r.dataset.target.split('.');
+        let obj = window[path[0]];
+        for(let i=1;i<path.length && obj!=null;i++) obj = obj[path[i]];
+        if(typeof obj !== 'number'){ fail('tab'+id, 'لا حالة للمنزلق '+r.dataset.target); return; }
+        if(Math.abs(Number(r.value) - obj) > 1e-6)
+          fail('tab'+id, 'المنزلق '+r.dataset.target+' يبدأ بـ '+r.value+' والحالة '+obj);
+        if(obj < Number(r.min) - 1e-6 || obj > Number(r.max) + 1e-6)
+          fail('tab'+id, 'قيمة الحالة '+obj+' خارج مدى المنزلق '+r.dataset.target);
+      });
+
       draw('tab'+id+' افتراضي');
       savePng('t'+id+'-default');
 

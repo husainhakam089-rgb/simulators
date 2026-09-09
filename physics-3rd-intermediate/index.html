@@ -283,6 +283,14 @@
   .sidebar-section ol li::marker{color:var(--accent-cyan-bright); font-weight:700;}
   .sidebar-section ul li::marker{color:var(--accent-amber);}
 
+  /* صندوق سؤال النشاط: يبرز عن بقية السايدبار ليقرأه الطالب أخيرًا */
+  .q-box{ margin-bottom:0; }
+  .q-box p{
+    margin:0; font-size:13px; line-height:1.85; color:var(--text);
+    background:linear-gradient(135deg, rgba(242,168,60,.12), rgba(56,225,198,.07));
+    border:1px dashed rgba(242,168,60,.45); border-radius:10px; padding:11px 13px;
+  }
+
   .control-panel{display:none; flex-direction:column; gap:14px;}
   .control-panel.active{display:flex;}
   .control-row{display:flex; flex-direction:column; gap:6px;}
@@ -596,6 +604,11 @@
       <h3>📋 خطوات النشاط</h3>
       <ol id="stepsList"></ol>
     </div>
+
+    <div class="sidebar-section q-box">
+      <h3>❓ سؤال النشاط</h3>
+      <p id="activityQuestion"></p>
+    </div>
   </aside>
 
   <section class="canvas-area" id="canvasArea">
@@ -632,21 +645,21 @@
           </div>
           <div class="hint">💡 المسافة تُقاس على طول المسار، والإزاحة تُقاس على الخط المستقيم المتقطّع من البداية إلى النهاية. جرّب مسارًا يعود إلى نقطة البدء ولاحظ ماذا يحدث للإزاحة.</div>
           <div class="btn-row" id="presetBtns11">
-            <button class="ctrl-btn cyan" data-preset11="straight">مسار مستقيم</button>
-            <button class="ctrl-btn cyan" data-preset11="broken">مسار منكسر</button>
-            <button class="ctrl-btn cyan" data-preset11="closed">مسار يعود إلى البداية</button>
+            <button class="ctrl-btn cyan" data-preset11="straight">طريق مستقيم</button>
+            <button class="ctrl-btn cyan" data-preset11="broken">طريق منكسر</button>
+            <button class="ctrl-btn cyan" data-preset11="closed">تعود إلى البيت</button>
           </div>
           <div class="control-row">
-            <label>الضلع الأول d₁ شرقًا (m) <b id="val-d1-11">40</b></label>
-            <input type="range" min="0" max="55" step="5" value="40" data-target="t11State.d1" data-label="val-d1-11">
+            <label>الشارع الأول d₁ شرقًا (m) <b id="val-d1-11">200</b></label>
+            <input type="range" min="0" max="240" step="20" value="200" data-target="t11State.d1" data-label="val-d1-11">
           </div>
           <div class="control-row">
-            <label>الضلع الثاني d₂ شمالًا (m) <b id="val-d2-11">30</b></label>
-            <input type="range" min="0" max="35" step="5" value="30" data-target="t11State.d2" data-label="val-d2-11">
+            <label>الشارع الثاني d₂ شمالًا (m) <b id="val-d2-11">100</b></label>
+            <input type="range" min="0" max="120" step="20" value="100" data-target="t11State.d2" data-label="val-d2-11">
           </div>
           <div class="control-row">
-            <label>الضلع الثالث d₃ غربًا (m) <b id="val-d3-11">10</b></label>
-            <input type="range" min="0" max="55" step="5" value="10" data-target="t11State.d3" data-label="val-d3-11">
+            <label>الشارع الثالث d₃ غربًا (m) <b id="val-d3-11">60</b></label>
+            <input type="range" min="0" max="240" step="20" value="60" data-target="t11State.d3" data-label="val-d3-11">
           </div>
         </div>
 
@@ -677,12 +690,12 @@
           </div>
           <div class="hint">💡 السيارتان الباهتتان هما لقطتا البداية والنهاية، وطول السهم يمثّل السرعة. المثلث المتقطّع في الرسم يبيّن Δv و Δt اللتين يُحسب منهما التعجيل.</div>
           <div class="control-row">
-            <label>السرعة الابتدائية v₁ (m/s) <b id="val-v1-13">5</b></label>
-            <input type="range" min="0" max="30" step="1" value="5" data-target="t13State.v1" data-label="val-v1-13">
+            <label>سرعة البداية v₁ (m/s) <b id="val-v1-13">2</b></label>
+            <input type="range" min="0" max="14" step="1" value="2" data-target="t13State.v1" data-label="val-v1-13">
           </div>
           <div class="control-row">
-            <label>السرعة النهائية v₂ (m/s) <b id="val-v2-13">25</b></label>
-            <input type="range" min="0" max="30" step="1" value="25" data-target="t13State.v2" data-label="val-v2-13">
+            <label>السرعة بعد Δt وهي v₂ (m/s) <b id="val-v2-13">8</b></label>
+            <input type="range" min="0" max="14" step="1" value="8" data-target="t13State.v2" data-label="val-v2-13">
           </div>
           <div class="control-row">
             <label>الزمن المستغرق Δt (s) <b id="val-dt-13">4.0</b></label>
@@ -699,7 +712,7 @@
           <div class="btn-row" id="presetBtns14">
             <button class="ctrl-btn cyan" data-preset14="rest">انطلاق من السكون</button>
             <button class="ctrl-btn cyan" data-preset14="cruise">سرعة ثابتة</button>
-            <button class="ctrl-btn cyan" data-preset14="brake">تباطؤ حتى التوقف</button>
+            <button class="ctrl-btn cyan" data-preset14="brake">كبح حتى التوقف</button>
           </div>
           <div class="control-row">
             <label>السرعة الابتدائية v₀ (m/s) <b id="val-v0-14">0</b></label>
@@ -719,11 +732,11 @@
           </div>
           <div class="hint">💡 الكرتان مختلفتان في الكتلة اختلافًا كبيرًا ومع ذلك تبقيان متجاورتين في كل لحظة. الدوائر الباهتة مواضع كل 0.2 ثانية، وتباعدها المتزايد دليل التعجيل الثابت g.</div>
           <div class="control-row">
-            <label>ارتفاع السقوط h (m) <b id="val-h-15">45</b></label>
-            <input type="range" min="10" max="80" step="5" value="45" data-target="t15State.h" data-label="val-h-15">
+            <label>ارتفاع سطح المدرسة h (m) <b id="val-h-15">20</b></label>
+            <input type="range" min="5" max="40" step="5" value="20" data-target="t15State.h" data-label="val-h-15">
           </div>
           <div class="control-row">
-            <label>كتلة الكرة الثانية (kg) <b id="val-m2-15">12</b></label>
+            <label>كتلة الحجر (kg) <b id="val-m2-15">12</b></label>
             <input type="range" min="2" max="20" step="1" value="12" data-target="t15State.m2" data-label="val-m2-15">
           </div>
         </div>
@@ -752,13 +765,13 @@
             <button class="ctrl-btn on" data-mode-tab="21">⚙️ تلقائي</button>
             <button class="ctrl-btn cyan" id="balBtn21">⚖️ اجعل القوتين متساويتين</button>
           </div>
-          <div class="hint">💡 مخطط الجسم الحر على اليسار يختصر الجسم إلى نقطة ويرسم عليها القوى الأربع: الوزن W، ورد فعل السطح N، والقوتين الأفقيتين F₁ و F₂.</div>
+          <div class="hint">💡 مخطط الجسم الحر يختصر الصندوق إلى نقطة ويرسم عليها القوى الأربع: الوزن W، ورد فعل الأرض N، وقوّتَي الطالبين F₁ و F₂.</div>
           <div class="control-row">
-            <label>القوة الأولى F₁ يمينًا (N) <b id="val-F1-21">24</b></label>
+            <label>قوة الطالب على اليمين F₁ (N) <b id="val-F1-21">24</b></label>
             <input type="range" min="0" max="40" step="2" value="24" data-target="t21State.F1" data-label="val-F1-21">
           </div>
           <div class="control-row">
-            <label>القوة الثانية F₂ يسارًا (N) <b id="val-F2-21">12</b></label>
+            <label>قوة الطالب على اليسار F₂ (N) <b id="val-F2-21">12</b></label>
             <input type="range" min="0" max="40" step="2" value="12" data-target="t21State.F2" data-label="val-F2-21">
           </div>
           <div class="control-row">
@@ -772,18 +785,19 @@
           <div class="btn-row">
             <button class="ctrl-btn on" data-mode-tab="22">⚙️ تلقائي</button>
           </div>
-          <div class="hint">💡 الكرة فوق العربة غير مثبّتة، فتحافظ على سرعتها الابتدائية. راقبها عندما تتباطأ العربة: تسبقها إلى الأمام ثم تسقط — هذا هو القصور الذاتي بعينه.</div>
-          <div class="btn-row" id="surfBtns22">
-            <button class="ctrl-btn cyan on" data-surf22="rough">سطح خشن (فيه احتكاك)</button>
-            <button class="ctrl-btn cyan" data-surf22="smooth">سطح أملس تمامًا</button>
+          <div class="hint">💡 راقب الراكب لحظة الكبح: يميل إلى الأمام لأن جسمه يحافظ على سرعته بينما تتباطأ الحافلة تحته. جرّب الشارع المبلّل ولاحظ كم تطول مسافة التوقف.</div>
+          <div class="btn-row" id="roadBtns22">
+            <button class="ctrl-btn cyan on" data-road22="dry">شارع جافّ</button>
+            <button class="ctrl-btn cyan" data-road22="wet">شارع مبلّل بالمطر</button>
+            <button class="ctrl-btn cyan" data-road22="ideal">سطح أملس تمامًا</button>
           </div>
           <div class="control-row">
-            <label>سرعة الانطلاق v₀ (m/s) <b id="val-v0-22">14</b></label>
+            <label>سرعة الحافلة v₀ (m/s) <b id="val-v0-22">14</b></label>
             <input type="range" min="6" max="24" step="1" value="14" data-target="t22State.v0" data-label="val-v0-22">
           </div>
           <div class="control-row">
-            <label>معامل الاحتكاك μ <b id="val-mu-22">0.25</b></label>
-            <input type="range" min="0.05" max="0.6" step="0.05" value="0.25" data-target="t22State.mu" data-label="val-mu-22">
+            <label>معامل الاحتكاك μ <b id="val-mu-22">0.70</b></label>
+            <input type="range" min="0.05" max="0.9" step="0.05" value="0.7" data-target="t22State.mu" data-label="val-mu-22">
           </div>
         </div>
 
@@ -792,13 +806,13 @@
           <div class="btn-row">
             <button class="ctrl-btn on" data-mode-tab="23">⚙️ تلقائي</button>
           </div>
-          <div class="hint">💡 العربتان تُدفعان بالقوة نفسها تمامًا، وكتلة السفلى ضعف كتلة العليا. تابع أيّهما تسبق، واقرأ ميل الخطين في منحني السرعة–الزمن.</div>
+          <div class="hint">💡 العربتان تُدفعان بالقوة نفسها تمامًا، والسفلى ممتلئة فكتلتها ضعف الفارغة. تابع أيّهما تسبق، واقرأ ميل الخطين في منحني السرعة–الزمن.</div>
           <div class="control-row">
             <label>القوة المؤثرة F (N) <b id="val-F-23">20</b></label>
             <input type="range" min="4" max="40" step="2" value="20" data-target="t23State.F" data-label="val-F-23">
           </div>
           <div class="control-row">
-            <label>كتلة العربة الأولى m (kg) <b id="val-m-23">4</b></label>
+            <label>كتلة العربة الفارغة m (kg) <b id="val-m-23">4</b></label>
             <input type="range" min="1" max="10" step="1" value="4" data-target="t23State.m" data-label="val-m-23">
           </div>
         </div>
@@ -809,17 +823,17 @@
             <button class="ctrl-btn on" data-mode-tab="24">⚙️ تلقائي</button>
             <button class="ctrl-btn cyan" id="pushBtn24">🤝 أعد التدافع</button>
           </div>
-          <div class="hint">💡 أثناء التلامس يظهر السهمان متساويين في الطول ومتضادين في الاتجاه — هذا هو الفعل ورد الفعل. بعد الانفصال يظهر سهما السرعة، ولاحظ أن الأصغر كتلةً ينطلق أسرع.</div>
+          <div class="hint">💡 أثناء التلامس يظهر السهمان متساويين في الطول ومتضادين في الاتجاه — هذا هو الفعل ورد الفعل. بعد الانفصال يظهر سهما السرعة، ولاحظ أن الأخفّ ينطلق أسرع.</div>
           <div class="control-row">
             <label>قوة التدافع F (N) <b id="val-F-24">60</b></label>
             <input type="range" min="20" max="100" step="5" value="60" data-target="t24State.F" data-label="val-F-24">
           </div>
           <div class="control-row">
-            <label>كتلة المتزلج A (kg) <b id="val-mA-24">40</b></label>
+            <label>كتلة الطالب A (kg) <b id="val-mA-24">40</b></label>
             <input type="range" min="20" max="80" step="5" value="40" data-target="t24State.mA" data-label="val-mA-24">
           </div>
           <div class="control-row">
-            <label>كتلة المتزلج B (kg) <b id="val-mB-24">60</b></label>
+            <label>كتلة الطالب B (kg) <b id="val-mB-24">60</b></label>
             <input type="range" min="20" max="80" step="5" value="60" data-target="t24State.mB" data-label="val-mB-24">
           </div>
         </div>
@@ -829,7 +843,7 @@
           <div class="btn-row">
             <button class="ctrl-btn on" data-mode-tab="25">⚙️ تلقائي</button>
           </div>
-          <div class="hint">💡 انتبه إلى الفرق: قراءة الميزان النابضي بالنيوتن تتغيّر كلما غيّرت المكان، أما الميزان ذو الكفتين فيبقى متزنًا لأنه يقارن كتلتين لا وزنين.</div>
+          <div class="hint">💡 انتبه إلى الفرق: قراءة الميزان النابضي بالنيوتن تتغيّر كلما غيّرت المكان، أما الميزان ذو الكفتين فيبقى متزنًا لأنه يقارن كتلة حقيبتك بكتل معيارية.</div>
           <div class="btn-row" id="placeBtns25">
             <button class="ctrl-btn cyan on" data-place25="earth">الأرض</button>
             <button class="ctrl-btn cyan" data-place25="moon">القمر</button>
@@ -837,7 +851,7 @@
             <button class="ctrl-btn cyan" data-place25="jupiter">المشتري</button>
           </div>
           <div class="control-row">
-            <label>كتلة الجسم m (kg) <b id="val-m-25">8</b></label>
+            <label>كتلة الحقيبة m (kg) <b id="val-m-25">8</b></label>
             <input type="range" min="1" max="20" step="1" value="8" data-target="t25State.m" data-label="val-m-25">
           </div>
         </div>
@@ -847,19 +861,19 @@
           <div class="btn-row">
             <button class="ctrl-btn on" data-mode-tab="26">⚙️ تلقائي</button>
           </div>
-          <div class="hint">💡 زِد القوة تدريجيًا: يبقى الجسم ساكنًا وسهم الاحتكاك ينمو مع سهم القوة تمامًا، حتى تتجاوز القوة الحدّ الأقصى فينزلق الجسم فجأة ويهبط الاحتكاك.</div>
+          <div class="hint">💡 زِد قوة السحب تدريجيًا: تبقى الحقيبة ساكنة وسهم الاحتكاك ينمو مع سهم قوتك تمامًا، حتى تتجاوز الحدّ الأقصى فتنزلق فجأة ويهبط الاحتكاك.</div>
           <div class="btn-row" id="surfBtns26">
-            <button class="ctrl-btn cyan on" data-surf26="wood">خشب على خشب</button>
-            <button class="ctrl-btn cyan" data-surf26="metal">حديد على حديد</button>
-            <button class="ctrl-btn cyan" data-surf26="rubber">مطاط على إسفلت</button>
-            <button class="ctrl-btn cyan" data-surf26="ice">حذاء على جليد</button>
+            <button class="ctrl-btn cyan on" data-surf26="tile">بلاط أملس</button>
+            <button class="ctrl-btn cyan" data-surf26="carpet">سجّاد الصف</button>
+            <button class="ctrl-btn cyan" data-surf26="asphalt">إسفلت الشارع</button>
+            <button class="ctrl-btn cyan" data-surf26="ice">جليد</button>
           </div>
           <div class="control-row">
-            <label>القوة المسحوبة F (N) <b id="val-F-26">12</b></label>
+            <label>قوة سحبك F (N) <b id="val-F-26">12</b></label>
             <input type="range" min="0" max="60" step="2" value="12" data-target="t26State.F" data-label="val-F-26">
           </div>
           <div class="control-row">
-            <label>كتلة الجسم m (kg) <b id="val-m-26">5</b></label>
+            <label>كتلة الحقيبة m (kg) <b id="val-m-26">5</b></label>
             <input type="range" min="1" max="10" step="1" value="5" data-target="t26State.m" data-label="val-m-26">
           </div>
         </div>
@@ -998,6 +1012,217 @@ function optVerdict(text, COLORS, color){
   ctx.direction='ltr'; ctx.textAlign='left';
 }
 
+
+/* =========================================================================
+   رسوم مألوفة للطالب — كلها من عناصر الكانفاس الأساسية، بلا أي صورة خارجية.
+   الغاية: أن يرى الطالب في التجربة أشياء يعرفها (بيته، حافلته، حقيبته)
+   لا مستطيلات مجرّدة.
+   ========================================================================= */
+
+/* إنسان بسيط: cx مركزه، gy مستوى قدميه، h طوله بالبكسل.
+   lean زاوية ميل الجسم (للقصور الذاتي)، arm اتجاه الذراعين (-1 أو 0 أو 1). */
+function figPerson(cx, gy, h, color, lean, arm){
+  ctx.save();
+  ctx.translate(cx, gy);
+  if(lean) ctx.rotate(lean);
+  ctx.strokeStyle=color; ctx.fillStyle=color;
+  ctx.lineWidth=Math.max(2, h*0.06); ctx.lineCap='round'; ctx.lineJoin='round';
+  const head = h*0.13;
+  ctx.beginPath(); ctx.arc(0, -h+head, head, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(0, -h+2*head); ctx.lineTo(0, -h*0.40); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0, -h*0.40); ctx.lineTo(-h*0.17, 0); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0, -h*0.40); ctx.lineTo( h*0.17, 0); ctx.stroke();
+  const ay = -h*0.66, a = (arm===undefined) ? 0 : arm;
+  if(a === 0){
+    ctx.beginPath(); ctx.moveTo(0, ay); ctx.lineTo(-h*0.16, -h*0.36); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, ay); ctx.lineTo( h*0.16, -h*0.36); ctx.stroke();
+  } else {
+    ctx.beginPath(); ctx.moveTo(0, ay); ctx.lineTo(a*h*0.30, ay+h*0.04); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, ay); ctx.lineTo(a*h*0.24, ay+h*0.16); ctx.stroke();
+  }
+  ctx.restore();
+  ctx.lineCap='butt'; ctx.lineJoin='miter';
+}
+
+/* بيت: جسم ومثلث سقف وباب ونافذة */
+function figHouse(cx, gy, w, COLORS){
+  const hh = w*0.72;
+  ctx.fillStyle=COLORS.blue;
+  ctx.fillRect(cx-w/2, gy-hh, w, hh);
+  ctx.fillStyle=COLORS.red;
+  ctx.beginPath();
+  ctx.moveTo(cx-w*0.60, gy-hh); ctx.lineTo(cx, gy-hh-w*0.36); ctx.lineTo(cx+w*0.60, gy-hh);
+  ctx.closePath(); ctx.fill();
+  ctx.fillStyle=COLORS.bg;
+  ctx.fillRect(cx-w*0.12, gy-hh*0.55, w*0.24, hh*0.55);
+  ctx.fillRect(cx+w*0.18, gy-hh*0.80, w*0.20, hh*0.24);
+}
+
+/* مدرسة: بناية بطابقين ونوافذ وباب وعلَم */
+function figSchool(cx, gy, w, COLORS){
+  const hh = w*0.80;
+  ctx.fillStyle=COLORS.capDefault;
+  ctx.fillRect(cx-w/2, gy-hh, w, hh);
+  ctx.fillStyle=COLORS.bg;
+  for(let r=0;r<2;r++){
+    for(let c=0;c<3;c++){
+      ctx.fillRect(cx-w*0.40+c*w*0.30, gy-hh+w*0.12+r*w*0.26, w*0.18, w*0.16);
+    }
+  }
+  ctx.fillRect(cx-w*0.10, gy-hh*0.34, w*0.20, hh*0.34);
+  ctx.strokeStyle=COLORS.wire; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(cx, gy-hh); ctx.lineTo(cx, gy-hh-w*0.30); ctx.stroke();
+  ctx.fillStyle=COLORS.green;
+  ctx.beginPath();
+  ctx.moveTo(cx, gy-hh-w*0.30); ctx.lineTo(cx+w*0.22, gy-hh-w*0.24);
+  ctx.lineTo(cx, gy-hh-w*0.18); ctx.closePath(); ctx.fill();
+}
+
+/* سيارة: هيكل وسقف وعجلتان، مع ضوء كبح اختياري */
+function figCar(cx, gy, w, color, COLORS, braking){
+  const bh = w*0.26;
+  ctx.fillStyle=color;
+  ctx.beginPath();
+  ctx.roundRect ? ctx.roundRect(cx-w/2, gy-bh-w*0.10, w, bh, 6)
+                : ctx.rect(cx-w/2, gy-bh-w*0.10, w, bh);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.roundRect ? ctx.roundRect(cx-w*0.24, gy-bh-w*0.30, w*0.50, w*0.22, 5)
+                : ctx.rect(cx-w*0.24, gy-bh-w*0.30, w*0.50, w*0.22);
+  ctx.fill();
+  ctx.fillStyle=COLORS.bg;
+  ctx.fillRect(cx-w*0.20, gy-bh-w*0.26, w*0.19, w*0.14);
+  ctx.fillRect(cx+w*0.03, gy-bh-w*0.26, w*0.19, w*0.14);
+  ctx.fillStyle=COLORS.wire;
+  ctx.beginPath(); ctx.arc(cx-w*0.28, gy-w*0.06, w*0.11, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(cx+w*0.28, gy-w*0.06, w*0.11, 0, Math.PI*2); ctx.fill();
+  if(braking){
+    ctx.fillStyle=COLORS.red;
+    ctx.fillRect(cx-w/2-w*0.03, gy-bh-w*0.04, w*0.06, w*0.08);
+  }
+}
+
+/* حافلة مدرسية: هيكل ونوافذ وباب وثلاث عجلات */
+function figBus(cx, gy, w, COLORS, braking){
+  const bh = w*0.46;
+  ctx.fillStyle=COLORS.capDefault;
+  ctx.beginPath();
+  ctx.roundRect ? ctx.roundRect(cx-w/2, gy-bh-w*0.07, w, bh, 7)
+                : ctx.rect(cx-w/2, gy-bh-w*0.07, w, bh);
+  ctx.fill();
+  ctx.fillStyle=COLORS.bg;
+  for(let i=0;i<4;i++) ctx.fillRect(cx-w*0.42+i*w*0.20, gy-bh+w*0.02, w*0.14, w*0.14);
+  ctx.fillRect(cx+w*0.30, gy-bh+w*0.02, w*0.14, w*0.30);
+  ctx.fillStyle=COLORS.wire;
+  [-0.30, 0.02, 0.32].forEach(f=>{
+    ctx.beginPath(); ctx.arc(cx+w*f, gy-w*0.04, w*0.09, 0, Math.PI*2); ctx.fill();
+  });
+  if(braking){
+    ctx.fillStyle=COLORS.red;
+    ctx.fillRect(cx-w/2-w*0.02, gy-bh*0.5, w*0.05, w*0.07);
+  }
+}
+
+/* دراجة هوائية مع راكبها */
+function figBike(cx, gy, w, color, COLORS){
+  const r = w*0.20;
+  ctx.strokeStyle=COLORS.wire; ctx.lineWidth=2.4;
+  ctx.beginPath(); ctx.arc(cx-w*0.28, gy-r, r, 0, Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx+w*0.28, gy-r, r, 0, Math.PI*2); ctx.stroke();
+  ctx.strokeStyle=color; ctx.lineWidth=3;
+  ctx.beginPath();
+  ctx.moveTo(cx-w*0.28, gy-r); ctx.lineTo(cx, gy-r); ctx.lineTo(cx-w*0.06, gy-r-w*0.24);
+  ctx.lineTo(cx+w*0.14, gy-r-w*0.24); ctx.lineTo(cx+w*0.28, gy-r);
+  ctx.moveTo(cx, gy-r); ctx.lineTo(cx+w*0.14, gy-r-w*0.24);
+  ctx.stroke();
+  figPerson(cx+w*0.02, gy-r-w*0.22, w*0.52, color, -0.12, 1);
+}
+
+/* حقيبة مدرسية */
+function figBag(cx, gy, s, color, COLORS){
+  ctx.fillStyle=color;
+  ctx.beginPath();
+  ctx.roundRect ? ctx.roundRect(cx-s/2, gy-s, s, s, s*0.22) : ctx.rect(cx-s/2, gy-s, s, s);
+  ctx.fill();
+  ctx.fillStyle=COLORS.bg;
+  ctx.fillRect(cx-s*0.34, gy-s*0.52, s*0.68, s*0.16);
+  ctx.strokeStyle=color; ctx.lineWidth=Math.max(2, s*0.07);
+  ctx.beginPath(); ctx.arc(cx, gy-s, s*0.30, Math.PI, 0); ctx.stroke();
+}
+
+/* عربة تسوّق: سلة ومقبض وعجلتان، وحمولة إن كانت ممتلئة */
+function figCart(cx, gy, w, COLORS, loaded, color){
+  const bh = w*0.34;
+  ctx.strokeStyle=color; ctx.lineWidth=3; ctx.lineJoin='round';
+  ctx.beginPath();
+  ctx.moveTo(cx-w*0.42, gy-bh-w*0.14); ctx.lineTo(cx+w*0.42, gy-bh-w*0.14);
+  ctx.lineTo(cx+w*0.32, gy-w*0.14); ctx.lineTo(cx-w*0.32, gy-w*0.14);
+  ctx.closePath(); ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(cx-w*0.42, gy-bh-w*0.14); ctx.lineTo(cx-w*0.56, gy-bh-w*0.34);
+  ctx.stroke();
+  ctx.fillStyle=COLORS.wire;
+  ctx.beginPath(); ctx.arc(cx-w*0.24, gy-w*0.07, w*0.07, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(cx+w*0.24, gy-w*0.07, w*0.07, 0, Math.PI*2); ctx.fill();
+  if(loaded){
+    ctx.fillStyle=color;
+    for(let i=0;i<3;i++) ctx.fillRect(cx-w*0.28+i*w*0.19, gy-bh-w*0.12, w*0.15, w*0.16);
+  }
+  ctx.lineJoin='miter';
+}
+
+/* عمود إنارة — علامة مسافة على الشارع */
+function figLamp(x, gy, h, COLORS){
+  ctx.strokeStyle=COLORS.muted; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(x, gy); ctx.lineTo(x, gy-h); ctx.lineTo(x+10, gy-h); ctx.stroke();
+  ctx.fillStyle=COLORS.capDefault;
+  ctx.beginPath(); ctx.arc(x+12, gy-h+2, 3.5, 0, Math.PI*2); ctx.fill();
+}
+
+/* إشارة مرور */
+function figTrafficLight(x, gy, h, COLORS, green){
+  ctx.strokeStyle=COLORS.border; ctx.lineWidth=3;
+  ctx.beginPath(); ctx.moveTo(x, gy); ctx.lineTo(x, gy-h); ctx.stroke();
+  ctx.fillStyle=COLORS.border;
+  ctx.fillRect(x-9, gy-h-34, 18, 36);
+  ctx.fillStyle = green ? 'rgba(120,120,120,.5)' : COLORS.red;
+  ctx.beginPath(); ctx.arc(x, gy-h-26, 5.5, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = green ? COLORS.green : 'rgba(120,120,120,.5)';
+  ctx.beginPath(); ctx.arc(x, gy-h-10, 5.5, 0, Math.PI*2); ctx.fill();
+}
+
+/* عدّاد سرعة (مقياس السرعة) — إبرة أو إبرتان على تدريج بالكيلومتر/ساعة */
+function figSpeedometer(cx, cy, r, needles, COLORS, title){
+  ctx.fillStyle=COLORS.panel; ctx.strokeStyle=COLORS.border; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+  const A0 = Math.PI*0.80, A1 = Math.PI*2.20;          // من اليسار الأسفل إلى اليمين الأسفل
+  ctx.strokeStyle=COLORS.muted; ctx.lineWidth=2.5;
+  ctx.beginPath(); ctx.arc(cx, cy, r*0.84, A0, A1); ctx.stroke();
+  for(let i=0;i<=8;i++){
+    const ang = A0 + (A1-A0)*i/8;
+    const c=Math.cos(ang), s=Math.sin(ang);
+    ctx.strokeStyle=COLORS.muted; ctx.lineWidth=i%2 ? 1 : 2;
+    ctx.beginPath();
+    ctx.moveTo(cx+c*r*0.84, cy+s*r*0.84);
+    ctx.lineTo(cx+c*r*(i%2?0.75:0.70), cy+s*r*(i%2?0.75:0.70));
+    ctx.stroke();
+    if(i%2===0) optLabel(String(i*20), cx+c*r*0.55, cy+s*r*0.55+4, COLORS.muted, 10, 'center', true);
+  }
+  needles.forEach(n=>{
+    const f = Math.max(0, Math.min(1, n.kmh/160));
+    const ang = A0 + (A1-A0)*f;
+    ctx.strokeStyle=n.color; ctx.lineWidth=n.width||3.5; ctx.lineCap='round';
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx+Math.cos(ang)*r*0.72, cy+Math.sin(ang)*r*0.72);
+    ctx.stroke(); ctx.lineCap='butt';
+  });
+  ctx.fillStyle=COLORS.wire;
+  ctx.beginPath(); ctx.arc(cx, cy, 4, 0, Math.PI*2); ctx.fill();
+  optLabel('km/h', cx, cy+r*0.55, COLORS.muted, 10.5, 'center', true);
+  if(title) optLabel(title, cx, cy+r+20, COLORS.capActive, 12);
+}
+
 const FONT_BODY = "'Tajawal','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
 const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
 </script>
@@ -1006,29 +1231,26 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
 
 <script>
 /* =========================================================================
-   تجربة 11 — المسافة والإزاحة
-   المسافة = طول المسار المقطوع، والإزاحة = أقصر خط من البداية إلى النهاية.
+   نشاط 1 — من البيت إلى المدرسة: المسافة والإزاحة
    ========================================================================= */
 (function(){
   const COLORS = makeColors();
-  const state = { simMode:'auto', t:0, d1:40, d2:30, d3:10 };
-  const SC = 7.4;                     // بكسل لكل متر
-  const OX = 150, OY = 350;           // نقطة البدء
+  const state = { simMode:'auto', t:0, d1:200, d2:100, d3:60 };
+  const SC = 1.85;                    // بكسل لكل متر
+  const OX = 130, OY = 348;           // موقع البيت
 
   function total(){ return state.d1 + state.d2 + state.d3; }
 
   function t11Update(dt){
     if(state.simMode==='auto'){
-      state.t += dt*14;               // 14 مترًا في الثانية على المسار
-      if(state.t > total()+8) state.t = 0;
+      state.t += dt*90;               // الطالب يمشي على المسار
+      if(state.t > total()+70) state.t = 0;
     }
   }
-
-  /* موقع المتحرك بعد قطع مسافة s على المسار */
   function posAt(s){
     const a=state.d1, b=state.d2, c=state.d3;
-    if(s<=a)   return { x:OX+s*SC,          y:OY };
-    if(s<=a+b) return { x:OX+a*SC,          y:OY-(s-a)*SC };
+    if(s<=a)   return { x:OX+s*SC,  y:OY };
+    if(s<=a+b) return { x:OX+a*SC,  y:OY-(s-a)*SC };
     const r = Math.min(s-a-b, c);
     return { x:OX+(a-r)*SC, y:OY-b*SC };
   }
@@ -1036,82 +1258,76 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
   function t11Draw(){
     ctx.clearRect(0,0,CW,CH);
     ctx.fillStyle=COLORS.bg; ctx.fillRect(0,0,CW,CH);
-    optTitle('المسافة والإزاحة — أيّهما يعتمد على شكل المسار؟', COLORS);
+    optTitle('نشاط ١: من البيت إلى المدرسة', COLORS);
 
-    /* شبكة القياس */
+    /* شوارع الحيّ */
     ctx.strokeStyle=COLORS.border; ctx.lineWidth=1;
-    for(let gx=110; gx<=580; gx+=37){ ctx.beginPath(); ctx.moveTo(gx,80); ctx.lineTo(gx,370); ctx.stroke(); }
-    for(let gy=80; gy<=370; gy+=37){ ctx.beginPath(); ctx.moveTo(110,gy); ctx.lineTo(580,gy); ctx.stroke(); }
-    optLabel('طول ضلع المربع خمسة أمتار', 345, 392, COLORS.muted, 10.5);
+    for(let gx=94; gx<=590; gx+=37){ ctx.beginPath(); ctx.moveTo(gx,72); ctx.lineTo(gx,362); ctx.stroke(); }
+    for(let gy=72; gy<=362; gy+=37){ ctx.beginPath(); ctx.moveTo(94,gy); ctx.lineTo(590,gy); ctx.stroke(); }
+    optLabel('كل مربع في الحيّ طوله عشرون مترًا', 342, 384, COLORS.muted, 10.5);
 
     const start = { x:OX, y:OY };
     const end   = posAt(total());
-    const s     = Math.min(state.t, total());
-    const now   = posAt(s);
+    const now   = posAt(Math.min(state.t, total()));
 
-    /* أضلاع المسار — القوس الذي يقطعه المتحرك يُلوَّن */
-    const legPts = [
+    /* الطريق الذي مشاه الطالب */
+    const legs = [
       [start, {x:OX+state.d1*SC, y:OY}, 'd₁ = '+state.d1+' m'],
       [{x:OX+state.d1*SC, y:OY}, {x:OX+state.d1*SC, y:OY-state.d2*SC}, 'd₂ = '+state.d2+' m'],
       [{x:OX+state.d1*SC, y:OY-state.d2*SC}, end, 'd₃ = '+state.d3+' m']
     ];
-    legPts.forEach(([p,q,lab])=>{
+    legs.forEach(([p,q,lab], i)=>{
       if(Math.abs(p.x-q.x)<1 && Math.abs(p.y-q.y)<1) return;
-      optArrow(p.x,p.y,q.x,q.y, COLORS.capDefault, 3);
+      optArrow(p.x,p.y,q.x,q.y, COLORS.capDefault, 3.5);
       const mx=(p.x+q.x)/2, my=(p.y+q.y)/2;
       const vert = Math.abs(p.x-q.x) < 1;
-      const below = (lab.charAt(1) === '\u2083');   // الضلع الثالث: تسميته أسفل الخط
-      optLabel(lab, mx + (vert?34:0), my + (vert?0:(below?20:-10)), COLORS.capDefault, 11.5, 'center', true);
+      optLabel(lab, mx + (vert?36:0), my + (vert?0:(i===2?20:-10)), COLORS.capDefault, 11.5, 'center', true);
     });
 
-    /* الإزاحة: خط مستقيم متقطّع من البداية إلى النهاية */
+    /* الإزاحة: الخط المستقيم من البيت إلى المدرسة */
     const dx = (state.d1 - state.d3), dy = state.d2;
     const disp = Math.sqrt(dx*dx + dy*dy);
-    if(disp > 0.4){
+    if(disp > 1){
       ctx.setLineDash([7,5]);
       optArrow(start.x, start.y, end.x, end.y, COLORS.capActive, 3);
       ctx.setLineDash([]);
     } else {
       ctx.strokeStyle=COLORS.red; ctx.lineWidth=2.5;
-      ctx.beginPath(); ctx.arc(start.x, start.y, 16, 0, Math.PI*2); ctx.stroke();
+      ctx.beginPath(); ctx.arc(start.x, start.y, 22, 0, Math.PI*2); ctx.stroke();
     }
 
-    /* نقطتا البداية والنهاية والمتحرك */
-    ctx.fillStyle=COLORS.blue;
-    ctx.beginPath(); ctx.arc(start.x, start.y, 6, 0, Math.PI*2); ctx.fill();
-    optLabel('البداية', start.x, start.y+24, COLORS.blue, 11.5);
-    ctx.fillStyle=COLORS.red;
-    ctx.beginPath(); ctx.arc(end.x, end.y, 6, 0, Math.PI*2); ctx.fill();
-    optLabel('النهاية', end.x, end.y-16, COLORS.red, 11.5);
+    figHouse(start.x, start.y, 34, COLORS);
+    optLabel('بيتك', start.x, start.y+20, COLORS.blue, 11.5);
+    figSchool(end.x, end.y, 44, COLORS);
+    /* التسمية فوق البناية: أسفلها يمرّ خط الإزاحة المتقطّع والضلع الثالث */
+    optLabel('مدرستك', end.x, end.y-62, COLORS.capDefault, 11.5);
 
-    ctx.fillStyle=COLORS.wire;
-    ctx.beginPath(); ctx.arc(now.x, now.y, 9, 0, Math.PI*2); ctx.fill();
+    /* الطالب وهو يمشي */
+    figPerson(now.x, now.y, 26, COLORS.wire, 0, 1);
 
-    /* صندوق المعطيات — الركن العلوي الأيمن، بعيد عن الشبكة */
-    const ang = disp>0.4 ? Math.atan2(dy,dx)*180/Math.PI : 0;
-    optHUD(610, 66, 258, [
-      {text:'ما يقيسه الطالب', bold:true, color:COLORS.capActive},
-      {text:'المسافة = مجموع أطوال المسار', color:COLORS.muted},
+    const ang = disp>1 ? Math.atan2(dy,dx)*180/Math.PI : 0;
+    optHUD(614, 62, 256, [
+      {text:'ماذا تقيس في هذا النشاط؟', bold:true, color:COLORS.capActive},
+      {text:'المسافة: طول الطريق الذي مشيته', color:COLORS.muted},
       {text:'d = '+state.d1+' + '+state.d2+' + '+state.d3+' = '+total()+' m', ltr:true, color:COLORS.capDefault},
-      {text:'الإزاحة = أقصر خط بين الطرفين', color:COLORS.muted},
-      {text:'s = √(Δx² + Δy²) = '+disp.toFixed(1)+' m', ltr:true, color:COLORS.capActive},
+      {text:'الإزاحة: الخط المستقيم بين البيت والمدرسة', color:COLORS.muted},
+      {text:'s = √(Δx² + Δy²) = '+disp.toFixed(0)+' m', ltr:true, color:COLORS.capActive},
       {text:'Δx = '+dx+' m , Δy = '+dy+' m', ltr:true},
-      {text:'الزاوية عن الأفقي', color:COLORS.muted},
+      {text:'اتجاه الإزاحة عن الأفقي', color:COLORS.muted},
       {text:'θ = '+ang.toFixed(0)+'°', ltr:true}
     ], COLORS);
 
-    /* الحكم */
     let v, vc;
-    if(disp < 0.4){ v='عاد إلى نقطة البدء ← الإزاحة صفر مع أن المسافة ليست صفرًا'; vc=COLORS.red; }
-    else if(Math.abs(disp-total()) < 0.4){ v='المسار مستقيم في اتجاه واحد ← المسافة تساوي الإزاحة'; vc=COLORS.green; }
-    else { v='المسار منكسر ← الإزاحة أقل من المسافة دائمًا'; vc=COLORS.capActive; }
+    if(disp < 1){ v='رجعتَ إلى بيتك ← إزاحتك صفر، مع أنك مشيت مسافة طويلة'; vc=COLORS.red; }
+    else if(Math.abs(disp-total()) < 1){ v='الطريق مستقيم ← المسافة التي مشيتها تساوي إزاحتك'; vc=COLORS.green; }
+    else { v='الطريق منكسر ← مشيتَ أطول من الخط المستقيم بين البيت والمدرسة'; vc=COLORS.capActive; }
     optVerdict(v, COLORS, vc);
-    optCaption('المسافة كمية قياسية تعتمد على شكل المسار، والإزاحة كمية متجهة تعتمد على موقعي البداية والنهاية فقط.', COLORS);
+    optCaption('لو طار طائر من بيتك إلى مدرستك لقطع الإزاحة، أما أنت فتمشي في الشوارع فتقطع المسافة.', COLORS);
   }
 
   window.t11State=state; window.t11Update=t11Update; window.t11Draw=t11Draw;
   window.t11Preset=function(kind){
-    const p = { straight:[45,0,0], closed:[35,0,35], broken:[45,30,15] }[kind];
+    const p = { straight:[240,0,0], closed:[180,0,180], broken:[200,100,60] }[kind];
     if(!p) return;
     setControl('t11State.d1', p[0]); setControl('t11State.d2', p[1]); setControl('t11State.d3', p[2]);
     state.t = 0;
@@ -1121,65 +1337,53 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
 
 <script>
 /* =========================================================================
-   تجربة 12 — السرعة المتوسطة والسرعة اللحظية
-   ميل الوتر على منحني (الموقع–الزمن) = السرعة المتوسطة، وميل المماس = اللحظية.
+   نشاط 2 — عدّاد سرعة السيارة: السرعة اللحظية والسرعة المتوسطة
    ========================================================================= */
 (function(){
   const COLORS = makeColors();
   const state = { simMode:'auto', t:3.0, v0:4, a:2 };
-  const T = 6;                                   // مدى الزمن المعروض (s)
+  const T = 6;
 
   function xAt(t){ return state.v0*t + 0.5*state.a*t*t; }
   function vAt(t){ return state.v0 + state.a*t; }
-  function xMax(){
-    let m = 1;
-    for(let t=0; t<=T; t+=0.1) m = Math.max(m, xAt(t));
-    return m*1.12;
-  }
+  function xMax(){ let m=1; for(let t=0;t<=T;t+=0.1) m=Math.max(m, xAt(t)); return m*1.12; }
 
   function t12Update(dt){
-    if(state.simMode==='auto'){
-      state.t += dt;
-      if(state.t > T) state.t = 0.3;
-    }
+    if(state.simMode==='auto'){ state.t += dt; if(state.t > T) state.t = 0.3; }
   }
 
   function t12Draw(){
     ctx.clearRect(0,0,CW,CH);
     ctx.fillStyle=COLORS.bg; ctx.fillRect(0,0,CW,CH);
-    optTitle('السرعة المتوسطة والسرعة اللحظية', COLORS);
+    optTitle('نشاط ٢: عدّاد السرعة — لحظية أم متوسطة؟', COLORS);
 
-    const t  = Math.max(state.t, 0.05);
-    const x  = xAt(t), vI = vAt(t), vA = x/t;
-    const XM = xMax();
+    const t = Math.max(state.t, 0.05);
+    const x = xAt(t), vI = vAt(t), vA = x/t, XM = xMax();
 
-    /* ===== الطريق في الأعلى ===== */
-    const rx0=70, rx1=560, ry=118;
-    ctx.fillStyle=COLORS.ground; ctx.fillRect(rx0, ry+16, rx1-rx0, 6);
-    for(let m=0; m<=XM; m+=Math.max(10, Math.round(XM/8/10)*10)){
-      const gx = rx0 + (m/XM)*(rx1-rx0);
-      if(gx>rx1) break;
-      ctx.strokeStyle=COLORS.border; ctx.lineWidth=1;
-      ctx.beginPath(); ctx.moveTo(gx, ry+22); ctx.lineTo(gx, ry+30); ctx.stroke();
-      optLabel(String(m), gx, ry+44, COLORS.muted, 10, 'center', true);
-    }
-    optLabel('الموقع بالمتر', (rx0+rx1)/2, ry+62, COLORS.muted, 11);
-
-    const carX = rx0 + (x/XM)*(rx1-rx0);
-    ctx.save(); ctx.beginPath(); ctx.rect(rx0-2, ry-40, rx1-rx0+4, 60); ctx.clip();
-    optBox(carX-19, ry-14, 38, 26, COLORS.capDefault);
-    ctx.fillStyle=COLORS.bg;
-    ctx.beginPath(); ctx.arc(carX-10, ry+13, 5, 0, Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.arc(carX+10, ry+13, 5, 0, Math.PI*2); ctx.fill();
-    optArrow(carX+22, ry-1, carX+22+Math.max(6,Math.min(vI*4,70)), ry-1, COLORS.red, 3);
+    /* الشارع في الأعلى */
+    const rx0=60, rx1=850, ry=104;
+    ctx.fillStyle=COLORS.ground; ctx.fillRect(rx0, ry+14, rx1-rx0, 7);
+    ctx.strokeStyle=COLORS.muted; ctx.lineWidth=2; ctx.setLineDash([14,12]);
+    ctx.beginPath(); ctx.moveTo(rx0, ry+8); ctx.lineTo(rx1, ry+8); ctx.stroke(); ctx.setLineDash([]);
+    const carX = rx0+26 + (x/XM)*(rx1-rx0-70);
+    ctx.save(); ctx.beginPath(); ctx.rect(rx0, ry-46, rx1-rx0, 62); ctx.clip();
+    figCar(carX, ry+14, 64, COLORS.capDefault, COLORS);
     ctx.restore();
+    optLabel('قطعت السيارة حتى الآن '+x.toFixed(0)+' مترًا', 455, ry+42, COLORS.muted, 11.5);
 
-    /* ===== منحني الموقع–الزمن ===== */
-    const gx0=70, gyB=380, gw=430, gh=180;
+    /* عدّاد السرعة بإبرتين */
+    figSpeedometer(150, 254, 80, [
+      { kmh: vI*3.6, color: COLORS.capActive, width: 4 },
+      { kmh: vA*3.6, color: COLORS.blue,      width: 2.5 }
+    ], COLORS, 'عدّاد السيارة');
+    optLabel('الإبرة السميكة: السرعة الآن', 150, 374, COLORS.capActive, 11);
+    optLabel('الإبرة الرفيعة: متوسط الرحلة', 150, 393, COLORS.blue, 11);
+
+    /* منحني الموقع–الزمن */
+    const gx0=300, gyB=372, gw=260, gh=170;
     optAxes(gx0, gyB, gw, gh, COLORS, 't (s)', 'x (m)', true);
     const PX = tt => gx0 + (tt/T)*gw;
     const PY = xx => gyB - (xx/XM)*gh;
-
     ctx.strokeStyle=COLORS.capDefault; ctx.lineWidth=2.5;
     ctx.beginPath();
     for(let tt=0; tt<=T+0.001; tt+=0.05){
@@ -1187,42 +1391,34 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
       if(tt===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
     }
     ctx.stroke();
-
-    /* الوتر: من المبدأ إلى النقطة الحالية ← السرعة المتوسطة */
     ctx.setLineDash([6,5]); ctx.strokeStyle=COLORS.blue; ctx.lineWidth=2;
     ctx.beginPath(); ctx.moveTo(PX(0), PY(0)); ctx.lineTo(PX(t), PY(x)); ctx.stroke();
     ctx.setLineDash([]);
-    const chordY = Math.min(Math.max(PY(x/2)+22, gyB-gh+16), gyB-10);
-    optLabel('الوتر ← المتوسطة', PX(t/2)+8, chordY, COLORS.blue, 11);
-
-    /* المماس عند اللحظة t ← السرعة اللحظية */
-    const half = 1.1;
-    const t1 = Math.max(0, t-half), t2 = Math.min(T, t+half);
+    const half=1.1, t1=Math.max(0,t-half), t2=Math.min(T,t+half);
     ctx.strokeStyle=COLORS.capActive; ctx.lineWidth=2.5;
     ctx.beginPath();
     ctx.moveTo(PX(t1), PY(x + vI*(t1-t)));
     ctx.lineTo(PX(t2), PY(x + vI*(t2-t)));
     ctx.stroke();
-    optLabel('المماس ← اللحظية', PX(t2)-6, PY(x + vI*(t2-t))-12, COLORS.capActive, 11, 'right');
+    ctx.fillStyle=COLORS.red; ctx.beginPath(); ctx.arc(PX(t), PY(x), 5.5, 0, Math.PI*2); ctx.fill();
+    optLabel('الموقع – الزمن', gx0+gw/2, gyB+34, COLORS.muted, 11.5);
 
-    ctx.fillStyle=COLORS.red;
-    ctx.beginPath(); ctx.arc(PX(t), PY(x), 5.5, 0, Math.PI*2); ctx.fill();
-
-    /* ===== المعطيات ===== */
-    optHUD(600, 200, 268, [
-      {text:'القراءات عند هذه اللحظة', bold:true, color:COLORS.capActive},
+    optHUD(600, 176, 268, [
+      {text:'قراءتك الآن', bold:true, color:COLORS.capActive},
       {text:'t = '+t.toFixed(2)+' s', ltr:true},
-      {text:'x = v₀t + ½at² = '+x.toFixed(1)+' m', ltr:true, color:COLORS.capDefault},
-      {text:'v(avg) = x/t = '+vA.toFixed(2)+' m/s', ltr:true, color:COLORS.blue},
-      {text:'v(inst) = v₀ + at = '+vI.toFixed(2)+' m/s', ltr:true, color:COLORS.capActive}
+      {text:'x = '+x.toFixed(1)+' m', ltr:true, color:COLORS.capDefault},
+      {text:'السرعة الآن (اللحظية)', color:COLORS.muted},
+      {text:'v = '+vI.toFixed(1)+' m/s = '+(vI*3.6).toFixed(0)+' km/h', ltr:true, color:COLORS.capActive},
+      {text:'متوسط الرحلة كلها', color:COLORS.muted},
+      {text:'v = x/t = '+vA.toFixed(1)+' m/s = '+(vA*3.6).toFixed(0)+' km/h', ltr:true, color:COLORS.blue}
     ], COLORS);
 
     let v, vc;
-    if(Math.abs(state.a) < 0.05){ v='التعجيل صفر ← السرعتان المتوسطة واللحظية متساويتان'; vc=COLORS.green; }
-    else if(state.a > 0){ v='الحركة متسارعة ← اللحظية أكبر من المتوسطة، والمماس أكثر ميلًا من الوتر'; vc=COLORS.capActive; }
-    else { v='الحركة متباطئة ← اللحظية أصغر من المتوسطة، والمماس أقل ميلًا من الوتر'; vc=COLORS.red; }
+    if(Math.abs(state.a) < 0.05){ v='السيارة بسرعة ثابتة ← الإبرتان تتطابقان'; vc=COLORS.green; }
+    else if(state.a > 0){ v='السيارة تزيد سرعتها ← الإبرة السميكة تسبق الرفيعة دائمًا'; vc=COLORS.capActive; }
+    else { v='السيارة تخفّف سرعتها ← الإبرة السميكة صارت خلف الرفيعة'; vc=COLORS.red; }
     optVerdict(v, COLORS, vc);
-    optCaption('السرعة المتوسطة تلخّص الرحلة كلها، أما اللحظية فهي سرعة الجسم في لحظة واحدة بعينها.', COLORS);
+    optCaption('عدّاد السيارة يعطيك السرعة في هذه اللحظة فقط، أما متوسط الرحلة فيُحسب بقسمة المسافة على الزمن.', COLORS);
   }
 
   window.t12State=state; window.t12Update=t12Update; window.t12Draw=t12Draw;
@@ -1231,68 +1427,55 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
 
 <script>
 /* =========================================================================
-   تجربة 13 — التعجيل: a = Δv / Δt
+   نشاط 3 — دراجة تنطلق: التعجيل a = Δv/Δt
    ========================================================================= */
 (function(){
   const COLORS = makeColors();
-  const state = { simMode:'auto', t:0, v1:5, v2:25, dtime:4 };
+  const state = { simMode:'auto', t:0, v1:2, v2:8, dtime:4 };
 
   function accel(){ return (state.v2 - state.v1)/state.dtime; }
-
   function t13Update(dt){
-    if(state.simMode==='auto'){
-      state.t += dt;
-      if(state.t > state.dtime) state.t = 0;
-    }
+    if(state.simMode==='auto'){ state.t += dt; if(state.t > state.dtime) state.t = 0; }
   }
 
   function t13Draw(){
     ctx.clearRect(0,0,CW,CH);
     ctx.fillStyle=COLORS.bg; ctx.fillRect(0,0,CW,CH);
-    optTitle('التعجيل — كم تتغيّر السرعة في كل ثانية؟', COLORS);
+    optTitle('نشاط ٣: دراجتك تنطلق — ما مقدار التعجيل؟', COLORS);
 
-    const a  = accel();
-    const t  = Math.min(state.t, state.dtime);
+    const a = accel();
+    const t = Math.min(state.t, state.dtime);
     const vN = state.v1 + a*t;
     const VM = Math.max(state.v1, state.v2, 1)*1.15;
 
-    /* ===== الطريق: لقطتان ثابتتان + سيارة متحركة ===== */
-    const rx0=70, rx1=560, ry=130;
-    ctx.fillStyle=COLORS.ground; ctx.fillRect(rx0, ry+18, rx1-rx0, 6);
+    const rx0=60, rx1=580, ry=150;
+    ctx.fillStyle=COLORS.ground; ctx.fillRect(rx0, ry+6, rx1-rx0, 6);
 
-    function car(cx, color, vv, tag, alpha, tagBelow){
-      ctx.save(); ctx.globalAlpha = alpha===undefined ? 1 : alpha;
-      optBox(cx-20, ry-14, 40, 28, color);
-      ctx.fillStyle=COLORS.bg;
-      ctx.beginPath(); ctx.arc(cx-11, ry+15, 5, 0, Math.PI*2); ctx.fill();
-      ctx.beginPath(); ctx.arc(cx+11, ry+15, 5, 0, Math.PI*2); ctx.fill();
-      const L = Math.max(8, (vv/VM)*100);
-      optArrow(cx+24, ry, cx+24+L, ry, color, 3);
-      optLabel(tag, cx, tagBelow ? ry+40 : ry-26, color, 11.5, 'center', true);
-      ctx.restore();
-    }
-    car(rx0+60,  COLORS.blue, state.v1, 'v₁ = '+state.v1+' m/s', 0.45);
-    car(rx1-90,  COLORS.red,  state.v2, 'v₂ = '+state.v2+' m/s', 0.45);
-
-    const frac = state.dtime>0 ? t/state.dtime : 0;
-    const cx = (rx0+60) + frac*((rx1-90)-(rx0+60));
-    /* يشمل الـ clip موضع التسمية أسفل الطريق أيضًا، وإلا اختفت */
-    ctx.save(); ctx.beginPath(); ctx.rect(rx0, ry-45, rx1-rx0, 100); ctx.clip();
-    car(cx, COLORS.capDefault, vN, 'v = '+vN.toFixed(1)+' m/s', 1, true);
+    /* لقطتا البداية والنهاية باهتتان */
+    ctx.save(); ctx.globalAlpha=0.35;
+    figBike(rx0+70,  ry+6, 76, COLORS.blue, COLORS);
+    figBike(rx1-80,  ry+6, 76, COLORS.red,  COLORS);
     ctx.restore();
+    /* فوق رأس الراكب: ارتفاع الدراجة مع راكبها نحو 72 بكسل */
+    optLabel('البداية: v₁ = '+state.v1.toFixed(0)+' m/s', rx0+70, ry-84, COLORS.blue, 11.5, 'center', true);
+    optLabel('بعد Δt: v₂ = '+state.v2.toFixed(0)+' m/s', rx1-80, ry-84, COLORS.red, 11.5, 'center', true);
 
-    optLabel('Δt = '+state.dtime.toFixed(1)+' s', (rx0+rx1)/2, ry+66, COLORS.muted, 12, 'center', true);
+    /* الدراجة المتحركة */
+    const frac = state.dtime>0 ? t/state.dtime : 0;
+    const cx = (rx0+70) + frac*((rx1-80)-(rx0+70));
+    ctx.save(); ctx.beginPath(); ctx.rect(rx0, ry-92, rx1-rx0, 112); ctx.clip();
+    figBike(cx, ry+6, 76, COLORS.capDefault, COLORS);
+    optArrow(cx+40, ry-16, cx+40+Math.max(8,(vN/VM)*70), ry-16, COLORS.green, 3);
+    ctx.restore();
+    optLabel('السرعة الآن '+vN.toFixed(1)+' متر في الثانية', (rx0+rx1)/2, ry+34, COLORS.muted, 11.5);
 
-    /* ===== منحني السرعة–الزمن مع مثلث الميل ===== */
-    const gx0=70, gyB=380, gw=420, gh=170;
+    /* منحني السرعة–الزمن ومثلث الميل */
+    const gx0=70, gyB=378, gw=420, gh=160;
     optAxes(gx0, gyB, gw, gh, COLORS, 't (s)', 'v (m/s)', true);
     const PX = tt => gx0 + (state.dtime>0 ? tt/state.dtime : 0)*gw;
     const PY = vv => gyB - (vv/VM)*gh;
-
     ctx.strokeStyle=COLORS.capActive; ctx.lineWidth=2.5;
     ctx.beginPath(); ctx.moveTo(PX(0), PY(state.v1)); ctx.lineTo(PX(state.dtime), PY(state.v2)); ctx.stroke();
-
-    /* مثلث الميل: Δt أفقيًا و Δv رأسيًا — هذا هو «سبب» قيمة التعجيل */
     ctx.setLineDash([5,4]); ctx.strokeStyle=COLORS.muted; ctx.lineWidth=1.5;
     ctx.beginPath();
     ctx.moveTo(PX(0), PY(state.v1)); ctx.lineTo(PX(state.dtime), PY(state.v1));
@@ -1300,12 +1483,11 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
     ctx.stroke(); ctx.setLineDash([]);
     optLabel('Δt', PX(state.dtime/2), PY(state.v1)+16, COLORS.muted, 11, 'center', true);
     optLabel('Δv', PX(state.dtime)-8, (PY(state.v1)+PY(state.v2))/2, COLORS.muted, 11, 'right', true);
-
     ctx.fillStyle=COLORS.blue; ctx.beginPath(); ctx.arc(PX(0), PY(state.v1), 5, 0, Math.PI*2); ctx.fill();
     ctx.fillStyle=COLORS.red;  ctx.beginPath(); ctx.arc(PX(state.dtime), PY(state.v2), 5, 0, Math.PI*2); ctx.fill();
 
     optHUD(600, 190, 268, [
-      {text:'حساب التعجيل', bold:true, color:COLORS.capActive},
+      {text:'احسب معنا', bold:true, color:COLORS.capActive},
       {text:'a = Δv/Δt', ltr:true},
       {text:'Δv = v₂ − v₁ = '+(state.v2-state.v1).toFixed(1)+' m/s', ltr:true},
       {text:'Δt = '+state.dtime.toFixed(1)+' s', ltr:true},
@@ -1313,11 +1495,11 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
     ], COLORS);
 
     let v, vc;
-    if(Math.abs(a) < 0.02){ v='السرعة لم تتغيّر ← التعجيل يساوي صفرًا'; vc=COLORS.green; }
-    else if(a > 0){ v='السرعة تزداد ← تعجيل موجب، والحركة متسارعة'; vc=COLORS.capActive; }
-    else { v='السرعة تنقص ← تعجيل سالب، والحركة متباطئة'; vc=COLORS.red; }
+    if(Math.abs(a) < 0.02){ v='سرعتك لم تتغيّر ← التعجيل صفر'; vc=COLORS.green; }
+    else if(a > 0){ v='سرعتك تزداد كل ثانية ← تعجيل موجب (تسارع)'; vc=COLORS.capActive; }
+    else { v='سرعتك تنقص كل ثانية ← تعجيل سالب (تباطؤ)'; vc=COLORS.red; }
     optVerdict(v, COLORS, vc);
-    optCaption('التعجيل هو معدّل تغيّر السرعة مع الزمن، ويساوي ميل الخط في منحني السرعة–الزمن.', COLORS);
+    optCaption('التعجيل يخبرك كم متر في الثانية تكسبه دراجتك في كل ثانية واحدة.', COLORS);
   }
 
   window.t13State=state; window.t13Update=t13Update; window.t13Draw=t13Draw;
@@ -1326,82 +1508,66 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
 
 <script>
 /* =========================================================================
-   تجربة 14 — معادلات الحركة بتعجيل ثابت
-   v = v₀+at   و   x = v₀t+½at²   و   v² = v₀²+2ax
+   نشاط 4 — سيارة عند إشارة المرور: معادلات الحركة بتعجيل ثابت
    ========================================================================= */
 (function(){
   const COLORS = makeColors();
   const state = { simMode:'auto', t:2.2, v0:0, a:2.5 };
 
-  function tStop(){                                  // زمن التوقف عند التباطؤ
-    return state.a < 0 ? -state.v0/state.a : Infinity;
-  }
-  function span(){ return Math.min(8, tStop()); }    // مدى الزمن المعروض
-
+  function tStop(){ return state.a < 0 ? -state.v0/state.a : Infinity; }
+  function span(){ return Math.min(8, tStop()); }
   function xAt(t){ return state.v0*t + 0.5*state.a*t*t; }
   function vAt(t){ return state.v0 + state.a*t; }
 
   function t14Update(dt){
-    if(state.simMode==='auto'){
-      state.t += dt;
-      if(state.t > span()) state.t = 0;
-    }
+    if(state.simMode==='auto'){ state.t += dt; if(state.t > span()) state.t = 0; }
   }
 
   function t14Draw(){
     ctx.clearRect(0,0,CW,CH);
     ctx.fillStyle=COLORS.bg; ctx.fillRect(0,0,CW,CH);
-    optTitle('معادلات الحركة بتعجيل ثابت', COLORS);
+    optTitle('نشاط ٤: انطلاق السيارة من إشارة المرور', COLORS);
 
-    const T  = span();
-    const t  = Math.min(state.t, T);
-    const x  = xAt(t), v = vAt(t);
+    const T = span(), t = Math.min(state.t, T);
+    const x = xAt(t), v = vAt(t);
     const XM = Math.max(xAt(T), 1)*1.1;
     const VM = Math.max(state.v0, vAt(T), 1)*1.15;
 
-    /* ===== الطريق ===== */
-    const rx0=70, rx1=560, ry=112;
-    ctx.fillStyle=COLORS.ground; ctx.fillRect(rx0, ry+18, rx1-rx0, 6);
-    const stepM = Math.max(5, Math.round(XM/8/5)*5);
-    for(let m=0; m<=XM; m+=stepM){
+    const rx0=70, rx1=560, ry=132;
+    ctx.fillStyle=COLORS.ground; ctx.fillRect(rx0, ry+14, rx1-rx0, 7);
+    figTrafficLight(rx0+4, ry+14, 46, COLORS, state.a >= 0);
+
+    /* أعمدة الإنارة علامات للمسافة */
+    const stepM = Math.max(5, Math.round(XM/6/5)*5);
+    for(let m=stepM; m<=XM; m+=stepM){
       const gx = rx0 + (m/XM)*(rx1-rx0);
       if(gx > rx1) break;
-      ctx.strokeStyle=COLORS.border; ctx.lineWidth=1;
-      ctx.beginPath(); ctx.moveTo(gx, ry+24); ctx.lineTo(gx, ry+32); ctx.stroke();
-      optLabel(String(m), gx, ry+46, COLORS.muted, 10, 'center', true);
+      figLamp(gx, ry+14, 34, COLORS);
+      optLabel(String(m), gx, ry+32, COLORS.muted, 10, 'center', true);
     }
-    const carX = rx0 + (x/XM)*(rx1-rx0);
-    ctx.save(); ctx.beginPath(); ctx.rect(rx0-2, ry-46, rx1-rx0+4, 64); ctx.clip();
-    optBox(carX-20, ry-14, 40, 28, COLORS.capDefault);
-    ctx.fillStyle=COLORS.bg;
-    ctx.beginPath(); ctx.arc(carX-11, ry+15, 5, 0, Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.arc(carX+11, ry+15, 5, 0, Math.PI*2); ctx.fill();
-    if(v > 0.05) optArrow(carX+24, ry, carX+24+(v/VM)*80, ry, COLORS.red, 3);
-    ctx.restore();
-    optLabel('الموقع بالمتر', (rx0+rx1)/2, ry+64, COLORS.muted, 11);
+    optLabel('المسافة بالمتر من الإشارة', (rx0+rx1)/2, ry+52, COLORS.muted, 11);
 
-    /* ===== منحني السرعة–الزمن: المساحة تحته = الإزاحة ===== */
-    const gx0=70, gyB=378, gw=420, gh=165;
+    const carX = rx0+42 + (x/XM)*(rx1-rx0-60);
+    ctx.save(); ctx.beginPath(); ctx.rect(rx0, ry-52, rx1-rx0, 68); ctx.clip();
+    figCar(carX, ry+14, 62, COLORS.capDefault, COLORS, state.a < 0);
+    if(v > 0.05) optArrow(carX+36, ry-6, carX+36+(v/VM)*60, ry-6, COLORS.green, 3);
+    ctx.restore();
+
+    /* منحني السرعة–الزمن ومساحته */
+    const gx0=70, gyB=378, gw=420, gh=150;
     optAxes(gx0, gyB, gw, gh, COLORS, 't (s)', 'v (m/s)', true);
     const PX = tt => gx0 + (tt/T)*gw;
     const PY = vv => gyB - (vv/VM)*gh;
-
-    /* المساحة المظللة حتى اللحظة t — تساوي عدديًا الإزاحة x */
-    ctx.fillStyle = COLORS.capActive; ctx.globalAlpha = 0.32;
-    ctx.beginPath();
-    ctx.moveTo(PX(0), PY(0));
+    ctx.fillStyle=COLORS.capActive; ctx.globalAlpha=0.32;
+    ctx.beginPath(); ctx.moveTo(PX(0), PY(0));
     for(let tt=0; tt<=t+0.001; tt+=0.05) ctx.lineTo(PX(tt), PY(vAt(tt)));
     ctx.lineTo(PX(t), PY(0)); ctx.closePath(); ctx.fill();
-    ctx.globalAlpha = 1;
-
+    ctx.globalAlpha=1;
     ctx.strokeStyle=COLORS.capActive; ctx.lineWidth=2.5;
-    ctx.beginPath();
-    ctx.moveTo(PX(0), PY(state.v0)); ctx.lineTo(PX(T), PY(vAt(T)));
-    ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(PX(0), PY(state.v0)); ctx.lineTo(PX(T), PY(vAt(T))); ctx.stroke();
     ctx.fillStyle=COLORS.red; ctx.beginPath(); ctx.arc(PX(t), PY(v), 5, 0, Math.PI*2); ctx.fill();
-    optLabel('المساحة المظللة = الإزاحة', gx0+104, gyB-gh+18, COLORS.capActive, 11);
+    optLabel('المساحة المظللة = المسافة المقطوعة', gx0+120, gyB-gh+18, COLORS.capActive, 11);
 
-    /* ===== المعطيات + التحقق من المعادلة الثالثة ===== */
     const lhs = v*v, rhs = state.v0*state.v0 + 2*state.a*x;
     optHUD(600, 150, 268, [
       {text:'المعادلات الثلاث', bold:true, color:COLORS.capActive},
@@ -1412,12 +1578,12 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
       {text:'a = '+state.a.toFixed(1)+' m/s²  ,  v₀ = '+state.v0.toFixed(1)+' m/s', ltr:true, color:COLORS.muted}
     ], COLORS);
 
-    let vtxt, vc;
-    if(Math.abs(state.a) < 0.05){ vtxt='التعجيل صفر ← منحني السرعة خط أفقي والإزاحة = v·t'; vc=COLORS.green; }
-    else if(state.a > 0){ vtxt='تعجيل موجب ← السرعة تزداد خطيًا والإزاحة تزداد بمربع الزمن'; vc=COLORS.capActive; }
-    else { vtxt='تعجيل سالب ← السرعة تتناقص حتى يقف الجسم'; vc=COLORS.red; }
-    optVerdict(vtxt, COLORS, vc);
-    optCaption('طرفا المعادلة الثالثة متساويان دائمًا مهما غيّرت القيم — تحقّق من السطر الرابع في صندوق المعطيات.', COLORS);
+    let vt, vc;
+    if(Math.abs(state.a) < 0.05){ vt='الإشارة خضراء والسيارة بسرعة ثابتة ← المسافة = السرعة × الزمن'; vc=COLORS.green; }
+    else if(state.a > 0){ vt='السيارة تنطلق ← سرعتها تزداد خطيًا ومسافتها تزداد بمربع الزمن'; vc=COLORS.capActive; }
+    else { vt='السائق يكبح ← السرعة تنقص حتى تقف السيارة تمامًا'; vc=COLORS.red; }
+    optVerdict(vt, COLORS, vc);
+    optCaption('غيّر القيم كما تشاء: طرفا المعادلة الثالثة في السطر الرابع يبقيان متساويين دائمًا.', COLORS);
   }
 
   window.t14State=state; window.t14Update=t14Update; window.t14Draw=t14Draw;
@@ -1432,75 +1598,72 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
 
 <script>
 /* =========================================================================
-   تجربة 15 — السقوط الحر
-   كرتان مختلفتا الكتلة تسقطان معًا: زمن السقوط لا يعتمد على الكتلة.
+   نشاط 5 — كرة وحجر من سطح المدرسة: السقوط الحر
    ========================================================================= */
 (function(){
   const COLORS = makeColors();
   const G = 9.8;
-  const state = { simMode:'auto', t:1.6, h:45, m2:12 };
+  const state = { simMode:'auto', t:1.6, h:20, m2:12 };
 
   function tFall(){ return Math.sqrt(2*state.h/G); }
-
   function t15Update(dt){
-    if(state.simMode==='auto'){
-      state.t += dt*0.85;                       // أبطأ قليلًا ليتابعها الطالب
-      if(state.t > tFall()+0.9) state.t = 0;
-    }
+    if(state.simMode==='auto'){ state.t += dt*0.85; if(state.t > tFall()+0.9) state.t = 0; }
   }
 
   function t15Draw(){
     ctx.clearRect(0,0,CW,CH);
     ctx.fillStyle=COLORS.bg; ctx.fillRect(0,0,CW,CH);
-    optTitle('السقوط الحر — هل تسقط الكرة الثقيلة أسرع؟', COLORS);
+    optTitle('نشاط ٥: كرة وحجر من سطح المدرسة — أيّهما يصل أولًا؟', COLORS);
 
-    const tf = tFall();
-    const t  = Math.min(state.t, tf);
-    const y  = state.h - 0.5*G*t*t;              // الارتفاع الحالي (m)
-    const v  = G*t;
-
-    const topY = 76, groundY = 372;
+    const tf = tFall(), t = Math.min(state.t, tf);
+    const y = state.h - 0.5*G*t*t, v = G*t;
+    const topY = 84, groundY = 366;
     const PY = hh => groundY - (hh/state.h)*(groundY-topY);
 
-    /* الأرض والمسطرة */
-    ctx.fillStyle=COLORS.ground; ctx.fillRect(60, groundY, 480, 8);
-    ctx.strokeStyle=COLORS.border; ctx.lineWidth=1.5;
-    ctx.beginPath(); ctx.moveTo(96, topY); ctx.lineTo(96, groundY); ctx.stroke();
-    const stepH = Math.max(5, Math.round(state.h/6/5)*5);
+    /* الأرض وواجهة المدرسة: الكرتان تسقطان من سطحها أمام الواجهة */
+    ctx.fillStyle=COLORS.ground; ctx.fillRect(40, groundY, 520, 8);
+    ctx.fillStyle=COLORS.border;
+    ctx.fillRect(104, topY-8, 396, groundY-topY+8);
+    ctx.fillStyle=COLORS.bg;
+    for(let r=0;r<4;r++) for(let c=0;c<6;c++)
+      ctx.fillRect(126+c*62, topY+22+r*62, 26, 30);
+    ctx.fillRect(282, groundY-44, 40, 44);
+    optLabel('سطح المدرسة', 302, topY-18, COLORS.muted, 11);
+
+    /* مسطرة الارتفاع على يمين البناية */
+    ctx.strokeStyle=COLORS.muted; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(76, topY); ctx.lineTo(76, groundY); ctx.stroke();
+    const stepH = Math.max(2, Math.round(state.h/5/2)*2);
     for(let hh=0; hh<=state.h+0.01; hh+=stepH){
       const gy = PY(hh);
-      ctx.strokeStyle=COLORS.border;
-      ctx.beginPath(); ctx.moveTo(90, gy); ctx.lineTo(102, gy); ctx.stroke();
-      optLabel(String(hh), 82, gy+4, COLORS.muted, 10, 'right', true);
+      ctx.beginPath(); ctx.moveTo(70, gy); ctx.lineTo(82, gy); ctx.stroke();
+      optLabel(String(hh), 64, gy+4, COLORS.muted, 10, 'right', true);
     }
-    optLabel('الارتفاع بالمتر', 96, topY-12, COLORS.muted, 11);
+    optLabel('الارتفاع بالمتر', 76, topY-18, COLORS.muted, 11);
 
-    /* مواضع وميضية كل 0.2 s: تباعدها المتزايد هو الدليل على التعجيل */
-    ctx.save(); ctx.beginPath(); ctx.rect(60, topY-14, 480, groundY-topY+20); ctx.clip();
+    /* المواضع الوميضية كل 0.2 ثانية */
+    ctx.save(); ctx.beginPath(); ctx.rect(150, topY-20, 410, groundY-topY+24); ctx.clip();
     for(let ts=0; ts<=t; ts+=0.2){
       const hy = state.h - 0.5*G*ts*ts;
       if(hy < 0) break;
-      ctx.globalAlpha = 0.30;
+      ctx.globalAlpha=0.28;
       ctx.fillStyle=COLORS.capDefault;
-      ctx.beginPath(); ctx.arc(230, PY(hy), 13, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(230, PY(hy), 11, 0, Math.PI*2); ctx.fill();
       ctx.fillStyle=COLORS.blue;
-      ctx.beginPath(); ctx.arc(400, PY(hy), 13+state.m2*0.35, 0, Math.PI*2); ctx.fill();
-      ctx.globalAlpha = 1;
+      ctx.beginPath(); ctx.arc(400, PY(hy), 11+state.m2*0.55, 0, Math.PI*2); ctx.fill();
+      ctx.globalAlpha=1;
     }
-
-    /* الكرتان */
     ctx.fillStyle=COLORS.capDefault;
-    ctx.beginPath(); ctx.arc(230, PY(Math.max(y,0)), 13, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(230, PY(Math.max(y,0)), 11, 0, Math.PI*2); ctx.fill();
     ctx.fillStyle=COLORS.blue;
-    ctx.beginPath(); ctx.arc(400, PY(Math.max(y,0)), 13+state.m2*0.35, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(400, PY(Math.max(y,0)), 11+state.m2*0.55, 0, Math.PI*2); ctx.fill();
     ctx.restore();
-    optLabel('m = 1 kg', 230, groundY+24, COLORS.capDefault, 11.5, 'center', true);
-    optLabel('m = '+state.m2.toFixed(0)+' kg', 400, groundY+24, COLORS.blue, 11.5, 'center', true);
+    optLabel('كرة تنس كتلتها 1 كغم', 230, groundY+24, COLORS.capDefault, 11.5);
+    optLabel('حجر كتلته '+state.m2.toFixed(0)+' كغم', 400, groundY+24, COLORS.blue, 11.5);
 
-    /* متجه السرعة على الكرة الأولى */
     if(t > 0.05 && y > 0){
       const by = PY(Math.max(y,0));
-      optArrow(230, by+16, 230, Math.min(by+16+v*3.2, groundY-2), COLORS.red, 3);
+      optArrow(230, by+14, 230, Math.min(by+14+v*3.4, groundY-8), COLORS.red, 3);
       optLabel('v', 246, by+34, COLORS.red, 12, 'center', true);
     }
 
@@ -1510,13 +1673,13 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
       {text:'v = g·t = '+v.toFixed(2)+' m/s', ltr:true, color:COLORS.red},
       {text:'y = h − ½g t² = '+Math.max(y,0).toFixed(2)+' m', ltr:true, color:COLORS.capActive},
       {text:'t = '+t.toFixed(2)+' s', ltr:true},
-      {text:'زمن الوصول للأرض', color:COLORS.muted},
+      {text:'زمن الوصول إلى الأرض', color:COLORS.muted},
       {text:'t = √(2h/g) = '+tf.toFixed(2)+' s', ltr:true, color:COLORS.capDefault}
     ], COLORS);
 
-    optVerdict('الكرتان تنزلان معًا وتصلان في اللحظة نفسها — زمن السقوط لا يعتمد على الكتلة',
+    optVerdict('الكرة والحجر ينزلان جنبًا إلى جنب ويصلان معًا — الكتلة لا تغيّر زمن السقوط',
                COLORS, COLORS.green);
-    optCaption('تباعد المواضع الوميضية يزداد كل 0.2 ثانية، وهذا هو الدليل المرئي على أن السقوط بتعجيل ثابت.', COLORS);
+    optCaption('الدوائر الباهتة مواضعهما كل خُمس ثانية: الأزمنة متساوية والمسافات تكبر، وهذا معنى التعجيل.', COLORS);
   }
 
   window.t15State=state; window.t15Update=t15Update; window.t15Draw=t15Draw;
@@ -1526,19 +1689,17 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
 
 <script>
 /* =========================================================================
-   تجربة 16 — الرسوم البيانية للحركة
-   ميل منحني (الموقع–الزمن) = السرعة، والمساحة تحت (السرعة–الزمن) = الإزاحة.
+   نشاط 6 — رحلة الحافلة المدرسية: قراءة الرسوم البيانية
    ========================================================================= */
 (function(){
   const COLORS = makeColors();
   const state = { simMode:'auto', t:2.5, kind:'const', v0:10, a:0 };
   const T = 6;
-
   const KINDS = {
-    rest:  { v0:0,  a:0,    label:'ساكن' },
-    const: { v0:10, a:0,    label:'سرعة ثابتة' },
-    accel: { v0:2,  a:2.4,  label:'متسارع' },
-    decel: { v0:18, a:-2.4, label:'متباطئ' }
+    rest:  { v0:0,  a:0,    label:'واقفة عند الموقف' },
+    const: { v0:10, a:0,    label:'تسير بسرعة ثابتة' },
+    accel: { v0:2,  a:2.4,  label:'تنطلق من الموقف' },
+    decel: { v0:18, a:-2.4, label:'تقترب من الموقف' }
   };
 
   function vAt(t){ return Math.max(0, state.v0 + state.a*t); }
@@ -1546,35 +1707,31 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
     const ts = state.a < 0 ? Math.min(t, -state.v0/state.a) : t;
     return state.v0*ts + 0.5*state.a*ts*ts;
   }
-
   function t16Update(dt){
-    if(state.simMode==='auto'){
-      state.t += dt;
-      if(state.t > T) state.t = 0;
-    }
+    if(state.simMode==='auto'){ state.t += dt; if(state.t > T) state.t = 0; }
   }
 
   function t16Draw(){
     ctx.clearRect(0,0,CW,CH);
     ctx.fillStyle=COLORS.bg; ctx.fillRect(0,0,CW,CH);
-    optTitle('قراءة الرسوم البيانية للحركة', COLORS);
+    optTitle('نشاط ٦: رحلة الحافلة المدرسية في رسمين بيانيين', COLORS);
 
-    const t  = Math.min(state.t, T);
-    const x  = xAt(t), v = vAt(t);
+    const t = Math.min(state.t, T);
+    const x = xAt(t), v = vAt(t);
     const XM = Math.max(xAt(T), 1)*1.12;
     const VM = Math.max(state.v0, vAt(T), 1)*1.2;
 
-    /* ===== شريط الحركة في الأعلى ===== */
-    const rx0=70, rx1=520, ry=96;
-    ctx.fillStyle=COLORS.ground; ctx.fillRect(rx0, ry+16, rx1-rx0, 6);
-    const bx = rx0 + (x/XM)*(rx1-rx0);
-    ctx.save(); ctx.beginPath(); ctx.rect(rx0-2, ry-26, rx1-rx0+4, 44); ctx.clip();
-    optBox(bx-16, ry-12, 32, 28, COLORS.capDefault);
+    /* الشارع والحافلة */
+    const rx0=60, rx1=530, ry=112;
+    ctx.fillStyle=COLORS.ground; ctx.fillRect(rx0, ry+10, rx1-rx0, 6);
+    const bx = rx0+40 + (x/XM)*(rx1-rx0-80);
+    ctx.save(); ctx.beginPath(); ctx.rect(rx0, ry-52, rx1-rx0, 64); ctx.clip();
+    figBus(bx, ry+10, 74, COLORS, state.kind==='decel');
     ctx.restore();
-    optLabel('الحالة: '+KINDS[state.kind].label, (rx0+rx1)/2, ry+42, COLORS.muted, 12);
+    optLabel('الحالة: '+KINDS[state.kind].label, (rx0+rx1)/2, ry+36, COLORS.muted, 12);
 
-    /* ===== منحني الموقع–الزمن مع مثلث الميل ===== */
-    const ax0=70, ayB=372, aw=340, ah=148;
+    /* الموقع–الزمن */
+    const ax0=70, ayB=374, aw=330, ah=140;
     optAxes(ax0, ayB, aw, ah, COLORS, 't (s)', 'x (m)', true);
     const AX = tt => ax0 + (tt/T)*aw;
     const AY = xx => ayB - (xx/XM)*ah;
@@ -1585,7 +1742,6 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
       if(tt===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
     }
     ctx.stroke();
-    /* مثلث الميل عند اللحظة t: الميل = السرعة */
     if(t > 0.3){
       const t1 = Math.max(0, t-1.0);
       ctx.setLineDash([5,4]); ctx.strokeStyle=COLORS.muted; ctx.lineWidth=1.4;
@@ -1598,8 +1754,8 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
     ctx.fillStyle=COLORS.red; ctx.beginPath(); ctx.arc(AX(t), AY(x), 5, 0, Math.PI*2); ctx.fill();
     optLabel('الموقع – الزمن', ax0+aw/2, ayB+34, COLORS.muted, 11.5);
 
-    /* ===== منحني السرعة–الزمن مع المساحة ===== */
-    const bx0=470, byB=372, bw=340, bh=148;
+    /* السرعة–الزمن */
+    const bx0=460, byB=374, bw=330, bh=140;
     optAxes(bx0, byB, bw, bh, COLORS, 't (s)', 'v (m/s)', true);
     const BX = tt => bx0 + (tt/T)*bw;
     const BY = vv => byB - (vv/VM)*bh;
@@ -1616,24 +1772,24 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
     }
     ctx.stroke();
     ctx.fillStyle=COLORS.red; ctx.beginPath(); ctx.arc(BX(t), BY(v), 5, 0, Math.PI*2); ctx.fill();
-    optLabel('المساحة = الإزاحة', bx0+86, byB-bh+18, COLORS.capActive, 10.5);
+    optLabel('المساحة = المسافة', bx0+96, byB-22, COLORS.capActive, 10.5);
     optLabel('السرعة – الزمن', bx0+bw/2, byB+34, COLORS.muted, 11.5);
 
     optHUD(600, 62, 268, [
-      {text:'القراءة عند هذه اللحظة', bold:true, color:COLORS.capActive},
+      {text:'قراءة الحافلة الآن', bold:true, color:COLORS.capActive},
       {text:'t = '+t.toFixed(2)+' s', ltr:true},
-      {text:'x = '+x.toFixed(2)+' m', ltr:true, color:COLORS.capDefault},
-      {text:'v = '+v.toFixed(2)+' m/s', ltr:true, color:COLORS.capActive},
+      {text:'x = '+x.toFixed(1)+' m', ltr:true, color:COLORS.capDefault},
+      {text:'v = '+v.toFixed(1)+' m/s', ltr:true, color:COLORS.capActive},
       {text:'a = '+state.a.toFixed(1)+' m/s²', ltr:true, color:COLORS.muted}
     ], COLORS);
 
     let vt, vc;
-    if(state.kind==='rest'){ vt='الجسم ساكن ← منحني الموقع خط أفقي وميله صفر'; vc=COLORS.muted; }
+    if(state.kind==='rest'){ vt='الحافلة واقفة ← منحني الموقع خط أفقي وميله صفر'; vc=COLORS.muted; }
     else if(state.kind==='const'){ vt='سرعة ثابتة ← منحني الموقع خط مائل ثابت الميل، ومنحني السرعة أفقي'; vc=COLORS.green; }
-    else if(state.kind==='accel'){ vt='حركة متسارعة ← منحني الموقع يزداد انحناءً، ومنحني السرعة صاعد'; vc=COLORS.capActive; }
-    else { vt='حركة متباطئة ← ميل منحني الموقع يقلّ حتى يستوي عند التوقف'; vc=COLORS.red; }
+    else if(state.kind==='accel'){ vt='الحافلة تنطلق ← منحني الموقع يزداد انحناءً ومنحني السرعة صاعد'; vc=COLORS.capActive; }
+    else { vt='الحافلة تقترب من الموقف ← الميل يقلّ حتى يستوي عند التوقف'; vc=COLORS.red; }
     optVerdict(vt, COLORS, vc);
-    optCaption('الميل في منحني الموقع–الزمن يعطي السرعة، والمساحة تحت منحني السرعة–الزمن تعطي الإزاحة.', COLORS);
+    optCaption('الرسم الأيمن يخبرك بسرعة الحافلة، والأيسر يخبرك أين هي — والمساحة تحت الأيمن تعطي المسافة نفسها.', COLORS);
   }
 
   window.t16State=state; window.t16Update=t16Update; window.t16Draw=t16Draw;
@@ -1646,7 +1802,7 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
 
 <script>
 /* =========================================================================
-   تجربة 21 — القوة ومحصلة القوى ومخطط الجسم الحر
+   نشاط 1 — طالبان يسحبان صندوقًا بحبلين: محصلة القوى ومخطط الجسم الحر
    ========================================================================= */
 (function(){
   const COLORS = makeColors();
@@ -1661,60 +1817,67 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
       state.t += dt;
       const a = accel();
       if(Math.abs(a) < 0.01){ state.t = 0; return; }
-      if(Math.abs(0.5*a*state.t*state.t) > 26) state.t = 0;   // 26 مترًا ثم إعادة
+      if(Math.abs(0.5*a*state.t*state.t) > 9) state.t = 0;
     }
   }
 
   function t21Draw(){
     ctx.clearRect(0,0,CW,CH);
     ctx.fillStyle=COLORS.bg; ctx.fillRect(0,0,CW,CH);
-    optTitle('محصلة القوى ومخطط الجسم الحر', COLORS);
+    optTitle('نشاط ١: طالبان يسحبان صندوقًا في اتجاهين متضادين', COLORS);
 
     const a = accel(), N = state.m*G;
-    const SC = 7;                                  // بكسل لكل متر
-    const gy = 250, x0 = 300;
+    const SC = 9, gy = 244, x0 = 300;
     const bx = x0 + 0.5*a*state.t*state.t*SC;
 
-    /* الأرضية */
-    ctx.fillStyle=COLORS.ground; ctx.fillRect(60, gy, 500, 7);
-    optLabel('سطح أملس (نهمل الاحتكاك)', 310, gy+24, COLORS.muted, 11);
+    /* أرض الملعب */
+    ctx.fillStyle=COLORS.ground; ctx.fillRect(50, gy, 520, 7);
+    optLabel('أرضية ملساء نهمل احتكاكها', 300, gy+30, COLORS.muted, 11);
 
-    /* الصندوق مع القوتين الأفقيتين */
-    ctx.save(); ctx.beginPath(); ctx.rect(60, 120, 500, 130); ctx.clip();
-    const side = 30 + state.m*3.4;
-    optBox(bx-side/2, gy-side, side, side, COLORS.blue);
-    optLabel('m = '+state.m.toFixed(0)+' kg', bx, gy-side-10, COLORS.blue, 11.5, 'center', true);
+    ctx.save(); ctx.beginPath(); ctx.rect(50, 80, 520, gy-80); ctx.clip();
+    const side = 30 + state.m*3.2;
+
+    /* الطالبان على الجانبين، والحبلان إلى الصندوق */
+    const leftX = bx - side/2 - 96, rightX = bx + side/2 + 96;
+    figPerson(rightX, gy, 62, COLORS.red, 0.10, -1);
+    figPerson(leftX,  gy, 62, COLORS.blue, -0.10, 1);
+    ctx.strokeStyle=COLORS.muted; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(rightX-16, gy-40); ctx.lineTo(bx+side/2, gy-side/2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(leftX+16,  gy-40); ctx.lineTo(bx-side/2, gy-side/2); ctx.stroke();
+
+    optBox(bx-side/2, gy-side, side, side, COLORS.capDefault);
+    optLabel('m = '+state.m.toFixed(0)+' kg', bx, gy-side-10, COLORS.capDefault, 11.5, 'center', true);
     if(state.F1 > 0){
-      optArrow(bx+side/2, gy-side/2, bx+side/2+state.F1*2.6, gy-side/2, COLORS.red, 3.5);
-      optLabel('F₁', bx+side/2+state.F1*1.3, gy-side/2-12, COLORS.red, 12.5, 'center', true);
+      optArrow(bx+side/2, gy-side/2, bx+side/2+state.F1*2.0, gy-side/2, COLORS.red, 3.5);
+      optLabel('F₁', bx+side/2+state.F1*1.0, gy-side/2-12, COLORS.red, 12.5, 'center', true);
     }
     if(state.F2 > 0){
-      optArrow(bx-side/2, gy-side/2, bx-side/2-state.F2*2.6, gy-side/2, COLORS.capDefault, 3.5);
-      optLabel('F₂', bx-side/2-state.F2*1.3, gy-side/2-12, COLORS.capDefault, 12.5, 'center', true);
+      optArrow(bx-side/2, gy-side/2, bx-side/2-state.F2*2.0, gy-side/2, COLORS.blue, 3.5);
+      optLabel('F₂', bx-side/2-state.F2*1.0, gy-side/2-12, COLORS.blue, 12.5, 'center', true);
     }
     ctx.restore();
 
     /* مخطط الجسم الحر */
-    const cx=706, cy=336;
-    optLabel('مخطط الجسم الحر', cx, cy-96, COLORS.capActive, 12.5);
+    const cx=706, cy=330;
+    optLabel('مخطط الجسم الحر للصندوق', cx, cy-98, COLORS.capActive, 12.5);
     ctx.fillStyle=COLORS.wire;
     ctx.beginPath(); ctx.arc(cx, cy, 6, 0, Math.PI*2); ctx.fill();
-    const wLen = Math.min(N*0.9, 74);
+    const wLen = Math.min(N*0.9, 70);
     optArrow(cx, cy, cx, cy+wLen, COLORS.capDefault, 3);
-    optLabel('W = mg', cx+34, cy+wLen-4, COLORS.capDefault, 11, 'center', true);
+    optLabel('W = mg', cx+36, cy+wLen-4, COLORS.capDefault, 11, 'center', true);
     optArrow(cx, cy, cx, cy-wLen, COLORS.green, 3);
     optLabel('N', cx+14, cy-wLen+6, COLORS.green, 11.5, 'center', true);
     if(state.F1>0){
-      optArrow(cx, cy, cx+Math.min(state.F1*2.2,80), cy, COLORS.red, 3);
-      optLabel('F₁', cx+Math.min(state.F1*2.2,80)/2, cy-9, COLORS.red, 11.5, 'center', true);
+      optArrow(cx, cy, cx+Math.min(state.F1*2.0,78), cy, COLORS.red, 3);
+      optLabel('F₁', cx+Math.min(state.F1*2.0,78)/2, cy-9, COLORS.red, 11.5, 'center', true);
     }
     if(state.F2>0){
-      optArrow(cx, cy, cx-Math.min(state.F2*2.2,80), cy, COLORS.capDefault, 3);
-      optLabel('F₂', cx-Math.min(state.F2*2.2,80)/2, cy-9, COLORS.capDefault, 11.5, 'center', true);
+      optArrow(cx, cy, cx-Math.min(state.F2*2.0,78), cy, COLORS.blue, 3);
+      optLabel('F₂', cx-Math.min(state.F2*2.0,78)/2, cy-9, COLORS.blue, 11.5, 'center', true);
     }
 
     optHUD(600, 62, 268, [
-      {text:'حساب المحصلة', bold:true, color:COLORS.capActive},
+      {text:'من يكسب؟ المحصلة تقرّر', bold:true, color:COLORS.capActive},
       {text:'ΣF = F₁ − F₂ = '+net().toFixed(1)+' N', ltr:true, color:COLORS.capActive},
       {text:'a = ΣF/m = '+a.toFixed(2)+' m/s²', ltr:true, color:COLORS.red},
       {text:'W = mg = '+N.toFixed(1)+' N', ltr:true, color:COLORS.capDefault},
@@ -1722,11 +1885,11 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
     ], COLORS);
 
     let v, vc;
-    if(Math.abs(net()) < 0.05){ v='القوتان متزنتان ← ΣF = 0 فيبقى الجسم على حاله'; vc=COLORS.green; }
-    else if(net() > 0){ v='المحصلة نحو اليمين ← الجسم يتعجل نحو اليمين'; vc=COLORS.red; }
-    else { v='المحصلة نحو اليسار ← الجسم يتعجل نحو اليسار'; vc=COLORS.capDefault; }
+    if(Math.abs(net()) < 0.05){ v='القوتان متساويتان ← المحصلة صفر والصندوق لا يتحرك'; vc=COLORS.green; }
+    else if(net() > 0){ v='الطالب على اليمين أقوى ← الصندوق يتعجل نحوه'; vc=COLORS.red; }
+    else { v='الطالب على اليسار أقوى ← الصندوق يتعجل نحوه'; vc=COLORS.blue; }
     optVerdict(v, COLORS, vc);
-    optCaption('القوة العمودية N تلغي الوزن W دائمًا هنا، فالحركة تحدّدها القوى الأفقية وحدها.', COLORS);
+    optCaption('الوزن ورد فعل الأرض متساويان ومتضادان فيلغي أحدهما الآخر، فلا يبقى مؤثّرًا إلا القوتان الأفقيتان.', COLORS);
   }
 
   window.t21State=state; window.t21Update=t21Update; window.t21Draw=t21Draw;
@@ -1736,120 +1899,115 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
 
 <script>
 /* =========================================================================
-   تجربة 22 — قانون نيوتن الأول: القصور الذاتي
-   عربة تنطلق بسرعة ابتدائية، وعليها كرة حرّة تكشف القصور الذاتي عند التوقف.
+   نشاط 2 — الحافلة تكبح: قانون نيوتن الأول والقصور الذاتي
    ========================================================================= */
 (function(){
   const COLORS = makeColors();
   const G = 9.8;
-  const state = { simMode:'auto', t:0, v0:14, mu:0.25, smooth:false };
+  const state = { simMode:'auto', t:0, v0:14, mu:0.7, road:'dry' };
+  const ROADS = {
+    dry:   { mu:0.70, name:'شارع جافّ' },
+    wet:   { mu:0.25, name:'شارع مبلّل بالمطر' },
+    ideal: { mu:0,    name:'سطح أملس تمامًا (تجربة فكرية)' }
+  };
 
-  function decel(){ return state.smooth ? 0 : state.mu*G; }
-  function tStop(){ return state.smooth ? Infinity : state.v0/decel(); }
-  function cartX(t){                                   // بالمتر
-    const ts = Math.min(t, tStop());
-    return state.v0*ts - 0.5*decel()*ts*ts;
-  }
-  function cartV(t){ return Math.max(0, state.v0 - decel()*t); }
+  function mu(){ return state.road==='ideal' ? 0 : state.mu; }
+  function decel(){ return mu()*G; }
+  function tStop(){ return decel()>0 ? state.v0/decel() : Infinity; }
+  function busX(t){ const ts=Math.min(t,tStop()); return state.v0*ts - 0.5*decel()*ts*ts; }
+  function busV(t){ return Math.max(0, state.v0 - decel()*t); }
 
   function t22Update(dt){
     if(state.simMode==='auto'){
       state.t += dt;
-      if(state.t > (state.smooth ? 9 : tStop()+2.6)) state.t = 0;
+      if(state.t > (decel()>0 ? tStop()+2.6 : 9)) state.t = 0;
     }
   }
 
   function t22Draw(){
     ctx.clearRect(0,0,CW,CH);
     ctx.fillStyle=COLORS.bg; ctx.fillRect(0,0,CW,CH);
-    optTitle('قانون نيوتن الأول — القصور الذاتي', COLORS);
+    optTitle('نشاط ٢: لماذا يميل الراكب إلى الأمام حين تكبح الحافلة؟', COLORS);
 
-    const SC = 8.0;                                     // بكسل لكل متر
-    const gy = 318, ox = 190, WRAP = 80;                // WRAP: طول الشوط بالمتر
-    const t  = state.t;
-    const cxm = cartX(t);
-    const cxp = ox + (cxm % WRAP)*SC;                   // يلتف عند تجاوز الحدود
-    const v   = cartV(t);
+    const SC = 7.4, WRAP = 84, gy = 326, ox = 210;
+    const t = state.t, v = busV(t);
+    const bxp = ox + (busX(t) % WRAP)*SC;
+    const braking = decel() > 0 && v > 0.1;
 
-    /* السطح */
-    ctx.fillStyle=COLORS.ground; ctx.fillRect(60, gy, 790, 8);
-    if(!state.smooth){                       /* التهشير علامة الخشونة: يختفي تمامًا على السطح الأملس */
-      for(let gx=70; gx<845; gx+=13){
-        ctx.strokeStyle=COLORS.border; ctx.lineWidth=1;
-        ctx.beginPath(); ctx.moveTo(gx, gy+8); ctx.lineTo(gx+6, gy+16); ctx.stroke();
-      }
+    /* الشارع */
+    ctx.fillStyle=COLORS.ground; ctx.fillRect(50, gy, 800, 8);
+    if(state.road === 'wet'){
+      ctx.fillStyle=COLORS.blue; ctx.globalAlpha=0.22;
+      ctx.fillRect(50, gy, 800, 8); ctx.globalAlpha=1;
     }
-    optLabel(state.smooth ? 'سطح أملس تمامًا — لا احتكاك' : 'سطح خشن — فيه احتكاك',
-             455, gy+36, state.smooth?COLORS.green:COLORS.capDefault, 12);
+    optLabel('الشارع: '+ROADS[state.road].name, 450, gy+30,
+             state.road==='dry'?COLORS.capDefault:(state.road==='wet'?COLORS.blue:COLORS.green), 12);
 
-    /* علامة موضع التوقف المتوقّع */
-    if(!state.smooth){
+    /* موضع التوقف المحسوب */
+    if(decel() > 0){
       const dStop = state.v0*state.v0/(2*decel());
-      const sx = ox + (dStop % WRAP)*SC;
       if(dStop < WRAP){
+        const sx = ox + dStop*SC;
         ctx.setLineDash([6,5]); ctx.strokeStyle=COLORS.red; ctx.lineWidth=1.5;
-        ctx.beginPath(); ctx.moveTo(sx, gy-64); ctx.lineTo(sx, gy); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(sx, gy-112); ctx.lineTo(sx, gy); ctx.stroke();
         ctx.setLineDash([]);
-        optLabel('موضع التوقف المحسوب', sx, gy-72, COLORS.red, 10.5);
+        optLabel('هنا تقف الحافلة', sx, gy-120, COLORS.red, 10.5);
       }
     }
 
-    ctx.save(); ctx.beginPath(); ctx.rect(62, 150, 786, gy-150); ctx.clip();
+    ctx.save(); ctx.beginPath(); ctx.rect(52, 132, 796, gy-132); ctx.clip();
+    figBus(bxp, gy, 118, COLORS, braking);
 
-    /* العربة */
-    const cw=76, ch=26;
-    optBox(cxp-cw/2, gy-ch-9, cw, ch, COLORS.blue);
-    ctx.fillStyle=COLORS.ground;
-    ctx.beginPath(); ctx.arc(cxp-22, gy-6, 9, 0, Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.arc(cxp+22, gy-6, 9, 0, Math.PI*2); ctx.fill();
+    /* مقطع داخلي في جانب الحافلة: إطار واضح يُرى الراكب داخله */
+    optBox(bxp-54, gy-58, 58, 42, COLORS.bg, COLORS.border);
+    ctx.fillStyle=COLORS.border; ctx.fillRect(bxp-54, gy-19, 58, 3);
+    const lean = braking ? Math.min(decel()*0.055, 0.42) : 0;
+    figPerson(bxp-26, gy-19, 34, COLORS.wire, lean, 0);
 
-    /* الكرة الحرّة فوق العربة: تحافظ على سرعتها الابتدائية (قصور ذاتي) */
-    const ballM = state.v0*t;                            // حركة بسرعة ثابتة
-    const ballP = ox + (ballM % WRAP)*SC;
-    const ahead = ballP - cxp;
-    const fell  = ahead > cw/2;
-    const ballY = fell ? Math.min(gy-14, gy-ch-22 + Math.pow(ahead-cw/2,1.5)*0.5) : gy-ch-22;
-    ctx.fillStyle=COLORS.capDefault;
-    ctx.beginPath(); ctx.arc(ballP, ballY, 11, 0, Math.PI*2); ctx.fill();
-
-    /* سهم السرعة وسهم الاحتكاك */
-    if(v > 0.1) optArrow(cxp+cw/2+6, gy-ch/2-9, cxp+cw/2+6+v*3.4, gy-ch/2-9, COLORS.green, 3);
-    if(!state.smooth && v > 0.1){
-      const fLen = Math.min(state.mu*120, 62);
-      optArrow(cxp-cw/2-6, gy-ch/2-9, cxp-cw/2-6-fLen, gy-ch/2-9, COLORS.red, 3);
-      optLabel('قوة الاحتكاك', cxp-cw/2-6-fLen/2, gy-ch/2-24, COLORS.red, 10.5);
+    /* السهمان فوق سقف الحافلة، فلا يزاحمان جسمها */
+    if(v > 0.1){
+      optArrow(bxp+30, gy-78, bxp+30+v*3.4, gy-78, COLORS.green, 3);
+      optLabel('السرعة', bxp+30+v*1.7, gy-88, COLORS.green, 10.5);
+    }
+    if(braking){
+      const fLen = Math.min(mu()*70, 60);
+      optArrow(bxp-30, gy-78, bxp-30-fLen, gy-78, COLORS.red, 3);
+      optLabel('الاحتكاك', bxp-30-fLen/2, gy-88, COLORS.red, 10.5);
     }
     ctx.restore();
 
     optHUD(600, 62, 268, [
-      {text:'قراءات الحركة', bold:true, color:COLORS.capActive},
-      {text:'v₀ = '+state.v0.toFixed(0)+' m/s', ltr:true},
+      {text:'قراءات الكبح', bold:true, color:COLORS.capActive},
+      {text:'v₀ = '+state.v0.toFixed(0)+' m/s = '+(state.v0*3.6).toFixed(0)+' km/h', ltr:true},
       {text:'v = '+v.toFixed(2)+' m/s', ltr:true, color:COLORS.green},
-      {text: state.smooth ? 'a = 0 (ΣF = 0)' : 'a = −μg = −'+decel().toFixed(2)+' m/s²',
+      {text: decel()>0 ? 'a = −μg = −'+decel().toFixed(2)+' m/s²' : 'a = 0 (ΣF = 0)',
        ltr:true, color:COLORS.red},
-      {text: state.smooth ? 'الجسم لا يقف أبدًا' : 'مسافة التوقف',
-       color:COLORS.muted},
-      {text: state.smooth ? 'd → ∞' : 'd = v₀²/2a = '+(state.v0*state.v0/(2*decel())).toFixed(1)+' m',
+      {text: decel()>0 ? 'مسافة التوقف' : 'الحافلة لا تقف أبدًا', color:COLORS.muted},
+      {text: decel()>0 ? 'd = v₀²/2a = '+(state.v0*state.v0/(2*decel())).toFixed(1)+' m' : 'd → ∞',
        ltr:true, color:COLORS.capDefault}
     ], COLORS);
 
     let vt, vc;
-    if(state.smooth){ vt='لا قوة أفقية ← ΣF = 0 فتستمر الحركة بسرعة ثابتة بلا توقف'; vc=COLORS.green; }
-    else if(v < 0.1){ vt='توقفت العربة بفعل الاحتكاك، والكرة استمرت إلى الأمام — هذا هو القصور الذاتي'; vc=COLORS.capDefault; }
-    else { vt='الاحتكاك قوة تعارض الحركة ← العربة تتباطأ، وليس لأن الحركة «تنفد»'; vc=COLORS.red; }
+    if(state.road==='ideal'){ vt='لا احتكاك ← ΣF = 0 فتستمر الحافلة بسرعة ثابتة ولا تقف أبدًا'; vc=COLORS.green; }
+    else if(v < 0.1){ vt='وقفت الحافلة، وجسم الراكب أراد أن يستمر إلى الأمام — هذا هو القصور الذاتي'; vc=COLORS.capDefault; }
+    else if(state.road==='wet'){ vt='الشارع مبلّل ← الاحتكاك أقل فتطول مسافة التوقف كثيرًا'; vc=COLORS.blue; }
+    else { vt='احتكاك الإطارات بالشارع هو القوة التي تُوقف الحافلة'; vc=COLORS.red; }
     optVerdict(vt, COLORS, vc);
-    optCaption('الجسم يحافظ على حالته حتى تؤثّر فيه قوة محصّلة — والاحتكاك هو القوة التي توقف العربة.', COLORS);
+    optCaption('اربط حزام الأمان: جسمك يحافظ على سرعته حتى بعد أن تتوقف الحافلة، فيندفع إلى الأمام.', COLORS);
   }
 
   window.t22State=state; window.t22Update=t22Update; window.t22Draw=t22Draw;
-  window.t22SetSurface=function(s){ state.smooth = (s==='smooth'); state.t = 0; };
+  window.t22SetRoad=function(r){
+    if(!ROADS[r]) return;
+    state.road = r; state.t = 0;
+    if(r !== 'ideal') setControl('t22State.mu', ROADS[r].mu);
+  };
 })();
 </script>
 
 <script>
 /* =========================================================================
-   تجربة 23 — قانون نيوتن الثاني: a = F/m
-   عربتان بالقوة نفسها وكتلة إحداهما ضعف الأخرى.
+   نشاط 3 — عربة تسوّق فارغة وأخرى ممتلئة: قانون نيوتن الثاني
    ========================================================================= */
 (function(){
   const COLORS = makeColors();
@@ -1860,40 +2018,37 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
   function aB(){ return state.F/(2*state.m); }
 
   function t23Update(dt){
-    if(state.simMode==='auto'){
-      state.t += dt;
-      if(state.t > T) state.t = 0;
-    }
+    if(state.simMode==='auto'){ state.t += dt; if(state.t > T) state.t = 0; }
   }
 
   function t23Draw(){
     ctx.clearRect(0,0,CW,CH);
     ctx.fillStyle=COLORS.bg; ctx.fillRect(0,0,CW,CH);
-    optTitle('قانون نيوتن الثاني — القوة نفسها وكتلتان مختلفتان', COLORS);
+    optTitle('نشاط ٣: عربة فارغة وعربة ممتلئة تُدفعان بالقوة نفسها', COLORS);
 
     const t = Math.min(state.t, T);
     const xA = 0.5*aA()*t*t, xB = 0.5*aB()*t*t;
     const XM = Math.max(0.5*aA()*T*T, 1)*1.05;
-    const rx0 = 80, rx1 = 540;
+    const rx0 = 160, rx1 = 560;
     const PXr = xx => rx0 + (xx/XM)*(rx1-rx0);
 
-    function track(y, xm, mass, color, tag){
-      ctx.fillStyle=COLORS.ground; ctx.fillRect(rx0-14, y+16, (rx1-rx0)+40, 6);
-      const side = 24 + mass*2.2;
-      ctx.save(); ctx.beginPath(); ctx.rect(rx0-16, y-46, (rx1-rx0)+46, 64); ctx.clip();
+    function lane(y, xm, mass, color, tag, loaded){
+      ctx.fillStyle=COLORS.ground; ctx.fillRect(rx0-104, y+8, (rx1-rx0)+144, 5);
+      /* يشمل الـ clip الطالب الدافع الواقف خلف العربة */
+      ctx.save(); ctx.beginPath(); ctx.rect(rx0-104, y-64, (rx1-rx0)+144, 74); ctx.clip();
       const px = PXr(xm);
-      optBox(px-side/2, y+14-side, side, side, color);
-      optArrow(px+side/2+4, y+14-side/2, px+side/2+4+state.F*1.9, y+14-side/2, COLORS.red, 3);
+      figPerson(px-56, y+8, 50, COLORS.wire, 0.12, 1);
+      figCart(px, y+8, 62, COLORS, loaded, color);
+      optArrow(px+34, y-14, px+34+state.F*1.7, y-14, COLORS.red, 3);
       ctx.restore();
-      /* التسمية فوق أعلى نقطة في الصندوق مهما كبرت كتلته */
-      optLabel(tag, rx0+4, y+14-side-10, color, 11.5, 'left', true);
+      optLabel(tag, rx0-100, y-44, color, 11.5, 'left', true);
     }
-    track(120, xA, state.m,   COLORS.capDefault, 'm = '+state.m.toFixed(0)+' kg');
-    track(222, xB, 2*state.m, COLORS.blue,       'm = '+(2*state.m).toFixed(0)+' kg');
-    optLabel('القوة المؤثرة متساوية في العربتين', 310, 272, COLORS.red, 11.5);
+    lane(132, xA, state.m,   COLORS.capDefault, 'm = '+state.m.toFixed(0)+' kg', false);
+    lane(238, xB, 2*state.m, COLORS.blue,       'm = '+(2*state.m).toFixed(0)+' kg', true);
+    optLabel('القوة التي تدفع بها العربتين واحدة', 315, 282, COLORS.red, 11.5);
 
-    /* منحني السرعة–الزمن للعربتين */
-    const gx0=80, gyB=380, gw=420, gh=88;
+    /* منحني السرعة–الزمن */
+    const gx0=90, gyB=380, gw=420, gh=76;
     optAxes(gx0, gyB, gw, gh, COLORS, 't (s)', 'v (m/s)', true);
     const PX = tt => gx0 + (tt/T)*gw;
     const VM = Math.max(aA()*T, 1)*1.1;
@@ -1905,18 +2060,17 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
     });
 
     optHUD(600, 120, 268, [
-      {text:'الكتلة تُقاوم التعجيل', bold:true, color:COLORS.capActive},
+      {text:'الكتلة تقاوم التعجيل', bold:true, color:COLORS.capActive},
       {text:'القوة متساوية في العربتين', color:COLORS.muted},
       {text:'F = '+state.F.toFixed(0)+' N', ltr:true, color:COLORS.red},
       {text:'a₁ = F/m = '+aA().toFixed(2)+' m/s²', ltr:true, color:COLORS.capDefault},
       {text:'a₂ = F/2m = '+aB().toFixed(2)+' m/s²', ltr:true, color:COLORS.blue},
-      {text:'x₁ = '+xA.toFixed(2)+' m  ,  x₂ = '+xB.toFixed(2)+' m', ltr:true},
       {text:'a₁/a₂ = 2', ltr:true, color:COLORS.capActive}
     ], COLORS);
 
-    optVerdict('بمضاعفة الكتلة يصير التعجيل نصفًا — التعجيل يتناسب عكسيًا مع الكتلة',
+    optVerdict('العربة الممتلئة كتلتها ضعف الفارغة فتعجيلها نصف تعجيلها',
                COLORS, COLORS.capActive);
-    optCaption('القوة نفسها تنتج تعجيلين مختلفين، فالكتلة هي مقياس قصور الجسم الذاتي ومقاومته للتغيير.', COLORS);
+    optCaption('جرّبها في السوق: العربة الممتلئة تحتاج قوة أكبر لتصل السرعة نفسها في الزمن نفسه.', COLORS);
   }
 
   window.t23State=state; window.t23Update=t23Update; window.t23Draw=t23Draw;
@@ -1925,63 +2079,61 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
 
 <script>
 /* =========================================================================
-   تجربة 24 — قانون نيوتن الثالث: لكل فعل رد فعل
-   متزلجان يتدافعان: القوتان متساويتان والتعجيلان مختلفان.
+   نشاط 4 — طالبان على لوحَي تزلّج يتدافعان: قانون نيوتن الثالث
    ========================================================================= */
 (function(){
   const COLORS = makeColors();
   const state = { simMode:'auto', t:0, F:60, mA:40, mB:60 };
-  const DT = 0.5;                                   // مدة التلامس (s)
+  const DT = 0.5;
 
   function vA(){ return state.F*DT/state.mA; }
   function vB(){ return state.F*DT/state.mB; }
 
   function t24Update(dt){
-    if(state.simMode==='auto'){
-      state.t += dt;
-      if(state.t > DT + 2.6) state.t = 0;
-    }
+    if(state.simMode==='auto'){ state.t += dt; if(state.t > DT + 2.6) state.t = 0; }
+  }
+
+  function board(cx, gy, w, COLORSref){
+    ctx.fillStyle=COLORSref.muted;
+    ctx.fillRect(cx-w/2, gy-7, w, 5);
+    ctx.beginPath(); ctx.arc(cx-w*0.28, gy-2, 4, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx+w*0.28, gy-2, 4, 0, Math.PI*2); ctx.fill();
   }
 
   function t24Draw(){
     ctx.clearRect(0,0,CW,CH);
     ctx.fillStyle=COLORS.bg; ctx.fillRect(0,0,CW,CH);
-    optTitle('قانون نيوتن الثالث — الفعل ورد الفعل', COLORS);
+    optTitle('نشاط ٤: طالبان يتدافعان وهما على لوحَي تزلّج', COLORS);
 
     const t = state.t, pushing = t <= DT;
     const aA = state.F/state.mA, aB = state.F/state.mB;
     const sA = pushing ? 0.5*aA*t*t : 0.5*aA*DT*DT + vA()*(t-DT);
     const sB = pushing ? 0.5*aB*t*t : 0.5*aB*DT*DT + vB()*(t-DT);
-    const SC = 11;                                   // بكسل لكل متر
-    const mid = 452, gy = 268;
+    const SC = 11, mid = 452, gy = 306;
 
-    /* الأرضية */
-    ctx.fillStyle=COLORS.ground; ctx.fillRect(70, gy, 760, 7);
-    optLabel('سطح أملس (حلبة تزلّج)', 450, gy+26, COLORS.muted, 11);
+    ctx.fillStyle=COLORS.ground; ctx.fillRect(60, gy, 780, 7);
+    optLabel('أرضية ملساء', 450, gy+28, COLORS.muted, 11);
 
-    ctx.save(); ctx.beginPath(); ctx.rect(70, 120, 760, gy-120); ctx.clip();
-    function skater(px, mass, color, tag, dir){
-      const w = 26 + mass*0.30, h = 40 + mass*0.30;
-      optBox(px-w/2, gy-h, w, h, color);
-      ctx.fillStyle=color;
-      ctx.beginPath(); ctx.arc(px, gy-h-11, 10, 0, Math.PI*2); ctx.fill();
-      optLabel(tag, px+(dir||0), gy-h-30, color, 11.5, 'center', true);
-    }
-    const pxA = mid - 34 - sA*SC, pxB = mid + 34 + sB*SC;
-    skater(pxA, state.mA, COLORS.capDefault, 'm(A) = '+state.mA+' kg', -34);
-    skater(pxB, state.mB, COLORS.blue,       'm(B) = '+state.mB+' kg', 34);
+    ctx.save(); ctx.beginPath(); ctx.rect(60, 140, 780, gy-140); ctx.clip();
+    const pxA = mid - 40 - sA*SC, pxB = mid + 40 + sB*SC;
+    const hA = 54 + state.mA*0.26, hB = 54 + state.mB*0.26;
+    board(pxA, gy, 46, COLORS); board(pxB, gy, 46, COLORS);
+    figPerson(pxA, gy-7, hA, COLORS.capDefault, 0, 1);
+    figPerson(pxB, gy-7, hB, COLORS.blue, 0, -1);
+    optLabel('الطالب A كتلته '+state.mA+' كغم', pxA-40, gy-hA-26, COLORS.capDefault, 11);
+    optLabel('الطالب B كتلته '+state.mB+' كغم', pxB+40, gy-hB-26, COLORS.blue, 11);
 
     if(pushing){
       const L = Math.min(state.F*1.05, 84);
-      optArrow(pxA+16, gy-52, pxA+16-L, gy-52, COLORS.red, 3.5);
-      optArrow(pxB-16, gy-52, pxB-16+L, gy-52, COLORS.green, 3.5);
-      optLabel('القوة على A', pxA+10-L, gy-56, COLORS.red, 10.5, 'right');
-      optLabel('القوة على B', pxB-10+L, gy-56, COLORS.green, 10.5, 'left');
+      optArrow(pxA+18, gy-46, pxA+18-L, gy-46, COLORS.red, 3.5);
+      optArrow(pxB-18, gy-46, pxB-18+L, gy-46, COLORS.green, 3.5);
+      optLabel('القوة على A', pxA+12-L, gy-52, COLORS.red, 10.5, 'right');
+      optLabel('القوة على B', pxB-12+L, gy-52, COLORS.green, 10.5, 'left');
     } else {
-      optArrow(pxA+18, gy-52, pxA+18-Math.min(vA()*32,80), gy-52, COLORS.capDefault, 3);
-      optArrow(pxB-18, gy-52, pxB-18+Math.min(vB()*32,80), gy-52, COLORS.blue, 3);
-      optLabel('v(A)', pxA+12-Math.min(vA()*32,80), gy-56, COLORS.capDefault, 11, 'right', true);
-      optLabel('v(B)', pxB-12+Math.min(vB()*32,80), gy-56, COLORS.blue, 11, 'left', true);
+      optArrow(pxA+18, gy-46, pxA+18-Math.min(vA()*32,80), gy-46, COLORS.capDefault, 3);
+      optArrow(pxB-18, gy-46, pxB-18+Math.min(vB()*32,80), gy-46, COLORS.blue, 3);
+      optLabel('سرعة A', pxA+12-Math.min(vA()*32,80), gy-52, COLORS.capDefault, 11, 'right');
+      optLabel('سرعة B', pxB-12+Math.min(vB()*32,80), gy-52, COLORS.blue, 11, 'left');
     }
     ctx.restore();
 
@@ -1995,11 +2147,11 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
     ], COLORS);
 
     let v, vc;
-    if(Math.abs(state.mA-state.mB) < 0.5){ v='الكتلتان متساويتان ← تعجيلان متساويان وسرعتان متساويتان'; vc=COLORS.green; }
-    else if(state.mA < state.mB){ v='القوتان متساويتان، لكن الأصغر كتلةً (A) يكتسب تعجيلًا أكبر'; vc=COLORS.capDefault; }
-    else { v='القوتان متساويتان، لكن الأصغر كتلةً (B) يكتسب تعجيلًا أكبر'; vc=COLORS.blue; }
+    if(Math.abs(state.mA-state.mB) < 0.5){ v='الكتلتان متساويتان ← ينطلقان بالسرعة نفسها تمامًا'; vc=COLORS.green; }
+    else if(state.mA < state.mB){ v='القوتان متساويتان، لكن الطالب الأول أخفّ فينطلق أسرع'; vc=COLORS.capDefault; }
+    else { v='القوتان متساويتان، لكن الطالب الثاني أخفّ فينطلق أسرع'; vc=COLORS.blue; }
     optVerdict(v, COLORS, vc);
-    optCaption('القوتان متساويتان ومتضادتان لكنهما تؤثّران في جسمين مختلفين، لذلك لا تُلغي إحداهما الأخرى.', COLORS);
+    optCaption('دفعة واحدة تحرّك الاثنين: القوتان متساويتان ومتضادتان، لكنهما تؤثّران في جسمين مختلفين.', COLORS);
   }
 
   window.t24State=state; window.t24Update=t24Update; window.t24Draw=t24Draw;
@@ -2009,19 +2161,17 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
 
 <script>
 /* =========================================================================
-   تجربة 25 — الكتلة والوزن
-   ميزان نابضي يقرأ الوزن (N) وميزان ذو كفتين يقرأ الكتلة (kg).
+   نشاط 5 — حقيبتك المدرسية على ميزانين: الكتلة والوزن
    ========================================================================= */
 (function(){
   const COLORS = makeColors();
   const state = { simMode:'auto', t:0, m:8, place:'earth' };
   const PLACES = {
-    earth:  { g:9.8,  name:'سطح الأرض' },
-    moon:   { g:1.6,  name:'سطح القمر' },
-    mars:   { g:3.7,  name:'سطح المريخ' },
-    jupiter:{ g:24.8, name:'سطح المشتري' }
+    earth:  { g:9.8,  name:'على سطح الأرض' },
+    moon:   { g:1.6,  name:'على سطح القمر' },
+    mars:   { g:3.7,  name:'على سطح المريخ' },
+    jupiter:{ g:24.8, name:'على سطح المشتري' }
   };
-
   function gNow(){ return PLACES[state.place].g; }
   function weight(){ return state.m*gNow(); }
 
@@ -2030,85 +2180,78 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
   function t25Draw(){
     ctx.clearRect(0,0,CW,CH);
     ctx.fillStyle=COLORS.bg; ctx.fillRect(0,0,CW,CH);
-    optTitle('الكتلة والوزن — ما الذي يتغيّر بتغيّر المكان؟', COLORS);
+    optTitle('نشاط ٥: حقيبتك المدرسية على ميزانين مختلفين', COLORS);
 
-    const W = weight(), WMAX = 500;                  // مدى تدريج الميزان (N)
+    const W = weight(), WMAX = 500;
     const wobble = Math.sin(state.t*3)*1.6;
 
-    /* ===== الميزان النابضي (يقيس الوزن) ===== */
-    const sx = 190, top = 74;
-    optLabel('ميزان نابضي — يقيس الوزن', sx, top-14, COLORS.capActive, 12.5);
+    /* الميزان النابضي */
+    const sx = 190, top = 76;
+    optLabel('ميزان نابضي — يقيس الوزن', sx, top-16, COLORS.capActive, 12.5);
     ctx.strokeStyle=COLORS.muted; ctx.lineWidth=3;
     ctx.beginPath(); ctx.moveTo(sx-58, top); ctx.lineTo(sx+58, top); ctx.stroke();
-
-    const stretch = 26 + (W/WMAX)*150 + wobble;      // استطالة النابض ∝ الوزن
+    const stretch = 26 + (W/WMAX)*150 + wobble;
     ctx.strokeStyle=COLORS.capDefault; ctx.lineWidth=2.5;
     ctx.beginPath();
     const coils = 6;
     for(let i=0;i<=coils*12;i++){
-      const f = i/(coils*12);
-      const yy = top + f*stretch;
-      const xx = sx + Math.sin(f*coils*Math.PI*2)*13;
+      const f=i/(coils*12), yy=top+f*stretch, xx=sx+Math.sin(f*coils*Math.PI*2)*13;
       if(i===0) ctx.moveTo(xx,yy); else ctx.lineTo(xx,yy);
     }
     ctx.stroke();
-    const blockY = top + stretch;
-    const bs = 24 + state.m*1.7;
-    optBox(sx-bs/2, blockY, bs, bs, COLORS.blue);
-    optLabel('m = '+state.m.toFixed(0)+' kg', sx, blockY+bs+18, COLORS.blue, 11.5, 'center', true);
+    const bagY = top + stretch;
+    figBag(sx, bagY + 26 + state.m*1.6, 26 + state.m*1.6, COLORS.blue, COLORS);
+    optLabel('حقيبتك', sx, bagY + 26 + state.m*1.6 + 20, COLORS.blue, 11.5);
 
-    /* تدريج الميزان بالنيوتن */
-    const scX = sx+78;
+    /* التدريج بالنيوتن */
+    const scX = sx+82;
     ctx.strokeStyle=COLORS.border; ctx.lineWidth=1.5;
     ctx.beginPath(); ctx.moveTo(scX, top+26); ctx.lineTo(scX, top+176); ctx.stroke();
     for(let i=0;i<=5;i++){
       const yy = top+26 + i*30;
-      ctx.strokeStyle=COLORS.border;
       ctx.beginPath(); ctx.moveTo(scX-6, yy); ctx.lineTo(scX+6, yy); ctx.stroke();
       optLabel(String(Math.round(i*WMAX/5)), scX-10, yy+4, COLORS.muted, 9.5, 'right', true);
     }
     optLabel('N', scX-10, top+14, COLORS.muted, 10.5, 'right', true);
-    /* المؤشّر والقراءة على يمين التدريج، بعيدًا عن النابض والجسم */
     const ptrY = top+26 + (W/WMAX)*150;
     optArrow(scX+38, ptrY, scX+8, ptrY, COLORS.red, 2.5, 7);
     optLabel(W.toFixed(1)+' N', scX+44, ptrY+4, COLORS.red, 12.5, 'left', true);
 
-    /* ===== الميزان ذو الكفتين (يقيس الكتلة) ===== */
-    const bx = 560, byTop = 128;
+    /* الميزان ذو الكفتين */
+    const bx = 566, byTop = 124;
     optLabel('ميزان ذو كفتين — يقيس الكتلة', bx, 60, COLORS.capActive, 12.5);
     ctx.strokeStyle=COLORS.muted; ctx.lineWidth=4;
-    ctx.beginPath(); ctx.moveTo(bx, byTop); ctx.lineTo(bx, byTop+120); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(bx, byTop); ctx.lineTo(bx, byTop+118); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(bx-96, byTop); ctx.lineTo(bx+96, byTop); ctx.stroke();
-    ctx.fillStyle=COLORS.ground; ctx.fillRect(bx-46, byTop+120, 92, 8);
+    ctx.fillStyle=COLORS.ground; ctx.fillRect(bx-46, byTop+118, 92, 8);
     [-96, 96].forEach(dx=>{
       ctx.strokeStyle=COLORS.border; ctx.lineWidth=1.5;
-      ctx.beginPath(); ctx.moveTo(bx+dx, byTop); ctx.lineTo(bx+dx, byTop+42); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(bx+dx, byTop); ctx.lineTo(bx+dx, byTop+40); ctx.stroke();
       ctx.strokeStyle=COLORS.muted; ctx.lineWidth=3;
-      ctx.beginPath(); ctx.moveTo(bx+dx-30, byTop+42); ctx.lineTo(bx+dx+30, byTop+42); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(bx+dx-32, byTop+40); ctx.lineTo(bx+dx+32, byTop+40); ctx.stroke();
     });
-    const bs2 = 20 + state.m*1.4;
-    optBox(bx-96-bs2/2, byTop+42-bs2, bs2, bs2, COLORS.blue);
-    optLabel('الجسم', bx-96, byTop+62, COLORS.blue, 11);
-    optBox(bx+96-bs2/2, byTop+42-bs2, bs2, bs2, COLORS.green);
-    optLabel('كتل معيارية', bx+96, byTop+62, COLORS.green, 11);
-    optLabel('m = '+state.m.toFixed(0)+' kg', bx, byTop+152, COLORS.capActive, 13, 'center', true);
-    optLabel('الكفتان متزنتان في كل مكان', bx, byTop+174, COLORS.muted, 11);
+    figBag(bx-96, byTop+40, 18 + state.m*1.2, COLORS.blue, COLORS);
+    optLabel('حقيبتك', bx-96, byTop+58, COLORS.blue, 11);
+    const kw = 16 + state.m*0.9;
+    ctx.fillStyle=COLORS.green;
+    ctx.fillRect(bx+96-kw/2, byTop+40-kw, kw, kw);
+    optLabel('كتل معيارية', bx+96, byTop+58, COLORS.green, 11);
+    optLabel('الكفتان متزنتان ← الكتلة '+state.m.toFixed(0)+' كغم', bx, byTop+150, COLORS.capActive, 12.5);
+    optLabel('ولا تتغيّر في أي مكان', bx, byTop+172, COLORS.muted, 11);
 
     optHUD(660, 252, 214, [
-      {text:'المكان: '+PLACES[state.place].name, bold:true, color:COLORS.capActive},
+      {text:PLACES[state.place].name, bold:true, color:COLORS.capActive},
       {text:'g = '+gNow().toFixed(1)+' m/s²', ltr:true, color:COLORS.muted},
       {text:'m = '+state.m.toFixed(0)+' kg', ltr:true, color:COLORS.blue},
       {text:'W = mg = '+W.toFixed(1)+' N', ltr:true, color:COLORS.red}
     ], COLORS);
 
-    const wEarth = state.m*9.8;
     let v, vc;
-    if(state.place==='earth'){ v='على الأرض: كل كيلوغرام وزنه 9.8 نيوتن تقريبًا'; vc=COLORS.green; }
-    else if(gNow() < 9.8){ v='الجاذبية أضعف ← الوزن أقل مما هو على الأرض، والكتلة لم تتغيّر'; vc=COLORS.capActive; }
-    else { v='الجاذبية أقوى ← الوزن أكبر مما هو على الأرض، والكتلة لم تتغيّر'; vc=COLORS.red; }
+    if(state.place==='earth'){ v='على الأرض: كل كيلوغرام من حقيبتك وزنه 9.8 نيوتن تقريبًا'; vc=COLORS.green; }
+    else if(gNow() < 9.8){ v='الجاذبية أضعف ← حقيبتك أخفّ وزنًا، لكن كتلتها لم تتغيّر'; vc=COLORS.capActive; }
+    else { v='الجاذبية أقوى ← حقيبتك أثقل وزنًا، لكن كتلتها لم تتغيّر'; vc=COLORS.red; }
     optVerdict(v, COLORS, vc);
-    optCaption('الكتلة مقدار المادة ولا تتغيّر، أما الوزن فقوة جذب تتغيّر بتغيّر تعجيل الجاذبية.', COLORS);
-    void wEarth;
+    optCaption('الكتلة مقدار المادة في حقيبتك ولا تتغيّر، أما الوزن فقوة جذب تتغيّر بتغيّر تعجيل الجاذبية.', COLORS);
   }
 
   window.t25State=state; window.t25Update=t25Update; window.t25Draw=t25Draw;
@@ -2118,20 +2261,18 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
 
 <script>
 /* =========================================================================
-   تجربة 26 — الاحتكاك السكوني والحركي
-   الاحتكاك السكوني يساوي القوة المؤثرة حتى حدّ أقصى، ثم يبدأ الانزلاق.
+   نشاط 6 — سحب الحقيبة على أرضيات مختلفة: الاحتكاك السكوني والحركي
    ========================================================================= */
 (function(){
   const COLORS = makeColors();
   const G = 9.8;
-  const state = { simMode:'auto', t:0, F:12, m:5, surf:'wood' };
+  const state = { simMode:'auto', t:0, F:12, m:5, surf:'tile' };
   const SURFACES = {
-    wood:  { us:0.50, uk:0.30, name:'خشب على خشب' },
-    metal: { us:0.74, uk:0.57, name:'حديد على حديد' },
-    rubber:{ us:0.90, uk:0.68, name:'مطاط على إسفلت' },
-    ice:   { us:0.10, uk:0.03, name:'حذاء على جليد' }
+    tile:   { us:0.35, uk:0.25, name:'بلاط أملس' },
+    carpet: { us:0.65, uk:0.50, name:'سجّاد الصف' },
+    asphalt:{ us:0.90, uk:0.70, name:'إسفلت الشارع' },
+    ice:    { us:0.10, uk:0.03, name:'جليد' }
   };
-
   function us(){ return SURFACES[state.surf].us; }
   function uk(){ return SURFACES[state.surf].uk; }
   function normal(){ return state.m*G; }
@@ -2143,42 +2284,38 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
   function t26Update(dt){
     if(state.simMode==='auto'){
       state.t += dt;
-      if(0.5*accel()*state.t*state.t > 24 || !sliding()) {
-        if(!sliding()) state.t = 0; else state.t = 0;
-      }
+      if(!sliding() || 0.5*accel()*state.t*state.t > 18) state.t = 0;
     }
   }
 
   function t26Draw(){
     ctx.clearRect(0,0,CW,CH);
     ctx.fillStyle=COLORS.bg; ctx.fillRect(0,0,CW,CH);
-    optTitle('الاحتكاك السكوني والحركي', COLORS);
+    optTitle('نشاط ٦: اسحب حقيبتك على أرضيات مختلفة', COLORS);
 
     const N = normal(), fs = fsMax(), f = friction(), a = accel();
-    const gy = 214, SC = 9;
-    const bx = 200 + (sliding() ? 0.5*a*state.t*state.t*SC : 0);
+    const gy = 208, SC = 9;
+    const bx = 210 + (sliding() ? 0.5*a*state.t*state.t*SC : 0);
 
-    /* السطح */
-    ctx.fillStyle=COLORS.ground; ctx.fillRect(70, gy, 490, 8);
-    for(let gx=76; gx<556; gx+=12){
+    ctx.fillStyle=COLORS.ground; ctx.fillRect(60, gy, 500, 8);
+    for(let gx=66; gx<556; gx+=12){
       ctx.strokeStyle=COLORS.border; ctx.lineWidth=1;
       ctx.beginPath(); ctx.moveTo(gx, gy+8); ctx.lineTo(gx+5, gy+15); ctx.stroke();
     }
-    optLabel('السطح: '+SURFACES[state.surf].name, 315, gy+36, COLORS.muted, 12);
+    optLabel('الأرضية: '+SURFACES[state.surf].name, 310, gy+36, COLORS.muted, 12);
 
-    ctx.save(); ctx.beginPath(); ctx.rect(72, 96, 486, gy-96); ctx.clip();
-    const side = 34 + state.m*2.6;
-    optBox(bx-side/2, gy-side, side, side, sliding()?COLORS.red:COLORS.blue);
-    optLabel('m = '+state.m.toFixed(0)+' kg', bx, gy-side-12, COLORS.wire, 11.5, 'center', true);
-    /* القوة المسحوبة وقوة الاحتكاك المعاكسة */
-    optArrow(bx+side/2, gy-side/2, bx+side/2+state.F*2.4, gy-side/2, COLORS.green, 3.5);
-    optLabel('F', bx+side/2+state.F*1.2, gy-side/2-12, COLORS.green, 12, 'center', true);
-    optArrow(bx-side/2, gy-side/2, bx-side/2-f*2.4, gy-side/2, COLORS.red, 3.5);
-    optLabel('f', bx-side/2-Math.max(f*1.2, 16), gy-side/2-12, COLORS.red, 12, 'center', true);
+    ctx.save(); ctx.beginPath(); ctx.rect(62, 88, 496, gy-88); ctx.clip();
+    const s = 34 + state.m*2.4;
+    figBag(bx, gy, s, sliding()?COLORS.red:COLORS.blue, COLORS);
+    optLabel('كتلة الحقيبة '+state.m.toFixed(0)+' كغم', bx, gy-s-20, COLORS.wire, 11.5);
+    optArrow(bx+s/2, gy-s/2, bx+s/2+state.F*2.2, gy-s/2, COLORS.green, 3.5);
+    optLabel('F', bx+s/2+Math.max(state.F*1.1,14), gy-s/2-12, COLORS.green, 12, 'center', true);
+    optArrow(bx-s/2, gy-s/2, bx-s/2-f*2.2, gy-s/2, COLORS.red, 3.5);
+    optLabel('f', bx-s/2-Math.max(f*1.1,16), gy-s/2-12, COLORS.red, 12, 'center', true);
     ctx.restore();
 
-    /* منحني: قوة الاحتكاك مقابل القوة المؤثرة */
-    const gx0=80, gyB=384, gw=420, gh=112;
+    /* منحني: الاحتكاك مقابل القوة المسحوبة */
+    const gx0=80, gyB=384, gw=420, gh=108;
     optAxes(gx0, gyB, gw, gh, COLORS, 'F (N)', 'f (N)', true);
     const FMAX = 60, fM = Math.max(fs, uk()*normal(), 1)*1.35;
     const PX = FF => gx0 + (FF/FMAX)*gw;
@@ -2191,12 +2328,12 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
       ctx.setLineDash([4,4]); ctx.strokeStyle=COLORS.muted; ctx.lineWidth=1.4;
       ctx.beginPath(); ctx.moveTo(PX(fs), PY(fs)); ctx.lineTo(PX(fs), PY(uk()*normal())); ctx.stroke();
       ctx.setLineDash([]);
-      optLabel('بداية الانزلاق', PX(fs), PY(fs)-10, COLORS.capDefault, 10.5);
+      optLabel('هنا تبدأ الحقيبة بالانزلاق', PX(fs), PY(fs)-10, COLORS.capDefault, 10.5);
     }
     ctx.fillStyle=COLORS.red;
     ctx.beginPath(); ctx.arc(PX(Math.min(state.F,FMAX)), PY(f), 5, 0, Math.PI*2); ctx.fill();
-    optLabel('الخط المائل: احتكاك سكوني يساوي القوة المؤثرة', 520, 300, COLORS.capActive, 11, 'left');
-    optLabel('الخط الأفقي: احتكاك حركي أصغر وثابت', 520, 324, COLORS.muted, 11, 'left');
+    optLabel('الخط المائل: احتكاك سكوني يساوي قوة سحبك', 528, 300, COLORS.capActive, 11, 'left');
+    optLabel('الخط الأفقي: احتكاك حركي أصغر وثابت', 528, 324, COLORS.muted, 11, 'left');
 
     optHUD(600, 62, 268, [
       {text:'حساب الاحتكاك', bold:true, color:COLORS.capActive},
@@ -2208,10 +2345,10 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
     ], COLORS);
 
     let v, vc;
-    if(!sliding()){ v='القوة أقل من حدّ الاحتكاك السكوني ← الجسم ساكن والاحتكاك يساوي القوة تمامًا'; vc=COLORS.capActive; }
-    else { v='القوة تجاوزت الحدّ الأقصى ← الجسم ينزلق، والاحتكاك الحركي أقل من السكوني'; vc=COLORS.red; }
+    if(!sliding()){ v='قوة سحبك أقل من الحدّ ← الحقيبة ساكنة والاحتكاك يساوي قوتك تمامًا'; vc=COLORS.capActive; }
+    else { v='تجاوزت الحدّ ← الحقيبة انزلقت، والاحتكاك الحركي أقل من السكوني'; vc=COLORS.red; }
     optVerdict(v, COLORS, vc);
-    optCaption('الاحتكاك السكوني يكبر مع القوة حتى حدّ أقصى، ثم يهبط إلى قيمة حركية أصغر تبقى ثابتة.', COLORS);
+    optCaption('لهذا يسهل تحريك الحقيبة بعد أن تبدأ بالانزلاق: الاحتكاك يهبط فجأة إلى قيمة أصغر.', COLORS);
   }
 
   window.t26State=state; window.t26Update=t26Update; window.t26Draw=t26Draw;
@@ -2523,159 +2660,171 @@ document.querySelectorAll('[data-teacher-name]').forEach(el=>{ el.textContent = 
 /* بيانات التجارب مفهرسة بالفصل: 11،12… للفصل الأول و21،22… للثاني */
 const EXPERIMENTS = {
   11: {
-    title:'المسافة والإزاحة',
-    subtitle:'المسافة تُقاس على المسار، والإزاحة خط مستقيم من البداية إلى النهاية',
-    tools:['شبكة قياس مدرّجة بالأمتار','مسار من ثلاثة أضلاع قابلة للتغيير','متحرك يقطع المسار','مؤشر الإزاحة المتقطّع'],
+    title:'نشاط ١: من البيت إلى المدرسة',
+    subtitle:'المسافة هي طول الطريق الذي مشيته، والإزاحة هي الخط المستقيم بين بيتك ومدرستك',
+    tools:['خريطة الحيّ مقسّمة إلى مربعات','شريط قياس','قلم لرسم الطريق','مسطرة لرسم الخط المستقيم'],
+    question:'مشيتَ إلى المدرسة صباحًا ورجعت إلى البيت ظهرًا. ما المسافة التي قطعتها في اليوم كله؟ وما إزاحتك؟',
     steps:[
-      'اضغط «مسار مستقيم» ولاحظ أن المسافة والإزاحة صارتا متساويتين.',
-      'اضغط «مسار منكسر» وقارن الرقمين في صندوق المعطيات.',
-      'اضغط «مسار يعود إلى البداية» ولاحظ أن الإزاحة صفر مع أن المسافة كبيرة.',
-      'غيّر الضلع d₂ ولاحظ تغيّر الإزاحة والزاوية θ معًا.',
-      'اجعل d₃ يساوي d₁ ثم أنقص d₂ تدريجيًا حتى تنعدم الإزاحة.',
-      'استنتج لماذا تُوصف الإزاحة بأنها كمية متجهة والمسافة كمية قياسية.'
+      'ارسم في دفترك طريقك من البيت إلى المدرسة كما هو على الشاشة.',
+      'اضغط «طريق مستقيم» ولاحظ أن المسافة والإزاحة صارتا متساويتين.',
+      'اضغط «طريق منكسر» وقارن الرقمين في صندوق المعطيات.',
+      'اضغط «تعود إلى البيت» ولاحظ أن الإزاحة صفر مع أنك مشيت كثيرًا.',
+      'غيّر أطوال الشوارع ولاحظ تغيّر الإزاحة والزاوية θ معًا.',
+      'اكتب في دفترك: أيّهما لا يمكن أن يكون أكبر من الآخر؟ ولماذا؟'
     ]
   },
   12: {
-    title:'السرعة المتوسطة واللحظية',
-    subtitle:'ميل الوتر يعطي السرعة المتوسطة، وميل المماس يعطي السرعة اللحظية',
-    tools:['سيارة على طريق مدرّج','منحني الموقع–الزمن','وتر بين نقطتين على المنحني','مماس عند لحظة واحدة'],
+    title:'نشاط ٢: عدّاد السرعة',
+    subtitle:'الإبرة تقرأ السرعة في هذه اللحظة، أما متوسط الرحلة فيُحسب بقسمة المسافة على الزمن',
+    tools:['سيارة فيها عدّاد سرعة','ساعة توقيت','عدّاد المسافة في السيارة','ورقة لتسجيل القراءات'],
+    question:'قطعت سيارة 60 كيلومترًا في ساعة واحدة. هل يعني ذلك أن عدّادها كان يشير إلى 60 طوال الطريق؟',
     steps:[
-      'راقب السيارة ومنحني الموقع–الزمن وهما يتقدمان معًا.',
-      'قارن قيمة السرعة المتوسطة بقيمة السرعة اللحظية في صندوق المعطيات.',
-      'اجعل التعجيل a يساوي صفرًا ولاحظ انطباق الوتر على المماس وتساوي السرعتين.',
-      'زِد التعجيل ولاحظ أن اللحظية تسبق المتوسطة في القيمة.',
-      'اجعل التعجيل سالبًا ولاحظ انعكاس المقارنة.',
-      'بدّل إلى الوضع اليدوي وحرّك منزلق الزمن لقراءة القيم عند لحظة تختارها.'
+      'راقب الإبرتين على العدّاد: السميكة هي سرعتك الآن، والرفيعة متوسط رحلتك.',
+      'اجعل التعجيل a يساوي صفرًا ولاحظ انطباق الإبرتين تمامًا.',
+      'زِد التعجيل ولاحظ أن الإبرة السميكة تسبق الرفيعة باستمرار.',
+      'اجعل التعجيل سالبًا ولاحظ انعكاس الترتيب بين الإبرتين.',
+      'قارن الوتر الأزرق بالمماس الأخضر على منحني الموقع–الزمن.',
+      'بدّل إلى الوضع اليدوي وحرّك منزلق الزمن لتقرأ القيم عند لحظة تختارها.'
     ]
   },
   13: {
-    title:'التعجيل',
-    subtitle:'التعجيل هو معدّل تغيّر السرعة: a = Δv/Δt، ويساوي ميل منحني السرعة–الزمن',
-    tools:['سيارة تتغيّر سرعتها','لقطتان لبداية الحركة ونهايتها','منحني السرعة–الزمن','مثلث الميل Δv و Δt'],
+    title:'نشاط ٣: انطلاق الدراجة',
+    subtitle:'التعجيل يخبرك كم مترًا في الثانية تكسبه دراجتك في كل ثانية: a = Δv/Δt',
+    tools:['دراجة هوائية','ساعة توقيت','شريط قياس على الطريق','ورقة لتسجيل السرعتين'],
+    question:'دراجتان بدأتا من السكون، بلغت الأولى 6 m/s خلال ثانيتين والثانية خلال أربع. أيّهما تعجيلها أكبر؟',
     steps:[
-      'لاحظ السهمين في اللقطتين الباهتتين: طول السهم يمثّل مقدار السرعة.',
+      'سجّل سرعتك عند البداية v₁ وسرعتك بعد Δt وهي v₂.',
       'اقرأ Δv و Δt من المثلث المتقطّع في الرسم البياني.',
       'احسب a = Δv/Δt بنفسك ثم قارن نتيجتك بالقيمة المعروضة.',
       'ثبّت Δv وزِد الزمن Δt ولاحظ نقصان التعجيل.',
-      'اجعل v₂ أصغر من v₁ ولاحظ صيرورة التعجيل سالبًا (تباطؤ).',
+      'اجعل v₂ أصغر من v₁ (تضغط المكابح) ولاحظ صيرورة التعجيل سالبًا.',
       'اجعل v₂ مساوية لـ v₁ ولاحظ أن التعجيل يصير صفرًا.'
     ]
   },
   14: {
-    title:'معادلات الحركة بتعجيل ثابت',
-    subtitle:'v = v₀+at و x = v₀t+½at² و v² = v₀²+2ax في تجربة واحدة',
-    tools:['طريق مدرّج بالأمتار','سيارة بتعجيل ثابت','منحني السرعة–الزمن ومساحته','صندوق تحقّق من المعادلة الثالثة'],
+    title:'نشاط ٤: السيارة عند إشارة المرور',
+    subtitle:'ثلاث معادلات تصف الحركة بتعجيل ثابت، والمساحة تحت منحني السرعة تعطي المسافة',
+    tools:['سيارة تنطلق من السكون','إشارة مرور','أعمدة إنارة علامات للمسافة','ساعة توقيت'],
+    question:'سيارتان تنطلقان معًا، تعجيل الثانية ضعف تعجيل الأولى. بعد ثانيتين، كم تكون المسافة بينهما؟',
     steps:[
-      'اضغط «انطلاق من السكون» وتابع نمو السرعة والإزاحة معًا.',
-      'لاحظ أن المساحة المظللة تحت المنحني تساوي عدديًا قيمة الإزاحة x.',
-      'قارن طرفي المعادلة الثالثة في صندوق المعطيات: هما متساويان دائمًا.',
-      'اضغط «سرعة ثابتة» ولاحظ استواء منحني السرعة وصيرورة الإزاحة x = v·t.',
-      'اضغط «تباطؤ حتى التوقف» ولاحظ توقف السيارة عندما تصل السرعة إلى صفر.',
-      'غيّر v₀ و a معًا واستنتج أثر كل منهما في المسافة المقطوعة.'
+      'اضغط «انطلاق من السكون» وتابع نمو السرعة والمسافة معًا.',
+      'لاحظ أن المساحة المظللة تحت المنحني تساوي المسافة x المعروضة.',
+      'قارن طرفي المعادلة الثالثة في السطر الرابع: هما متساويان دائمًا.',
+      'اضغط «سرعة ثابتة» ولاحظ استواء منحني السرعة وصيرورة المسافة حاصل ضرب v في t.',
+      'اضغط «كبح حتى التوقف» وراقب ضوء المكابح والسيارة حتى تقف.',
+      'احسب في دفترك المسافة بعد ثلاث ثوانٍ ثم تحقّق منها على الشاشة.'
     ]
   },
   15: {
-    title:'السقوط الحر',
-    subtitle:'الأجسام تسقط بتعجيل ثابت g = 9.8 m/s² مهما اختلفت كتلها',
-    tools:['كرتان مختلفتا الكتلة','مسطرة رأسية لقياس الارتفاع','مواضع وميضية كل 0.2 ثانية','متجه السرعة اللحظية'],
+    title:'نشاط ٥: كرة وحجر من سطح المدرسة',
+    subtitle:'كل الأجسام تسقط بتعجيل واحد g = 9.8 m/s² مهما اختلفت كتلها',
+    tools:['كرة تنس خفيفة','حجر ثقيل','شريط قياس لارتفاع البناية','ساعة توقيت'],
+    question:'لو أسقطتَ ورقة مفرودة وأخرى مكوّرة، فهل تصلان معًا؟ وما الفرق عن هذا النشاط؟',
     steps:[
-      'اضغط «أعد الإسقاط» وراقب الكرتين وهما تنزلان جنبًا إلى جنب.',
-      'زِد كتلة الكرة الثانية إلى أقصى قيمة وأعد الإسقاط: النتيجة لا تتغيّر.',
-      'لاحظ تباعد الدوائر الباهتة: الأزمنة متساوية والمسافات تزداد ← تعجيل.',
-      'اقرأ زمن الوصول إلى الأرض ثم احسبه بنفسك من العلاقة الموضّحة.',
-      'ضاعف الارتفاع ولاحظ أن الزمن لا يتضاعف لأنه يتناسب مع الجذر التربيعي.',
-      'استنتج لماذا يكون تعجيل السقوط مستقلًا عن الكتلة.'
+      'اضغط «أعد الإسقاط» وراقب الكرة والحجر وهما ينزلان جنبًا إلى جنب.',
+      'زِد كتلة الحجر إلى أقصى قيمة وأعد الإسقاط: النتيجة لا تتغيّر.',
+      'لاحظ تباعد الدوائر الباهتة: الأزمنة متساوية والمسافات تكبر.',
+      'اقرأ زمن الوصول إلى الأرض ثم احسبه بنفسك من العلاقة المعروضة.',
+      'ضاعف الارتفاع ولاحظ أن الزمن لا يتضاعف، لأنه يتناسب مع الجذر التربيعي.',
+      'اكتب في دفترك سرعة الوصول إلى الأرض عند ارتفاع 20 مترًا.'
     ]
   },
   16: {
-    title:'الرسوم البيانية للحركة',
-    subtitle:'الميل في منحني الموقع–الزمن سرعة، والمساحة تحت منحني السرعة–الزمن إزاحة',
-    tools:['جسم يتحرك على شريط','منحني الموقع–الزمن','منحني السرعة–الزمن','مثلث ميل ومساحة مظللة'],
+    title:'نشاط ٦: رحلة الحافلة المدرسية',
+    subtitle:'الميل في منحني الموقع–الزمن سرعة، والمساحة تحت منحني السرعة–الزمن مسافة',
+    tools:['حافلة مدرسية','ساعة توقيت','علامات مسافة على الطريق','ورقة رسم بياني'],
+    question:'رأيتَ منحنى الموقع–الزمن خطًا أفقيًا. ماذا كانت تفعل الحافلة في تلك المدة؟',
     steps:[
-      'اختر «ساكن» ولاحظ أن منحني الموقع خط أفقي وأن السرعة تساوي صفرًا.',
-      'اختر «سرعة ثابتة» ولاحظ استقامة منحني الموقع وثبات ميله.',
-      'اختر «متسارع» ولاحظ انحناء منحني الموقع وصعود منحني السرعة.',
-      'اختر «متباطئ» وتابع نقصان الميل حتى يستوي المنحني عند التوقف.',
-      'قارن قيمة المساحة المظللة بقيمة الموقع x المعروضة: هما متساويتان.',
-      'بدّل إلى الوضع اليدوي وحرّك منزلق الزمن لقراءة الرسمين عند لحظة واحدة.'
+      'اختر «واقفة عند الموقف» ولاحظ أن منحني الموقع أفقي والسرعة صفر.',
+      'اختر «تسير بسرعة ثابتة» ولاحظ استقامة منحني الموقع وثبات ميله.',
+      'اختر «تنطلق من الموقف» ولاحظ انحناء منحني الموقع وصعود منحني السرعة.',
+      'اختر «تقترب من الموقف» وتابع نقصان الميل حتى تقف الحافلة.',
+      'قارن المساحة المظللة بقيمة الموقع x المعروضة: هما متساويتان.',
+      'ارسم في دفترك الرسمين لحالة اخترتها، ثم قارنهما بالشاشة.'
     ]
   },
   21: {
-    title:'القوة ومحصلة القوى',
-    subtitle:'مخطط الجسم الحر، والمحصلة ΣF هي التي تقرّر أيتحرك الجسم أم لا',
-    tools:['صندوق على سطح أملس','قوتان أفقيتان متضادتان','مخطط الجسم الحر','مؤشر الوزن ورد فعل السطح'],
+    title:'نشاط ١: سحب صندوق بحبلين',
+    subtitle:'محصلة القوى هي التي تقرّر حركة الجسم، ومخطط الجسم الحر يجمع كل القوى المؤثرة فيه',
+    tools:['صندوق خشبي','حبلان متينان','ميزانا شدّ لقياس القوة بالنيوتن','أرضية ملساء'],
+    question:'لو سحب الطالبان الصندوق بالقوة نفسها تمامًا، فهل الصندوق «لا تؤثّر فيه قوة»؟ فسّر جوابك.',
     steps:[
-      'ارسم في دفترك مخطط الجسم الحر كما يظهر على الشاشة قبل أن تغيّر أي قيمة.',
-      'اضغط «اجعل القوتين متساويتين» ولاحظ أن المحصلة صارت صفرًا وسكن الجسم.',
-      'زِد F₁ قليلًا ولاحظ بدء الحركة في اتجاه القوة الأكبر.',
-      'اجعل F₂ أكبر من F₁ ولاحظ انعكاس اتجاه التعجيل.',
-      'ثبّت المحصلة وغيّر الكتلة m ولاحظ نقصان التعجيل بزيادة الكتلة.',
-      'لاحظ أن N تساوي W دائمًا هنا، فلا أثر لهما في الحركة الأفقية.'
+      'ارسم في دفترك مخطط الجسم الحر للصندوق كما تراه على الشاشة.',
+      'اضغط «اجعل القوتين متساويتين» ولاحظ سكون الصندوق مع بقاء الحبلين مشدودين.',
+      'زِد F₁ قليلًا ولاحظ بدء الحركة نحو القوة الأكبر.',
+      'اجعل F₂ أكبر من F₁ ولاحظ انعكاس اتجاه الحركة.',
+      'ثبّت المحصلة وزِد كتلة الصندوق ولاحظ نقصان التعجيل.',
+      'لاحظ أن N تساوي W دائمًا، فلا أثر لهما في الحركة الأفقية.'
     ]
   },
   22: {
-    title:'قانون نيوتن الأول — القصور الذاتي',
-    subtitle:'الجسم يحافظ على حالته ما لم تؤثّر فيه قوة محصّلة',
-    tools:['عربة تنطلق بسرعة ابتدائية','كرة حرّة فوق العربة','سطح خشن وسطح أملس','علامة موضع التوقف المحسوب'],
+    title:'نشاط ٢: الحافلة تكبح',
+    subtitle:'الجسم يحافظ على حالته حتى تؤثّر فيه قوة محصّلة — والاحتكاك هو الذي يوقف الحافلة',
+    tools:['حافلة مدرسية','راكب واقف بلا مسند','شارع جافّ وآخر مبلّل','شريط قياس لمسافة التوقف'],
+    question:'لماذا تزداد مسافة التوقف كثيرًا في يوم ممطر؟ وماذا يعني ذلك لسرعة السائق؟',
     steps:[
-      'ابدأ بالسطح الخشن وراقب تباطؤ العربة حتى تقف عند العلامة المحسوبة.',
-      'راقب الكرة عند تباطؤ العربة: تسبقها إلى الأمام ثم تسقط.',
-      'فسّر ذلك: الاحتكاك يؤثّر في العربة لا في الكرة، فالكرة حافظت على سرعتها.',
-      'قلّل معامل الاحتكاك μ ولاحظ ازدياد مسافة التوقف.',
-      'اضغط «سطح أملس تمامًا» ولاحظ أن العربة لا تقف أبدًا.',
-      'استنتج أن توقف الأجسام سببه قوة الاحتكاك، لا انتهاء «قوة الدفع».'
+      'ابدأ بالشارع الجافّ وراقب تباطؤ الحافلة حتى تقف عند العلامة المحسوبة.',
+      'راقب الراكب لحظة الكبح: يميل إلى الأمام لأن جسمه يريد أن يستمر.',
+      'اضغط «شارع مبلّل» ولاحظ كم تطول مسافة التوقف مع أن السرعة نفسها.',
+      'زِد سرعة الحافلة ولاحظ أن مسافة التوقف تزداد بمربع السرعة لا بمثلها.',
+      'اضغط «سطح أملس تمامًا» ولاحظ أن الحافلة لا تقف أبدًا.',
+      'استنتج: لولا الاحتكاك لما استطاع أي سائق أن يوقف مركبته.'
     ]
   },
   23: {
-    title:'قانون نيوتن الثاني',
-    subtitle:'التعجيل يتناسب طرديًا مع القوة وعكسيًا مع الكتلة: a = F/m',
-    tools:['عربتان متماثلتان إحداهما ضعف كتلة الأخرى','قوة سحب متساوية','منحني السرعة–الزمن للعربتين','مؤشرا التعجيل'],
+    title:'نشاط ٣: عربتا التسوّق',
+    subtitle:'القوة نفسها تعطي العربة الممتلئة نصف تعجيل الفارغة: a = F/m',
+    tools:['عربتا تسوّق متماثلتان','حمولة تضاعف كتلة إحداهما','ميزان شدّ لضبط القوة','ساعة توقيت'],
+    question:'إذا أردتَ أن تعطي العربة الممتلئة تعجيل الفارغة نفسه، فكم مرة يجب أن تضاعف قوة الدفع؟',
     steps:[
       'راقب العربتين تنطلقان معًا بالقوة نفسها ولاحظ أيّهما تسبق.',
-      'اقرأ a₁ و a₂ في صندوق المعطيات ولاحظ أن نسبتهما تساوي اثنين دائمًا.',
+      'اقرأ a₁ و a₂ ولاحظ أن نسبتهما تساوي اثنين دائمًا.',
       'قارن ميل الخطين في منحني السرعة–الزمن: الميل هو التعجيل.',
       'ضاعف القوة F ولاحظ مضاعفة التعجيلين معًا.',
       'ضاعف الكتلة m ولاحظ صيرورة التعجيلين نصفًا.',
-      'استنتج صيغة القانون: القوة تساوي حاصل ضرب الكتلة في التعجيل.'
+      'اكتب القانون بصيغته المشهورة: القوة تساوي الكتلة في التعجيل.'
     ]
   },
   24: {
-    title:'قانون نيوتن الثالث',
-    subtitle:'لكل فعل رد فعل مساوٍ له في المقدار ومضاد له في الاتجاه',
-    tools:['متزلجان على حلبة ملساء','مقياس قوة التدافع','مؤشرا التعجيل والسرعة','مقارنة حاصل ضرب الكتلة في السرعة'],
+    title:'نشاط ٤: التدافع على لوح التزلّج',
+    subtitle:'لكل فعل رد فعل مساوٍ له في المقدار ومضاد له في الاتجاه، لكن على جسمين مختلفين',
+    tools:['لوحا تزلّج','طالبان مختلفا الكتلة','أرضية ملساء','ساعة توقيت'],
+    question:'دفعتَ زميلك فابتعد عنك وابتعدتَ أنت أيضًا. من دفعك؟ ولماذا اختلفت سرعتاكما؟',
     steps:[
       'اضغط «أعد التدافع» وراقب السهمين أثناء التلامس: متساويان ومتضادان.',
-      'لاحظ أن القوتين تؤثّران في جسمين مختلفين، لذلك لا تُلغي إحداهما الأخرى.',
-      'قارن التعجيلين: الأصغر كتلةً ينال تعجيلًا أكبر رغم تساوي القوتين.',
+      'لاحظ أن الطالبين ينطلقان معًا مع أن الدافع واحد فقط.',
+      'قارن التعجيلين: الأخفّ ينال تعجيلًا أكبر رغم تساوي القوتين.',
       'اجعل الكتلتين متساويتين ولاحظ تساوي السرعتين بعد الانفصال.',
-      'زِد كتلة B كثيرًا ولاحظ بطء انطلاقه وسرعة انطلاق A.',
-      'لاحظ تساوي حاصل ضرب الكتلة في السرعة للجسمين في كل الحالات.'
+      'زِد كتلة الطالب ب كثيرًا ولاحظ بطء انطلاقه وسرعة انطلاق أ.',
+      'لاحظ تساوي حاصل ضرب الكتلة في السرعة للطالبين في كل الحالات.'
     ]
   },
   25: {
-    title:'الكتلة والوزن',
-    subtitle:'الكتلة مقدار المادة ولا تتغيّر، والوزن قوة جذب تتغيّر بتغيّر g',
-    tools:['ميزان نابضي متدرّج بالنيوتن','ميزان ذو كفتين بكتل معيارية','جسم معلوم الكتلة','قائمة أجرام سماوية'],
+    title:'نشاط ٥: حقيبتك على ميزانين',
+    subtitle:'الميزان النابضي يقيس الوزن بالنيوتن، والميزان ذو الكفتين يقيس الكتلة بالكيلوغرام',
+    tools:['ميزان نابضي متدرّج بالنيوتن','ميزان ذو كفتين','كتل معيارية','حقيبة مدرسية'],
+    question:'لو حملتَ حقيبتك إلى القمر، أي الميزانين ستتغيّر قراءته؟ ولماذا؟',
     steps:[
       'اقرأ الوزن على الميزان النابضي والكتلة على الميزان ذي الكفتين على الأرض.',
       'اضغط «القمر» ولاحظ انكماش النابض ونقصان القراءة بالنيوتن.',
-      'لاحظ في الوقت نفسه أن الميزان ذا الكفتين بقي متزنًا ولم تتغيّر الكتلة.',
+      'لاحظ في الوقت نفسه أن الكفتين بقيتا متزنتين ولم تتغيّر الكتلة.',
       'اضغط «المشتري» ولاحظ استطالة النابض وزيادة الوزن كثيرًا.',
-      'غيّر كتلة الجسم ولاحظ تغيّر القراءتين معًا هذه المرة.',
-      'استنتج الفرق: الكتلة تُقاس بالكيلوغرام والوزن يُقاس بالنيوتن.'
+      'غيّر كتلة الحقيبة ولاحظ تغيّر القراءتين معًا هذه المرة.',
+      'احسب في دفترك وزن حقيبتك على الأرض إذا كانت كتلتها ستة كيلوغرامات.'
     ]
   },
   26: {
-    title:'الاحتكاك',
-    subtitle:'الاحتكاك السكوني يكبر مع القوة حتى حدّ أقصى، ثم يحلّ محله الحركي الأصغر',
-    tools:['جسم على سطح أفقي','قوة سحب متغيّرة','أسطح مختلفة الخشونة','منحني قوة الاحتكاك مقابل القوة المؤثرة'],
+    title:'نشاط ٦: سحب الحقيبة',
+    subtitle:'الاحتكاك السكوني يكبر مع قوة سحبك حتى حدّ أقصى، ثم يحلّ محله الحركي الأصغر',
+    tools:['حقيبة مدرسية','ميزان شدّ لقياس قوة السحب','أرضيات مختلفة الخشونة','كتل لتغيير وزن الحقيبة'],
+    question:'لماذا تشعر أن الحقيبة «ثقيلة» في أول لحظة ثم تخفّ فجأة بعد أن تبدأ بالانزلاق؟',
     steps:[
-      'ابدأ بقوة صغيرة ولاحظ أن الجسم ساكن وأن سهم الاحتكاك يساوي سهم القوة.',
+      'ابدأ بقوة صغيرة ولاحظ أن الحقيبة ساكنة وأن سهم الاحتكاك يساوي سهم قوتك.',
       'زِد القوة تدريجيًا وراقب النقطة الحمراء وهي تصعد على الخط المائل.',
-      'تجاوز الحدّ الأقصى ولاحظ انزلاق الجسم وهبوط الاحتكاك إلى القيمة الحركية.',
-      'بدّل السطح إلى الجليد ولاحظ صغر الحدّ الأقصى وسهولة الانزلاق.',
-      'بدّل إلى المطاط على الإسفلت ولاحظ الحاجة إلى قوة أكبر بكثير.',
-      'زِد الكتلة ولاحظ زيادة N ومعها زيادة الاحتكاك، لأن f تتناسب مع N.'
+      'تجاوز الحدّ الأقصى ولاحظ انزلاق الحقيبة وهبوط الاحتكاك فجأة.',
+      'بدّل الأرضية إلى الجليد ولاحظ صغر الحدّ الأقصى وسهولة الانزلاق.',
+      'بدّل إلى إسفلت الشارع ولاحظ الحاجة إلى قوة أكبر بكثير.',
+      'زِد كتلة الحقيبة ولاحظ زيادة N ومعها زيادة الاحتكاك.'
     ]
   }
 };
@@ -2683,12 +2832,12 @@ const EXPERIMENTS = {
 const CHAPTERS = {
   1: {
     title:'الفصل الأول: الحركة',
-    subtitle:'المسافة والإزاحة، السرعة، التعجيل، ومعادلات الحركة',
+    subtitle:'ستة أنشطة من يومك: طريقك إلى المدرسة، عدّاد السيارة، دراجتك، إشارة المرور، السقوط، والحافلة',
     tabs:[11,12,13,14,15,16]
   },
   2: {
     title:'الفصل الثاني: القوى وقوانين نيوتن',
-    subtitle:'القوة والقصور الذاتي، a = F/m، الفعل ورد الفعل، والاحتكاك',
+    subtitle:'ستة أنشطة من يومك: سحب صندوق، كبح الحافلة، عربة التسوّق، التدافع، حقيبتك، والاحتكاك',
     tabs:[21,22,23,24,25,26]
   }
 };
@@ -2774,12 +2923,12 @@ function switchTab(id){
   document.querySelectorAll('.control-panel').forEach(p=> p.classList.toggle('active', Number(p.dataset.tab)===id));
 
   const exp = EXPERIMENTS[id];
-  const displayNum = CHAPTERS[currentChapter].tabs.indexOf(id) + 1;
-  document.getElementById('sidebarTitle').textContent = 'النشاط ' + displayNum + ': ' + exp.title;
+  document.getElementById('sidebarTitle').textContent = exp.title;
   document.getElementById('mainTitle').textContent = exp.title;
   document.getElementById('mainSubtitle').textContent = exp.subtitle;
   document.getElementById('toolsList').innerHTML = exp.tools.map(t=>'<li>'+t+'</li>').join('');
   document.getElementById('stepsList').innerHTML = exp.steps.map(s=>'<li>'+s+'</li>').join('');
+  document.getElementById('activityQuestion').textContent = exp.question || '';
 
   updateModeStatusPill();
   window._dragHitTest = (typeof window['t'+id+'DragHitTest'] === 'function') ? window['t'+id+'DragHitTest'] : null;
@@ -2832,7 +2981,7 @@ document.getElementById('dropBtn15').addEventListener('click', ()=> t15Drop());
 
 /* ---- الفصل الثاني ---- */
 document.getElementById('balBtn21').addEventListener('click', ()=> t21Balance());
-bindGroup('#surfBtns22','data-surf22', v=> t22SetSurface(v));
+bindGroup('#roadBtns22','data-road22', v=> t22SetRoad(v));
 document.getElementById('pushBtn24').addEventListener('click', ()=> t24Push());
 bindGroup('#placeBtns25','data-place25', v=> t25SetPlace(v));
 bindGroup('#surfBtns26','data-surf26', v=> t26SetSurface(v));
