@@ -283,6 +283,52 @@
   .sidebar-section ol li::marker{color:var(--accent-cyan-bright); font-weight:700;}
   .sidebar-section ul li::marker{color:var(--accent-amber);}
 
+  /* ===== جدول تسجيل النتائج والاستنتاج ===== */
+  .lab-record{ margin-top:14px; padding-top:14px; border-top:1px dashed var(--border); }
+  .lab-record > h3{
+    font-size:13.5px; display:flex; align-items:center; gap:6px;
+    color:var(--text); margin-bottom:12px; font-weight:700;
+  }
+  .lab-record .btn-row{ margin-bottom:10px; }
+  .lab-record .btn-row .ctrl-btn{ flex:0 1 auto; padding-inline:16px; }
+  .rec-hint{
+    font-size:11.5px; color:var(--text-muted); line-height:1.7;
+    background:var(--bg-panel-alt); border:1px dashed var(--border-soft);
+    border-radius:8px; padding:9px 11px; margin-bottom:10px;
+  }
+  .rec-wrap{ width:100%; overflow-x:auto; }
+  #recordTable{
+    width:100%; border-collapse:collapse; font-size:12.5px;
+    font-family:var(--font-body); min-width:420px;
+  }
+  #recordTable th, #recordTable td{
+    border:1px solid var(--border-soft); padding:8px 10px; text-align:center; white-space:nowrap;
+  }
+  #recordTable thead th{
+    background:var(--bg-panel-alt); color:var(--accent-amber);
+    font-family:var(--font-head); font-weight:800; font-size:12px;
+  }
+  #recordTable tbody tr:nth-child(even){ background:rgba(127,127,127,.06); }
+  #recordTable tbody td{ color:var(--text); }
+  #recordTable tbody td:first-child{ color:var(--text-muted); }
+  #recordTable:empty{ display:none; }
+
+  .conclusion{ margin-top:14px; }
+  .conclusion h4{
+    font-size:13px; color:var(--text); margin-bottom:8px; font-weight:700;
+  }
+  .conclusion .ctrl-btn{ width:100%; }
+  .conclusion p{
+    margin:10px 0 0; font-size:13px; line-height:1.9; color:var(--text);
+    background:linear-gradient(135deg, rgba(56,225,198,.12), rgba(242,168,60,.07));
+    border:1px solid rgba(56,225,198,.35); border-radius:10px; padding:12px 14px;
+  }
+
+  /* صندوق الغرض من النشاط */
+  .p-box p{
+    margin:0; font-size:13px; line-height:1.85; color:var(--text-muted);
+  }
+
   /* صندوق سؤال النشاط: يبرز عن بقية السايدبار ليقرأه الطالب أخيرًا */
   .q-box{ margin-bottom:0; }
   .q-box p{
@@ -595,13 +641,18 @@
   <aside class="sidebar" id="sidebarPanel">
     <div class="sidebar-title" id="sidebarTitle">النشاط الحالي</div>
 
+    <div class="sidebar-section p-box">
+      <h3>🎯 الغرض من النشاط</h3>
+      <p id="activityPurpose"></p>
+    </div>
+
     <div class="sidebar-section">
-      <h3>🧰 أدوات النشاط</h3>
+      <h3>🧰 المواد والأدوات</h3>
       <ul id="toolsList"></ul>
     </div>
 
     <div class="sidebar-section">
-      <h3>📋 خطوات النشاط</h3>
+      <h3>📋 خطوات العمل</h3>
       <ol id="stepsList"></ol>
     </div>
 
@@ -878,6 +929,27 @@
           </div>
         </div>
 
+      </div>
+    </div>
+
+    <div class="lab-record">
+      <h3>📝 جدول تسجيل النتائج</h3>
+      <div class="btn-row">
+        <button class="ctrl-btn cyan" id="recordBtn" type="button">➕ سجّل القراءة الحالية</button>
+        <button class="ctrl-btn" id="clearRecBtn" type="button">🗑️ امسح الجدول</button>
+      </div>
+      <div class="rec-hint" id="recEmpty">اضبط القيم على الشاشة ثم اضغط «سجّل القراءة الحالية» — يمتلئ الجدول كما تملؤه في دفترك، فتظهر لك العلاقة بين الأعمدة. وفي الوضع اليدوي تثبت القيم فيسهل تسجيلها بدقة.</div>
+      <div class="rec-wrap">
+        <table id="recordTable">
+          <thead></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="conclusion">
+        <h4>🧠 الاستنتاج</h4>
+        <button class="ctrl-btn" id="revealBtn" type="button">اكتب استنتاجك في دفترك أولًا، ثم اضغط هنا لتقارنه</button>
+        <p id="conclusionText" hidden></p>
       </div>
     </div>
   </section>
@@ -1325,6 +1397,10 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
     optCaption('لو طار طائر من بيتك إلى مدرستك لقطع الإزاحة، أما أنت فتمشي في الشوارع فتقطع المسافة.', COLORS);
   }
 
+  window.t11Reading=function(){
+    const dx=(state.d1-state.d3), dy=state.d2;
+    return [state.d1, state.d2, state.d3, total(), Math.sqrt(dx*dx+dy*dy).toFixed(0)];
+  };
   window.t11State=state; window.t11Update=t11Update; window.t11Draw=t11Draw;
   window.t11Preset=function(kind){
     const p = { straight:[240,0,0], closed:[180,0,180], broken:[200,100,60] }[kind];
@@ -1421,6 +1497,10 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
     optCaption('عدّاد السيارة يعطيك السرعة في هذه اللحظة فقط، أما متوسط الرحلة فيُحسب بقسمة المسافة على الزمن.', COLORS);
   }
 
+  window.t12Reading=function(){
+    const t=Math.max(state.t,0.05), x=xAt(t);
+    return [t.toFixed(2), x.toFixed(1), vAt(t).toFixed(2), (x/t).toFixed(2)];
+  };
   window.t12State=state; window.t12Update=t12Update; window.t12Draw=t12Draw;
 })();
 </script>
@@ -1502,6 +1582,9 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
     optCaption('التعجيل يخبرك كم متر في الثانية تكسبه دراجتك في كل ثانية واحدة.', COLORS);
   }
 
+  window.t13Reading=function(){
+    return [state.v1.toFixed(0), state.v2.toFixed(0), state.dtime.toFixed(1), accel().toFixed(2)];
+  };
   window.t13State=state; window.t13Update=t13Update; window.t13Draw=t13Draw;
 })();
 </script>
@@ -1586,6 +1669,10 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
     optCaption('غيّر القيم كما تشاء: طرفا المعادلة الثالثة في السطر الرابع يبقيان متساويين دائمًا.', COLORS);
   }
 
+  window.t14Reading=function(){
+    const t=Math.min(state.t, span());
+    return [state.v0.toFixed(0), state.a.toFixed(1), t.toFixed(2), vAt(t).toFixed(2), xAt(t).toFixed(2)];
+  };
   window.t14State=state; window.t14Update=t14Update; window.t14Draw=t14Draw;
   window.t14Preset=function(kind){
     const p = { rest:[0,2.5], brake:[20,-2.5], cruise:[12,0] }[kind];
@@ -1682,6 +1769,10 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
     optCaption('الدوائر الباهتة مواضعهما كل خُمس ثانية: الأزمنة متساوية والمسافات تكبر، وهذا معنى التعجيل.', COLORS);
   }
 
+  window.t15Reading=function(){
+    const tf=tFall();
+    return [state.h.toFixed(0), state.m2.toFixed(0), tf.toFixed(2), (G*tf).toFixed(2)];
+  };
   window.t15State=state; window.t15Update=t15Update; window.t15Draw=t15Draw;
   window.t15Drop=function(){ state.t = 0; };
 })();
@@ -1792,6 +1883,10 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
     optCaption('الرسم الأيمن يخبرك بسرعة الحافلة، والأيسر يخبرك أين هي — والمساحة تحت الأيمن تعطي المسافة نفسها.', COLORS);
   }
 
+  window.t16Reading=function(){
+    const t=Math.min(state.t,T);
+    return [KINDS[state.kind].label, t.toFixed(2), xAt(t).toFixed(1), vAt(t).toFixed(1), state.a.toFixed(1)];
+  };
   window.t16State=state; window.t16Update=t16Update; window.t16Draw=t16Draw;
   window.t16SetKind=function(k){
     if(!KINDS[k]) return;
@@ -1892,6 +1987,9 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
     optCaption('الوزن ورد فعل الأرض متساويان ومتضادان فيلغي أحدهما الآخر، فلا يبقى مؤثّرًا إلا القوتان الأفقيتان.', COLORS);
   }
 
+  window.t21Reading=function(){
+    return [state.F1.toFixed(0), state.F2.toFixed(0), net().toFixed(0), state.m.toFixed(0), accel().toFixed(2)];
+  };
   window.t21State=state; window.t21Update=t21Update; window.t21Draw=t21Draw;
   window.t21Balance=function(){ setControl('t21State.F2', state.F1); state.t = 0; };
 })();
@@ -1996,6 +2094,10 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
     optCaption('اربط حزام الأمان: جسمك يحافظ على سرعته حتى بعد أن تتوقف الحافلة، فيندفع إلى الأمام.', COLORS);
   }
 
+  window.t22Reading=function(){
+    return [ROADS[state.road].name, state.v0.toFixed(0), mu().toFixed(2),
+            decel()>0 ? (state.v0*state.v0/(2*decel())).toFixed(1) : '∞'];
+  };
   window.t22State=state; window.t22Update=t22Update; window.t22Draw=t22Draw;
   window.t22SetRoad=function(r){
     if(!ROADS[r]) return;
@@ -2073,6 +2175,10 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
     optCaption('جرّبها في السوق: العربة الممتلئة تحتاج قوة أكبر لتصل السرعة نفسها في الزمن نفسه.', COLORS);
   }
 
+  window.t23Reading=function(){
+    return [state.F.toFixed(0), state.m.toFixed(0), aA().toFixed(2),
+            (2*state.m).toFixed(0), aB().toFixed(2)];
+  };
   window.t23State=state; window.t23Update=t23Update; window.t23Draw=t23Draw;
 })();
 </script>
@@ -2154,6 +2260,10 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
     optCaption('دفعة واحدة تحرّك الاثنين: القوتان متساويتان ومتضادتان، لكنهما تؤثّران في جسمين مختلفين.', COLORS);
   }
 
+  window.t24Reading=function(){
+    return [state.F.toFixed(0), state.mA.toFixed(0), state.mB.toFixed(0),
+            (state.F/state.mA).toFixed(2), (state.F/state.mB).toFixed(2)];
+  };
   window.t24State=state; window.t24Update=t24Update; window.t24Draw=t24Draw;
   window.t24Push=function(){ state.t = 0; };
 })();
@@ -2254,6 +2364,9 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
     optCaption('الكتلة مقدار المادة في حقيبتك ولا تتغيّر، أما الوزن فقوة جذب تتغيّر بتغيّر تعجيل الجاذبية.', COLORS);
   }
 
+  window.t25Reading=function(){
+    return [PLACES[state.place].name, gNow().toFixed(1), state.m.toFixed(0), weight().toFixed(1)];
+  };
   window.t25State=state; window.t25Update=t25Update; window.t25Draw=t25Draw;
   window.t25SetPlace=function(p){ if(PLACES[p]) state.place = p; };
 })();
@@ -2351,6 +2464,10 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
     optCaption('لهذا يسهل تحريك الحقيبة بعد أن تبدأ بالانزلاق: الاحتكاك يهبط فجأة إلى قيمة أصغر.', COLORS);
   }
 
+  window.t26Reading=function(){
+    return [SURFACES[state.surf].name, state.m.toFixed(0), fsMax().toFixed(1),
+            state.F.toFixed(0), friction().toFixed(1)];
+  };
   window.t26State=state; window.t26Update=t26Update; window.t26Draw=t26Draw;
   window.t26SetSurface=function(s){ if(SURFACES[s]){ state.surf = s; state.t = 0; } };
 })();
@@ -2660,6 +2777,9 @@ document.querySelectorAll('[data-teacher-name]').forEach(el=>{ el.textContent = 
 /* بيانات التجارب مفهرسة بالفصل: 11،12… للفصل الأول و21،22… للثاني */
 const EXPERIMENTS = {
   11: {
+    purpose:'أن تميّز بين المسافة والإزاحة، وتستنتج متى يتساويان ومتى تكون الإزاحة صفرًا.',
+    cols:['الشارع d₁ (m)','الشارع d₂ (m)','الشارع d₃ (m)','المسافة (m)','الإزاحة (m)'],
+    conclusion:'الإزاحة لا تعتمد على شكل الطريق بل على موقعي البداية والنهاية فقط، ولا يمكن أن تكون أكبر من المسافة. وإذا رجعت إلى نقطة البدء صارت الإزاحة صفرًا مهما طال الطريق.',
     title:'نشاط ١: من البيت إلى المدرسة',
     subtitle:'المسافة هي طول الطريق الذي مشيته، والإزاحة هي الخط المستقيم بين بيتك ومدرستك',
     tools:['خريطة الحيّ مقسّمة إلى مربعات','شريط قياس','قلم لرسم الطريق','مسطرة لرسم الخط المستقيم'],
@@ -2674,6 +2794,9 @@ const EXPERIMENTS = {
     ]
   },
   12: {
+    purpose:'أن تميّز بين السرعة اللحظية والسرعة المتوسطة، وتعرف ما الذي يقرؤه عدّاد السيارة.',
+    cols:['t (s)','x (m)','v اللحظية (m/s)','v المتوسطة (m/s)'],
+    conclusion:'عدّاد السيارة يقرأ السرعة اللحظية. وتتساوى مع السرعة المتوسطة فقط حين يكون التعجيل صفرًا، أي حين تسير السيارة بسرعة ثابتة.',
     title:'نشاط ٢: عدّاد السرعة',
     subtitle:'الإبرة تقرأ السرعة في هذه اللحظة، أما متوسط الرحلة فيُحسب بقسمة المسافة على الزمن',
     tools:['سيارة فيها عدّاد سرعة','ساعة توقيت','عدّاد المسافة في السيارة','ورقة لتسجيل القراءات'],
@@ -2688,6 +2811,9 @@ const EXPERIMENTS = {
     ]
   },
   13: {
+    purpose:'أن تحسب تعجيل جسم من تغيّر سرعته خلال زمن معلوم.',
+    cols:['v₁ (m/s)','v₂ (m/s)','Δt (s)','a (m/s²)'],
+    conclusion:'التعجيل يتناسب طرديًا مع مقدار تغيّر السرعة Δv، وعكسيًا مع الزمن المستغرق Δt. وإذا نقصت السرعة كان التعجيل سالبًا.',
     title:'نشاط ٣: انطلاق الدراجة',
     subtitle:'التعجيل يخبرك كم مترًا في الثانية تكسبه دراجتك في كل ثانية: a = Δv/Δt',
     tools:['دراجة هوائية','ساعة توقيت','شريط قياس على الطريق','ورقة لتسجيل السرعتين'],
@@ -2702,6 +2828,9 @@ const EXPERIMENTS = {
     ]
   },
   14: {
+    purpose:'أن تطبّق معادلات الحركة بتعجيل ثابت وتتحقق منها بنفسك.',
+    cols:['v₀ (m/s)','a (m/s²)','t (s)','v (m/s)','x (m)'],
+    conclusion:'بتعجيل ثابت تزداد السرعة خطيًا مع الزمن، وتزداد المسافة بمربع الزمن. والمساحة تحت منحني السرعة–الزمن تساوي المسافة المقطوعة عدديًا.',
     title:'نشاط ٤: السيارة عند إشارة المرور',
     subtitle:'ثلاث معادلات تصف الحركة بتعجيل ثابت، والمساحة تحت منحني السرعة تعطي المسافة',
     tools:['سيارة تنطلق من السكون','إشارة مرور','أعمدة إنارة علامات للمسافة','ساعة توقيت'],
@@ -2716,6 +2845,9 @@ const EXPERIMENTS = {
     ]
   },
   15: {
+    purpose:'أن تتحقق من أن زمن السقوط الحر لا يعتمد على كتلة الجسم.',
+    cols:['h (m)','كتلة الحجر (kg)','زمن السقوط (s)','سرعة الوصول (m/s)'],
+    conclusion:'زمن السقوط يعتمد على الارتفاع وحده ولا يعتمد على الكتلة. وإذا ضاعفت الارتفاع لم يتضاعف الزمن، لأنه يتناسب مع الجذر التربيعي للارتفاع.',
     title:'نشاط ٥: كرة وحجر من سطح المدرسة',
     subtitle:'كل الأجسام تسقط بتعجيل واحد g = 9.8 m/s² مهما اختلفت كتلها',
     tools:['كرة تنس خفيفة','حجر ثقيل','شريط قياس لارتفاع البناية','ساعة توقيت'],
@@ -2730,6 +2862,9 @@ const EXPERIMENTS = {
     ]
   },
   16: {
+    purpose:'أن تقرأ حركة جسم من منحنى الموقع–الزمن ومنحنى السرعة–الزمن.',
+    cols:['حالة الحافلة','t (s)','x (m)','v (m/s)','a (m/s²)'],
+    conclusion:'ميل منحني الموقع–الزمن يعطي السرعة: خط أفقي يعني السكون، وخط مائل ثابت الميل يعني سرعة ثابتة، ومنحنٍ متزايد الانحناء يعني تعجيلًا. والمساحة تحت منحني السرعة–الزمن تعطي المسافة.',
     title:'نشاط ٦: رحلة الحافلة المدرسية',
     subtitle:'الميل في منحني الموقع–الزمن سرعة، والمساحة تحت منحني السرعة–الزمن مسافة',
     tools:['حافلة مدرسية','ساعة توقيت','علامات مسافة على الطريق','ورقة رسم بياني'],
@@ -2744,6 +2879,9 @@ const EXPERIMENTS = {
     ]
   },
   21: {
+    purpose:'أن ترسم مخطط الجسم الحر، وتحسب محصلة القوى وأثرها في حركة الجسم.',
+    cols:['F₁ (N)','F₂ (N)','ΣF (N)','m (kg)','a (m/s²)'],
+    conclusion:'الجسم يتعجل في اتجاه محصلة القوى، وإذا كانت المحصلة صفرًا بقي ساكنًا أو استمر بسرعته الثابتة. والوزن ورد فعل الأرض متساويان ومتضادان فلا أثر لهما في الحركة الأفقية.',
     title:'نشاط ١: سحب صندوق بحبلين',
     subtitle:'محصلة القوى هي التي تقرّر حركة الجسم، ومخطط الجسم الحر يجمع كل القوى المؤثرة فيه',
     tools:['صندوق خشبي','حبلان متينان','ميزانا شدّ لقياس القوة بالنيوتن','أرضية ملساء'],
@@ -2758,6 +2896,9 @@ const EXPERIMENTS = {
     ]
   },
   22: {
+    purpose:'أن تستنتج أن الجسم يحافظ على حالته ما لم تؤثّر فيه قوة، وأن الاحتكاك هو الذي يوقف الحافلة.',
+    cols:['الشارع','v₀ (m/s)','μ','مسافة التوقف (m)'],
+    conclusion:'كلما قلّ معامل الاحتكاك طالت مسافة التوقف، ومسافة التوقف تتناسب مع مربع السرعة لا مع السرعة نفسها. ولولا الاحتكاك لما توقفت الحافلة أبدًا.',
     title:'نشاط ٢: الحافلة تكبح',
     subtitle:'الجسم يحافظ على حالته حتى تؤثّر فيه قوة محصّلة — والاحتكاك هو الذي يوقف الحافلة',
     tools:['حافلة مدرسية','راكب واقف بلا مسند','شارع جافّ وآخر مبلّل','شريط قياس لمسافة التوقف'],
@@ -2772,6 +2913,9 @@ const EXPERIMENTS = {
     ]
   },
   23: {
+    purpose:'أن تستنتج علاقة التعجيل بالكتلة عند ثبوت القوة المؤثرة.',
+    cols:['F (N)','m₁ (kg)','a₁ (m/s²)','m₂ (kg)','a₂ (m/s²)'],
+    conclusion:'عند ثبوت القوة يتناسب التعجيل عكسيًا مع الكتلة: إذا تضاعفت الكتلة صار التعجيل نصفًا. وهذا معنى أن القوة تساوي حاصل ضرب الكتلة في التعجيل.',
     title:'نشاط ٣: عربتا التسوّق',
     subtitle:'القوة نفسها تعطي العربة الممتلئة نصف تعجيل الفارغة: a = F/m',
     tools:['عربتا تسوّق متماثلتان','حمولة تضاعف كتلة إحداهما','ميزان شدّ لضبط القوة','ساعة توقيت'],
@@ -2786,6 +2930,9 @@ const EXPERIMENTS = {
     ]
   },
   24: {
+    purpose:'أن تتحقق من أن لكل فعل رد فعل مساويًا له في المقدار مضادًا له في الاتجاه.',
+    cols:['F (N)','m(A) (kg)','m(B) (kg)','a(A) (m/s²)','a(B) (m/s²)'],
+    conclusion:'القوتان متساويتان في المقدار ومتضادتان في الاتجاه دائمًا، لكنهما تؤثّران في جسمين مختلفين فلا تُلغي إحداهما الأخرى. والتعجيل أكبر في الجسم الأصغر كتلة.',
     title:'نشاط ٤: التدافع على لوح التزلّج',
     subtitle:'لكل فعل رد فعل مساوٍ له في المقدار ومضاد له في الاتجاه، لكن على جسمين مختلفين',
     tools:['لوحا تزلّج','طالبان مختلفا الكتلة','أرضية ملساء','ساعة توقيت'],
@@ -2800,6 +2947,9 @@ const EXPERIMENTS = {
     ]
   },
   25: {
+    purpose:'أن تميّز بين الكتلة والوزن، وتعرف أداة قياس كلٍّ منهما ووحدته.',
+    cols:['المكان','g (m/s²)','m (kg)','W (N)'],
+    conclusion:'الكتلة مقدار المادة، تُقاس بالكيلوغرام بالميزان ذي الكفتين ولا تتغيّر بتغيّر المكان. والوزن قوة جذب، يُقاس بالنيوتن بالميزان النابضي ويتغيّر بتغيّر تعجيل الجاذبية.',
     title:'نشاط ٥: حقيبتك على ميزانين',
     subtitle:'الميزان النابضي يقيس الوزن بالنيوتن، والميزان ذو الكفتين يقيس الكتلة بالكيلوغرام',
     tools:['ميزان نابضي متدرّج بالنيوتن','ميزان ذو كفتين','كتل معيارية','حقيبة مدرسية'],
@@ -2814,6 +2964,9 @@ const EXPERIMENTS = {
     ]
   },
   26: {
+    purpose:'أن تقارن بين الاحتكاك السكوني والحركي، وتستنتج العوامل المؤثرة فيهما.',
+    cols:['الأرضية','m (kg)','f(s max) (N)','F (N)','f (N)'],
+    conclusion:'الاحتكاك السكوني يساوي القوة المؤثرة تمامًا ما دام الجسم ساكنًا، حتى يبلغ حده الأقصى μs·N فينزلق الجسم ويهبط الاحتكاك إلى قيمته الحركية الأصغر. وكلما زادت N زاد الاحتكاك.',
     title:'نشاط ٦: سحب الحقيبة',
     subtitle:'الاحتكاك السكوني يكبر مع قوة سحبك حتى حدّ أقصى، ثم يحلّ محله الحركي الأصغر',
     tools:['حقيبة مدرسية','ميزان شدّ لقياس قوة السحب','أرضيات مختلفة الخشونة','كتل لتغيير وزن الحقيبة'],
@@ -2929,10 +3082,52 @@ function switchTab(id){
   document.getElementById('toolsList').innerHTML = exp.tools.map(t=>'<li>'+t+'</li>').join('');
   document.getElementById('stepsList').innerHTML = exp.steps.map(s=>'<li>'+s+'</li>').join('');
   document.getElementById('activityQuestion').textContent = exp.question || '';
+  document.getElementById('activityPurpose').textContent = exp.purpose || '';
+  conclusionText.textContent = exp.conclusion || '';
+  conclusionText.hidden = true;                 // كل نشاط يبدأ باستنتاجه مخفيًا
+  revealBtn.textContent = 'اكتب استنتاجك في دفترك أولًا، ثم اضغط هنا لتقارنه';
+  renderRecords();
 
   updateModeStatusPill();
   window._dragHitTest = (typeof window['t'+id+'DragHitTest'] === 'function') ? window['t'+id+'DragHitTest'] : null;
 }
+
+/* ---------- جدول تسجيل النتائج ----------
+   لكل نشاط جدوله الخاص، ويبقى محفوظًا عند التنقّل بين الأنشطة والفصول. */
+const RECORDS = {};
+const recTable = document.getElementById('recordTable');
+const recEmpty = document.getElementById('recEmpty');
+const conclusionText = document.getElementById('conclusionText');
+const revealBtn = document.getElementById('revealBtn');
+
+function renderRecords(){
+  const exp = EXPERIMENTS[activeTab];
+  const cols = (exp && exp.cols) || [];
+  const rows = RECORDS[activeTab] || [];
+  recTable.tHead.innerHTML = rows.length
+    ? '<tr><th>القراءة</th>' + cols.map(c=>'<th>'+c+'</th>').join('') + '</tr>' : '';
+  recTable.tBodies[0].innerHTML = rows.map((r,i)=>
+    '<tr><td>'+(i+1)+'</td>' + r.map(v=>'<td>'+v+'</td>').join('') + '</tr>').join('');
+  recEmpty.hidden = rows.length > 0;
+}
+function recordReading(){
+  const fn = window['t'+activeTab+'Reading'];
+  if(typeof fn !== 'function') return;
+  const rows = RECORDS[activeTab] || (RECORDS[activeTab] = []);
+  if(rows.length >= 8) rows.shift();          // الجدول يعرض آخر ثماني قراءات
+  rows.push(fn());
+  renderRecords();
+}
+document.getElementById('recordBtn').addEventListener('click', recordReading);
+document.getElementById('clearRecBtn').addEventListener('click', ()=>{
+  RECORDS[activeTab] = []; renderRecords();
+});
+revealBtn.addEventListener('click', ()=>{
+  conclusionText.hidden = !conclusionText.hidden;
+  revealBtn.textContent = conclusionText.hidden
+    ? 'اكتب استنتاجك في دفترك أولًا، ثم اضغط هنا لتقارنه'
+    : 'إخفاء الاستنتاج';
+});
 
 function updateModeStatusPill(){
   const s = currentState();

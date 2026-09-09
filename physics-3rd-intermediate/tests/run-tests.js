@@ -67,6 +67,7 @@ function run(){
   /* --- 1. شاشة اختيار الفصل --- */
   const cards = $$('.chapter-card');
   const CHAPTERS = window.CHAPTERS || window.eval('CHAPTERS');
+  const EXPERIMENTS = window.EXPERIMENTS || window.eval('EXPERIMENTS');
   const chapterNums = Object.keys(CHAPTERS).map(Number);
   if (cards.length !== chapterNums.length)
     fail('chapters', 'عدد البطاقات ' + cards.length + ' لا يساوي عدد الفصول ' + chapterNums.length);
@@ -101,6 +102,49 @@ function run(){
       const panel = $('.control-panel[data-tab="'+id+'"]');
       if(!panel){ fail('tab'+id, 'لا توجد لوحة تحكم'); return; }
       if(!panel.classList.contains('active')) fail('tab'+id, 'لوحة التحكم لم تُفعَّل');
+
+      /* بنية النشاط كما في الكتاب: غرض، أدوات، خطوات، جدول نتائج، استنتاج، سؤال */
+      const meta = CHAPTERS && EXPERIMENTS ? EXPERIMENTS[id] : null;
+      ['purpose','conclusion','question'].forEach(k=>{
+        if(!meta || !meta[k] || String(meta[k]).trim().length < 20)
+          fail('tab'+id, 'حقل «'+k+'» ناقص أو قصير جدًا');
+      });
+      if(!meta || !Array.isArray(meta.cols) || meta.cols.length < 3)
+        fail('tab'+id, 'أعمدة جدول النتائج ناقصة');
+      const readFn = window['t'+id+'Reading'];
+      if(typeof readFn !== 'function'){
+        fail('tab'+id, 'لا توجد دالة قراءة t'+id+'Reading');
+      } else {
+        let row = null;
+        try { row = readFn(); } catch(e){ fail('tab'+id+' قراءة', e); }
+        if(row){
+          if(row.length !== meta.cols.length)
+            fail('tab'+id, 'القراءة فيها '+row.length+' قيمة والأعمدة '+meta.cols.length);
+          row.forEach((v,i)=>{
+            const s = String(v);
+            if(s === '' || s === 'NaN' || s === 'undefined')
+              fail('tab'+id, 'قيمة غير صالحة «'+s+'» في العمود '+(meta.cols[i]||i));
+          });
+        }
+      }
+
+      /* تسجيل قراءتين ثم مسح الجدول */
+      const recBtn = doc.getElementById('recordBtn');
+      click(recBtn); click(recBtn);
+      const bodyRows = $$('#recordTable tbody tr').length;
+      if(bodyRows !== 2) fail('tab'+id, 'جدول النتائج فيه '+bodyRows+' صفًا بعد تسجيل قراءتين');
+      const headCells = $$('#recordTable thead th').length;
+      if(headCells !== meta.cols.length + 1)
+        fail('tab'+id, 'رؤوس الجدول '+headCells+' والأعمدة المتوقعة '+(meta.cols.length+1));
+      click(doc.getElementById('clearRecBtn'));
+      if($$('#recordTable tbody tr').length !== 0) fail('tab'+id, 'زر مسح الجدول لم يعمل');
+
+      /* الاستنتاج مخفي حتى يضغط الطالب */
+      if(!doc.getElementById('conclusionText').hidden)
+        fail('tab'+id, 'الاستنتاج ظاهر قبل الضغط عليه');
+      click(doc.getElementById('revealBtn'));
+      if(doc.getElementById('conclusionText').hidden)
+        fail('tab'+id, 'زر إظهار الاستنتاج لم يعمل');
 
       /* قيمة كل منزلق عند الفتح يجب أن تطابق قيمة الحالة التي يتحكم بها،
          وإلا عرض الرسم قيمة والمنزلق قيمة أخرى حتى أول لمسة. */

@@ -68,6 +68,14 @@ const VIEWPORTS = [
     await tabs[tabs.length-1].click();
     await page.waitForTimeout(400);
     await page.screenshot({ path: path.join(OUT, vp.name+'-4-last-tab.png'), fullPage:true });
+    /* جدول تسجيل النتائج والاستنتاج بعد ثلاث قراءات */
+    for(let i=0;i<3;i++){ await page.click('#recordBtn'); await page.waitForTimeout(120); }
+    await page.click('#revealBtn');
+    await page.waitForTimeout(200);
+    const rows = await page.$$eval('#recordTable tbody tr', els=>els.length);
+    if(rows !== 3) problems.push(vp.name+': جدول النتائج فيه '+rows+' صفًا بدل ثلاثة');
+    await page.screenshot({ path: path.join(OUT, vp.name+'-5-record.png'), fullPage:true });
+
     await page.click('#backBtn');
     await page.waitForTimeout(300);
 
