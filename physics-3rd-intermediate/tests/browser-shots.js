@@ -37,6 +37,23 @@ const VIEWPORTS = [
     await page.waitForTimeout(300);
     await page.screenshot({ path: path.join(OUT, vp.name+'-1-welcome.png') });
 
+    /* اسم الأستاذ يُكتب من شاشة الترحيب، ويجب أن يبقى بعد إعادة فتح الملف —
+       وهذا الاختبار يجري على file:// الحقيقي كما يفتحه الأستاذ بالنقر المزدوج. */
+    const NAME = 'الأستاذ حسين حكم';
+    await page.click('#welcomeTeacherBtn');
+    await page.fill('#teacherInput', NAME);
+    await page.screenshot({ path: path.join(OUT, vp.name+'-6-teacher.png') });
+    await page.click('#teacherSave');
+    await page.waitForTimeout(250);
+    const shown = await page.$$eval('[data-teacher-name]', els=>els.map(e=>e.textContent));
+    if(shown.some(t=>t !== NAME))
+      problems.push(vp.name+': اسم الأستاذ لم يتغيّر في كل الأماكن ('+shown.join(' / ')+')');
+    await page.reload();
+    await page.waitForTimeout(350);
+    const after = await page.$eval('.welcome-author b', e=>e.textContent);
+    if(after !== NAME)
+      problems.push(vp.name+': اسم الأستاذ لم يبقَ بعد إعادة فتح الملف (ظهر: '+after+')');
+
     await page.click('#startBtn');
     await page.waitForTimeout(400);
     await page.screenshot({ path: path.join(OUT, vp.name+'-2-chapters.png') });

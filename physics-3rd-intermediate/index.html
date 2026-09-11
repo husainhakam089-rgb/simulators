@@ -120,7 +120,36 @@
     font-family:var(--font-body); font-size:13.5px; color:var(--text-muted);
     background:var(--bg-panel-alt); border:1px solid var(--border-soft);
     border-radius:10px; padding:9px 18px; white-space:nowrap;
+    min-height:42px; cursor:pointer; transition:.15s ease;
   }
+  .header-teacher:hover{ border-color:var(--accent-amber); }
+  .edit-ico{ font-size:11px; opacity:.65; margin-inline-start:4px; }
+
+  /* نافذة كتابة اسم الأستاذ */
+  .modal{
+    position:fixed; inset:0; z-index:10000;
+    display:flex; align-items:center; justify-content:center;
+    padding:18px; background:rgba(4,8,16,.72);
+  }
+  .modal[hidden]{ display:none !important; }
+  .modal-card{
+    width:100%; max-width:420px;
+    background:var(--bg-panel); border:1px solid var(--border);
+    border-radius:16px; padding:22px 22px 18px;
+    box-shadow:0 20px 60px rgba(0,0,0,.5);
+    display:flex; flex-direction:column; gap:12px;
+  }
+  .modal-card h3{ font-size:17px; color:var(--accent-amber); }
+  .modal-sub{ margin:0; font-size:12.5px; color:var(--text-muted); line-height:1.7; }
+  .modal-card input[type=text]{
+    font-family:var(--font-body); font-size:16px; color:var(--text);
+    background:var(--bg-panel-alt); border:1px solid var(--border-soft);
+    border-radius:10px; padding:13px 14px; min-height:48px; width:100%;
+    outline:none;
+  }
+  .modal-card input[type=text]:focus{ border-color:var(--accent-amber); }
+  .modal-note{ font-size:11.5px; color:var(--accent-red); line-height:1.7; }
+  .modal-note:empty{ display:none; }
   .header-teacher b{
     font-family:var(--font-head); font-weight:800; font-size:18px;
     color:var(--accent-amber); margin-inline-start:4px;
@@ -543,11 +572,14 @@
   }
   .welcome-author{
     width:100%; max-width:420px;
+    font-family:var(--font-body);
     font-size:15px; color:var(--text-muted);
     background:var(--bg-panel-alt);
     border:1px dashed var(--border-soft);
     border-radius:10px; padding:14px 20px;
+    cursor:pointer; transition:.15s ease;
   }
+  .welcome-author:hover{ border-color:var(--accent-amber); }
   .welcome-author b{
     font-family:var(--font-head); font-weight:800; font-size:21px;
     color:var(--accent-amber); margin-inline-start:6px;
@@ -610,9 +642,24 @@
     <div class="welcome-title">مختبر الفيزياء الافتراضي<br>الصف الثالث المتوسط</div>
     <div class="welcome-subtitle">محاكي تجارب تفاعلي — الفصل الأول والفصل الثاني</div>
     <div class="welcome-divider"></div>
-    <div class="welcome-author">إعداد: <b data-teacher-name>اسم الاستاذ</b></div>
+    <button class="welcome-author" id="welcomeTeacherBtn" type="button"
+            title="اضغط لكتابة اسمك">إعداد: <b data-teacher-name>اسم الاستاذ</b> <span class="edit-ico">✏️</span></button>
     <button class="welcome-start-btn" id="startBtn">🚀 ابدأ</button>
     <div class="welcome-hint" id="welcomeHint"></div>
+  </div>
+</div>
+
+<div id="teacherModal" class="modal" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="teacherModalTitle">
+    <h3 id="teacherModalTitle">اسم الأستاذ</h3>
+    <p class="modal-sub">يظهر في شاشة الترحيب وأعلى الصفحة وفي أسفلها.</p>
+    <input id="teacherInput" type="text" maxlength="40" autocomplete="off"
+           placeholder="اكتب اسمك هنا" aria-label="اسم الأستاذ">
+    <div class="btn-row">
+      <button class="ctrl-btn on" id="teacherSave" type="button">حفظ</button>
+      <button class="ctrl-btn" id="teacherCancel" type="button">إلغاء</button>
+    </div>
+    <div class="modal-note" id="teacherNote"></div>
   </div>
 </div>
 
@@ -629,7 +676,8 @@
     <div class="chapter-badge" id="chapterBadge"></div>
     <button class="icon-btn" id="soundToggleBtn" type="button" title="كتم/تشغيل صوت التجربة" aria-label="كتم/تشغيل الصوت">🔊</button>
     <button class="icon-btn" id="themeToggleBtn" type="button" title="تبديل المظهر الفاتح/الداكن" aria-label="تبديل المظهر">🌙</button>
-    <div class="header-teacher">إعداد: <b data-teacher-name>اسم الاستاذ</b></div>
+    <button class="header-teacher" id="teacherBtn" type="button"
+            title="اضغط لتغيير اسم الأستاذ">إعداد: <b data-teacher-name>اسم الاستاذ</b> <span class="edit-ico">✏️</span></button>
   </div>
 </header>
 
@@ -2778,9 +2826,61 @@ if (fullscreenBtn && canvasArea) {
    هيكل التطبيق — اسم الأستاذ، الفصول، التجارب، التنقّل، حلقة الرسم
    ========================================================================= */
 
-/* ⬇⬇ اسم الأستاذ يُعدَّل من هنا فقط، ويظهر في الترحيب والهيدر والتذييل ⬇⬇ */
+/* ===== اسم الأستاذ =====
+   يُكتب من الشاشة نفسها (زر «إعداد» في الهيدر أو في شاشة الترحيب) ويُحفظ في
+   المتصفح فلا يُعاد كتابته في كل مرة. وهذا السطر يبقى القيمة الافتراضية لمن
+   يفضّل تثبيت الاسم داخل الملف قبل توزيعه على الطلاب. */
 const TEACHER = 'اسم الاستاذ';
-document.querySelectorAll('[data-teacher-name]').forEach(el=>{ el.textContent = TEACHER; });
+const TEACHER_KEY = 'physics3m.teacherName';
+
+function readStoredTeacher(){
+  try { return localStorage.getItem(TEACHER_KEY); } catch(e){ return null; }
+}
+function storeTeacher(name){
+  try { localStorage.setItem(TEACHER_KEY, name); return true; } catch(e){ return false; }
+}
+function applyTeacher(name){
+  document.querySelectorAll('[data-teacher-name]').forEach(el=>{ el.textContent = name; });
+}
+let teacherName = (readStoredTeacher() || TEACHER).trim() || TEACHER;
+applyTeacher(teacherName);
+
+(function initTeacherEditor(){
+  const modal  = document.getElementById('teacherModal');
+  const input  = document.getElementById('teacherInput');
+  const note   = document.getElementById('teacherNote');
+  const openers = ['teacherBtn','welcomeTeacherBtn'].map(id=>document.getElementById(id));
+
+  function open(){
+    input.value = (teacherName === TEACHER) ? '' : teacherName;
+    note.textContent = '';
+    modal.hidden = false;
+    setTimeout(()=>{ try{ input.focus(); input.select(); }catch(e){} }, 40);
+  }
+  function close(){ modal.hidden = true; }
+  function save(){
+    const v = input.value.trim();
+    if(!v){ note.textContent = 'اكتب الاسم أولًا.'; return; }
+    teacherName = v;
+    applyTeacher(teacherName);
+    if(storeTeacher(teacherName)) close();
+    else {
+      /* بعض المتصفحات تمنع الحفظ عند فتح الملف مباشرة من القرص */
+      note.textContent = 'تعذّر الحفظ في هذا المتصفح، فالاسم يظهر الآن لكنه يعود إلى الافتراضي بعد إغلاق الملف.';
+      setTimeout(close, 2600);
+    }
+  }
+
+  openers.forEach(b=>{ if(b) b.addEventListener('click', open); });
+  document.getElementById('teacherSave').addEventListener('click', save);
+  document.getElementById('teacherCancel').addEventListener('click', close);
+  modal.addEventListener('click', e=>{ if(e.target === modal) close(); });
+  input.addEventListener('keydown', e=>{
+    if(e.key === 'Enter') save();
+    if(e.key === 'Escape') close();
+  });
+  document.addEventListener('keydown', e=>{ if(e.key === 'Escape' && !modal.hidden) close(); });
+})();
 
 /* بيانات التجارب مفهرسة بالفصل: 11،12… للفصل الأول و21،22… للثاني */
 const EXPERIMENTS = {

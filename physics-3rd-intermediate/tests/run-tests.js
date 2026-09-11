@@ -30,7 +30,9 @@ const dom = new JSDOM(fs.readFileSync(HTML, 'utf8'), {
   runScripts: 'dangerously',
   pretendToBeVisual: true,
   virtualConsole: vc,
-  url: 'file://' + HTML
+  /* أصل عادي بدل file:// لأن jsdom يمنع localStorage على الأصل المعتم،
+     ومسار file:// الحقيقي يختبره tests/browser-shots.js في Chromium. */
+  url: 'http://localhost/physics/index.html'
 });
 const { window } = dom;
 const doc = window.document;
@@ -257,6 +259,39 @@ function run(){
   click(cards[0]);
   if (JSON.stringify(window['t'+firstTab+'State']) !== stBefore)
     fail('state', 'حالة التجربة تغيّرت بعد الرجوع والعودة');
+
+  /* --- 2ب. اسم الأستاذ يُكتب من الشاشة ويُحفظ --- */
+  const slots = ()=> $$('[data-teacher-name]').map(e=>e.textContent);
+  if(slots().length < 3) fail('teacher', 'أماكن عرض اسم الأستاذ أقل من ثلاثة');
+  const modal = $('#teacherModal');
+  if(!modal.hidden) fail('teacher', 'النافذة ظاهرة قبل الضغط');
+  click($('#teacherBtn'));
+  if(modal.hidden) fail('teacher', 'زر الهيدر لم يفتح النافذة');
+  /* الإلغاء لا يغيّر شيئًا */
+  const before = slots().join('|');
+  $('#teacherInput').value = 'اسم ملغى';
+  click($('#teacherCancel'));
+  if(!modal.hidden) fail('teacher', 'زر الإلغاء لم يغلق النافذة');
+  if(slots().join('|') !== before) fail('teacher', 'الإلغاء غيّر الاسم');
+  /* الحفظ يغيّر كل الأماكن */
+  click($('#welcomeTeacherBtn'));
+  if(modal.hidden) fail('teacher', 'زر شاشة الترحيب لم يفتح النافذة');
+  const NAME = 'الأستاذ حسين حكم';
+  $('#teacherInput').value = NAME;
+  click($('#teacherSave'));
+  if(!modal.hidden) fail('teacher', 'النافذة لم تُغلق بعد الحفظ');
+  slots().forEach((t,i)=>{ if(t !== NAME) fail('teacher', 'المكان '+(i+1)+' يعرض «'+t+'» بدل الاسم'); });
+  /* اسم فارغ يُرفض */
+  click($('#teacherBtn'));
+  $('#teacherInput').value = '   ';
+  click($('#teacherSave'));
+  if(modal.hidden) fail('teacher', 'قَبِل اسمًا فارغًا وأغلق النافذة');
+  if($('#teacherNote').textContent.trim() === '') fail('teacher', 'لا رسالة عند الاسم الفارغ');
+  click($('#teacherCancel'));
+  /* وحُفظ في المتصفح ليعود عند إعادة الفتح */
+  let stored = null;
+  try { stored = window.localStorage.getItem('physics3m.teacherName'); } catch(e){}
+  if(stored !== NAME) fail('teacher', 'الاسم لم يُحفظ في المتصفح (القيمة: '+stored+')');
 
   /* --- 3. المظهر الفاتح: أعِد رسم كل التجارب --- */
   click($('#themeToggleBtn'));
