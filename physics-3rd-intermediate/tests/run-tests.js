@@ -46,6 +46,29 @@ function draw(where){
   catch(e){ fail('draw ' + where, e); }
 }
 
+/* «لا شيء يُرسم خارج الإطار»: الإطار الخارجي للكانفاس يجب أن يبقى بلون الخلفية
+   وحده. أي نص أو سهم يزحف إلى الحافة يغيّر لون هذه البكسلات فيُكشف هنا. */
+function checkFrame(where){
+  try{
+    const c = $('#simCanvas');
+    const cx = c.getContext('2d');
+    const W = c.width, H = c.height, M = 3;
+    const d = cx.getImageData(0,0,W,H).data;
+    const at = (x,y)=> (y*W + x)*4;
+    const bg = [d[at(2,2)], d[at(2,2)+1], d[at(2,2)+2]];
+    const off = [];
+    const test = (x,y)=>{
+      const i = at(x,y);
+      if(Math.abs(d[i]-bg[0])+Math.abs(d[i+1]-bg[1])+Math.abs(d[i+2]-bg[2]) > 24)
+        off.push(x+','+y);
+    };
+    for(let x=0;x<W;x++){ for(let m=0;m<M;m++){ test(x,m); test(x,H-1-m); } }
+    for(let y=0;y<H;y++){ for(let m=0;m<M;m++){ test(m,y); test(W-1-m,y); } }
+    if(off.length) fail(where, 'رسم يلامس حافة الكانفاس عند ' + off.slice(0,4).join(' / ') +
+                               ' (' + off.length + ' بكسل)');
+  }catch(e){ fail('frame '+where, e); }
+}
+
 function savePng(name){
   try{
     const url = $('#simCanvas').toDataURL('image/png');
@@ -160,6 +183,7 @@ function run(){
       });
 
       draw('tab'+id+' افتراضي');
+      checkFrame('tab'+id+' افتراضي');
       savePng('t'+id+'-default');
 
       /* كل زر يُضغط مرتين (تشغيل وإرجاع)، مع لقطة بعد الضغطة الأولى */
@@ -168,6 +192,7 @@ function run(){
         const label = (b.textContent||'').trim().slice(0,24);
         try{
           click(b); draw('tab'+id+' زر '+label);
+          checkFrame('tab'+id+' زر '+label);
           savePng('t'+id+'-btn'+bi);
           click(b); draw('tab'+id+' زر '+label+' (إرجاع)');
         }catch(e){ fail('tab'+id+' زر '+label, e); }
@@ -176,6 +201,7 @@ function run(){
       /* كل منزلق إلى أربع قيم: الأدنى، ٣٧٪، المنتصف، الأقصى */
       const ranges = Array.from(panel.querySelectorAll('input[type=range]'));
       ranges.forEach((r, ri)=>{
+        if(r.disabled) return;
         const mn = Number(r.min), mx = Number(r.max), st = Number(r.step)||1;
         const snap = v => String(mn + Math.round((v-mn)/st)*st);
         [mn, mn+(mx-mn)*0.37, (mn+mx)/2, mx].forEach(v=>{
@@ -191,12 +217,31 @@ function run(){
         r.value = String(mx);
         r.dispatchEvent(new window.Event('input', {bubbles:true}));
         draw('tab'+id+' منزلق أقصى');
+        checkFrame('tab'+id+' '+r.dataset.target+' أقصى');
         savePng('t'+id+'-max'+ri);
         /* أعِد المنزلق إلى قيمته الأصلية حتى لا تتلوث اللقطات اللاحقة */
         r.value = r.getAttribute('value');
         r.dispatchEvent(new window.Event('input', {bubbles:true}));
       });
       draw('tab'+id+' بعد المنزلقات');
+
+      /* «كل الأرقام محسوبة من القانون وقت التشغيل»: تحريك كل منزلق يجب أن
+         يغيّر قراءة النشاط فعلًا — وإلا فالقيمة مكتوبة يدويًا أو غير مرتبطة. */
+      if(typeof readFn === 'function'){
+        ranges.forEach(r=>{
+          if(r.disabled) return;          // منزلق معطَّل عمدًا في هذه الحالة
+          const before = JSON.stringify(readFn());
+          const mn = Number(r.min), mx = Number(r.max);
+          const orig = r.value;
+          r.value = String(Math.abs(Number(orig)-mx) > Math.abs(Number(orig)-mn) ? mx : mn);
+          r.dispatchEvent(new window.Event('input', {bubbles:true}));
+          const after = JSON.stringify(readFn());
+          r.value = orig;
+          r.dispatchEvent(new window.Event('input', {bubbles:true}));
+          if(before === after)
+            fail('tab'+id, 'تحريك '+r.dataset.target+' لم يغيّر أي رقم في قراءة النشاط');
+        });
+      }
     });
 
     /* الرجوع إلى شاشة الفصول */

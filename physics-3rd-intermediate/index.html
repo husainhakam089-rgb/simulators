@@ -350,6 +350,12 @@
     background:var(--accent-amber); cursor:pointer; border:2px solid #301b02;
     box-shadow:0 0 0 3px rgba(242,168,60,.2);
   }
+  .control-row.row-off{ opacity:.42; }
+  .control-row.row-off label::after{
+    content:' — معطَّل في هذه الحالة'; color:var(--accent-red); font-size:11px;
+  }
+  input[type=range]:disabled{ cursor:not-allowed; }
+
   .btn-row{display:flex; gap:8px; flex-wrap:wrap;}
   .ctrl-btn{
     flex:1; background:var(--bg-panel-alt); border:1px solid var(--border-soft); color:var(--text);
@@ -2103,6 +2109,8 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
     if(!ROADS[r]) return;
     state.road = r; state.t = 0;
     if(r !== 'ideal') setControl('t22State.mu', ROADS[r].mu);
+    /* على السطح الأملس تمامًا لا معنى لمعامل الاحتكاك، فيُعطَّل منزلقه */
+    setControlEnabled('t22State.mu', r !== 'ideal');
   };
 })();
 </script>
@@ -3167,6 +3175,16 @@ function setControl(target, value){
   inp.dispatchEvent(new Event('input', {bubbles:true}));
 }
 window.setControl = setControl;
+
+/* تعطيل منزلق لا أثر له في الحالة الحالية، بدل أن يتحرّك الطالب به بلا نتيجة. */
+function setControlEnabled(target, on){
+  const inp = document.querySelector('input[type=range][data-target="'+target+'"]');
+  if(!inp) return;
+  inp.disabled = !on;
+  const row = inp.closest('.control-row');
+  if(row) row.classList.toggle('row-off', !on);
+}
+window.setControlEnabled = setControlEnabled;
 
 /* ---- الفصل الأول ---- */
 bindGroup('#presetBtns11','data-preset11', v=> t11Preset(v));
