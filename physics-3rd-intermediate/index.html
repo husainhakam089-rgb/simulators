@@ -1790,7 +1790,7 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
    ========================================================================= */
 (function(){
   const COLORS = makeColors();
-  const state = { simMode:'auto', t:0, rodCharge:4, dist:14, mode:'near' };
+  const state = { simMode:'auto', t:0, rodCharge:4, dist:14, mode:'near', aNow:null, aV:0 };
 
   /* الشحنة المؤثرة في الورقتين: بالتقريب تعتمد على البعد، وباللمس تنتقل كاملة */
   function leafCharge(){
@@ -1801,6 +1801,15 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
 
   function t13Update(dt){
     if(state.simMode==='auto') state.t += dt;
+    /* الورقتان لهما كتلة: تندفعان إلى زاوية الاتزان ثم تتأرجحان قليلًا وتستقرّان.
+       في الوضع اليدوي تأخذان الزاوية مباشرة كي تثبت الصورة للقياس. */
+    const tgt = angle();
+    if(state.aNow === null) state.aNow = tgt;      // أول ظهور: الزاوية صحيحة فورًا
+    if(state.simMode==='auto'){
+      const k = 30, damp = Math.pow(0.06, dt);
+      state.aV = (state.aV + (tgt - state.aNow)*k*dt) * damp;
+      state.aNow += state.aV*dt;
+    } else { state.aNow = tgt; state.aV = 0; }
     /* السحب باليد: امسك القضيب وحرّكه عموديًا فيتغيّر بعده عن القرص */
     const P = window.pointer;
     if(P){
@@ -1824,11 +1833,15 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
     optTitle('نشاط ٣: الكشاف الكهربائي — كيف نعرف أن الجسم مشحون؟', COLORS);
 
     const gy = 344, q = leafCharge(), a = angle();
+    /* الرقاقتان ورق ألمنيوم رقيق، فترتعشان دائمًا ما دامتا مشحونتين */
+    const quiver = state.simMode==='auto' ? Math.sin(state.t*7.4)*(0.5 + a*0.035) : 0;
+    const base = (state.aNow === null) ? a : state.aNow;   // قبل أول تحديث: الزاوية المحسوبة
+    const aShown = Math.max(0, base + quiver);
     ctx.fillStyle=COLORS.ground; ctx.fillRect(90, gy, 460, 7);
 
     /* الكشاف، وشحنة الورقتين تأخذ إشارة القضيب في اللمس وتعاكسه قربًا في الحث */
     const leafSign = (state.mode === 'touch') ? state.rodCharge : state.rodCharge;
-    const es = figElectroscope(320, gy, 92, a, leafSign, COLORS);
+    const es = figElectroscope(320, gy, 92, aShown, leafSign, COLORS);
 
     /* القضيب المشحون فوق القرص */
     const gap = (state.mode === 'touch') ? 6 : state.dist*2.6;
@@ -1920,16 +1933,22 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
     const SC = 11;                                  // بكسل لكل سنتيمتر
     const cxm = 300, cy = 156;
     const half = state.r*SC/2;
-    const x1 = cxm - half, x2 = cxm + half;
+    /* الكرتان معلّقتان بخيطين، فترتجّان حول موضعهما، وسعة الارتجاج تكبر بكبر القوة —
+       الموضع المرسوم فقط يتغيّر، أما البعد المقيس r فيبقى كما ضبطه الطالب. */
+    const vib = state.simMode==='auto'
+              ? Math.sin(state.t*7.2)*Math.min(0.7 + F*0.55, 5) : 0;
+    const push = rep ? vib : -vib;
+    const x1 = cxm - half - push, x2 = cxm + half + push;
     state._cx = cxm; state._sc = SC;
     state._balls = [{x:x1, y:cy, r:16+Math.abs(state.q1)*3.4},
                     {x:x2, y:cy, r:16+Math.abs(state.q2)*3.4}];
 
-    /* مسطرة البعد */
+    /* مسطرة البعد — تنزل بقدر ما تكبر الكرتان كي لا يركب عليها عنوان الشحنة */
+    const rMax = Math.max(state._balls[0].r, state._balls[1].r), ruleY = cy + rMax + 44;
     ctx.strokeStyle=COLORS.muted; ctx.lineWidth=1.5;
-    ctx.beginPath(); ctx.moveTo(x1, cy+68); ctx.lineTo(x2, cy+68); ctx.stroke();
-    [x1,x2].forEach(x=>{ ctx.beginPath(); ctx.moveTo(x, cy+62); ctx.lineTo(x, cy+74); ctx.stroke(); });
-    optLabel('r = '+state.r.toFixed(0)+' cm', cxm, cy+90, COLORS.muted, 12, 'center', true);
+    ctx.beginPath(); ctx.moveTo(x1, ruleY); ctx.lineTo(x2, ruleY); ctx.stroke();
+    [x1,x2].forEach(x=>{ ctx.beginPath(); ctx.moveTo(x, ruleY-6); ctx.lineTo(x, ruleY+6); ctx.stroke(); });
+    optLabel('r = '+state.r.toFixed(0)+' cm', cxm, ruleY+20, COLORS.muted, 12, 'center', true);
 
     /* الشحنتان */
     ctx.save(); ctx.beginPath(); ctx.rect(60, 56, 500, 190); ctx.clip();
@@ -1939,8 +1958,8 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
       ctx.beginPath(); ctx.arc(x, cy, r, 0, Math.PI*2); ctx.fill();
       optLabel((q>0?'+':'−')+Math.abs(q).toFixed(0), x, cy+6, '#fff', 15, 'center', true);
     });
-    optLabel('q₁', x1, cy+state._balls[0].r+20, COLORS.wire, 12.5, 'center', true);
-    optLabel('q₂', x2, cy+state._balls[1].r+20, COLORS.wire, 12.5, 'center', true);
+    optLabel('q₁', x1, cy+state._balls[0].r+30, COLORS.wire, 12.5, 'center', true);
+    optLabel('q₂', x2, cy+state._balls[1].r+30, COLORS.wire, 12.5, 'center', true);
     dragHalo(x2, cy, state._balls[1].r+13, COLORS,
              state.drag ? 'اسحب لتغيير البعد' : 'اسحبني بإصبعك');
 
@@ -1957,7 +1976,7 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
     optLabel(rep ? 'تنافر' : 'تجاذب', cxm, cy-70, rep?COLORS.capActive:COLORS.capDefault, 14);
 
     /* منحني القوة مع البعد */
-    const gx0=80, gyB=380, gw=420, gh=120;
+    const gx0=80, gyB=380, gw=420, gh=102;
     optAxes(gx0, gyB, gw, gh, COLORS, 'r (cm)', 'F (N)', true);
     const RMAX = 26, FM = Math.max(90*Math.abs(state.q1*state.q2)/36, 1)*1.05;
     const PX = rr => gx0 + (rr/RMAX)*gw;
@@ -2044,9 +2063,15 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
       const ca = Math.cos(a), sa = Math.sin(a);
       ctx.strokeStyle = pos ? COLORS.red : COLORS.blue; ctx.lineWidth=1.8;
       ctx.globalAlpha = 0.55;
+      /* الخطوط تسري إلى الخارج من الموجبة وإلى الداخل نحو السالبة،
+         وسرعة السريان تكبر بكبر الشحنة — هكذا يُرى اتجاه المجال لا اتجاهه المرسوم فقط. */
+      const flow = (state.simMode==='auto' ? state.t : 0)*(26 + Math.abs(state.Q)*7);
+      ctx.setLineDash([11, 7]);
+      ctx.lineDashOffset = pos ? -flow : flow;
       ctx.beginPath();
       ctx.moveTo(cx+ca*r0, cy+sa*r0); ctx.lineTo(cx+ca*r1, cy+sa*r1);
       ctx.stroke();
+      ctx.setLineDash([]); ctx.lineDashOffset = 0;
       ctx.globalAlpha = 1;
       /* رأس السهم في منتصف الخط يوضّح الاتجاه */
       const rm = (r0+r1)/2;
@@ -2114,7 +2139,10 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
   const state = { simMode:'auto', t:0, cloudQ:6, rod:1 };
 
   function threshold(){ return 5; }                       // حدّ التفريغ
-  function discharging(){ return state.cloudQ >= threshold() && (state.t % 3) > 2.2; }
+  /* دورة العاصفة: تتجمع الشحنة ثم تُفرَّغ، وكلما زادت شحنة السحابة قصرت المدة بين صاعقة وأخرى */
+  function period(){ return 4.4 - Math.min(state.cloudQ, 9)*0.3; }
+  function phase(){ return (state.t % period())/period(); }
+  function discharging(){ return state.cloudQ >= threshold() && phase() > 0.80; }
 
   function t16Update(dt){ if(state.simMode==='auto') state.t += dt; }
 
@@ -2126,14 +2154,16 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
     const gy = 368, hasRod = state.rod === 1;
     ctx.fillStyle=COLORS.ground; ctx.fillRect(60, gy, 500, 8);
 
-    /* السحابة وشحنتها السالبة في أسفلها */
-    figCloud(300, 104, 300, COLORS);
+    /* السحابة تسير ببطء مع الريح، وشحنتها السالبة في أسفلها تسير معها */
+    const wind = state.simMode==='auto' ? Math.sin(state.t*0.42)*15 : 0;
+    /* عرض السحابة وارتفاعها مضبوطان كي لا تلامس العنوان ولا شحنات طرف المانعة */
+    figCloud(300+wind, 108, 220, COLORS);
     const n = Math.min(Math.round(state.cloudQ), 9);
-    for(let i=0;i<n;i++) figSign(190 + i*26, 142, 8, false, COLORS);
-    optLabel('سحابة مشحونة سالبًا في أسفلها', 300, 66, COLORS.muted, 12);
+    for(let i=0;i<n;i++) figSign(300 + wind + (i-(n-1)/2)*22, 118, 7, false, COLORS);
+    optLabel('سحابة مشحونة سالبًا في أسفلها', 502, 76, COLORS.muted, 11.5);
 
     /* البناية */
-    const tip = figBuilding(300, gy, 150, 120, hasRod, COLORS);
+    const tip = figBuilding(300, gy, 150, 96, hasRod, COLORS);
     optLabel(hasRod ? 'بناية عليها مانعة صواعق' : 'بناية بلا مانعة', 300, gy+28,
              hasRod?COLORS.green:COLORS.red, 12);
 
@@ -2146,12 +2176,22 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
     optLabel(hasRod ? 'الشحنة تتجمع عند الطرف المدبّب' : 'الشحنة موزّعة على السطح',
              182, tip+10, COLORS.red, 11, 'right');
 
+    /* مؤشّر تجمّع الشحنة بين صاعقة وأخرى: يمتلئ ثم يفرغ عند التفريغ */
+    if(state.cloudQ >= threshold()){
+      const ph = phase(), fillW = Math.min(ph/0.80, 1)*140;
+      optLabel(ph > 0.80 ? 'تفريغ!' : 'تتجمع الشحنة قبل التفريغ',
+               148, 308, ph > 0.80 ? COLORS.red : COLORS.muted, 11);
+      optBox(78, 316, 140, 18, COLORS.panel, COLORS.border);
+      ctx.fillStyle = ph > 0.80 ? COLORS.red : COLORS.capDefault;
+      ctx.fillRect(79, 317, Math.max(2, fillW-2), 16);
+    }
+
     /* التفريغ */
     if(discharging()){
-      figSpark(300, 152, 300, tip-6, COLORS, state.t*3);
+      figSpark(300+wind, 176, 300, tip-6, COLORS, state.t*3);
       if(hasRod){
         ctx.strokeStyle=COLORS.green; ctx.lineWidth=4;
-        ctx.beginPath(); ctx.moveTo(300, gy-120); ctx.lineTo(300, gy); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(300, gy-96); ctx.lineTo(300, gy); ctx.stroke();
         optLabel('يمرّ التيار في سلك المانعة إلى الأرض بأمان', 300, gy+52, COLORS.green, 11.5);
       } else {
         optLabel('التفريغ يمرّ في جسم البناية فيتلفها', 300, gy+52, COLORS.red, 11.5);
@@ -2445,15 +2485,16 @@ function flowDots(pts, phase, count, COLORS){
     } else {
       const main = [[L,T],[R,T],[R,B],[L,B],[L,T]];
       wire(main, COLORS.muted, 5);
-      const br1 = [[230,T],[230,206],[420,206],[420,T]];
-      const br2 = [[230,T],[230,254],[420,254],[420,T]];
+      /* الفرعان متباعدان كفاية كي لا يركب عنوان R₂ على جسم المقاومة الأولى */
+      const br1 = [[230,T],[230,180],[420,180],[420,T]];
+      const br2 = [[230,T],[230,240],[420,240],[420,T]];
       wire(br1, COLORS.muted, 4); wire(br2, COLORS.muted, 4);
-      figResistor(325, 206, 86, COLORS, 'R₁ = '+state.R1+' Ω', '#8a5a2b');
-      figResistor(325, 254, 86, COLORS, 'R₂ = '+state.R2+' Ω', '#2c7a4b');
+      figResistor(325, 180, 86, COLORS, 'R₁ = '+state.R1+' Ω', '#8a5a2b');
+      figResistor(325, 240, 86, COLORS, 'R₂ = '+state.R2+' Ω', '#2c7a4b');
       flowDots(main, (state.t*Math.min(I,6)*0.12)%1, 12, COLORS);
       optLabel('الجهد نفسه على المقاومتين', 325, T-30, COLORS.capActive, 12);
-      optLabel('I₁ = '+(state.V/state.R1).toFixed(2)+' A', 486, 202, COLORS.capDefault, 11.5, 'left', true);
-      optLabel('I₂ = '+(state.V/state.R2).toFixed(2)+' A', 486, 250, COLORS.green, 11.5, 'left', true);
+      optLabel('I₁ = '+(state.V/state.R1).toFixed(2)+' A', 486, 176, COLORS.capDefault, 11.5, 'left', true);
+      optLabel('I₂ = '+(state.V/state.R2).toFixed(2)+' A', 486, 236, COLORS.green, 11.5, 'left', true);
     }
     figBattery(290, B, 96, COLORS, 'ε = '+state.V.toFixed(0)+' V');
     figMeter(L, 206, 30, 'A', I.toFixed(2)+' A', COLORS, '#c0392b', Math.min(I/6,1));
@@ -2570,6 +2611,23 @@ function flowDots(pts, phase, count, COLORS){
 
   function t25Update(dt){ if(state.simMode==='auto') state.t += dt; }
 
+  /* قرص عدّاد الكهرباء في البيت: عدد دوراته يتناسب مع الطاقة المستهلكة،
+     فسرعة دورانه تتناسب مع قدرة الجهاز المشتغل. */
+  function drawMeter(cx, cy, R, P){
+    optBox(cx-R-16, cy-R-14, (R+16)*2, (R+14)*2, COLORS.panel, COLORS.border);
+    ctx.fillStyle = COLORS.bg;
+    ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = COLORS.border; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI*2); ctx.stroke();
+    const ang = (state.simMode==='auto' ? state.t : 0) * (P/1500) * 7.0;
+    ctx.save(); ctx.translate(cx, cy); ctx.rotate(ang);
+    ctx.fillStyle = COLORS.red;
+    ctx.fillRect(-2.5, -R+3, 5, R*0.9);            // العلامة الحمراء على القرص
+    ctx.fillStyle = COLORS.capActive;
+    ctx.beginPath(); ctx.arc(0, 0, 4.5, 0, Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+
   function t25Draw(){
     ctx.clearRect(0,0,CW,CH);
     ctx.fillStyle=COLORS.bg; ctx.fillRect(0,0,CW,CH);
@@ -2580,6 +2638,8 @@ function flowDots(pts, phase, count, COLORS){
 
     /* الجهاز المختار ولوحة بياناته */
     const dx = 150, dy = 196;
+    drawMeter(735, 302, 34, P);
+    optLabel('قرص العدّاد يدور أسرع كلما زادت القدرة', 735, 362, COLORS.muted, 11);
     drawDevice(state.device, dx, dy, 96);
     optLabel(DEVICES[state.device].name, dx, dy+26, COLORS.capActive, 14);
     optBox(dx-96, dy+40, 192, 58, COLORS.panel, COLORS.border);
@@ -2662,10 +2722,14 @@ function flowDots(pts, phase, count, COLORS){
     optLabel(off ? 'المصهر انصهر فانقطعت الدائرة' : 'المصهر سليم',
              370, B+34, off?COLORS.red:COLORS.green, 12);
 
-    /* الأجهزة الموصولة */
-    for(let i=0;i<state.devices;i++){
-      const x = 150 + i*78;
-      figBulb(x, T, 20, off ? 0 : 0.9, COLORS);
+    /* الأجهزة الموصولة — موزّعة على عرض السلك العلوي مهما كان عددها،
+       فلا يخرج جهاز خارج الدائرة حين يشغّل الطالب ثمانية أجهزة. */
+    const nDev = state.devices, xA = 148, xB = 448;
+    const step = nDev > 1 ? (xB-xA)/(nDev-1) : 0;
+    const br   = Math.max(13, Math.min(20, step*0.46));
+    for(let i=0;i<nDev;i++){
+      const x = nDev === 1 ? (xA+xB)/2 : xA + i*step;
+      figBulb(x, T, br, off ? 0 : 0.9, COLORS);
       optLabel('جهاز', x, T+42, COLORS.muted, 10.5);
     }
 
