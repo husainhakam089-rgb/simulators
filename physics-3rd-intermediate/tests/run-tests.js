@@ -80,6 +80,8 @@ function savePng(name){
 }
 
 function run(){
+  /* امسح لقطات الجولة السابقة: صورة قديمة لنشاط تغيّر تضلّل الفحص البصري */
+  fs.rmSync(OUT_DIR, { recursive:true, force:true });
   fs.mkdirSync(OUT_DIR, { recursive: true });
 
   /* --- 0. شاشة الترحيب --- */

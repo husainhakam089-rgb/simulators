@@ -825,7 +825,7 @@
           <div class="btn-row">
             <button class="ctrl-btn on" data-mode-tab="13">⚙️ تلقائي</button>
           </div>
-          <div class="hint">💡 بالتقريب تنفرج الورقتان ثم تعودان إذا أبعدتَ القضيب. أما بالملامسة فتبقيان منفرجتين لأن الشحنة انتقلت إلى الكشاف فعلًا.</div>
+          <div class="hint">💡 بالتقريب تنفرج الورقتان ثم تعودان إذا أبعدتَ القضيب. أما بالملامسة فتبقيان منفرجتين لأن الشحنة انتقلت إلى الكشاف فعلًا.<br><b>✋ يمكنك مسك القضيب بإصبعك على الرسم وتحريكه لأعلى وأسفل بدل استعمال المنزلق.</b></div>
           <div class="btn-row" id="modeBtns13">
             <button class="ctrl-btn cyan on" data-mode13="near">تقريب القضيب</button>
             <button class="ctrl-btn cyan" data-mode13="touch">ملامسة القرص</button>
@@ -845,7 +845,7 @@
           <div class="btn-row">
             <button class="ctrl-btn on" data-mode-tab="14">⚙️ تلقائي</button>
           </div>
-          <div class="hint">💡 السهمان متساويان دائمًا في الطول مهما اختلفت الشحنتان — لأن القوة بينهما فعل ورد فعل. غيّر البعد ولاحظ سرعة تغيّر القوة.</div>
+          <div class="hint">💡 السهمان متساويان دائمًا في الطول مهما اختلفت الشحنتان — لأن القوة بينهما فعل ورد فعل. غيّر البعد ولاحظ سرعة تغيّر القوة.<br><b>✋ امسك الشحنة اليمنى بإصبعك على الرسم واسحبها لتغيّر البعد مباشرة.</b></div>
           <div class="control-row">
             <label>الشحنة الأولى q₁ (µC) <b id="val-q1-14">3</b></label>
             <input type="range" min="-8" max="8" step="1" value="3" data-target="t14State.q1" data-label="val-q1-14">
@@ -865,7 +865,7 @@
           <div class="btn-row">
             <button class="ctrl-btn on" data-mode-tab="15">⚙️ تلقائي</button>
           </div>
-          <div class="hint">💡 خطوط المجال تخرج من الشحنة الموجبة وتدخل في السالبة. حرّك شحنة الاختبار ولاحظ أن المجال يضعف بسرعة كلما ابتعدت.</div>
+          <div class="hint">💡 خطوط المجال تخرج من الشحنة الموجبة وتدخل في السالبة. حرّك شحنة الاختبار ولاحظ أن المجال يضعف بسرعة كلما ابتعدت.<br><b>✋ امسك شحنة الاختبار بإصبعك على الرسم واسحبها قربًا وبعدًا.</b></div>
           <div class="btn-row" id="signBtns15">
             <button class="ctrl-btn cyan on" data-sign15="pos">شحنة موجبة</button>
             <button class="ctrl-btn cyan" data-sign15="neg">شحنة سالبة</button>
@@ -1799,7 +1799,24 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
   }
   function angle(){ return Math.min(Math.abs(leafCharge())*16, 48); }
 
-  function t13Update(dt){ if(state.simMode==='auto') state.t += dt; }
+  function t13Update(dt){
+    if(state.simMode==='auto') state.t += dt;
+    /* السحب باليد: امسك القضيب وحرّكه عموديًا فيتغيّر بعده عن القرص */
+    const P = window.pointer;
+    if(P){
+      if(P.justPressed && t13DragHitTest(P.x, P.y)) state.drag = true;
+      if(!P.isDown) state.drag = false;
+      if(state.drag && state.mode !== 'touch' && state._topY != null){
+        setControlSnap('t13State.dist', (state._topY - 14 - P.y)/2.6);
+      }
+    }
+  }
+  /* منطقة القضيب على الشاشة، تُحدَّث في كل رسم */
+  function t13DragHitTest(x, y){
+    const b = state._rodBox;
+    return !!b && x > b.x-16 && x < b.x+b.w+16 && y > b.y-18 && y < b.y+b.h+18;
+  }
+  window.t13DragHitTest = t13DragHitTest;
 
   function t13Draw(){
     ctx.clearRect(0,0,CW,CH);
@@ -1815,7 +1832,12 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
 
     /* القضيب المشحون فوق القرص */
     const gap = (state.mode === 'touch') ? 6 : state.dist*2.6;
-    figRod(320, es.topY - gap - 14, 150, state.rodCharge, COLORS, false);
+    const rodY = es.topY - gap - 14;
+    state._topY = es.topY;
+    state._rodBox = { x:320-75, y:rodY-11, w:150, h:22 };
+    figRod(320, rodY, 150, state.rodCharge, COLORS, false);
+    if(state.mode !== 'touch')
+      dragHaloRect(320, rodY, 186, 46, COLORS, state.drag ? 'اسحب لأعلى وأسفل' : 'اسحبني بإصبعك');
     optLabel(state.rodCharge >= 0 ? 'قضيب موجب الشحنة' : 'قضيب سالب الشحنة',
              320, es.topY - gap - 42, state.rodCharge>=0?COLORS.red:COLORS.blue, 12);
     if(state.mode !== 'touch'){
@@ -1870,7 +1892,24 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
   function force(){ return 90*Math.abs(state.q1*state.q2)/(state.r*state.r); }
   function repel(){ return state.q1*state.q2 > 0; }
 
-  function t14Update(dt){ if(state.simMode==='auto') state.t += dt; }
+  function t14Update(dt){
+    if(state.simMode==='auto') state.t += dt;
+    /* السحب باليد: امسك أي شحنة وحرّكها أفقيًا فيتغيّر البعد بينهما */
+    const P = window.pointer;
+    if(P){
+      if(P.justPressed && t14DragHitTest(P.x, P.y)) state.drag = true;
+      if(!P.isDown) state.drag = false;
+      if(state.drag && state._cx != null){
+        setControlSnap('t14State.r', 2*Math.abs(P.x - state._cx)/state._sc);
+      }
+    }
+  }
+  function t14DragHitTest(x, y){
+    const b = state._balls;
+    if(!b) return false;
+    return b.some(p => Math.hypot(x-p.x, y-p.y) < p.r + 18);
+  }
+  window.t14DragHitTest = t14DragHitTest;
 
   function t14Draw(){
     ctx.clearRect(0,0,CW,CH);
@@ -1882,6 +1921,9 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
     const cxm = 300, cy = 156;
     const half = state.r*SC/2;
     const x1 = cxm - half, x2 = cxm + half;
+    state._cx = cxm; state._sc = SC;
+    state._balls = [{x:x1, y:cy, r:16+Math.abs(state.q1)*3.4},
+                    {x:x2, y:cy, r:16+Math.abs(state.q2)*3.4}];
 
     /* مسطرة البعد */
     ctx.strokeStyle=COLORS.muted; ctx.lineWidth=1.5;
@@ -1897,8 +1939,10 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
       ctx.beginPath(); ctx.arc(x, cy, r, 0, Math.PI*2); ctx.fill();
       optLabel((q>0?'+':'−')+Math.abs(q).toFixed(0), x, cy+6, '#fff', 15, 'center', true);
     });
-    optLabel('q₁', x1, cy-46, COLORS.wire, 12.5, 'center', true);
-    optLabel('q₂', x2, cy-46, COLORS.wire, 12.5, 'center', true);
+    optLabel('q₁', x1, cy+state._balls[0].r+20, COLORS.wire, 12.5, 'center', true);
+    optLabel('q₂', x2, cy+state._balls[1].r+20, COLORS.wire, 12.5, 'center', true);
+    dragHalo(x2, cy, state._balls[1].r+13, COLORS,
+             state.drag ? 'اسحب لتغيير البعد' : 'اسحبني بإصبعك');
 
     /* سهما القوة: متساويان في المقدار ومتضادان */
     const L = Math.min(18 + F*9, 96);
@@ -1964,7 +2008,23 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
   /* بالميكروكولوم والسنتيمتر:  E = 9×10⁷ · Q / r²  نيوتن لكل كولوم */
   function fieldAt(r){ return 9e7*Math.abs(state.Q)/(r*r); }
 
-  function t15Update(dt){ if(state.simMode==='auto') state.t += dt; }
+  function t15Update(dt){
+    if(state.simMode==='auto') state.t += dt;
+    /* السحب باليد: امسك شحنة الاختبار وحرّكها قربًا وبعدًا */
+    const P = window.pointer;
+    if(P){
+      if(P.justPressed && t15DragHitTest(P.x, P.y)) state.drag = true;
+      if(!P.isDown) state.drag = false;
+      if(state.drag && state._cx != null){
+        setControlSnap('t15State.d', (P.x - state._cx - 26)/state._sc);
+      }
+    }
+  }
+  function t15DragHitTest(x, y){
+    const p = state._probe;
+    return !!p && Math.hypot(x-p.x, y-p.y) < 26;
+  }
+  window.t15DragHitTest = t15DragHitTest;
 
   function t15Draw(){
     ctx.clearRect(0,0,CW,CH);
@@ -2004,9 +2064,10 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
 
     /* شحنة الاختبار على بعد d */
     const px = cx + state.d*SC + 26;
-    ctx.fillStyle=COLORS.capActive;
+    state._cx = cx; state._sc = SC; state._probe = {x:px, y:cy};
+    ctx.fillStyle = sphereFill(px, cy, 11, '#0e9e90');
     ctx.beginPath(); ctx.arc(px, cy, 11, 0, Math.PI*2); ctx.fill();
-    optLabel('شحنة اختبار موجبة', px, cy-26, COLORS.capActive, 11);
+    dragHalo(px, cy, 24, COLORS, state.drag ? 'اسحب لتغيير البعد' : 'امسك شحنة الاختبار');
     const L = Math.min(20 + E/6e5, 90);
     optArrow(px+14, cy, px+14 + (pos? L : -Math.min(L, state.d*SC-6)), cy,
              COLORS.capActive, 3.5);
@@ -2742,8 +2803,8 @@ window.addEventListener('pointercancel', onPointerUp);
 /* تمرير التمرير يدويًّا فوق الكانفاس (لأن touch-action:none يعطّل التمرير) */
 (function(){
   let scrollForwarding = false;
-  let lastTouchY = 0;
-  let scrollTarget = null;
+  let lastTouchY = 0, lastTouchX = 0;
+  let scrollTarget = null, hScrollTarget = null;
 
   function nearestScrollable(el){
     for (let n = el; n && n !== document.body; n = n.parentElement){
@@ -2754,6 +2815,15 @@ window.addEventListener('pointercancel', onPointerUp);
     if (area && area.scrollHeight > area.clientHeight) return area;
     return document.scrollingElement || document.documentElement;
   }
+  /* حاوية التمرير الأفقي: على الجوال يكون الرسم أعرض من الشاشة، والتلميح
+     يَعِد الطالب بأن يسحبه يمينًا ويسارًا — فيجب أن يعمل ذلك فعلًا. */
+  function nearestHScrollable(el){
+    for (let n = el; n && n !== document.body; n = n.parentElement){
+      const ox = getComputedStyle(n).overflowX;
+      if ((ox === 'auto' || ox === 'scroll') && n.scrollWidth > n.clientWidth + 2) return n;
+    }
+    return null;
+  }
 
   canvas.addEventListener('touchstart', function(e){
     if (e.touches.length !== 1) { scrollForwarding = false; return; }
@@ -2762,19 +2832,23 @@ window.addEventListener('pointercancel', onPointerUp);
     if (onDraggable) { scrollForwarding = false; return; }
     scrollForwarding = true;
     lastTouchY = e.touches[0].clientY;
-    scrollTarget = nearestScrollable(canvas);
+    lastTouchX = e.touches[0].clientX;
+    scrollTarget  = nearestScrollable(canvas);
+    hScrollTarget = nearestHScrollable(canvas);
   }, {passive:true});
 
   canvas.addEventListener('touchmove', function(e){
     if (!scrollForwarding || e.touches.length !== 1 || !scrollTarget) return;
-    const y = e.touches[0].clientY;
-    const dy = lastTouchY - y;
-    lastTouchY = y;
-    scrollTarget.scrollTop += dy;
+    const y = e.touches[0].clientY, x = e.touches[0].clientX;
+    const dy = lastTouchY - y, dx = lastTouchX - x;
+    lastTouchY = y; lastTouchX = x;
+    /* الحركة الغالبة تقرّر: عموديًا تمرير الصفحة، وأفقيًا تحريك الرسم نفسه */
+    if (hScrollTarget && Math.abs(dx) > Math.abs(dy)) hScrollTarget.scrollLeft += dx;
+    else scrollTarget.scrollTop += dy;
     if (e.cancelable) e.preventDefault();
   }, {passive:false});
 
-  function endForward(){ scrollForwarding = false; scrollTarget = null; }
+  function endForward(){ scrollForwarding = false; scrollTarget = null; hScrollTarget = null; }
   canvas.addEventListener('touchend', endForward);
   canvas.addEventListener('touchcancel', endForward);
 })();
@@ -3046,7 +3120,7 @@ const EXPERIMENTS = {
     subtitle:'أداة تكشف وجود الشحنة ونوعها من انفراج ورقتيها',
     tools:['كشاف كهربائي ذو ورقتين','قضيب مشحون','مسطرة لقياس البعد','منقلة لقياس زاوية الانفراج'],
     steps:[
-      'قرّب القضيب المشحون من قرص الكشاف ببطء ولاحظ انفراج الورقتين.',
+      'امسك القضيب بإصبعك على الشاشة وقرّبه من القرص ببطء ولاحظ انفراج الورقتين.',
       'قلّل البعد تدريجيًا وسجّل زاوية الانفراج عند كل بعد.',
       'أبعِد القضيب ولاحظ عودة الورقتين إلى وضعهما.',
       'اضغط «ملامسة القرص» ولاحظ بقاء الانفراج بعد رفع القضيب.',
@@ -3066,7 +3140,7 @@ const EXPERIMENTS = {
       'ثبّت الشحنتين موجبتين ولاحظ سهمي التنافر المتساويين.',
       'اجعل إحدى الشحنتين سالبة ولاحظ انقلاب السهمين إلى تجاذب.',
       'ضاعف مقدار إحدى الشحنتين ولاحظ مضاعفة القوة.',
-      'ضاعف البعد بينهما ولاحظ أن القوة صارت ربع ما كانت.',
+      'اسحب الشحنة اليمنى بإصبعك حتى يتضاعف البعد ولاحظ أن القوة صارت ربع ما كانت.',
       'تابع النقطة الحمراء على المنحني وهي تهبط بسرعة كلما زاد البعد.',
       'احسب في دفترك القوة بين شحنتين مقدار كل منهما 2 µC والبعد بينهما 10 سم.'
     ]
@@ -3082,7 +3156,7 @@ const EXPERIMENTS = {
     steps:[
       'لاحظ خطوط المجال الخارجة من الشحنة الموجبة.',
       'بدّل إلى الشحنة السالبة ولاحظ انقلاب اتجاه الخطوط إلى الداخل.',
-      'حرّك شحنة الاختبار بعيدًا وسجّل شدة المجال عند كل بعد.',
+      'اسحب شحنة الاختبار بإصبعك بعيدًا وسجّل شدة المجال عند كل بعد.',
       'ضاعف مقدار الشحنة المصدر ولاحظ تضاعف شدة المجال.',
       'قارن تباعد الخطوط قرب الشحنة وبعيدًا عنها.',
       'استنتج العلاقة بين شدة المجال والبعد من قراءات جدولك.'
@@ -3411,6 +3485,43 @@ function setControlEnabled(target, on){
   if(row) row.classList.toggle('row-off', !on);
 }
 window.setControlEnabled = setControlEnabled;
+
+/* يستعملها السحب باليد: تقرّب القيمة إلى خطوة المنزلق وتحدّثه فقط إن تغيّرت،
+   فيبقى المنزلق والرسم متطابقين مهما سحب الطالب بإصبعه. */
+function setControlSnap(target, value){
+  const inp = document.querySelector('input[type=range][data-target="'+target+'"]');
+  if(!inp || inp.disabled) return;
+  const mn = Number(inp.min), mx = Number(inp.max), st = Number(inp.step) || 1;
+  let v = Math.min(mx, Math.max(mn, value));
+  v = Number((mn + Math.round((v - mn)/st)*st).toFixed(6));
+  if(Number(inp.value) !== v){
+    inp.value = String(v);
+    inp.dispatchEvent(new Event('input', {bubbles:true}));
+  }
+}
+window.setControlSnap = setControlSnap;
+
+/* هالة متقطّعة حول الجسم القابل للسحب، ليعرف الطالب أنه يستطيع مسكه بإصبعه */
+function dragHalo(x, y, r, COLORS, label){
+  ctx.save();
+  ctx.setLineDash([5,5]); ctx.strokeStyle=COLORS.capActive; ctx.lineWidth=2; ctx.globalAlpha=0.75;
+  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.stroke();
+  ctx.restore();
+  if(label) optLabel(label, x, y-r-10, COLORS.capActive, 10.5);
+}
+window.dragHalo = dragHalo;
+
+/* هالة مستطيلة للأجسام الطويلة (قضيب، ساق)، وتسميتها إلى جانبها لا فوقها */
+function dragHaloRect(x, y, w, hh, COLORS, label){
+  ctx.save();
+  ctx.setLineDash([5,5]); ctx.strokeStyle=COLORS.capActive; ctx.lineWidth=2; ctx.globalAlpha=0.75;
+  ctx.beginPath();
+  ctx.roundRect ? ctx.roundRect(x-w/2, y-hh/2, w, hh, hh/2) : ctx.rect(x-w/2, y-hh/2, w, hh);
+  ctx.stroke();
+  ctx.restore();
+  if(label) optLabel(label, x-w/2-10, y+4, COLORS.capActive, 10.5, 'right');
+}
+window.dragHaloRect = dragHaloRect;
 
 /* ---- الفصل الأول: الكهربائية الساكنة ---- */
 bindGroup('#methodBtns12','data-method12', v=> t12SetMethod(v));

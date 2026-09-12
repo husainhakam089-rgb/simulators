@@ -80,6 +80,53 @@ const VIEWPORTS = [
     const overflow = await page.evaluate(()=> document.documentElement.scrollWidth - document.documentElement.clientWidth);
     if(overflow > 2) problems.push(vp.name+': تمرير أفقي للصفحة بمقدار '+overflow+'px');
 
+    /* ===== السحب باليد: إصبع حقيقي على الكانفاس =====
+       نشاط ٤ (قانون كولوم): امسك الشحنة اليمنى واسحبها فيتغيّر البعد r. */
+    const tabs14 = await page.$$('.tab-btn');
+    await tabs14[3].click();
+    await page.waitForTimeout(350);
+    const before14 = await page.evaluate(()=> window.t14State.r);
+    /* موقع الشحنة اليمنى بوحدات الكانفاس المنطقية 900×480 */
+    const probe = await page.evaluate(()=> {
+      const b = window.t14State._balls[1];
+      return { x:b.x, y:b.y };
+    });
+    /* على الجوال يكون جزء من الرسم خارج الشاشة، فيمرّره الطالب أولًا ليصل إليه */
+    await page.evaluate((lx)=>{
+      const sc = document.querySelector('.canvas-scroll');
+      const c  = document.getElementById('simCanvas');
+      if(!sc || sc.scrollWidth <= sc.clientWidth + 2) return;
+      /* بفارق الإزاحة، فيصحّ في الاتجاهين — scrollLeft سالب في صفحة RTL */
+      const cr = c.getBoundingClientRect(), sr = sc.getBoundingClientRect();
+      const nowX  = cr.x + lx*(cr.width/900);
+      const wantX = sr.x + sr.width/2;
+      sc.scrollLeft -= (wantX - nowX);
+    }, probe.x);
+    await page.waitForTimeout(150);
+    const box = await page.$eval('#simCanvas', el=>{
+      const b = el.getBoundingClientRect();
+      return { x:b.x, y:b.y, w:b.width, h:b.height };
+    });
+    const toScreen = (p)=> ({ x: box.x + p.x*(box.w/900), y: box.y + p.y*(box.h/480) });
+    const from = toScreen(probe);
+    const to   = toScreen({ x: probe.x + 70, y: probe.y });
+    await page.mouse.move(from.x, from.y);
+    await page.mouse.down();
+    for(let i=1;i<=6;i++){
+      await page.mouse.move(from.x + (to.x-from.x)*i/6, from.y);
+      await page.waitForTimeout(40);
+    }
+    await page.mouse.up();
+    await page.waitForTimeout(200);
+    const after14 = await page.evaluate(()=> window.t14State.r);
+    if(after14 <= before14)
+      problems.push(vp.name+': سحب الشحنة لم يزد البعد (قبل '+before14+' بعد '+after14+')');
+    /* والمنزلق يجب أن يكون قد تبع السحب */
+    const slider14 = await page.$eval('input[data-target="t14State.r"]', el=>Number(el.value));
+    if(slider14 !== after14)
+      problems.push(vp.name+': المنزلق ('+slider14+') لا يطابق الحالة ('+after14+') بعد السحب');
+    await page.screenshot({ path: path.join(OUT, vp.name+'-7-drag.png'), fullPage:true });
+
     /* آخر تجربة في الفصل، ثم الرجوع */
     const tabs = await page.$$('.tab-btn');
     await tabs[tabs.length-1].click();
