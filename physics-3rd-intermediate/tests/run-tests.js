@@ -293,20 +293,23 @@ function run(){
   try { stored = window.localStorage.getItem('physics3m.teacherName'); } catch(e){}
   if(stored !== NAME) fail('teacher', 'الاسم لم يُحفظ في المتصفح (القيمة: '+stored+')');
 
-  /* --- 3. المظهر الفاتح: أعِد رسم كل التجارب --- */
-  click($('#themeToggleBtn'));
+  /* --- 3. المظهر الليلي: الافتراضي نهاري، فالضغطة تنقل إلى الليلي --- */
   if (doc.documentElement.getAttribute('data-theme') !== 'light')
-    fail('theme', 'تبديل المظهر الفاتح لم يعمل');
+    fail('theme', 'المظهر الافتراضي ليس النهاري');
+  click($('#themeToggleBtn'));
+  if (doc.documentElement.getAttribute('data-theme') !== 'dark')
+    fail('theme', 'الضغطة لم تنقل إلى المظهر الليلي');
   chapterNums.forEach(num=>{
     click(cards[chapterNums.indexOf(num)]);
     CHAPTERS[num].tabs.forEach(id=>{
       click($$('.tab-btn').find(b=> Number(b.dataset.tab)===id));
-      draw('light t'+id);
-      savePng('t'+id+'-light');
+      draw('dark t'+id);
+      checkFrame('dark t'+id);
+      savePng('t'+id+'-dark');
     });
     click($('#backBtn'));
   });
-  click($('#themeToggleBtn'));   // رجوع إلى الداكن
+  click($('#themeToggleBtn'));   // رجوع إلى النهاري
 
   /* --- 4. حلقة الرسم لا تعمل خارج شاشة التجارب --- */
   if (window.eval('rafId') !== null)
