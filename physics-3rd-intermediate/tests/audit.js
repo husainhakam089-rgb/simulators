@@ -75,6 +75,8 @@ const wait = (page, ms)=> page.waitForTimeout(ms);
 
       /* ---- 3. كل زر يغيّر الرسم ---- */
       const btns = await page.$$('.control-panel[data-tab="'+id+'"] button:not([data-mode-tab])');
+      const wasOn = [];
+      for(const b of btns) wasOn.push(await b.evaluate(el=> el.classList.contains('on')));
       for(let bi = 0; bi < btns.length; bi++){
         const label = (await btns[bi].textContent()).trim();
         const isOn  = await btns[bi].evaluate(el=> el.classList.contains('on'));
@@ -90,6 +92,15 @@ const wait = (page, ms)=> page.waitForTimeout(ms);
         const b2 = await frame(page);
         if(b1 === b2) notes.push('زر «'+label+'» لا يغيّر الرسم');
         if(modeBtn) { await modeBtn.click(); await wait(page, 200); }
+      }
+
+      /* زرّ تبديل (مفتاح الدائرة مثلًا) تُرجَع حالته، وإلا فُحصت المنزلقات
+         ودائرةُ النشاط مفتوحة فبدت كأنها لا تعمل. */
+      for(let bi = 0; bi < btns.length; bi++){
+        const on = await btns[bi].evaluate(el=> el.classList.contains('on'));
+        if(on !== wasOn[bi] && await btns[bi].evaluate(el=> el.hasAttribute('data-switch'))){
+          await btns[bi].click(); await wait(page, 250);
+        }
       }
 
       /* ---- 4. كل منزلق يغيّر الرسم ---- */
@@ -117,7 +128,44 @@ const wait = (page, ms)=> page.waitForTimeout(ms);
 
       /* ---- 5. السحب باليد إن وُجد ---- */
       const hasDrag = await page.evaluate(i=> typeof window['t'+i+'DragHitTest'] === 'function', id);
-      report.push({ id, title, animates, hasDrag, notes });
+
+      /* ---- 6. مفتاح الدائرة: لمسة إصبع حقيقية على المفتاح المرسوم ---- */
+      const swBox = await page.evaluate(i=>{
+        const st = window['t'+i+'State'];
+        return (st && st._swBox) ? { b: st._swBox, sw: st.sw } : null;
+      }, id);
+      let hasSwitch = false;
+      if(swBox){
+        hasSwitch = true;
+        const box = await page.$eval('#simCanvas', el=>{
+          const r = el.getBoundingClientRect();
+          return { x:r.x, y:r.y, w:r.width, h:r.height };
+        });
+        /* مرّر الرسم ليصل المفتاح إلى الشاشة (scrollLeft سالب في صفحة RTL) */
+        const cxLogical = swBox.b.x + swBox.b.w/2, cyLogical = swBox.b.y + swBox.b.h/2;
+        await page.evaluate((lx)=>{
+          const sc = document.querySelector('.canvas-scroll');
+          const c  = document.getElementById('simCanvas');
+          if(!sc || sc.scrollWidth <= sc.clientWidth + 2) return;
+          const cr = c.getBoundingClientRect(), sr = sc.getBoundingClientRect();
+          sc.scrollLeft -= ((sr.x + sr.width/2) - (cr.x + lx*(cr.width/900)));
+        }, cxLogical);
+        await wait(page, 150);
+        const box2 = await page.$eval('#simCanvas', el=>{
+          const r = el.getBoundingClientRect();
+          return { x:r.x, y:r.y, w:r.width, h:r.height };
+        });
+        await page.mouse.click(box2.x + cxLogical*(box2.w/900),
+                               box2.y + cyLogical*(box2.h/480));
+        await wait(page, 300);
+        const after = await page.evaluate(i=> window['t'+i+'State'].sw, id);
+        if(after === swBox.sw) notes.push('لمس المفتاح المرسوم لا يفتحه');
+        const btnOn = await page.$eval('[data-switch="'+id+'"]', el=> el.classList.contains('on'));
+        if(btnOn !== (after === 1)) notes.push('زر المفتاح لا يتبع المفتاح المرسوم');
+        await page.click('[data-switch="'+id+'"]');   // أعِد الدائرة مغلقة
+        await wait(page, 200);
+      }
+      report.push({ id, title, animates, hasDrag, hasSwitch, notes });
     }
     await page.click('#backBtn');
     await wait(page, 300);
@@ -132,7 +180,8 @@ const wait = (page, ms)=> page.waitForTimeout(ms);
     if(!ok) bad++;
     console.log('\n' + (ok ? '✅' : '⚠️ ') + '  [' + r.id + '] ' + r.title);
     console.log('     حركة تلقائية: ' + (r.animates ? 'نعم' : 'لا') +
-                '   |   سحب باليد: ' + (r.hasDrag ? 'نعم' : 'لا'));
+                '   |   سحب باليد: ' + (r.hasDrag ? 'نعم' : 'لا') +
+                '   |   مفتاح يعمل باللمس: ' + (r.hasSwitch ? 'نعم' : '—'));
     r.notes.forEach(n=> console.log('     • ' + n));
   });
   if(pageErrors.length){

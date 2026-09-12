@@ -900,6 +900,7 @@
         <div class="control-panel" data-tab="21">
           <div class="btn-row">
             <button class="ctrl-btn on" data-mode-tab="21">⚙️ تلقائي</button>
+            <button class="ctrl-btn switch-btn on" data-switch="21">🔌 المفتاح مغلق</button>
           </div>
           <div class="hint">💡 راقب سرعة الإلكترونات في السلك وإبرة الأميتر معًا: كلما مرّت شحنة أكبر في زمن أقصر زادت شدة التيار.</div>
           <div class="control-row">
@@ -916,6 +917,7 @@
         <div class="control-panel" data-tab="22">
           <div class="btn-row">
             <button class="ctrl-btn on" data-mode-tab="22">⚙️ تلقائي</button>
+            <button class="ctrl-btn switch-btn on" data-switch="22">🔌 المفتاح مغلق</button>
           </div>
           <div class="hint">💡 البطارية مثل مضخة ترفع الشحنة إلى جهد أعلى، والمصباح ينزلها فيتحوّل الشغل إلى ضوء وحرارة.</div>
           <div class="control-row">
@@ -932,6 +934,7 @@
         <div class="control-panel" data-tab="23">
           <div class="btn-row">
             <button class="ctrl-btn on" data-mode-tab="23">⚙️ تلقائي</button>
+            <button class="ctrl-btn switch-btn on" data-switch="23">🔌 المفتاح مغلق</button>
           </div>
           <div class="hint">💡 ثبّت المقاومة وغيّر الجهد: النقطة الحمراء تتحرك على خط مستقيم. ثم غيّر المقاومة ولاحظ تغيّر ميل الخط نفسه.</div>
           <div class="control-row">
@@ -948,6 +951,7 @@
         <div class="control-panel" data-tab="24">
           <div class="btn-row">
             <button class="ctrl-btn on" data-mode-tab="24">⚙️ تلقائي</button>
+            <button class="ctrl-btn switch-btn on" data-switch="24">🔌 المفتاح مغلق</button>
           </div>
           <div class="hint">💡 بالقيم نفسها، بدّل بين التوالي والتوازي وراقب قراءة الأميتر: المقاومة المكافئة تنقلب من أكبر من المقاومتين إلى أصغر منهما.</div>
           <div class="btn-row" id="modeBtns24">
@@ -995,6 +999,7 @@
         <div class="control-panel" data-tab="26">
           <div class="btn-row">
             <button class="ctrl-btn on" data-mode-tab="26">⚙️ تلقائي</button>
+            <button class="ctrl-btn switch-btn on" data-switch="26">🔌 المفتاح مغلق</button>
           </div>
           <div class="hint">💡 شغّل أجهزة أكثر وراقب الشريط: حين يتجاوز التيار حدّ المصهر ينصهر فورًا فتنطفئ الأجهزة كلها — وهذا يحمي أسلاك البيت من الحريق.</div>
           <div class="control-row">
@@ -1474,7 +1479,10 @@ function figResistor(cx, cy, w, COLORS, label, color){
 }
 
 /* مقياس بقرص وإبرة: A للأميتر و V للفولتميتر */
-function figMeter(cx, cy, r, letter, reading, COLORS, color, frac){
+/* ذاكرة إبر المقاييس: الإبرة الحقيقية لا تقفز إلى القيمة، بل تصل إليها في لحظة */
+const _needle = {};
+function figMeter(cx, cy, r, letter, reading, COLORS, color, frac, opt){
+  opt = opt || {};
   groundShadow(cx, cy+r+2, r*1.6, 0.10);
   ctx.fillStyle = tubeFill(0, cy-r, 0, cy+r, '#e8eef7');
   ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
@@ -1492,8 +1500,25 @@ function figMeter(cx, cy, r, letter, reading, COLORS, color, frac){
     ctx.lineTo(cx+Math.cos(a)*r*0.50, cy+r*0.18+Math.sin(a)*r*0.50);
     ctx.stroke();
   }
+  /* أرقام التدريج عند طرفَي القوس: بها يقرأ الطالب الإبرة لا بالرقم وحده */
+  if(opt.full !== undefined){
+    [[A0, '0'], [A1, String(opt.full)]].forEach(([ang, txt])=>{
+      optLabel(txt, cx+Math.cos(ang)*r*0.75, cy+r*0.18+Math.sin(ang)*r*0.75 + 3,
+               '#6b7a90', r*0.26, 'center', true);
+    });
+  }
+
   /* الإبرة */
-  const f = Math.max(0, Math.min(1, frac===undefined ? 0.5 : frac));
+  const target = Math.max(0, Math.min(1, frac===undefined ? 0.5 : frac));
+  let f = target;
+  if(opt.id){
+    if(opt.ease === false || !(opt.id in _needle)) _needle[opt.id] = target;
+    else {
+      const cur = _needle[opt.id], nx = cur + (target-cur)*0.22;
+      _needle[opt.id] = Math.abs(nx-target) < 0.0015 ? target : nx;
+    }
+    f = _needle[opt.id];
+  }
   const a = A0 + (A1-A0)*f;
   ctx.strokeStyle=color||'#c0392b'; ctx.lineWidth=2.4; ctx.lineCap='round';
   ctx.beginPath();
@@ -1517,6 +1542,33 @@ function figSwitch(x, y, w, closed, COLORS){
   ctx.beginPath(); ctx.arc(x+w, y, 4, 0, Math.PI*2); ctx.fill();
   ctx.lineCap='butt';
 }
+
+/* مفتاح الدائرة: يُرسم في فجوة من السلك، ويُفتح ويُغلق بلمسه على الشاشة.
+   تُخزَّن منطقته في الحالة كي يعرف tNNUpdate أين يلمسه الطالب. */
+function circuitSwitch(state, x, y, w, COLORS, labelY){
+  ctx.fillStyle = COLORS.bg;
+  ctx.fillRect(x-8, y-w*0.55-8, w+16, w*0.55+16);
+  figSwitch(x, y, w, state.sw === 1, COLORS);
+  optLabel(state.sw === 1 ? 'المفتاح مغلق' : 'المفتاح مفتوح', x+w/2, labelY,
+           state.sw === 1 ? COLORS.green : COLORS.red, 11);
+  dragHaloRect(x+w/2, y-w*0.16, w+26, w*0.62+16, COLORS, '');
+  state._swBox = { x:x-16, y:y-w*0.62-12, w:w+32, h:w*0.62+28 };
+}
+/* لمسة واحدة على المفتاح تقلبه، ويتبعها زر لوحة التحكم */
+function switchTap(state, tabId){
+  const P = window.pointer, b = state._swBox;
+  if(P && P.justPressed && b &&
+     P.x > b.x && P.x < b.x+b.w && P.y > b.y && P.y < b.y+b.h){
+    state.sw = state.sw === 1 ? 0 : 1;
+    syncSwitchBtn(tabId, state.sw);
+    if(window.SoundFX){ state.sw ? SoundFX.toggleOn() : SoundFX.toggleOff(); }
+  }
+}
+function syncSwitchBtn(tabId, on){
+  const b = document.querySelector('[data-switch="'+tabId+'"]');
+  if(b){ b.classList.toggle('on', !!on); b.textContent = on ? '🔌 المفتاح مغلق' : '🔌 المفتاح مفتوح'; }
+}
+window.syncSwitchBtn = syncSwitchBtn;
 
 /* مصهر (فيوز): سليم أو منصهر */
 function figFuse(cx, cy, w, blown, COLORS){
@@ -2270,10 +2322,10 @@ function flowDots(pts, phase, count, COLORS){
 (function(){
   const COLORS = makeColors();
   const E = 1.6e-19;
-  const state = { simMode:'auto', t:0, Q:6, time:4 };
+  const state = { simMode:'auto', t:0, Q:6, time:4, sw:1 };
 
-  function current(){ return state.Q/state.time; }
-  function t21Update(dt){ if(state.simMode==='auto') state.t += dt; }
+  function current(){ return state.sw ? state.Q/state.time : 0; }
+  function t21Update(dt){ if(state.simMode==='auto') state.t += dt; switchTap(state, 21); }
 
   function t21Draw(){
     ctx.clearRect(0,0,CW,CH);
@@ -2284,11 +2336,13 @@ function flowDots(pts, phase, count, COLORS){
     const L=110, R=470, T=120, B=300;
     const loop = [[L,T],[R,T],[R,B],[L,B],[L,T]];
     wire(loop, COLORS.muted, 5);
-    flowDots(loop, (state.t*Math.min(I,5)*0.16) % 1, 16, COLORS);
+    if(state.sw) flowDots(loop, (state.t*Math.min(I,5)*0.16) % 1, 16, COLORS);
 
     figBattery(290, B, 96, COLORS, 'مصدر التيار');
+    circuitSwitch(state, 150, B, 56, COLORS, B-44);
     figBulb(R, 210, 26, Math.min(I/4, 1), COLORS);
-    figMeter(L, 210, 34, 'A', I.toFixed(2)+' A', COLORS, '#c0392b', Math.min(I/5,1));
+    figMeter(L, 210, 34, 'A', I.toFixed(2)+' A', COLORS, '#c0392b', Math.min(I/5,1),
+             {id:'t21A', full:5, ease: state.simMode==='auto'});
     optLabel('أميتر يقيس شدة التيار', L, 168, COLORS.muted, 11);
 
     /* مقطع من السلك تمرّ خلاله الشحنة */
@@ -2304,11 +2358,12 @@ function flowDots(pts, phase, count, COLORS){
       {text:'t = '+state.time.toFixed(0)+' s', ltr:true},
       {text:'I = '+I.toFixed(2)+' A', ltr:true, color:COLORS.capActive, bold:true},
       {text:'عدد الإلكترونات المارّة', color:COLORS.muted},
-      {text:'n = Q/e = '+sci(state.Q/E)+' إلكترون', ltr:true, color:COLORS.capDefault}
+      {text:'n = Q/e = '+sci(state.sw ? state.Q/E : 0)+' إلكترون', ltr:true, color:COLORS.capDefault}
     ], COLORS);
 
     let v, vc;
-    if(I >= 3){ v='شحنة كبيرة في زمن قصير ← تيار شديد والمصباح يتوهّج'; vc=COLORS.capDefault; }
+    if(!state.sw){ v='المفتاح مفتوح ← الدائرة غير مغلقة فلا يمرّ تيار والمصباح مطفأ'; vc=COLORS.red; }
+    else if(I >= 3){ v='شحنة كبيرة في زمن قصير ← تيار شديد والمصباح يتوهّج'; vc=COLORS.capDefault; }
     else if(I >= 1){ v='التيار متوسط ← المصباح يضيء إضاءة عادية'; vc=COLORS.capActive; }
     else { v='شحنة قليلة في زمن طويل ← تيار ضعيف وإضاءة خافتة'; vc=COLORS.blue; }
     optVerdict(v, COLORS, vc);
@@ -2316,7 +2371,8 @@ function flowDots(pts, phase, count, COLORS){
   }
 
   window.t21Reading=function(){
-    return [state.Q.toFixed(0), state.time.toFixed(0), current().toFixed(2), sci(state.Q/E)];
+    return [state.Q.toFixed(0), state.time.toFixed(0), current().toFixed(2),
+            sci(state.sw ? state.Q/E : 0)];
   };
   window.t21State=state; window.t21Update=t21Update; window.t21Draw=t21Draw;
 })();
@@ -2328,10 +2384,10 @@ function flowDots(pts, phase, count, COLORS){
    ========================================================================= */
 (function(){
   const COLORS = makeColors();
-  const state = { simMode:'auto', t:0, emf:6, q:3 };
+  const state = { simMode:'auto', t:0, emf:6, q:3, sw:1 };
 
   function work(){ return state.q*state.emf; }
-  function t22Update(dt){ if(state.simMode==='auto') state.t += dt; }
+  function t22Update(dt){ if(state.simMode==='auto') state.t += dt; switchTap(state, 22); }
 
   function t22Draw(){
     ctx.clearRect(0,0,CW,CH);
@@ -2342,12 +2398,19 @@ function flowDots(pts, phase, count, COLORS){
     const L=110, R=470, T=126, B=312;
     const loop = [[L,T],[R,T],[R,B],[L,B],[L,T]];
     wire(loop, COLORS.muted, 5);
-    flowDots(loop, (state.t*0.14) % 1, 14, COLORS);
+    if(state.sw) flowDots(loop, (state.t*0.14) % 1, 14, COLORS);
 
     figBattery(290, B, 100, COLORS, 'مصدر القوة الدافعة');
-    figBulb(R, 219, 26, Math.min(state.emf/12, 1), COLORS);
-    figMeter(L, 219, 34, 'V', state.emf.toFixed(1)+' V', COLORS, '#2f6fe0', Math.min(state.emf/12,1));
-    optLabel('فولتميتر يقيس فرق الجهد', L, 172, COLORS.muted, 11);
+    circuitSwitch(state, 150, B, 56, COLORS, B-44);
+    figBulb(R, 219, 26, state.sw ? Math.min(state.emf/12, 1) : 0, COLORS);
+
+    /* الفولتميتر يُربط على التوازي مع البطارية لا على التوالي معها —
+       فيقيس فرق الجهد بين قطبيها. */
+    wire([[230,B],[230,234],[269,234]], COLORS.muted, 2.5);
+    wire([[350,B],[350,234],[311,234]], COLORS.muted, 2.5);
+    figMeter(290, 255, 30, 'V', state.emf.toFixed(1)+' V', COLORS, '#2f6fe0',
+             Math.min(state.emf/12,1), {id:'t22V', full:12, ease: state.simMode==='auto'});
+    optLabel('فولتميتر موصول على التوازي', 290, 200, COLORS.muted, 11);
 
     /* سلّم الجهد: البطارية ترفع الشحنة إلى جهد أعلى ثم تنزل عبر المصباح */
     const sx = 626, sy0 = 366, sy1 = 366 - Math.min(state.emf,12)*18;
@@ -2372,7 +2435,8 @@ function flowDots(pts, phase, count, COLORS){
     ], COLORS);
 
     let v, vc;
-    if(state.emf >= 9){ v='قوة دافعة كبيرة ← شغل أكبر على كل كولوم، وإضاءة أقوى'; vc=COLORS.capDefault; }
+    if(!state.sw){ v='المفتاح مفتوح ← الفولتميتر يقرأ القوة الدافعة، لكن الشحنة لا تتحرك فلا يُبذل شغل'; vc=COLORS.red; }
+    else if(state.emf >= 9){ v='قوة دافعة كبيرة ← شغل أكبر على كل كولوم، وإضاءة أقوى'; vc=COLORS.capDefault; }
     else if(state.emf >= 3){ v='كل كولوم يكتسب '+state.emf.toFixed(1)+' جول من طاقة البطارية'; vc=COLORS.capActive; }
     else { v='قوة دافعة صغيرة ← طاقة قليلة لكل كولوم وإضاءة خافتة'; vc=COLORS.blue; }
     optVerdict(v, COLORS, vc);
@@ -2393,26 +2457,32 @@ function flowDots(pts, phase, count, COLORS){
    ========================================================================= */
 (function(){
   const COLORS = makeColors();
-  const state = { simMode:'auto', t:0, V:6, R:4 };
+  const state = { simMode:'auto', t:0, V:6, R:4, sw:1 };
 
-  function current(){ return state.V/state.R; }
-  function t23Update(dt){ if(state.simMode==='auto') state.t += dt; }
+  function current(){ return state.sw ? state.V/state.R : 0; }
+  function t23Update(dt){ if(state.simMode==='auto') state.t += dt; switchTap(state, 23); }
 
   function t23Draw(){
     ctx.clearRect(0,0,CW,CH);
     ctx.fillStyle=COLORS.bg; ctx.fillRect(0,0,CW,CH);
     optTitle('نشاط ٣: قانون أوم — العلاقة بين الجهد والتيار', COLORS);
 
-    const I = current();
+    const I = current(), VR = I*state.R;   // فرق الجهد على طرفَي المقاومة
     const L=100, R=430, T=110, B=262;
     const loop = [[L,T],[R,T],[R,B],[L,B],[L,T]];
     wire(loop, COLORS.muted, 5);
-    flowDots(loop, (state.t*Math.min(I,6)*0.14) % 1, 14, COLORS);
+    if(state.sw) flowDots(loop, (state.t*Math.min(I,6)*0.14) % 1, 14, COLORS);
 
     figBattery(265, B, 92, COLORS, 'ε = '+state.V.toFixed(1)+' V');
+    circuitSwitch(state, 130, B, 54, COLORS, B-42);
     figResistor(265, T, 96, COLORS, 'R = '+state.R.toFixed(0)+' Ω', '#8a5a2b');
-    figMeter(L, 186, 32, 'A', I.toFixed(2)+' A', COLORS, '#c0392b', Math.min(I/6,1));
-    figMeter(R, 186, 32, 'V', state.V.toFixed(1)+' V', COLORS, '#2f6fe0', Math.min(state.V/12,1));
+    /* الأميتر على التوالي في الدائرة، والفولتميتر على التوازي مع المقاومة */
+    figMeter(L, 186, 32, 'A', I.toFixed(2)+' A', COLORS, '#c0392b', Math.min(I/6,1),
+             {id:'t23A', full:6, ease: state.simMode==='auto'});
+    wire([[217,T],[217,156],[244,156]], COLORS.muted, 2.5);
+    wire([[313,T],[313,156],[286,156]], COLORS.muted, 2.5);
+    figMeter(265, 177, 28, 'V', VR.toFixed(1)+' V', COLORS, '#2f6fe0', Math.min(VR/12,1),
+             {id:'t23V', full:12, ease: state.simMode==='auto'});
 
     /* منحني الجهد–التيار: خط مستقيم ميله المقاومة */
     const gx0=560, gyB=386, gw=290, gh=128;
@@ -2423,7 +2493,7 @@ function flowDots(pts, phase, count, COLORS){
     ctx.strokeStyle=COLORS.capActive; ctx.lineWidth=2.5;
     ctx.beginPath(); ctx.moveTo(PX(0), PY(0)); ctx.lineTo(PX(IM), PY(Math.min(IM*state.R, VM))); ctx.stroke();
     ctx.fillStyle=COLORS.red;
-    ctx.beginPath(); ctx.arc(PX(I), PY(state.V), 5.5, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(PX(I), PY(VR), 5.5, 0, Math.PI*2); ctx.fill();
     optLabel('ميل الخط = المقاومة', gx0+gw-8, gyB-gh+16, COLORS.capActive, 11, 'right');
 
     optHUD(580, 62, 270, [
@@ -2435,7 +2505,8 @@ function flowDots(pts, phase, count, COLORS){
     ], COLORS);
 
     let v, vc;
-    if(state.R <= 2){ v='مقاومة صغيرة ← تيار كبير يمرّ بسهولة'; vc=COLORS.red; }
+    if(!state.sw){ v='المفتاح مفتوح ← لا يمرّ تيار، والفولتميتر يقرأ صفرًا على المقاومة'; vc=COLORS.red; }
+    else if(state.R <= 2){ v='مقاومة صغيرة ← تيار كبير يمرّ بسهولة'; vc=COLORS.red; }
     else if(state.R >= 12){ v='مقاومة كبيرة ← تيار ضعيف جدًا'; vc=COLORS.blue; }
     else { v='التيار يتناسب طرديًا مع الجهد وعكسيًا مع المقاومة'; vc=COLORS.capActive; }
     optVerdict(v, COLORS, vc);
@@ -2443,8 +2514,9 @@ function flowDots(pts, phase, count, COLORS){
   }
 
   window.t23Reading=function(){
-    return [state.V.toFixed(1), state.R.toFixed(0), current().toFixed(2),
-            (state.V/current()).toFixed(1)];
+    const I = current();
+    return [state.V.toFixed(1), state.R.toFixed(0), I.toFixed(2),
+            I ? (I*state.R/I).toFixed(1) : '—'];
   };
   window.t23State=state; window.t23Update=t23Update; window.t23Draw=t23Draw;
 })();
@@ -2456,14 +2528,14 @@ function flowDots(pts, phase, count, COLORS){
    ========================================================================= */
 (function(){
   const COLORS = makeColors();
-  const state = { simMode:'auto', t:0, V:12, R1:4, R2:6, mode:'series' };
+  const state = { simMode:'auto', t:0, V:12, R1:4, R2:6, mode:'series', sw:1 };
 
   function req(){
     return state.mode==='series' ? (state.R1+state.R2)
                                  : (state.R1*state.R2)/(state.R1+state.R2);
   }
-  function itot(){ return state.V/req(); }
-  function t24Update(dt){ if(state.simMode==='auto') state.t += dt; }
+  function itot(){ return state.sw ? state.V/req() : 0; }
+  function t24Update(dt){ if(state.simMode==='auto') state.t += dt; switchTap(state, 24); }
 
   function t24Draw(){
     ctx.clearRect(0,0,CW,CH);
@@ -2476,7 +2548,7 @@ function flowDots(pts, phase, count, COLORS){
     if(series){
       const loop = [[L,T],[R,T],[R,B],[L,B],[L,T]];
       wire(loop, COLORS.muted, 5);
-      flowDots(loop, (state.t*Math.min(I,6)*0.14)%1, 14, COLORS);
+      if(state.sw) flowDots(loop, (state.t*Math.min(I,6)*0.14)%1, 14, COLORS);
       figResistor(215, T, 86, COLORS, 'R₁ = '+state.R1+' Ω', '#8a5a2b');
       figResistor(370, T, 86, COLORS, 'R₂ = '+state.R2+' Ω', '#2c7a4b');
       optLabel('التيار نفسه يمرّ في المقاومتين', 290, T-42, COLORS.capActive, 12);
@@ -2491,13 +2563,15 @@ function flowDots(pts, phase, count, COLORS){
       wire(br1, COLORS.muted, 4); wire(br2, COLORS.muted, 4);
       figResistor(325, 180, 86, COLORS, 'R₁ = '+state.R1+' Ω', '#8a5a2b');
       figResistor(325, 240, 86, COLORS, 'R₂ = '+state.R2+' Ω', '#2c7a4b');
-      flowDots(main, (state.t*Math.min(I,6)*0.12)%1, 12, COLORS);
+      if(state.sw) flowDots(main, (state.t*Math.min(I,6)*0.12)%1, 12, COLORS);
       optLabel('الجهد نفسه على المقاومتين', 325, T-30, COLORS.capActive, 12);
-      optLabel('I₁ = '+(state.V/state.R1).toFixed(2)+' A', 486, 176, COLORS.capDefault, 11.5, 'left', true);
-      optLabel('I₂ = '+(state.V/state.R2).toFixed(2)+' A', 486, 236, COLORS.green, 11.5, 'left', true);
+      optLabel('I₁ = '+(state.sw ? state.V/state.R1 : 0).toFixed(2)+' A', 486, 176, COLORS.capDefault, 11.5, 'left', true);
+      optLabel('I₂ = '+(state.sw ? state.V/state.R2 : 0).toFixed(2)+' A', 486, 236, COLORS.green, 11.5, 'left', true);
     }
     figBattery(290, B, 96, COLORS, 'ε = '+state.V.toFixed(0)+' V');
-    figMeter(L, 206, 30, 'A', I.toFixed(2)+' A', COLORS, '#c0392b', Math.min(I/6,1));
+    circuitSwitch(state, 128, B, 54, COLORS, B-42);
+    figMeter(L, 206, 30, 'A', I.toFixed(2)+' A', COLORS, '#c0392b', Math.min(I/6,1),
+             {id:'t24A', full:6, ease: state.simMode==='auto'});
 
     optHUD(600, 62, 268, [
       {text: series ? 'الربط على التوالي' : 'الربط على التوازي', bold:true, color:COLORS.capActive},
@@ -2509,7 +2583,8 @@ function flowDots(pts, phase, count, COLORS){
     ], COLORS);
 
     let v, vc;
-    if(series){ v='على التوالي: المقاومة المكافئة أكبر من كل مقاومة، فالتيار أقل'; vc=COLORS.capDefault; }
+    if(!state.sw){ v='المفتاح مفتوح ← لا يمرّ تيار في أي فرع، والأميتر يقرأ صفرًا'; vc=COLORS.red; }
+    else if(series){ v='على التوالي: المقاومة المكافئة أكبر من كل مقاومة، فالتيار أقل'; vc=COLORS.capDefault; }
     else { v='على التوازي: المقاومة المكافئة أصغر من أصغرهما، فالتيار أكبر'; vc=COLORS.green; }
     optVerdict(v, COLORS, vc);
     optCaption('بدّل بين الربطين بالقيم نفسها ولاحظ كيف تنقلب النتيجة تمامًا في قراءة الأميتر.', COLORS);
@@ -2698,13 +2773,13 @@ function flowDots(pts, phase, count, COLORS){
    ========================================================================= */
 (function(){
   const COLORS = makeColors();
-  const state = { simMode:'auto', t:0, devices:3, fuse:10 };
+  const state = { simMode:'auto', t:0, devices:3, fuse:10, sw:1 };
   const EACH = 2.2;                                  // أمبير لكل جهاز
 
-  function load(){ return state.devices*EACH; }
-  function blown(){ return load() > state.fuse; }
+  function load(){ return state.sw ? state.devices*EACH : 0; }
+  function blown(){ return state.sw && state.devices*EACH > state.fuse; }
 
-  function t26Update(dt){ if(state.simMode==='auto') state.t += dt; }
+  function t26Update(dt){ if(state.simMode==='auto') state.t += dt; switchTap(state, 26); }
 
   function t26Draw(){
     ctx.clearRect(0,0,CW,CH);
@@ -2715,11 +2790,12 @@ function flowDots(pts, phase, count, COLORS){
     const L=100, R=490, T=122, B=316;
     const loop = [[L,T],[R,T],[R,B],[L,B],[L,T]];
     wire(loop, COLORS.muted, 5);
-    if(!off) flowDots(loop, (state.t*Math.min(I,12)*0.08)%1, 14, COLORS);
+    if(!off && state.sw) flowDots(loop, (state.t*Math.min(I,12)*0.08)%1, 14, COLORS);
 
     figBattery(200, B, 88, COLORS, 'مصدر البيت');
+    circuitSwitch(state, 262, B, 50, COLORS, B-42);
     figFuse(370, B, 74, off, COLORS);
-    optLabel(off ? 'المصهر انصهر فانقطعت الدائرة' : 'المصهر سليم',
+    optLabel(off ? 'المصهر انصهر فانقطعت الدائرة' : (state.sw ? 'المصهر سليم' : 'المصهر سليم — والمفتاح مفتوح'),
              370, B+34, off?COLORS.red:COLORS.green, 12);
 
     /* الأجهزة الموصولة — موزّعة على عرض السلك العلوي مهما كان عددها،
@@ -2729,7 +2805,7 @@ function flowDots(pts, phase, count, COLORS){
     const br   = Math.max(13, Math.min(20, step*0.46));
     for(let i=0;i<nDev;i++){
       const x = nDev === 1 ? (xA+xB)/2 : xA + i*step;
-      figBulb(x, T, br, off ? 0 : 0.9, COLORS);
+      figBulb(x, T, br, (off || !state.sw) ? 0 : 0.9, COLORS);
       optLabel('جهاز', x, T+42, COLORS.muted, 10.5);
     }
 
@@ -2756,7 +2832,8 @@ function flowDots(pts, phase, count, COLORS){
     ], COLORS);
 
     let v, vc;
-    if(off){ v='التيار تجاوز تقدير المصهر ← انصهر وقطع الدائرة فحمى الأسلاك'; vc=COLORS.red; }
+    if(!state.sw){ v='المفتاح مفتوح ← الدائرة مقطوعة، فلا تيار ولا خطر على المصهر'; vc=COLORS.muted; }
+    else if(off){ v='التيار تجاوز تقدير المصهر ← انصهر وقطع الدائرة فحمى الأسلاك'; vc=COLORS.red; }
     else if(I > state.fuse*0.8){ v='الحمل اقترب من حدّ المصهر ← لا تُشغّل جهازًا آخر'; vc=COLORS.capDefault; }
     else { v='الحمل ضمن الحدّ الآمن ← الدائرة تعمل بأمان'; vc=COLORS.green; }
     optVerdict(v, COLORS, vc);
@@ -3250,7 +3327,7 @@ const EXPERIMENTS = {
     question:'مرّت شحنة مقدارها 12 كولومًا في موصل خلال 4 ثوانٍ. كم شدة التيار؟',
     title:'نشاط ١: التيار الكهربائي وشدته',
     subtitle:'شدة التيار = الشحنة المارّة في مقطع الموصل مقسومة على الزمن',
-    tools:['بطارية وأسلاك توصيل','مصباح صغير','أميتر','ساعة توقيت'],
+    tools:['بطارية وأسلاك توصيل','مصباح صغير','أميتر','ساعة توقيت','مفتاح كهربائي'],
     steps:[
       'صِل الدائرة ولاحظ سريان الإلكترونات في السلك.',
       'اقرأ شدة التيار على الأميتر.',
@@ -3267,7 +3344,7 @@ const EXPERIMENTS = {
     question:'بطارية قوتها الدافعة 9 فولت. كم جولًا تبذل لنقل شحنة مقدارها 2 كولوم؟',
     title:'نشاط ٢: القوة الدافعة وفرق الجهد',
     subtitle:'الفولت الواحد هو جول واحد من الشغل لكل كولوم من الشحنة',
-    tools:['بطارية معلومة القوة الدافعة','فولتميتر','مصباح صغير','أسلاك توصيل'],
+    tools:['بطارية معلومة القوة الدافعة','فولتميتر','مصباح صغير','أسلاك توصيل','مفتاح كهربائي'],
     steps:[
       'صِل الفولتميتر على قطبي البطارية واقرأ القوة الدافعة.',
       'تابع الشحنة في سلّم الجهد: البطارية ترفعها والمصباح ينزلها.',
@@ -3284,7 +3361,7 @@ const EXPERIMENTS = {
     question:'موصل مقاومته 6 أوم وُصل بمصدر جهده 12 فولت. كم شدة التيار المارّ فيه؟',
     title:'نشاط ٣: المقاومة وقانون أوم',
     subtitle:'التيار يتناسب طرديًا مع الجهد وعكسيًا مع المقاومة',
-    tools:['مصدر جهد متغيّر','مقاومة معلومة','أميتر وفولتميتر','ورقة رسم بياني'],
+    tools:['مصدر جهد متغيّر','مقاومة معلومة','أميتر وفولتميتر','ورقة رسم بياني','مفتاح كهربائي'],
     steps:[
       'ثبّت المقاومة وزِد الجهد تدريجيًا وسجّل قراءة الأميتر عند كل قيمة.',
       'ارسم النقاط على منحني الجهد مع التيار ولاحظ استقامتها.',
@@ -3301,7 +3378,7 @@ const EXPERIMENTS = {
     question:'مقاومتان 4 أوم و6 أوم. احسب المقاومة المكافئة في الربطين، وأيّهما يمرّر تيارًا أكبر؟',
     title:'نشاط ٤: ربط المقاومات',
     subtitle:'التوالي يزيد المقاومة المكافئة، والتوازي ينقصها',
-    tools:['مقاومتان مختلفتان','بطارية','أميتر','أسلاك وصلات'],
+    tools:['مقاومتان مختلفتان','بطارية','أميتر','أسلاك وصلات','مفتاح كهربائي'],
     steps:[
       'ابدأ بالربط على التوالي وسجّل المقاومة المكافئة وقراءة الأميتر.',
       'لاحظ أن التيار نفسه يمرّ في المقاومتين بينما ينقسم الجهد عليهما.',
@@ -3335,7 +3412,7 @@ const EXPERIMENTS = {
     question:'انصهر مصهر بيتكم مرتين في يوم واحد. ما السبب المحتمل؟ وما الحلّ الصحيح؟',
     title:'نشاط ٦: الدائرة الكهربائية والمصهر',
     subtitle:'المصهر هو صمّام الأمان الذي يحمي أسلاك البيت من الحريق',
-    tools:['دائرة بيت مصغّرة','مصهر بتقديرات مختلفة','أجهزة قابلة للتشغيل','أميتر لقياس الحمل'],
+    tools:['دائرة بيت مصغّرة','مصهر بتقديرات مختلفة','أجهزة قابلة للتشغيل','أميتر لقياس الحمل','مفتاح كهربائي'],
     steps:[
       'شغّل جهازًا واحدًا ولاحظ التيار الكلي على الشريط.',
       'زِد الأجهزة تدريجيًا وراقب اقتراب التيار من حدّ المصهر.',
@@ -3594,6 +3671,16 @@ bindGroup('#signBtns15','data-sign15',     v=> t15SetSign(v));
 bindGroup('#rodBtns16','data-rod16',       v=> t16SetRod(v));
 
 /* ---- الفصل الثاني: التيار الكهربائي ---- */
+/* مفاتيح الدوائر: الزر والمفتاح المرسوم يعملان معًا على الحالة نفسها */
+document.querySelectorAll('[data-switch]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const id = btn.dataset.switch, st = window['t'+id+'State'];
+    if(!st) return;
+    st.sw = st.sw === 1 ? 0 : 1;
+    syncSwitchBtn(id, st.sw);
+  });
+});
+
 bindGroup('#modeBtns24','data-mode24',     v=> t24SetMode(v));
 bindGroup('#devBtns25','data-dev25',       v=> t25SetDevice(v));
 
