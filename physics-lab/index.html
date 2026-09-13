@@ -724,8 +724,8 @@
             <input type="range" min="1" max="10" step="0.2" value="5" data-target="em3State.C" data-label="em-val-c3">
           </div>
           <div class="control-row">
-            <label>معامل الحث L (نسبي) <b id="em-val-l3">5.0</b></label>
-            <input type="range" min="1" max="10" step="0.2" value="5" data-target="em3State.L" data-label="em-val-l3">
+            <label>معامل الحث L (نسبي) <b id="em-val-l3">2.0</b></label>
+            <input type="range" min="1" max="10" step="0.2" value="2" data-target="em3State.L" data-label="em-val-l3">
           </div>
           <div class="control-row">
             <label>تردد الموجة القادمة <b id="em-val-fin3">3.2</b></label>
@@ -1050,7 +1050,7 @@
             <button class="ctrl-btn cyan on" data-sky="noon">الشمس في كبد السماء</button>
             <button class="ctrl-btn" data-sky="sunset">الشمس عند الأفق (الغروب)</button>
           </div>
-          <div class="hint">💡 شدة الاستطارة تتناسب عكسيًا مع (λ)⁴، فالأزرق (λ قصير) يُستطار أكثر من الأحمر بنحو 6 أضعاف — لذلك تبدو السماء زرقاء، وعند الغروب يقطع الضوء طبقة جوية أسمك فيصلنا الأحمر.</div>
+          <div class="hint">💡 شدة الاستطارة تتناسب عكسيًا مع (λ)⁴، فالأزرق (λ = 450 nm) يُستطار أكثر من الأحمر (λ = 650 nm) بنحو 4.3 مرة — لذلك تبدو السماء زرقاء، وعند الغروب يقطع الضوء طبقة جوية أسمك فيصلنا الأحمر.</div>
           <div class="control-row">
             <label>سُمك الغلاف الجوي (نسبي) <b id="op-val-air8">1.0</b></label>
             <input type="range" min="0.3" max="4" step="0.1" value="1" data-target="op8State.airPath" data-label="op-val-air8">
@@ -1494,11 +1494,16 @@ function optLabel(text,x,y,color,size,align,ltr){
   const COLORS = makeColors();
   const state = {
     simMode:'auto', t:0,
-    C:5.0, L:5.0, fIncoming:3.2,
+    C:5.0, L:2.0, fIncoming:3.2,
     _autoT:0
   };
-  // natural frequency (relative): f0 = K / sqrt(L*C)
-  const K = 25;
+  /* Natural frequency (relative units): f0 = K / sqrt(L*C).
+     L and C are both sliders over [1,10], so the circuit can only be tuned
+     between K/10 and K. The incoming-wave slider spans 1..6, so K must be 10
+     for the two ranges to overlap — with a larger K the circuit's frequency
+     never reaches the wave's, the meter never peaks, and the resonance this
+     activity is about simply cannot be demonstrated. */
+  const K = 10;
   function f0(){ return K / Math.sqrt(state.L*state.C); }
   // resonance response (Lorentzian) 0..1
   function response(){
@@ -1506,9 +1511,22 @@ function optLabel(text,x,y,color,size,align,ltr){
     const width = 0.5;
     return 1/(1 + (d/width)*(d/width));
   }
-  function tune(){ // set L so that f0 == fIncoming (keep C)
-    // K/sqrt(L*C)=f => L = (K/f)^2 / C
-    state.L = Math.min(10, Math.max(1, (K/state.fIncoming)**2 / state.C));
+  function tune(){ // bring the circuit's f0 onto the incoming frequency
+    // K/sqrt(L*C) = f  =>  L*C = (K/f)^2
+    const target = (K/state.fIncoming)**2;
+    let L = target / state.C;
+    if(L > 10 || L < 1){
+      /* L alone cannot cover this product without leaving its slider range,
+         so split the product between the two components instead of clamping
+         L and landing off resonance. */
+      let C = Math.min(10, Math.max(1, Math.sqrt(target)));
+      L = Math.min(10, Math.max(1, target / C));
+      C = Math.min(10, Math.max(1, target / L));
+      state.C = C;
+      const lc=document.getElementById('em-val-c3'); if(lc) lc.textContent=C.toFixed(1);
+      const sc=document.querySelector('input[data-target="em3State.C"]'); if(sc) sc.value=C;
+    }
+    state.L = L;
     const lab=document.getElementById('em-val-l3'); if(lab) lab.textContent=state.L.toFixed(1);
     const sl=document.querySelector('input[data-target="em3State.L"]'); if(sl) sl.value=state.L;
   }
@@ -2189,8 +2207,15 @@ function optLabel(text,x,y,color,size,align,ltr){
         return (1+m)/(1+state.depth) * Math.sin(kc*u - tph);
       };
     } else if(state.modType==='fm'){
-      // instantaneous phase = kc·u + beta·sin(message)  (integral gives freq shift)
-      outFn = u=>Math.sin(kc*u - tph + betaFM*Math.sin(km*u - tph));
+      /* In real FM the message is INTEGRATED before it reaches the phase, so a
+         sine message contributes a −cos phase term. Adding sin(message) to the
+         phase instead is phase modulation: without the integration FM and PM
+         draw the very same curve and the comparison this activity teaches is
+         lost. With −cos, the instantaneous frequency is
+             d/du[kc·u − βFM·cos(km·u)] = kc + βFM·km·sin(km·u),
+         i.e. the frequency rises and falls WITH the message — cycles bunch up
+         at the message's crest and spread out at its trough. */
+      outFn = u=>Math.sin(kc*u - tph - betaFM*Math.cos(km*u - tph));
     } else { // pm
       outFn = u=>Math.sin(kc*u - tph + betaPM*Math.sin(km*u - tph));
     }
@@ -2497,7 +2522,12 @@ function optLabel(text,x,y,color,size,align,ltr){
       outcomeText = madeIt ? 'الموجة الأرضية تتبع انحناء الأرض وتصل المستقبل (مدى محدود، يقلّ كلما زاد التردد)'
                             : 'الموجة الأرضية تضعف وتتلاشى قبل الوصول إلى المستقبل — قرّبه أو خفّض التردد';
     } else if(state.mode==='sky'){
-      const critical=3.4, penetrates = state.band>critical;
+      /* Reflection stops exactly where the VHF band begins (bandLabel's own
+         3.2 boundary): HF bounces off the ionosphere, VHF and above go
+         through it. The old 3.4 left a slice of "VHF (FM)" still reflecting,
+         which contradicts both the band label and the closing note that FM
+         relies on the space wave. */
+      const critical=3.2, penetrates = state.band>critical;
       const hitU=(txU+rxU)/2, hitX=30+hitU*(CW-60);
       if(!penetrates){
         ctx.strokeStyle=COLORS.capActive; ctx.lineWidth=2.5;
