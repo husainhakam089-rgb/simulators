@@ -414,6 +414,7 @@
     content:' — معطَّل في هذه الحالة'; color:var(--accent-red); font-size:11px;
   }
   input[type=range]:disabled{ cursor:not-allowed; }
+  .ctrl-btn:disabled{ opacity:.40; cursor:not-allowed; filter:grayscale(.5); }
 
   .btn-row{display:flex; gap:8px; flex-wrap:wrap;}
   .ctrl-btn{
@@ -1009,6 +1010,181 @@
           <div class="control-row">
             <label>تقدير المصهر (A) <b id="val-f-26">10</b></label>
             <input type="range" min="5" max="20" step="1" value="10" data-target="t26State.fuse" data-label="val-f-26">
+          </div>
+        </div>
+
+        <!-- ===== نشاط ١٧: الدلك ===== -->
+        <div class="control-panel" data-tab="17">
+          <div class="btn-row">
+            <button class="ctrl-btn on" data-mode-tab="17">⚙️ تلقائي</button>
+          </div>
+          <div class="hint">💡 ادلك الساق مرّات أكثر ثم قرّبها من القصاصات. لاحظ أن الزجاج والإيبونايت يشحنان بشحنتين مختلفتين رغم أن كليهما دُلِك.<br><b>✋ اسحب الساق بإصبعك لأعلى وأسفل بدل المنزلق.</b></div>
+          <div class="btn-row" id="rodBtns17">
+            <button class="ctrl-btn cyan on" data-rod17="glass">زجاج مع حرير</button>
+            <button class="ctrl-btn cyan" data-rod17="ebonite">إيبونايت مع صوف</button>
+          </div>
+          <div class="control-row">
+            <label>عدد مرّات الدلك <b id="val-n-17">6</b></label>
+            <input type="range" min="0" max="10" step="1" value="6" data-target="t17State.rubs" data-label="val-n-17">
+          </div>
+          <div class="control-row">
+            <label>بعد الساق عن القصاصات (سم) <b id="val-d-17">16</b></label>
+            <input type="range" min="5" max="40" step="1" value="16" data-target="t17State.dist" data-label="val-d-17">
+          </div>
+        </div>
+
+        <!-- ===== نشاط ١٨: ساقان معلقتان ===== -->
+        <div class="control-panel" data-tab="18">
+          <div class="btn-row">
+            <button class="ctrl-btn on" data-mode-tab="18">⚙️ تلقائي</button>
+          </div>
+          <div class="hint">💡 جرّب الحالات الثلاث: موجبة مع موجبة، وسالبة مع سالبة، وموجبة مع سالبة، وراقب ميل الساقين.<br><b>✋ اسحب الساق اليمنى بإصبعك لتغيّر البعد بينهما.</b></div>
+          <div class="control-row">
+            <label>شحنة الساق الأولى <b id="val-q1-18">1</b></label>
+            <input type="range" min="-1" max="1" step="1" value="1" data-target="t18State.q1" data-label="val-q1-18">
+          </div>
+          <div class="control-row">
+            <label>شحنة الساق الثانية <b id="val-q2-18">1</b></label>
+            <input type="range" min="-1" max="1" step="1" value="1" data-target="t18State.q2" data-label="val-q2-18">
+          </div>
+          <div class="control-row">
+            <label>البعد بين الساقين (سم) <b id="val-d-18">14</b></label>
+            <input type="range" min="6" max="30" step="1" value="14" data-target="t18State.gap" data-label="val-d-18">
+          </div>
+        </div>
+
+        <!-- ===== نشاط ١٩: المواد من حيث التوصيل ===== -->
+        <div class="control-panel" data-tab="19">
+          <div class="btn-row">
+            <button class="ctrl-btn on" data-mode-tab="19">⚙️ تلقائي</button>
+          </div>
+          <div class="hint">💡 صِل الكرة المشحونة بالكشاف عبر كل مادة وراقب ورقتَي الكشاف: الموصل يمرّر الشحنة، والعازل يمنعها، وشبه الموصل بينهما.</div>
+          <div class="btn-row" id="matBtns19">
+            <button class="ctrl-btn cyan on" data-mat19="copper">نحاس</button>
+            <button class="ctrl-btn cyan" data-mat19="iron">حديد</button>
+            <button class="ctrl-btn cyan" data-mat19="silicon">سليكون</button>
+            <button class="ctrl-btn cyan" data-mat19="germanium">جرمانيوم</button>
+            <button class="ctrl-btn cyan" data-mat19="glass">زجاج</button>
+            <button class="ctrl-btn cyan" data-mat19="plastic">بلاستك</button>
+          </div>
+          <div class="control-row">
+            <label>شحنة الكرة <b id="val-q-19">6</b></label>
+            <input type="range" min="1" max="10" step="1" value="6" data-target="t19State.charge" data-label="val-q-19">
+          </div>
+        </div>
+
+        <!-- ===== نشاط ٣١: أقطاب المغناطيس ===== -->
+        <div class="control-panel" data-tab="31">
+          <div class="btn-row">
+            <button class="ctrl-btn on" data-mode-tab="31">⚙️ تلقائي</button>
+          </div>
+          <div class="hint">💡 بدّل بين القطبين وراقب السهمين، ثم قرّب المغناطيسين ولاحظ كيف تشتدّ القوة.<br><b>✋ امسك المغناطيس الأيمن بإصبعك على الرسم وحرّكه بدل المنزلق.</b></div>
+          <div class="btn-row" id="poleBtns31">
+            <button class="ctrl-btn cyan on" data-pole31="like">شمالي أمام شمالي</button>
+            <button class="ctrl-btn cyan" data-pole31="unlike">شمالي أمام جنوبي</button>
+          </div>
+          <div class="control-row">
+            <label>البعد بين الطرفين (سم) <b id="val-d-31">12</b></label>
+            <input type="range" min="3" max="26" step="1" value="12" data-target="t31State.gap" data-label="val-d-31">
+          </div>
+          <div class="control-row">
+            <label>إلى كم قطعة نكسّر المغناطيس <b id="val-p-31">1</b></label>
+            <input type="range" min="1" max="6" step="1" value="1" data-target="t31State.pieces" data-label="val-p-31">
+          </div>
+        </div>
+
+        <!-- ===== نشاط ٣٢: المواد المغناطيسية ===== -->
+        <div class="control-panel" data-tab="32">
+          <div class="btn-row">
+            <button class="ctrl-btn on" data-mode-tab="32">⚙️ تلقائي</button>
+          </div>
+          <div class="hint">💡 جرّب المواد الستّ واحدة واحدة وسجّل أيّها انجذب. انتبه: النحاس والألمنيوم فلزّان ومع ذلك لا ينجذبان.<br><b>✋ يمكنك سحب المغناطيس بإصبعك لتقرّبه من العيّنة.</b></div>
+          <div class="btn-row" id="matBtns32">
+            <button class="ctrl-btn cyan on" data-mat32="iron">حديد</button>
+            <button class="ctrl-btn cyan" data-mat32="nickel">نيكل</button>
+            <button class="ctrl-btn cyan" data-mat32="cobalt">كوبلت</button>
+            <button class="ctrl-btn cyan" data-mat32="copper">نحاس</button>
+            <button class="ctrl-btn cyan" data-mat32="aluminum">ألمنيوم</button>
+            <button class="ctrl-btn cyan" data-mat32="wood">خشب</button>
+          </div>
+          <div class="control-row">
+            <label>بعد المغناطيس عن العيّنة (سم) <b id="val-d-32">10</b></label>
+            <input type="range" min="4" max="20" step="1" value="10" data-target="t32State.dist" data-label="val-d-32">
+          </div>
+        </div>
+
+        <!-- ===== نشاط ٣٣: المجال المغناطيسي ===== -->
+        <div class="control-panel" data-tab="33">
+          <div class="btn-row">
+            <button class="ctrl-btn on" data-mode-tab="33">⚙️ تلقائي</button>
+          </div>
+          <div class="hint">💡 رشّ برادة أكثف لترى الشكل كاملًا، ثم بدّل إلى خطوط المجال لترى الاتجاه.<br><b>✋ اسحب الإبرة المغناطيسية إلى أي موضع، وستدور وحدها لتوازي المجال عندها.</b></div>
+          <div class="btn-row" id="viewBtns33">
+            <button class="ctrl-btn cyan on" data-view33="filings">برادة الحديد</button>
+            <button class="ctrl-btn cyan" data-view33="lines">خطوط المجال</button>
+          </div>
+          <div class="btn-row" id="densBtns33">
+            <button class="ctrl-btn cyan" data-dens33="6">كثافة خفيفة</button>
+            <button class="ctrl-btn cyan on" data-dens33="9">متوسطة</button>
+            <button class="ctrl-btn cyan" data-dens33="13">كثيفة</button>
+          </div>
+          <div class="control-row">
+            <label>موضع الإبرة الأفقي <b id="val-x-33">390</b></label>
+            <input type="range" min="96" max="544" step="2" value="390" data-target="t33State.needleX" data-label="val-x-33">
+          </div>
+          <div class="control-row">
+            <label>موضع الإبرة الرأسي <b id="val-y-33">150</b></label>
+            <input type="range" min="106" max="382" step="2" value="150" data-target="t33State.needleY" data-label="val-y-33">
+          </div>
+        </div>
+
+        <!-- ===== نشاط ٣٤: البوصلة ومجال الأرض ===== -->
+        <div class="control-panel" data-tab="34">
+          <div class="btn-row">
+            <button class="ctrl-btn on" data-mode-tab="34">⚙️ تلقائي</button>
+          </div>
+          <div class="hint">💡 أبعِد المغناطيس أولًا وانظر أين تستقرّ الإبرة، ثم قرّبه وراقب انحرافها.<br><b>✋ اسحب المغناطيس بإصبعك قربًا وبعدًا.</b></div>
+          <div class="btn-row" id="magBtns34">
+            <button class="ctrl-btn cyan on" data-mag34="on">مغناطيس قريب</button>
+            <button class="ctrl-btn cyan" data-mag34="off">بلا مغناطيس</button>
+          </div>
+          <div class="btn-row" id="flipBtns34">
+            <button class="ctrl-btn cyan on" data-flip34="north">القطب الشمالي نحو البوصلة</button>
+            <button class="ctrl-btn cyan" data-flip34="south">القطب الجنوبي نحو البوصلة</button>
+          </div>
+          <div class="control-row">
+            <label>موضع المغناطيس <b id="val-x-34">250</b></label>
+            <input type="range" min="110" max="330" step="5" value="250" data-target="t34State.magX" data-label="val-x-34">
+          </div>
+        </div>
+
+        <!-- ===== نشاط ٣٥: تمغنط المواد ===== -->
+        <div class="control-panel" data-tab="35">
+          <div class="btn-row">
+            <button class="ctrl-btn on" data-mode-tab="35">⚙️ تلقائي</button>
+          </div>
+          <div class="hint">💡 امسح بالمغناطيس مرّات أكثر وراقب عدد المشابك التي يرفعها المسمار، ثم جرّب الطرق أو التسخين ولاحظ ما يحدث.</div>
+          <div class="btn-row" id="methodBtns35">
+            <button class="ctrl-btn cyan on" data-method35="rub">بالدلك</button>
+            <button class="ctrl-btn cyan" data-method35="induce">بالحث</button>
+            <button class="ctrl-btn cyan" data-method35="hammer">بالطرق</button>
+            <button class="ctrl-btn cyan" data-method35="heat">بالتسخين</button>
+          </div>
+          <div class="control-row">
+            <label>عدد المرات <b id="val-n-35">5</b></label>
+            <input type="range" min="0" max="10" step="1" value="5" data-target="t35State.times" data-label="val-n-35">
+          </div>
+        </div>
+
+        <!-- ===== نشاط ٣٦: المغانط الأولية ===== -->
+        <div class="control-panel" data-tab="36">
+          <div class="btn-row">
+            <button class="ctrl-btn on" data-mode-tab="36">⚙️ تلقائي</button>
+          </div>
+          <div class="hint">💡 حرّك نسبة الترتيب من الصفر إلى المئة وراقب متى يظهر القطبان على طرفَي القطعة، ومتى تختفي قوّتها.</div>
+          <div class="control-row">
+            <label>نسبة ترتيب الدقائق (%) <b id="val-o-36">20</b></label>
+            <input type="range" min="0" max="100" step="5" value="20" data-target="t36State.order" data-label="val-o-36">
           </div>
         </div>
 
@@ -1728,13 +1904,17 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
   function t12Update(dt){
     if(state.simMode==='auto'){ state.t += dt*0.55; if(state.t > 3) state.t = 0; }
   }
-  /* تقدّم الانتقال من صفر إلى واحد */
-  function prog(){ return Math.max(0, Math.min(1, (state.t-0.5)/1.4)); }
+  /* تقدّم الانتقال من صفر إلى واحد. وفي الوضع اليدوي يُعرض الانتقال
+     مكتملًا كي يقرأ الطالب النتيجة النهائية ويسجّلها في جدوله. */
+  function prog(){
+    if(state.simMode !== 'auto') return 1;
+    return Math.max(0, Math.min(1, (state.t-0.5)/1.4));
+  }
 
   function t12Draw(){
     ctx.clearRect(0,0,CW,CH);
     ctx.fillStyle=COLORS.bg; ctx.fillRect(0,0,CW,CH);
-    optTitle('نشاط ٢: بأي الطرائق يُشحن الجسم؟', COLORS);
+    optTitle('نشاط ٤: بأي الطرائق يُشحن الجسم؟', COLORS);
 
     const f = prog(), moved = state.moved*f;
     const gy = 300;
@@ -1882,7 +2062,7 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
   function t13Draw(){
     ctx.clearRect(0,0,CW,CH);
     ctx.fillStyle=COLORS.bg; ctx.fillRect(0,0,CW,CH);
-    optTitle('نشاط ٣: الكشاف الكهربائي — كيف نعرف أن الجسم مشحون؟', COLORS);
+    optTitle('نشاط ٥: الكشاف الكهربائي — كيف نعرف أن الجسم مشحون؟', COLORS);
 
     const gy = 344, q = leafCharge(), a = angle();
     /* الرقاقتان ورق ألمنيوم رقيق، فترتعشان دائمًا ما دامتا مشحونتين */
@@ -1979,7 +2159,7 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
   function t14Draw(){
     ctx.clearRect(0,0,CW,CH);
     ctx.fillStyle=COLORS.bg; ctx.fillRect(0,0,CW,CH);
-    optTitle('نشاط ٤: قانون كولوم — قوة بين شحنتين', COLORS);
+    optTitle('نشاط ٧: قانون كولوم — قوة بين شحنتين', COLORS);
 
     const F = force(), rep = repel();
     const SC = 11;                                  // بكسل لكل سنتيمتر
@@ -2100,7 +2280,7 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
   function t15Draw(){
     ctx.clearRect(0,0,CW,CH);
     ctx.fillStyle=COLORS.bg; ctx.fillRect(0,0,CW,CH);
-    optTitle('نشاط ٥: المجال الكهربائي حول شحنة', COLORS);
+    optTitle('نشاط ٨: المجال الكهربائي حول شحنة', COLORS);
 
     const SC = 9, cx = 270, cy = 218;
     const pos = state.sign > 0;
@@ -2201,7 +2381,7 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
   function t16Draw(){
     ctx.clearRect(0,0,CW,CH);
     ctx.fillStyle=COLORS.bg; ctx.fillRect(0,0,CW,CH);
-    optTitle('نشاط ٦: مانعة الصواعق — إلى أين يذهب التفريغ؟', COLORS);
+    optTitle('نشاط ٩: مانعة الصواعق — إلى أين يذهب التفريغ؟', COLORS);
 
     const gy = 368, hasRod = state.rod === 1;
     ctx.fillStyle=COLORS.ground; ctx.fillRect(60, gy, 500, 8);
@@ -2850,6 +3030,1190 @@ function flowDots(pts, phase, count, COLORS){
 
 <script>
 /* =========================================================================
+   أدوات مشتركة للمغناطيسية
+   المجال عند أي نقطة يُحسب من قطبَي المغناطيس لا يُرسم بالتخمين:
+   يُعامَل كل قطب كمصدر شدّته تقلّ مع مربع البعد، فيكون المجال المحصّل
+   جمعًا اتجاهيًا لمساهمة القطبين. منه تُشتق خطوط المجال واتجاه كل برادة
+   وزاوية كل إبرة مغناطيسية.
+   ========================================================================= */
+
+/* قطبا مغناطيس قضيبي طوله len عند (cx,cy)، وflip يبدّل الشمالي بالجنوبي */
+function magnetPoles(cx, cy, len, flip){
+  const d = len*0.34;
+  return flip ? [{x:cx-d, y:cy, m:+1}, {x:cx+d, y:cy, m:-1}]
+              : [{x:cx+d, y:cy, m:+1}, {x:cx-d, y:cy, m:-1}];
+}
+/* المجال المحصّل عند نقطة من مجموعة أقطاب */
+function fieldAtPoint(poles, x, y){
+  let bx = 0, by = 0;
+  poles.forEach(p=>{
+    const dx = x-p.x, dy = y-p.y;
+    const r2 = Math.max(dx*dx + dy*dy, 64);        // حدّ أدنى قرب القطب
+    const r  = Math.sqrt(r2);
+    const s  = p.m/r2;
+    bx += s*dx/r; by += s*dy/r;
+  });
+  return { x:bx, y:by, mag:Math.hypot(bx,by) };
+}
+/* خط مجال واحد: يُتتبَّع خطوة خطوة في اتجاه المجال */
+function fieldLine(poles, x, y, step, steps, bounds){
+  const pts = [[x,y]];
+  for(let i=0;i<steps;i++){
+    const B = fieldAtPoint(poles, x, y);
+    if(!isFinite(B.mag) || B.mag < 1e-9) break;
+    x += step*B.x/B.mag; y += step*B.y/B.mag;
+    if(x<bounds[0] || x>bounds[2] || y<bounds[1] || y>bounds[3]) { pts.push([x,y]); break; }
+    pts.push([x,y]);
+    /* توقّف عند بلوغ قطب جنوبي */
+    if(poles.some(p=> p.m<0 && Math.hypot(x-p.x, y-p.y) < 9)) break;
+  }
+  return pts;
+}
+/* مغناطيس قضيبي: نصفه الشمالي أحمر والجنوبي أزرق كما في مختبر المدرسة */
+function figMagnet(cx, cy, len, hh, flip, COLORS, faded){
+  const nRight = !flip;
+  groundShadow(cx, cy+hh/2+2, len*1.05, faded?0.06:0.12);
+  ctx.save();
+  if(faded) ctx.globalAlpha = 0.45;
+  const half = len/2;
+  const nx = nRight ? cx : cx-half, sx = nRight ? cx-half : cx;
+  ctx.fillStyle = tubeFill(0, cy-hh/2, 0, cy+hh/2, '#e8523f');
+  ctx.fillRect(nx, cy-hh/2, half, hh);
+  ctx.fillStyle = tubeFill(0, cy-hh/2, 0, cy+hh/2, '#2f6fe0');
+  ctx.fillRect(sx, cy-hh/2, half, hh);
+  ctx.strokeStyle='#2c3e50'; ctx.lineWidth=1.6;
+  ctx.strokeRect(cx-half, cy-hh/2, len, hh);
+  optLabel('N', nRight ? cx+half*0.5 : cx-half*0.5, cy+hh*0.20, '#fff', hh*0.56, 'center', true);
+  optLabel('S', nRight ? cx-half*0.5 : cx+half*0.5, cy+hh*0.20, '#fff', hh*0.56, 'center', true);
+  ctx.restore();
+}
+/* إبرة مغناطيسية حرّة: رأسها الأحمر يشير إلى اتجاه المجال عندها */
+function figNeedle(cx, cy, len, ang, COLORS){
+  ctx.save(); ctx.translate(cx, cy); ctx.rotate(ang);
+  ctx.fillStyle='#e8523f';
+  ctx.beginPath(); ctx.moveTo(len/2,0); ctx.lineTo(-2,-4.2); ctx.lineTo(-2,4.2); ctx.closePath(); ctx.fill();
+  ctx.fillStyle='#2f6fe0';
+  ctx.beginPath(); ctx.moveTo(-len/2,0); ctx.lineTo(2,-4.2); ctx.lineTo(2,4.2); ctx.closePath(); ctx.fill();
+  ctx.restore();
+  ctx.fillStyle='#2c3e50';
+  ctx.beginPath(); ctx.arc(cx, cy, 2.6, 0, Math.PI*2); ctx.fill();
+}
+/* بوصلة: علبة مدرّجة فيها إبرة */
+function figCompass(cx, cy, r, ang, COLORS){
+  groundShadow(cx, cy+r+2, r*1.7, 0.10);
+  ctx.fillStyle = tubeFill(0, cy-r, 0, cy+r, '#e8eef7');
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle='#8b97a8'; ctx.lineWidth=2.4; ctx.stroke();
+  ctx.fillStyle='#ffffff';
+  ctx.beginPath(); ctx.arc(cx, cy, r*0.84, 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle='#c3ccda'; ctx.lineWidth=1.2;
+  for(let i=0;i<8;i++){
+    const a = i*Math.PI/4;
+    ctx.beginPath();
+    ctx.moveTo(cx+Math.cos(a)*r*0.84, cy+Math.sin(a)*r*0.84);
+    ctx.lineTo(cx+Math.cos(a)*r*0.68, cy+Math.sin(a)*r*0.68);
+    ctx.stroke();
+  }
+  optLabel('ش', cx, cy-r*0.52, '#6b7a90', r*0.34);
+  optLabel('ج', cx, cy+r*0.76, '#6b7a90', r*0.34);
+  figNeedle(cx, cy, r*1.24, ang, COLORS);
+}
+/* برادة حديد: كل ذرّة برادة تستطيل في اتجاه المجال عندها */
+function figFilings(poles, x0, y0, w, hh, spacing, COLORS, alpha){
+  ctx.save();
+  ctx.strokeStyle = COLORS.wire; ctx.lineCap='round';
+  const base = alpha===undefined ? 0.7 : alpha;
+  let k = 0;
+  for(let x = x0; x <= x0+w; x += spacing){
+    for(let y = y0; y <= y0+hh; y += spacing){
+      /* نثر ثابت (لا عشوائي كل إطار) كي تبدو البرادة مرشوشة لا مصفوفة */
+      k++;
+      const jx = ((k*37)%11 - 5)*spacing*0.07, jy = ((k*53)%11 - 5)*spacing*0.07;
+      const px = x+jx, py = y+jy;
+      const B = fieldAtPoint(poles, px, py);
+      if(B.mag < 1.1e-5) continue;                  // مجال ضعيف جدًا: لا برادة تستجيب
+      /* الطول والعتامة يتبعان شدة المجال، فتتكدّس البرادة عند القطبين */
+      const s = Math.min(1, Math.sqrt(B.mag*900));
+      const L = spacing*(0.16 + 0.30*s);
+      ctx.lineWidth = 1.1 + s*1.3;
+      ctx.globalAlpha = base*(0.42 + 0.58*s);
+      const ux = B.x/B.mag, uy = B.y/B.mag;
+      ctx.beginPath();
+      ctx.moveTo(px-ux*L, py-uy*L); ctx.lineTo(px+ux*L, py+uy*L); ctx.stroke();
+    }
+  }
+  ctx.restore(); ctx.lineCap='butt';
+}
+</script>
+
+<script>
+/* =========================================================================
+   نشاط 17 — الدلك: ساق زجاجية بالحرير وساق إيبونايت بالصوف
+   ========================================================================= */
+(function(){
+  const COLORS = makeColors();
+  /* الزجاج يفقد إلكترونات أمام الحرير فيشحن موجبًا،
+     والإيبونايت يكتسب إلكترونات من الصوف فيشحن سالبًا. */
+  const RODS = {
+    glass:   {name:'ساق زجاجية', cloth:'حرير', sign:+1, color:'#bcd7ea', gain:'تفقد إلكترونات'},
+    ebonite: {name:'ساق إيبونايت', cloth:'صوف',  sign:-1, color:'#3a4250', gain:'تكتسب إلكترونات'}
+  };
+  const state = { simMode:'auto', t:0, rod:'glass', rubs:6, dist:16 };
+
+  function charge(){ return state.rubs; }                    // بوحدة شحنة الإلكترون
+  /* عدد القصاصات المرتفعة: الجذب يقوى بالشحنة ويضعف مع مربع البعد */
+  function lifted(){
+    const pull = charge() * Math.pow(12/Math.max(state.dist, 5), 2);
+    return Math.max(0, Math.min(8, Math.round(pull*0.9)));
+  }
+
+  function t17Update(dt){
+    if(state.simMode==='auto') state.t += dt;
+    const P = window.pointer;
+    if(P){
+      if(P.justPressed && t17DragHitTest(P.x, P.y)) state.drag = true;
+      if(!P.isDown) state.drag = false;
+      if(state.drag && state._gy != null)
+        setControlSnap('t17State.dist', (state._gy - 22 - P.y)/5);
+    }
+  }
+  function t17DragHitTest(x, y){
+    const b = state._rodBox;
+    return !!b && x > b.x-16 && x < b.x+b.w+16 && y > b.y-20 && y < b.y+b.h+20;
+  }
+  window.t17DragHitTest = t17DragHitTest;
+
+  function t17Draw(){
+    ctx.clearRect(0,0,CW,CH);
+    ctx.fillStyle=COLORS.bg; ctx.fillRect(0,0,CW,CH);
+    optTitle('نشاط ٢: الدلك — كيف نشحن ساقًا ونجذب بها قصاصات الورق؟', COLORS);
+
+    const R = RODS[state.rod], q = charge()*R.sign, n = lifted();
+    const gy = 336;
+    state._gy = gy;
+    ctx.fillStyle=COLORS.ground; ctx.fillRect(70, gy, 470, 7);
+
+    /* قطعة القماش تدلك الساق: حركتها ذهابًا وإيابًا هي فعل الدلك نفسه */
+    const rodY = gy - 22 - state.dist*5;
+    const swing = state.simMode==='auto' ? Math.sin(state.t*2.4)*46 : 0;
+    state._rodBox = { x:180, y:rodY-11, w:180, h:22 };
+
+    ctx.fillStyle = tubeFill(0, rodY-11, 0, rodY+11, R.color);
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(180, rodY-11, 180, 22, 11) : ctx.rect(180, rodY-11, 180, 22);
+    ctx.fill();
+    ctx.strokeStyle='#6b7a90'; ctx.lineWidth=1.4; ctx.stroke();
+    if(state.rod === 'glass'){            // لمعة زجاج على طول الساق
+      ctx.strokeStyle='rgba(255,255,255,.75)'; ctx.lineWidth=4; ctx.lineCap='round';
+      ctx.beginPath(); ctx.moveTo(196, rodY-5); ctx.lineTo(344, rodY-5); ctx.stroke();
+      ctx.lineCap='butt';
+    }
+    optLabel(R.name, 428, rodY+4, COLORS.capActive, 12, 'left');
+
+    ctx.fillStyle = state.rod==='glass' ? '#e8c7d8' : '#c8b48a';
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(270+swing-30, rodY-37, 60, 22, 8) : ctx.rect(270+swing-30, rodY-37, 60, 22);
+    ctx.fill();
+    optLabel('قطعة '+R.cloth, 270+swing, rodY-46, COLORS.muted, 11);
+
+    /* إشارات الشحنة على الساق بعد الدلك */
+    const nq = Math.min(state.rubs, 7);
+    for(let i=0;i<nq;i++) figSign(196 + i*22, rodY, 7, R.sign > 0, COLORS);
+
+    /* قصاصات الورق: ما يرتفع منها يعتمد على الشحنة والبعد */
+    for(let i=0;i<8;i++){
+      const px = 196 + i*22, up = i < n;
+      const fly = up ? Math.min(state.dist*5 - 10, 26 + i*3) : 0;
+      ctx.save();
+      ctx.translate(px, gy - 4 - fly);
+      ctx.rotate(up ? Math.sin(state.t*5 + i)*0.3 : 0);
+      ctx.fillStyle = '#f2f5fa'; ctx.strokeStyle = COLORS.border; ctx.lineWidth=1;
+      ctx.fillRect(-7, -5, 14, 10); ctx.strokeRect(-7, -5, 14, 10);
+      ctx.restore();
+    }
+    optLabel('قصاصات ورق صغيرة', 300, gy+26, COLORS.muted, 11.5);
+
+    ctx.setLineDash([4,4]); ctx.strokeStyle=COLORS.muted; ctx.lineWidth=1.3;
+    ctx.beginPath(); ctx.moveTo(392, rodY); ctx.lineTo(392, gy); ctx.stroke();
+    ctx.setLineDash([]);
+    optLabel('البعد '+state.dist.toFixed(0)+' سم', 434, (rodY+gy)/2, COLORS.muted, 11);
+    dragHaloRect(270, rodY, 214, 46, COLORS, '');
+    optLabel(state.drag ? 'اسحب لأعلى وأسفل' : 'اسحبني بإصبعك', 152, rodY+4, COLORS.capActive, 10.5, 'right');
+
+    optHUD(600, 62, 268, [
+      {text:'ماذا حدث عند الدلك؟', bold:true, color:COLORS.capActive},
+      {text:R.name+' مع '+R.cloth, color:COLORS.muted},
+      {text:R.gain, color: R.sign>0 ? COLORS.red : COLORS.blue},
+      {text:'عدد مرّات الدلك', color:COLORS.muted},
+      {text:'n = '+state.rubs.toFixed(0), ltr:true},
+      {text:'شحنة الساق', color:COLORS.muted},
+      {text:'q = '+(q>0?'+':'')+q.toFixed(0)+' e', ltr:true,
+       color: R.sign>0?COLORS.red:COLORS.blue, bold:true},
+      {text:'القصاصات المرتفعة: '+n, color:COLORS.capActive}
+    ], COLORS);
+
+    let v, vc;
+    if(n === 0){ v='الشحنة قليلة أو الساق بعيدة ← لا ترتفع أي قصاصة'; vc=COLORS.muted; }
+    else if(R.sign > 0){ v='الزجاج فقد إلكترونات أمام الحرير ← شحن موجبًا فجذب القصاصات'; vc=COLORS.red; }
+    else { v='الإيبونايت اكتسب إلكترونات من الصوف ← شحن سالبًا فجذب القصاصات'; vc=COLORS.blue; }
+    optVerdict(v, COLORS, vc);
+    optCaption('الدلك ينقل إلكترونات بين الجسمين، والجسم المشحون يجذب القصاصات المتعادلة بالحثّ.', COLORS);
+  }
+
+  window.t17Reading=function(){
+    return [RODS[state.rod].name, RODS[state.rod].cloth, state.rubs.toFixed(0),
+            (charge()*RODS[state.rod].sign > 0 ? '+' : '−')+charge().toFixed(0), lifted()];
+  };
+  window.t17State=state; window.t17Update=t17Update; window.t17Draw=t17Draw;
+  window.t17SetRod=function(r){ if(RODS[r]) state.rod = r; };
+})();
+</script>
+
+<script>
+/* =========================================================================
+   نشاط 18 — ساقان معلقتان: تجاذب الشحنات وتنافرها
+   ========================================================================= */
+(function(){
+  const COLORS = makeColors();
+  const state = { simMode:'auto', t:0, q1:1, q2:1, gap:14, ang:0, angV:0 };
+
+  function like(){ return state.q1 === state.q2; }
+  /* زاوية ميل الساق المعلقة: تكبر بصغر البعد، وتنعدم إن كانت إحداهما متعادلة */
+  function target(){
+    if(state.q1 === 0 || state.q2 === 0) return 0;
+    const f = 3600/(state.gap*state.gap);
+    return (like() ? 1 : -1) * Math.min(f, 30) * Math.PI/180;
+  }
+
+  function t18Update(dt){
+    if(state.simMode==='auto') state.t += dt;
+    /* الساق معلقة بخيط، فتتأرجح حول وضع اتزانها ثم تستقرّ */
+    const tg = target();
+    if(state.simMode==='auto'){
+      state.angV = (state.angV + (tg - state.ang)*22*dt) * Math.pow(0.15, dt);
+      state.ang += state.angV*dt;
+    } else { state.ang = tg; state.angV = 0; }
+    const P = window.pointer;
+    if(P){
+      if(P.justPressed && t18DragHitTest(P.x, P.y)) state.drag = true;
+      if(!P.isDown) state.drag = false;
+      if(state.drag && state._pivot)
+        setControlSnap('t18State.gap', Math.max(6, (P.x - state._pivot.x)*2/5));
+    }
+  }
+  function t18DragHitTest(x, y){
+    const b = state._rightTip;
+    return !!b && Math.hypot(x-b.x, y-b.y) < 36;
+  }
+  window.t18DragHitTest = t18DragHitTest;
+
+  function drawHanging(px, py, len, ang, q, label){
+    const bx = px + Math.sin(ang)*len, by = py + Math.cos(ang)*len;
+    ctx.strokeStyle=COLORS.muted; ctx.lineWidth=1.6;
+    ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(bx, by); ctx.stroke();
+    ctx.fillStyle=COLORS.wire;
+    ctx.beginPath(); ctx.arc(px, py, 4, 0, Math.PI*2); ctx.fill();
+    ctx.save(); ctx.translate(bx, by); ctx.rotate(ang);
+    ctx.fillStyle = tubeFill(0, -10, 0, 10, q > 0 ? '#e8a49a' : (q < 0 ? '#9ab6e8' : '#c8d2e0'));
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(-13, -30, 26, 60, 12) : ctx.rect(-13, -30, 26, 60);
+    ctx.fill();
+    ctx.strokeStyle='#6b7a90'; ctx.lineWidth=1.3; ctx.stroke();
+    ctx.restore();
+    for(let i=0;i<3;i++){
+      if(q === 0) break;
+      figSign(bx, by - 16 + i*16, 7, q > 0, COLORS);
+    }
+    optLabel(label, bx, by + 50, COLORS.muted, 11.5);
+    return { x:bx, y:by };
+  }
+
+  function t18Draw(){
+    ctx.clearRect(0,0,CW,CH);
+    ctx.fillStyle=COLORS.bg; ctx.fillRect(0,0,CW,CH);
+    optTitle('نشاط ٣: ساقان معلقتان — متى تتجاذبان ومتى تتنافران؟', COLORS);
+
+    const py = 96, len = 96, SC = 5, MID = 300;
+    const px1 = MID - state.gap*SC/2, px2 = MID + state.gap*SC/2;
+    state._pivot = { x:MID, y:py };
+
+    /* الحامل الذي تتدلّى منه الساقان */
+    ctx.strokeStyle=COLORS.border; ctx.lineWidth=5;
+    ctx.beginPath(); ctx.moveTo(160, py); ctx.lineTo(440, py); ctx.stroke();
+
+    const a = state.ang;
+    const nameOf = q => q>0?'موجبة':(q<0?'سالبة':'متعادلة');
+    drawHanging(px1, py, len, -a, state.q1, nameOf(state.q1));
+    const tip = drawHanging(px2, py, len, a, state.q2, nameOf(state.q2));
+    state._rightTip = tip;
+    dragHalo(tip.x, tip.y, 40, COLORS, state.drag ? 'اسحب لتغيير البعد' : 'اسحبني بإصبعك');
+
+    const none = (state.q1 === 0 || state.q2 === 0);
+    optLabel(none ? 'لا قوة تُذكر' : (like() ? 'تنافر' : 'تجاذب'), MID, py+len+74,
+             none ? COLORS.muted : (like()?COLORS.red:COLORS.green), 14);
+
+    ctx.strokeStyle=COLORS.muted; ctx.lineWidth=1.4;
+    ctx.beginPath(); ctx.moveTo(px1, py+len+102); ctx.lineTo(px2, py+len+102); ctx.stroke();
+    [px1,px2].forEach(x=>{
+      ctx.beginPath(); ctx.moveTo(x, py+len+96); ctx.lineTo(x, py+len+108); ctx.stroke();
+    });
+    optLabel('البعد '+state.gap.toFixed(0)+' سم', MID, py+len+126, COLORS.muted, 11.5);
+
+    optHUD(600, 62, 268, [
+      {text:'ماذا يحدث بين الساقين؟', bold:true, color:COLORS.capActive},
+      {text:'شحنة الساق الأولى', color:COLORS.muted},
+      {text: state.q1>0?'موجبة':(state.q1<0?'سالبة':'متعادلة'),
+       color: state.q1>0?COLORS.red:(state.q1<0?COLORS.blue:COLORS.muted)},
+      {text:'شحنة الساق الثانية', color:COLORS.muted},
+      {text: state.q2>0?'موجبة':(state.q2<0?'سالبة':'متعادلة'),
+       color: state.q2>0?COLORS.red:(state.q2<0?COLORS.blue:COLORS.muted)},
+      {text:'البعد بينهما', color:COLORS.muted},
+      {text:'d = '+state.gap.toFixed(0)+' cm', ltr:true},
+      {text: none ? 'لا تجاذب ولا تنافر' : (like() ? 'تنافران' : 'تتجاذبان'),
+       color: none?COLORS.muted:(like()?COLORS.red:COLORS.green), bold:true}
+    ], COLORS);
+
+    let v, vc;
+    if(none){ v='إحدى الساقين متعادلة ← لا يظهر تنافر، وقد تنجذب قليلًا بالحثّ'; vc=COLORS.muted; }
+    else if(like()){ v='الشحنتان من النوع نفسه ← تتنافران فتتباعد الساقان'; vc=COLORS.red; }
+    else { v='الشحنتان مختلفتان في النوع ← تتجاذبان فتتقارب الساقان'; vc=COLORS.green; }
+    optVerdict(v, COLORS, vc);
+    optCaption('الشحنتان المتماثلتان تتنافران والمختلفتان تتجاذبان — وهذه أول قاعدة في الكهربائية الساكنة.', COLORS);
+  }
+
+  window.t18Reading=function(){
+    const nm = q => q>0?'موجبة':(q<0?'سالبة':'متعادلة');
+    return [nm(state.q1), nm(state.q2), state.gap.toFixed(0),
+            (state.q1===0||state.q2===0) ? 'لا شيء' : (like()?'تنافر':'تجاذب')];
+  };
+  window.t18State=state; window.t18Update=t18Update; window.t18Draw=t18Draw;
+})();
+</script>
+
+<script>
+/* =========================================================================
+   نشاط 19 — اختلاف المواد في التوصيل: موصل، عازل، شبه موصل
+   ========================================================================= */
+(function(){
+  const COLORS = makeColors();
+  const MATS = {
+    copper:  {name:'نحاس',    kind:'موصل',      pass:1.00, note:'فيه إلكترونات حرّة كثيرة تنتقل بسهولة'},
+    iron:    {name:'حديد',    kind:'موصل',      pass:0.82, note:'فلزّ موصل، لكنه أقلّ توصيلًا من النحاس'},
+    silicon: {name:'سليكون',  kind:'شبه موصل',  pass:0.34, note:'يوصّل قليلًا، ويزداد توصيله بالتسخين'},
+    germanium:{name:'جرمانيوم',kind:'شبه موصل', pass:0.28, note:'شبه موصل يُستعمل في القطع الإلكترونية'},
+    glass:   {name:'زجاج',    kind:'عازل',      pass:0.00, note:'إلكتروناته مقيّدة فلا تنتقل خلاله'},
+    plastic: {name:'بلاستك',  kind:'عازل',      pass:0.00, note:'عازل، ولهذا يُغلَّف به سلك الكهرباء'}
+  };
+  const ORDER = ['copper','iron','silicon','germanium','glass','plastic'];
+  const state = { simMode:'auto', t:0, mat:'copper', charge:6 };
+
+  function passed(){ return state.charge*MATS[state.mat].pass; }
+  function kindColor(k){
+    return k==='موصل' ? COLORS.green : (k==='شبه موصل' ? COLORS.capDefault : COLORS.red);
+  }
+
+  function t19Update(dt){ if(state.simMode==='auto') state.t += dt; }
+
+  function t19Draw(){
+    ctx.clearRect(0,0,CW,CH);
+    ctx.fillStyle=COLORS.bg; ctx.fillRect(0,0,CW,CH);
+    optTitle('نشاط ٦: المواد من حيث التوصيل — موصل وعازل وشبه موصل', COLORS);
+
+    const M = MATS[state.mat], out = passed();
+
+    /* كرة مشحونة على يمين، وكشاف على يسار، بينهما قطعة المادة المختبَرة */
+    const by = 190, bx = 452, ex = 168;
+    ctx.fillStyle = sphereFill(bx, by, 30, '#e8523f');
+    ctx.beginPath(); ctx.arc(bx, by, 30, 0, Math.PI*2); ctx.fill();
+    optLabel('كرة مشحونة', bx, by+52, COLORS.muted, 11.5);
+    optLabel('+'+state.charge.toFixed(0), bx, by+6, '#fff', 15, 'center', true);
+
+    /* قطعة المادة بين الكرة والكشاف */
+    const mx = 310;
+    ctx.fillStyle = tubeFill(mx-52, 0, mx+52, 0,
+      M.kind==='موصل' ? '#c9772f' : (M.kind==='شبه موصل' ? '#8a9bb5' : '#cfd9e6'));
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(mx-52, by-15, 104, 30, 6) : ctx.rect(mx-52, by-15, 104, 30);
+    ctx.fill();
+    ctx.strokeStyle='#6b7a90'; ctx.lineWidth=1.4; ctx.stroke();
+    optLabel(M.name, mx, by-28, COLORS.capActive, 12.5);
+    optLabel(M.kind, mx, by+44, kindColor(M.kind), 12);
+
+    /* الكشاف أولًا كي يُعرف موضع قرصه، ثم تُوصل الأسلاك إليه فعلًا */
+    const ang = Math.min(out*7, 46);
+    const es = figElectroscope(ex, 340, 86, ang, 1, COLORS);
+    const discY = es.topY;
+
+    /* سلكان: من الكرة إلى القطعة، ومن القطعة إلى قرص الكشاف */
+    const link = [[bx-30, by],[mx+52, by]];
+    const link2 = [[mx-52, by],[ex+52, by],[ex+52, discY],[ex, discY]];
+    wire(link, COLORS.muted, 3);
+    wire(link2, COLORS.muted, 3);
+
+    /* الشحنة المارّة: نقاط تسري بسرعة تتبع مقدار ما تمرّره المادة */
+    if(out > 0.05 && state.simMode==='auto'){
+      flowDots(link2, (state.t*Math.min(out,6)*0.16) % 1, 10, COLORS);
+    }
+    optLabel('كشاف كهربائي', ex, 372, COLORS.muted, 11.5);
+    optLabel('الانفراج '+ang.toFixed(0)+' درجة', ex, 392, COLORS.capActive, 11.5);
+
+    /* شريط مقارنة المواد الستّ */
+    ORDER.forEach((k, i)=>{
+      const x = 300 + (i%3)*96, y = 262 + Math.floor(i/3)*54;
+      const on = (k === state.mat), mm = MATS[k];
+      optBox(x-44, y, 88, 44, on?COLORS.panel:COLORS.bg, on?COLORS.capActive:COLORS.border);
+      optLabel(mm.name, x, y+18, on?COLORS.capActive:COLORS.muted, 11.5);
+      optLabel(mm.kind, x, y+36, kindColor(mm.kind), 10.5);
+    });
+
+    optHUD(600, 62, 268, [
+      {text:'هل تمرّ الشحنة خلال المادة؟', bold:true, color:COLORS.capActive},
+      {text:'المادة المختبَرة', color:COLORS.muted},
+      {text:M.name+' — '+M.kind, color:kindColor(M.kind), bold:true},
+      {text:'الشحنة على الكرة', color:COLORS.muted},
+      {text:'q = '+state.charge.toFixed(0)+' e', ltr:true, color:COLORS.red},
+      {text:'ما وصل إلى الكشاف', color:COLORS.muted},
+      {text:'q = '+out.toFixed(1)+' e', ltr:true, color:COLORS.capActive, bold:true}
+    ], COLORS);
+
+    optLabel(M.note, 300, 414, COLORS.muted, 11);
+    let v, vc;
+    if(M.kind === 'موصل'){ v='المادة موصلة ← مرّت الشحنة كاملة تقريبًا فانفرجت ورقتا الكشاف'; vc=COLORS.green; }
+    else if(M.kind === 'شبه موصل'){ v='شبه موصل ← مرّ جزء من الشحنة فقط، والانفراج قليل'; vc=COLORS.capDefault; }
+    else { v='المادة عازلة ← لم تمرّ الشحنة، وبقيت الورقتان منطبقتين'; vc=COLORS.red; }
+    optVerdict(v, COLORS, vc);
+    optCaption('في الموصل إلكترونات حرّة تنتقل، وفي العازل مقيّدة، وشبه الموصل بينهما.', COLORS);
+  }
+
+  window.t19Reading=function(){
+    return [MATS[state.mat].name, MATS[state.mat].kind, state.charge.toFixed(0),
+            passed().toFixed(1)];
+  };
+  window.t19State=state; window.t19Update=t19Update; window.t19Draw=t19Draw;
+  window.t19SetMat=function(m){ if(MATS[m]) state.mat = m; };
+})();
+</script>
+
+<script>
+/* =========================================================================
+   نشاط 31 — أقطاب المغناطيس: تجاذب وتنافر، والقطبان لا ينفصلان
+   ========================================================================= */
+(function(){
+  const COLORS = makeColors();
+  /* flip=1: المغناطيس الأيمن مقلوب فيواجه بقطبه الشمالي ← شمالي أمام شمالي */
+  const state = { simMode:'auto', t:0, gap:12, flip:1, pieces:1 };
+
+  /* القوة بين قطبين متقابلين تقلّ مع مربع البعد: F = c/d² (وحدات نسبية) */
+  function force(){ return 900/(state.gap*state.gap); }
+  function attract(){ return state.flip === 0; }   // بلا قلب يتقابل شمالي بجنوبي
+
+  function t31Update(dt){
+    if(state.simMode==='auto') state.t += dt;
+    const P = window.pointer;
+    if(P){
+      if(P.justPressed && t31DragHitTest(P.x, P.y)) state.drag = true;
+      if(!P.isDown) state.drag = false;
+      if(state.drag && state._leftEnd != null)
+        setControlSnap('t31State.gap', (P.x - state._leftEnd - 90)/4);
+    }
+  }
+  function t31DragHitTest(x, y){
+    const b = state._rightBox;
+    return !!b && x > b.x && x < b.x+b.w && y > b.y-14 && y < b.y+b.h+14;
+  }
+  window.t31DragHitTest = t31DragHitTest;
+
+  function t31Draw(){
+    ctx.clearRect(0,0,CW,CH);
+    ctx.fillStyle=COLORS.bg; ctx.fillRect(0,0,CW,CH);
+    optTitle('نشاط ١: أقطاب المغناطيس — متى يتجاذبان ومتى يتنافران؟', COLORS);
+
+    const cy = 168, F = force(), att = attract();
+    const len = 150, hh = 38, sc = 4;               // 4 بكسل لكل سنتيمتر
+    /* اهتزاز خفيف سعته تتبع القوة: المغناطيس المعلّق لا يسكن تحت قوة كبيرة */
+    const vib = state.simMode==='auto' ? Math.sin(state.t*6.5)*Math.min(0.6+F*0.35, 4) : 0;
+    const push = att ? -vib : vib;
+
+    const x1 = 250, x2 = x1 + len/2 + state.gap*sc + len/2 + push;
+    state._leftEnd = x1 + len/2; state._sc = sc;
+    state._rightBox = { x:x2-len/2, y:cy-hh/2, w:len, h:hh };
+
+    figMagnet(x1 - push, cy, len, hh, false, COLORS);
+    figMagnet(x2, cy, len, hh, state.flip === 1, COLORS);
+    dragHaloRect(x2, cy, len+24, hh+22, COLORS, '');
+    optLabel(state.drag ? 'اسحب لتغيير البعد' : 'اسحبني بإصبعك', x2, cy+hh/2+34, COLORS.capActive, 10.5);
+
+    /* سهما القوة بين الطرفين المتقابلين */
+    const inner1 = x1 + len/2 - push, inner2 = x2 - len/2;
+    const L = Math.min(14 + F*3.2, 62);
+    if(att){
+      optArrow(inner1, cy-hh, inner1+L, cy-hh, COLORS.green, 3.5);
+      optArrow(inner2, cy-hh, inner2-L, cy-hh, COLORS.green, 3.5);
+    } else {
+      optArrow(inner1, cy-hh, inner1-L, cy-hh, COLORS.red, 3.5);
+      optArrow(inner2, cy-hh, inner2+L, cy-hh, COLORS.red, 3.5);
+    }
+    optLabel(att ? 'تجاذب' : 'تنافر', (inner1+inner2)/2, cy-hh-16,
+             att?COLORS.green:COLORS.red, 14);
+
+    /* مسطرة البعد بين الطرفين */
+    ctx.strokeStyle=COLORS.muted; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(inner1, cy+hh); ctx.lineTo(inner2, cy+hh); ctx.stroke();
+    optLabel('d = '+state.gap.toFixed(0)+' cm', (inner1+inner2)/2, cy+hh+20, COLORS.muted, 11.5, 'center', true);
+
+    /* تكسير المغناطيس: كل قطعة تخرج بقطبين، مهما صغرت */
+    const py = 330, pw = 300/state.pieces;
+    optLabel(state.pieces === 1 ? 'المغناطيس كاملًا قبل التكسير:'
+                                : 'لو كسرناه إلى '+state.pieces+' قطع:',
+             450, py-34, COLORS.capActive, 12);
+    for(let i=0;i<state.pieces;i++){
+      const px = 300 + pw*(i+0.5);
+      figMagnet(px, py, pw-6, 26, false, COLORS);
+    }
+    optLabel(state.pieces === 1 ? 'مغناطيس واحد له قطبان' : 'كل قطعة خرجت بقطبين: شمالي وجنوبي',
+             450, py+34, state.pieces === 1 ? COLORS.muted : COLORS.capDefault, 11.5);
+
+    optHUD(600, 62, 268, [
+      {text:'ماذا يحدث بين القطبين؟', bold:true, color:COLORS.capActive},
+      {text:'القطبان المتقابلان', color:COLORS.muted},
+      {text: att ? 'شمالي مع جنوبي' : 'شمالي مع شمالي', color: att?COLORS.green:COLORS.red},
+      {text:'البعد بينهما', color:COLORS.muted},
+      {text:'d = '+state.gap.toFixed(0)+' cm', ltr:true},
+      {text:'القوة تقلّ مع مربع البعد', color:COLORS.muted},
+      {text: att ? 'قوة تجاذب' : 'قوة تنافر', color:COLORS.capActive, bold:true}
+    ], COLORS);
+
+    let v, vc;
+    if(att){ v='القطبان مختلفان ← يتجاذبان، وكلما قرّبتهما زادت قوة التجاذب'; vc=COLORS.green; }
+    else { v='القطبان متماثلان ← يتنافران، وكلما قرّبتهما زادت قوة التنافر'; vc=COLORS.red; }
+    optVerdict(v, COLORS, vc);
+    optCaption('القطبان المتماثلان يتنافران والمختلفان يتجاذبان — ومهما كسّرت المغناطيس تبقى لكل قطعة قطبان.', COLORS);
+  }
+
+  window.t31Reading=function(){
+    return [attract() ? 'شمالي وجنوبي' : 'شمالي وشمالي', state.gap.toFixed(0),
+            attract() ? 'تجاذب' : 'تنافر', state.pieces];
+  };
+  window.t31State=state; window.t31Update=t31Update; window.t31Draw=t31Draw;
+  window.t31SetPole=function(v){ state.flip = (v === 'like') ? 1 : 0; };
+})();
+</script>
+
+<script>
+/* =========================================================================
+   نشاط 32 — المواد المغناطيسية: أيّ المواد ينجذب إلى المغناطيس؟
+   ========================================================================= */
+(function(){
+  const COLORS = makeColors();
+  const MATS = {
+    iron:     {name:'حديد',    pull:1.00, kind:'مادة مغناطيسية',      color:'#8b97a8'},
+    nickel:   {name:'نيكل',    pull:0.62, kind:'مادة مغناطيسية',      color:'#aeb8c6'},
+    cobalt:   {name:'كوبلت',   pull:0.48, kind:'مادة مغناطيسية',      color:'#7f8fa6'},
+    copper:   {name:'نحاس',    pull:0.00, kind:'مادة غير مغناطيسية',  color:'#c9772f'},
+    aluminum: {name:'ألمنيوم', pull:0.00, kind:'مادة غير مغناطيسية',  color:'#cfd9e6'},
+    wood:     {name:'خشب',     pull:0.00, kind:'مادة غير مغناطيسية',  color:'#b08048'}
+  };
+  const ORDER = ['iron','nickel','cobalt','copper','aluminum','wood'];
+  const state = { simMode:'auto', t:0, mat:'iron', dist:10 };
+
+  function pulled(){ return MATS[state.mat].pull > 0; }
+  /* جذب العيّنة يقلّ مع البعد، ويصير صفرًا في المواد غير المغناطيسية */
+  function pullStrength(){ return MATS[state.mat].pull * Math.pow(10/Math.max(state.dist,4), 2); }
+
+  function t32Update(dt){
+    if(state.simMode==='auto') state.t += dt;
+    const P = window.pointer;
+    if(P){
+      if(P.justPressed && t32DragHitTest(P.x, P.y)) state.drag = true;
+      if(!P.isDown) state.drag = false;
+      if(state.drag && state._magX != null)
+        setControlSnap('t32State.dist', (state._sampleX - 26 - 55 - P.x)/4);
+    }
+  }
+  function t32DragHitTest(x, y){
+    const b = state._magBox;
+    return !!b && x > b.x-10 && x < b.x+b.w+10 && y > b.y-14 && y < b.y+b.h+14;
+  }
+  window.t32DragHitTest = t32DragHitTest;
+
+  function t32Draw(){
+    ctx.clearRect(0,0,CW,CH);
+    ctx.fillStyle=COLORS.bg; ctx.fillRect(0,0,CW,CH);
+    optTitle('نشاط ٢: المواد المغناطيسية — ما الذي ينجذب إلى المغناطيس؟', COLORS);
+
+    const M = MATS[state.mat], s = pullStrength(), gy = 262, cy = 190;
+    ctx.fillStyle=COLORS.ground; ctx.fillRect(70, gy, 480, 7);
+
+    /* مقياس واحد للرسم كله: أربعة بكسلات لكل سنتيمتر، فالبعد المرسوم
+       يطابق البعد المكتوب تمامًا. */
+    const SC = 4, sampleX0 = 430, sampleHalf = 26, magHalf = 55;
+    const gapPx = state.dist*SC;
+    const slide = Math.min(s, 1) * Math.max(0, gapPx - 10);
+    /* العيّنة المجذوبة لا تسكن: ترتجف على المنضدة بقدر ما يشدّها المغناطيس */
+    const shiver = (s > 0.05 && state.simMode==='auto')
+                 ? Math.sin(state.t*9)*Math.min(0.6 + s*1.6, 3) : 0;
+    const sampleX = sampleX0 - slide + shiver;
+    state._sampleX = sampleX0;
+    ctx.fillStyle = tubeFill(0, cy-16, 0, cy+16, M.color);
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(sampleX-26, gy-34, 52, 34, 6) : ctx.rect(sampleX-26, gy-34, 52, 34);
+    ctx.fill();
+    ctx.strokeStyle='#6b7a90'; ctx.lineWidth=1.4; ctx.stroke();
+    optLabel(M.name, sampleX, gy+22, COLORS.capActive, 12.5);
+
+    /* المغناطيس يقرّبه الطالب بإصبعه: حافته اليمنى تبعد d عن حافة العيّنة */
+    const magX = sampleX0 - sampleHalf - gapPx - magHalf;
+    state._magX = magX;
+    state._magBox = { x:magX-magHalf, y:gy-30, w:magHalf*2, h:26 };
+    figMagnet(magX, gy-17, magHalf*2, 26, false, COLORS);
+    dragHaloRect(magX, gy-17, magHalf*2+22, 46, COLORS, '');
+    optLabel(state.drag ? 'اسحب لتقريبه' : 'اسحبني بإصبعك', magX, gy+22, COLORS.capActive, 10.5);
+
+    /* مسطرة البعد بين حافة المغناطيس وحافة العيّنة قبل انزلاقها */
+    ctx.setLineDash([4,4]); ctx.strokeStyle=COLORS.muted; ctx.lineWidth=1.3;
+    ctx.beginPath();
+    ctx.moveTo(magX+magHalf, gy-52); ctx.lineTo(sampleX0-sampleHalf, gy-52); ctx.stroke();
+    [magX+magHalf, sampleX0-sampleHalf].forEach(x=>{
+      ctx.beginPath(); ctx.moveTo(x, gy-58); ctx.lineTo(x, gy-46); ctx.stroke();
+    });
+    ctx.setLineDash([]);
+    optLabel('البعد '+state.dist.toFixed(0)+' سم',
+             (magX+magHalf+sampleX0-sampleHalf)/2, gy-64, COLORS.muted, 11);
+
+    if(s > 0.05){
+      optArrow(sampleX-sampleHalf-6, cy, magX+magHalf+8, cy, COLORS.green, 3.5);
+      optLabel('تنجذب إلى المغناطيس', (magX+sampleX)/2, cy-38, COLORS.green, 11.5);
+    } else {
+      optLabel('لا تتحرك — لا جذب', (magX+sampleX)/2, cy-38, COLORS.muted, 11.5);
+    }
+
+    /* جدول المواد الستّ: ما جُرّب منها يبقى مسجّلًا أمام الطالب */
+    optLabel('المواد التي تُختبر', 300, 318, COLORS.capActive, 12);
+    ORDER.forEach((k, i)=>{
+      const x = 96 + i*72, on = (k === state.mat);
+      const mm = MATS[k];
+      optBox(x-33, 330, 66, 54, on?COLORS.panel:COLORS.bg, on?COLORS.capActive:COLORS.border);
+      optLabel(mm.name, x, 350, on?COLORS.capActive:COLORS.muted, 11.5);
+      optLabel(mm.pull>0 ? 'تنجذب' : 'لا تنجذب', x, 370,
+               mm.pull>0 ? COLORS.green : COLORS.red, 10.5);
+    });
+
+    optHUD(600, 62, 268, [
+      {text:'نتيجة الاختبار', bold:true, color:COLORS.capActive},
+      {text:'المادة المختبَرة', color:COLORS.muted},
+      {text: M.name, color:COLORS.capActive, bold:true},
+      {text:'البعد عن المغناطيس', color:COLORS.muted},
+      {text:'d = '+state.dist.toFixed(0)+' cm', ltr:true},
+      {text:'التصنيف', color:COLORS.muted},
+      {text: M.kind, color: pulled()?COLORS.green:COLORS.red}
+    ], COLORS);
+
+    let v, vc;
+    if(pulled()){ v='الحديد والنيكل والكوبلت مواد مغناطيسية ← تنجذب إلى المغناطيس'; vc=COLORS.green; }
+    else { v='النحاس والألمنيوم والخشب مواد غير مغناطيسية ← لا ينجذب منها شيء'; vc=COLORS.red; }
+    optVerdict(v, COLORS, vc);
+    optCaption('ليس كل فلزّ ينجذب إلى المغناطيس: النحاس والألمنيوم فلزّان ولا ينجذبان.', COLORS);
+  }
+
+  window.t32Reading=function(){
+    return [MATS[state.mat].name, state.dist.toFixed(0),
+            pulled() ? 'انجذبت' : 'لم تنجذب', MATS[state.mat].kind];
+  };
+  window.t32State=state; window.t32Update=t32Update; window.t32Draw=t32Draw;
+  window.t32SetMat=function(m){ if(MATS[m]) state.mat = m; };
+})();
+</script>
+
+<script>
+/* =========================================================================
+   نشاط 33 — المجال المغناطيسي: برادة الحديد والإبرة المغناطيسية
+   ========================================================================= */
+(function(){
+  const COLORS = makeColors();
+  const state = { simMode:'auto', t:0, density:9, needleX:390, needleY:150, view:'filings' };
+  /* منزلقا الإبرة يقابلان السحب باليد، فالرقم والرسم لا يفترقان */
+
+  function poles(){ return magnetPoles(300, 216, 170, false); }
+  /* شدة المجال عند الإبرة بوحدات نسبية، للمقارنة لا للقياس المطلق */
+  function strengthAtNeedle(){
+    return fieldAtPoint(poles(), state.needleX, state.needleY).mag * 1e4;
+  }
+  function needleAngle(){
+    const B = fieldAtPoint(poles(), state.needleX, state.needleY);
+    return Math.atan2(B.y, B.x);
+  }
+
+  function t33Update(dt){
+    if(state.simMode==='auto') state.t += dt;
+    const P = window.pointer;
+    if(P){
+      if(P.justPressed && t33DragHitTest(P.x, P.y)) state.drag = true;
+      if(!P.isDown) state.drag = false;
+      if(state.drag){
+        setControlSnap('t33State.needleX', Math.max(96, Math.min(544, P.x)));
+        setControlSnap('t33State.needleY', Math.max(106, Math.min(382, P.y)));
+      }
+    }
+  }
+  function t33DragHitTest(x, y){
+    return Math.hypot(x-state.needleX, y-state.needleY) < 26;
+  }
+  window.t33DragHitTest = t33DragHitTest;
+
+  function t33Draw(){
+    ctx.clearRect(0,0,CW,CH);
+    ctx.fillStyle=COLORS.bg; ctx.fillRect(0,0,CW,CH);
+    optTitle('نشاط ٣: المجال المغناطيسي — كيف نراه؟', COLORS);
+
+    const P = poles();
+    ctx.save(); ctx.beginPath(); ctx.rect(76, 70, 488, 326); ctx.clip();
+
+    if(state.view === 'filings'){
+      /* البرادة تُرشّ فتنتظم كل ذرّة في اتجاه المجال عندها.
+         ونقرة على الورقة كل حين تهزّ البرادة فتعيد ترتيب نفسها — وهذا ما
+         يفعله الطالب في المختبر ليكتمل الشكل. */
+      const sp = Math.max(14, 46 - state.density*3);
+      const beat = state.simMode==='auto' ? (state.t % 2.6) : 1;
+      const tap  = beat < 0.5 ? (1 - beat/0.5) : 0;
+      ctx.save();
+      if(tap > 0) ctx.translate(Math.sin(state.t*40)*tap*1.8, Math.cos(state.t*34)*tap*1.4);
+      figFilings(P, 86, 104, 468, 282, sp, COLORS, 0.78);
+      ctx.restore();
+      if(tap > 0.25) optLabel('نقرة على الورقة', 470, 120, COLORS.capDefault, 10.5);
+      optBox(190, 66, 220, 24, COLORS.bg, COLORS.border);
+      optLabel('برادة حديد مرشوشة على الورقة', 300, 82, COLORS.muted, 11.5);
+    } else {
+      /* خطوط المجال: تخرج من الشمالي وتدخل الجنوبي، ويسري عليها السهم */
+      const n = Math.max(5, Math.round(state.density*1.1));
+      const flow = (state.simMode==='auto' ? state.t : 0)*34;
+      ctx.strokeStyle = COLORS.capActive; ctx.lineWidth=1.7;
+      for(let i=0;i<n;i++){
+        /* كل خط يبدأ عند القطب الشمالي بزاوية مختلفة، ثم يُتتبَّع مع المجال
+           فيعود من نفسه إلى القطب الجنوبي — الشكل نتيجة الحساب لا رسم يدوي. */
+        const a = (i+0.5)*Math.PI*2/n;
+        const pts = fieldLine(P, P[0].x + Math.cos(a)*13, P[0].y + Math.sin(a)*13,
+                              5, 260, [80, 60, 560, 392]);
+        ctx.globalAlpha = 0.62;
+        ctx.setLineDash([10,7]); ctx.lineDashOffset = -flow;
+        ctx.beginPath();
+        pts.forEach(([x,y],j)=>{ if(j===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); });
+        ctx.stroke();
+        ctx.setLineDash([]); ctx.lineDashOffset=0; ctx.globalAlpha=1;
+        /* رأس سهم في منتصف الخط يبيّن أن الاتجاه من الشمالي إلى الجنوبي */
+        if(pts.length > 24){
+          const m = Math.floor(pts.length/2);
+          optArrow(pts[m-3][0], pts[m-3][1], pts[m+3][0], pts[m+3][1], COLORS.capActive, 2, 7);
+        }
+      }
+      optBox(140, 66, 320, 24, COLORS.bg, COLORS.border);
+      optLabel('خطوط المجال تخرج من القطب الشمالي وتدخل الجنوبي', 300, 82, COLORS.capActive, 11.5);
+    }
+
+    figMagnet(300, 216, 170, 44, false, COLORS);
+
+    /* الإبرة المغناطيسية: يضعها الطالب حيث شاء فتدور مع المجال */
+    figNeedle(state.needleX, state.needleY, 34, needleAngle(), COLORS);
+    dragHalo(state.needleX, state.needleY, 25, COLORS,
+             state.drag ? 'ضعها حيث شئت' : 'اسحب الإبرة');
+    ctx.restore();
+
+    optHUD(600, 62, 268, [
+      {text:'المجال عند الإبرة', bold:true, color:COLORS.capActive},
+      {text:'اتجاه الإبرة يتبع اتجاه المجال', color:COLORS.muted},
+      {text:'x = '+((state.needleX-300)/10).toFixed(1)+' cm , y = '+((216-state.needleY)/10).toFixed(1)+' cm', ltr:true},
+      {text:'شدة المجال عندها (نسبية)', color:COLORS.muted},
+      {text:'B = '+strengthAtNeedle().toFixed(2), ltr:true, color:COLORS.capActive, bold:true},
+      {text:'زاوية الإبرة', color:COLORS.muted},
+      {text:'θ = '+Math.round(needleAngle()*180/Math.PI)+'°', ltr:true, color:COLORS.capDefault}
+    ], COLORS);
+
+    let v, vc;
+    const B = strengthAtNeedle();
+    if(B > 6){ v='الإبرة قرب القطب ← المجال قوي والخطوط متقاربة'; vc=COLORS.capDefault; }
+    else if(B > 1.5){ v='الإبرة على جانب المغناطيس ← مجال متوسط'; vc=COLORS.capActive; }
+    else { v='الإبرة بعيدة ← المجال ضعيف والخطوط متباعدة'; vc=COLORS.blue; }
+    optVerdict(v, COLORS, vc);
+    optCaption('تقارب الخطوط يعني مجالًا أقوى — ولهذا تتكدّس البرادة عند القطبين.', COLORS);
+  }
+
+  window.t33Reading=function(){
+    return [((state.needleX-300)/10).toFixed(1), ((216-state.needleY)/10).toFixed(1),
+            strengthAtNeedle().toFixed(2), Math.round(needleAngle()*180/Math.PI)+'°'];
+  };
+  window.t33State=state; window.t33Update=t33Update; window.t33Draw=t33Draw;
+  window.t33SetView=function(v){ state.view = v; };
+  window.t33SetDensity=function(v){ state.density = Number(v); };
+})();
+</script>
+
+<script>
+/* =========================================================================
+   نشاط 34 — البوصلة والمجال المغناطيسي للأرض
+   ========================================================================= */
+(function(){
+  const COLORS = makeColors();
+  const state = { simMode:'auto', t:0, magX:250, magOn:1, flip:0, nAng:null, nV:0 };
+  const CX = 440, CY = 236;                       // موضع البوصلة
+
+  /* مجال الأرض: ضعيف وثابت يشير إلى الشمال، والشمال إلى أعلى الرسم.
+     والمغناطيس يقترب من جانب البوصلة، فيكون مجاله عندها عموديًا على مجال
+     الأرض — وهذا هو وضع التجربة الذي تنحرف فيه الإبرة انحرافًا متدرّجًا. */
+  const EARTH = { x:0, y:-3.4e-5 };
+  function poles(){ return magnetPoles(state.magX, CY, 150, state.flip===1); }
+  function totalField(){
+    const B = state.magOn ? fieldAtPoint(poles(), CX, CY) : {x:0,y:0};
+    return { x: B.x + EARTH.x, y: B.y + EARTH.y };
+  }
+  function needleAngle(){ const B = totalField(); return Math.atan2(B.y, B.x); }
+  /* زاوية الانحراف عن الشمال (الأعلى) بالدرجات */
+  function deflection(){
+    let d = (needleAngle()*180/Math.PI) + 90;
+    while(d > 180) d -= 360;
+    while(d < -180) d += 360;
+    return d;
+  }
+  /* البعد بين حافة المغناطيس وحافة البوصلة بالسنتيمتر (4 بكسل لكل سنتيمتر) */
+  function gapCm(){ return Math.max(0, ((CX-44) - (state.magX+75))/4); }
+
+  function t34Update(dt){
+    if(state.simMode==='auto') state.t += dt;
+    /* إبرة البوصلة لها عطالة: تتأرجح حول الاتجاه الجديد ثم تستقرّ عليه،
+       ولا تسكن سكونًا تامًا لأنها معلّقة على سنّ رفيع. */
+    const tgt = needleAngle();
+    if(state.nAng === null) state.nAng = tgt;
+    if(state.simMode==='auto'){
+      let diff = tgt - state.nAng;
+      while(diff >  Math.PI) diff -= Math.PI*2;
+      while(diff < -Math.PI) diff += Math.PI*2;
+      state.nV = (state.nV + diff*26*dt) * Math.pow(0.05, dt);
+      state.nAng += state.nV*dt;
+    } else { state.nAng = tgt; state.nV = 0; }
+    const P = window.pointer;
+    if(P){
+      if(P.justPressed && t34DragHitTest(P.x, P.y)) state.drag = true;
+      if(!P.isDown) state.drag = false;
+      if(state.drag) setControlSnap('t34State.magX', Math.max(110, Math.min(330, P.x)));
+    }
+  }
+  function t34DragHitTest(x, y){
+    return state.magOn === 1 && Math.abs(x-state.magX) < 86 && Math.abs(y-CY) < 30;
+  }
+  window.t34DragHitTest = t34DragHitTest;
+
+  function t34Draw(){
+    ctx.clearRect(0,0,CW,CH);
+    ctx.fillStyle=COLORS.bg; ctx.fillRect(0,0,CW,CH);
+    optTitle('نشاط ٤: البوصلة والمجال المغناطيسي للأرض', COLORS);
+
+    /* الشمال إلى الأعلى، وخطّ متقطّع يمرّ بالبوصلة يبيّن اتجاه الشمال */
+    optArrow(CX, 150, CX, 104, COLORS.blue, 2.5);
+    optLabel('الشمال المغناطيسي', CX, 96, COLORS.blue, 11.5);
+    ctx.setLineDash([6,6]); ctx.strokeStyle=COLORS.border; ctx.lineWidth=1.4;
+    ctx.beginPath(); ctx.moveTo(CX, 152); ctx.lineTo(CX, 330); ctx.stroke();
+    ctx.setLineDash([]);
+
+    /* مغناطيس يقرّبه الطالب من البوصلة */
+    if(state.magOn){
+      figMagnet(state.magX, CY, 150, 38, state.flip===1, COLORS);
+      dragHaloRect(state.magX, CY, 172, 58, COLORS, state.drag ? 'اسحبه قربًا وبعدًا' : 'اسحبني بإصبعك');
+      const d = gapCm();
+      ctx.setLineDash([4,4]); ctx.strokeStyle=COLORS.muted; ctx.lineWidth=1.3;
+      ctx.beginPath();
+      ctx.moveTo(state.magX+75, CY+64); ctx.lineTo(CX-44, CY+64); ctx.stroke();
+      ctx.setLineDash([]);
+      optLabel('البعد '+d.toFixed(0)+' سم', (state.magX+75+CX-44)/2, CY+82, COLORS.muted, 11);
+    } else {
+      optLabel('لا مغناطيس قريب — البوصلة تحت تأثير مجال الأرض وحده',
+               236, CY, COLORS.muted, 12);
+    }
+
+    const shown = (state.nAng === null ? needleAngle() : state.nAng) +
+                  (state.simMode==='auto' ? Math.sin(state.t*5.5)*0.013 : 0);
+    figCompass(CX, CY, 44, shown, COLORS);
+    optLabel('البوصلة', CX, CY+70, COLORS.capActive, 12);
+
+    /* مدرّج الانحراف */
+    const dfl = deflection();
+    optLabel('انحراف الإبرة عن الشمال', 300, 348, COLORS.capActive, 12);
+    const bx = 150, bw = 300, by = 366;
+    ctx.fillStyle=COLORS.border; ctx.fillRect(bx, by, bw, 16);
+    ctx.strokeStyle=COLORS.muted; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(bx+bw/2, by-6); ctx.lineTo(bx+bw/2, by+22); ctx.stroke();
+    ctx.fillStyle = Math.abs(dfl) > 6 ? COLORS.capDefault : COLORS.green;
+    const w2 = (Math.max(-180, Math.min(180, dfl))/180)*(bw/2);
+    ctx.fillRect(bx+bw/2 + Math.min(w2,0), by, Math.abs(w2), 16);
+    optLabel(Math.round(dfl)+'°', bx+bw/2 + w2, by+34, COLORS.capActive, 11.5, 'center', true);
+
+    optHUD(600, 62, 268, [
+      {text:'إلى أين تشير الإبرة؟', bold:true, color:COLORS.capActive},
+      {text:'مجال الأرض وحده', color:COLORS.muted},
+      {text:'الإبرة تشير إلى الشمال', color:COLORS.blue},
+      {text: state.magOn ? 'وبقربها مغناطيس' : 'ولا مغناطيس بقربها', color:COLORS.muted},
+      {text:'زاوية الانحراف', color:COLORS.muted},
+      {text:'θ = '+Math.round(dfl)+'°', ltr:true, color:COLORS.capActive, bold:true}
+    ], COLORS);
+
+    let v, vc;
+    if(!state.magOn){ v='بلا مغناطيس قريب تستقرّ الإبرة في اتجاه الشمال ← الأرض نفسها مغناطيس'; vc=COLORS.blue; }
+    else if(Math.abs(dfl) > 60){ v='المغناطيس قريب ← مجاله يغلب مجال الأرض فتنحرف الإبرة كثيرًا'; vc=COLORS.red; }
+    else if(Math.abs(dfl) > 6){ v='المغناطيس متوسط البعد ← الإبرة بين مجال الأرض ومجال المغناطيس'; vc=COLORS.capDefault; }
+    else { v='المغناطيس بعيد ← مجاله ضعيف هنا فتعود الإبرة إلى الشمال'; vc=COLORS.green; }
+    optVerdict(v, COLORS, vc);
+    optCaption('الأرض مغناطيس ضخم مجاله ضعيف — فيكفي مغناطيس صغير قريب ليسحب الإبرة عن الشمال.', COLORS);
+  }
+
+  window.t34Reading=function(){
+    return [state.magOn ? 'موجود' : 'لا يوجد',
+            state.magOn ? gapCm().toFixed(0) : '—',
+            state.flip===1 ? 'الجنوبي نحو البوصلة' : 'الشمالي نحو البوصلة',
+            Math.round(deflection())+'°'];
+  };
+  window.t34State=state; window.t34Update=t34Update; window.t34Draw=t34Draw;
+  window.t34SetMag=function(v){
+    state.magOn = (v === 'on') ? 1 : 0;
+    setControlEnabled('t34State.magX', state.magOn === 1);
+    setBtnGroupEnabled('#flipBtns34', state.magOn === 1);
+  };
+  window.t34SetFlip=function(v){ state.flip = (v === 'south') ? 1 : 0; };
+})();
+</script>
+
+<script>
+/* =========================================================================
+   نشاط 35 — تمغنط المواد وإزالة تمغنطها
+   ========================================================================= */
+(function(){
+  const COLORS = makeColors();
+  const METHODS = {
+    rub:     {name:'بالدلك',  gain: 0.14, note:'امسح المغناطيس على المسمار باتجاه واحد دائمًا'},
+    induce:  {name:'بالحث',   gain: 0.09, note:'قرّب المغناطيس من المسمار دون لمسه'},
+    hammer:  {name:'بالطرق',  gain:-0.16, note:'الطرق العنيف يبعثر ترتيب الدقائق فيزيل التمغنط'},
+    heat:    {name:'بالتسخين',gain:-0.22, note:'التسخين يزيد اهتزاز الدقائق فيفقد الحديد تمغنطه'}
+  };
+  const ORDER = ['rub','induce','hammer','heat'];
+  const state = { simMode:'auto', t:0, method:'rub', times:5, level:0, _lastKey:'' };
+
+  /* مستوى التمغنط يُحسب من الطريقة وعدد المرات، ولا يتجاوز حدّ التشبّع.
+     طريقتا الدلك والحث تبدآن من مسمار غير ممغنط، وطريقتا الطرق والتسخين
+     تبدآن من مسمار ممغنط كي تُرى إزالة التمغنط. */
+  function level(){
+    const g = METHODS[state.method].gain;
+    const base = g > 0 ? 0.05 : 0.95;
+    return Math.max(0, Math.min(1, base + g*state.times));
+  }
+  function clips(){ return Math.round(level()*6); }   // عدد المشابك التي يرفعها
+
+  /* مشبك ورق: حلقتان متداخلتان من سلك، يُرسم بلونه حين يتعلّق فعلًا */
+  function drawClip(x, y, on){
+    ctx.strokeStyle = on ? COLORS.capDefault : COLORS.border;
+    ctx.lineWidth = on ? 2.2 : 1.5;
+    ctx.lineCap='round';
+    const box = (bx, by, bw, bh, r)=>{
+      ctx.beginPath();
+      if(ctx.roundRect) ctx.roundRect(bx, by, bw, bh, r); else ctx.rect(bx, by, bw, bh);
+      ctx.stroke();
+    };
+    box(x-8, y-10, 16, 20, 8);
+    box(x-4, y-5,   8, 14, 4);
+    ctx.lineCap='butt';
+  }
+
+  function t35Update(dt){ if(state.simMode==='auto') state.t += dt; }
+
+  function t35Draw(){
+    ctx.clearRect(0,0,CW,CH);
+    ctx.fillStyle=COLORS.bg; ctx.fillRect(0,0,CW,CH);
+    optTitle('نشاط ٥: تمغنط قطعة الحديد وإزالة تمغنطها', COLORS);
+
+    const M = METHODS[state.method], L = level(), n = clips();
+
+    /* المسمار الحديدي، ولونه يشتدّ كلما اشتدّ تمغنطه */
+    const nx = 230, ny = 150;
+    ctx.fillStyle = tubeFill(0, ny-12, 0, ny+12, shadeHex('#9aa8bd', L*0.42));
+    ctx.beginPath();                       // ساق المسمار ينتهي بطرف مدبّب
+    ctx.moveTo(nx-80, ny-12); ctx.lineTo(nx+62, ny-12);
+    ctx.lineTo(nx+86, ny);    ctx.lineTo(nx+62, ny+12);
+    ctx.lineTo(nx-80, ny+12); ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle='#6b7a90'; ctx.lineWidth=1.5; ctx.stroke();
+    ctx.fillStyle = shadeHex('#8b97a8', L*0.3);   // رأس المسمار
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(nx-90, ny-18, 12, 36, 4) : ctx.rect(nx-90, ny-18, 12, 36);
+    ctx.fill(); ctx.stroke();
+    optLabel('مسمار حديد', nx, ny+40, COLORS.capActive, 12);
+    if(L > 0.08){
+      optLabel('N', nx+52, ny+6, '#e8523f', 15, 'center', true);
+      optLabel('S', nx-60, ny+6, '#2f6fe0', 15, 'center', true);
+    }
+
+    /* الأداة المستعملة: مغناطيس يمسح، أو مطرقة، أو لهب */
+    const phase = state.simMode==='auto' ? (state.t % 2)/2 : 0.5;
+    if(state.method === 'rub'){
+      const mx = nx - 70 + phase*140;
+      figMagnet(mx, ny-42, 92, 24, false, COLORS);
+      optArrow(nx-80, ny-72, nx+80, ny-72, COLORS.capActive, 2.5);
+      optLabel('المسح باتجاه واحد', nx, ny-84, COLORS.capActive, 11);
+    } else if(state.method === 'induce'){
+      figMagnet(nx-150, ny, 92, 24, false, COLORS);
+      optLabel('قريب بلا ملامسة', nx-150, ny+34, COLORS.capActive, 11);
+    } else if(state.method === 'hammer'){
+      /* المطرقة تهوي وترتفع فوق المسمار، وتبقى تحت سطر العنوان */
+      const hy = ny - 30 - Math.abs(Math.sin(phase*Math.PI*2))*16;
+      ctx.fillStyle='#8a5a2b'; ctx.fillRect(nx-6, hy-40, 12, 40);
+      ctx.fillStyle='#6b7a90';
+      ctx.beginPath();
+      ctx.roundRect ? ctx.roundRect(nx-26, hy-56, 52, 22, 5) : ctx.rect(nx-26, hy-56, 52, 22);
+      ctx.fill();
+      optLabel('طرق عنيف', nx-104, ny-42, COLORS.red, 11, 'right');
+    } else {
+      /* لهب تحت المسمار، ألسنته ترتعش */
+      const fy = ny + 40 + Math.sin(phase*Math.PI*2)*3;
+      for(let i=0;i<5;i++){
+        ctx.fillStyle = i%2 ? '#ff9f1c' : '#e8523f';
+        ctx.beginPath();
+        ctx.ellipse(nx-40+i*20, fy, 7, 14+Math.sin((phase*6+i))*3, 0, 0, Math.PI*2);
+        ctx.fill();
+      }
+      optLabel('تسخين', nx-104, fy, COLORS.red, 11, 'right');
+    }
+
+    /* اختبار القوة: المشابك تتعلّق بطرف المسمار سلسلةً، كما في المختبر */
+    optLabel('اختبار القوة: كم مشبكًا يرفع المسمار؟', 448, 196, COLORS.capActive, 12);
+    for(let i=0;i<6;i++) drawClip(316, 180 + i*24, i < n);   // متعلّقة بطرف المسمار
+    optLabel(n>0 ? ('يرفع '+n+' من ٦ مشابك') : 'لا يرفع أي مشبك',
+             430, 250, n>0?COLORS.capDefault:COLORS.muted, 12);
+
+    /* مقياس التمغنط */
+    optBox(96, 348, 250, 20, COLORS.panel, COLORS.border);
+    ctx.fillStyle = L > 0.55 ? COLORS.green : (L > 0.2 ? COLORS.capDefault : COLORS.red);
+    ctx.fillRect(97, 349, Math.max(2, L*248), 18);
+    optLabel('قوة التمغنط', 221, 386, COLORS.muted, 11);
+
+    optHUD(600, 62, 268, [
+      {text:'الطريقة المستعملة', bold:true, color:COLORS.capActive},
+      {text: M.name, color:COLORS.capActive, bold:true},
+      {text: M.gain > 0 ? 'تزيد التمغنط' : 'تزيل التمغنط',
+       color: M.gain > 0 ? COLORS.green : COLORS.red},
+      {text:'عدد المرات', color:COLORS.muted},
+      {text:'n = '+state.times.toFixed(0), ltr:true},
+      {text:'قوة التمغنط الناتجة', color:COLORS.muted},
+      {text:(L*100).toFixed(0)+'%', ltr:true, color:COLORS.capActive, bold:true}
+    ], COLORS);
+
+    optLabel(M.note, 221, 410, COLORS.muted, 11);
+    let v, vc;
+    if(M.gain > 0 && L > 0.85){ v='بلغ المسمار حدّ التشبّع ← لا يزيد تمغنطه مهما زدتَ المسح'; vc=COLORS.green; }
+    else if(M.gain > 0){ v='الدلك والحث يرتّبان دقائق الحديد ← يزداد التمغنط'; vc=COLORS.green; }
+    else if(L < 0.1){ v='فقد المسمار تمغنطه تمامًا ← لم يعد يرفع أي مشبك'; vc=COLORS.red; }
+    else { v='الطرق والتسخين يبعثران ترتيب الدقائق ← يقلّ التمغنط'; vc=COLORS.red; }
+    optVerdict(v, COLORS, vc);
+    optCaption('ما يزيد التمغنط ترتيب، وما يزيله بعثرة — والسبب في النشاط القادم: المغانط الأولية.', COLORS);
+  }
+
+  window.t35Reading=function(){
+    return [METHODS[state.method].name, state.times.toFixed(0),
+            (level()*100).toFixed(0)+'%', clips()];
+  };
+  window.t35State=state; window.t35Update=t35Update; window.t35Draw=t35Draw;
+  window.t35SetMethod=function(m){ if(METHODS[m]) state.method = m; };
+})();
+</script>
+
+<script>
+/* =========================================================================
+   نشاط 36 — نظرية المغانط الأولية: لماذا يتمغنط الحديد؟
+   ========================================================================= */
+(function(){
+  const COLORS = makeColors();
+  const state = { simMode:'auto', t:0, order:20, broken:0 };
+  const COLS = 12, ROWS = 5;
+  /* زوايا عشوائية ثابتة: العشوائية تُولَّد مرة واحدة كي لا ترتجف الصورة */
+  const RAND = [];
+  for(let i=0;i<COLS*ROWS;i++) RAND.push(Math.random()*Math.PI*2);
+
+  function frac(){ return state.order/100; }
+  /* القوة المغناطيسية للقطعة = محصّلة اتجاهات دقائقها ÷ عددها */
+  function netStrength(){
+    let sx = 0;
+    for(let i=0;i<COLS*ROWS;i++) sx += Math.cos(RAND[i]*(1-frac()));
+    return Math.max(0, sx/(COLS*ROWS));
+  }
+
+  function t36Update(dt){ if(state.simMode==='auto') state.t += dt; }
+
+  function t36Draw(){
+    ctx.clearRect(0,0,CW,CH);
+    ctx.fillStyle=COLORS.bg; ctx.fillRect(0,0,CW,CH);
+    optTitle('نشاط ٦: نظرية المغانط الأولية — ما الذي يحدث داخل الحديد؟', COLORS);
+
+    const f = frac(), S = netStrength();
+    const x0 = 96, y0 = 120, cw = 38, chh = 38;
+    const jig = state.simMode==='auto' ? Math.sin(state.t*3)*(1-f)*0.12 : 0;
+
+    optLabel('داخل قطعة الحديد: كل سهم مغناطيس أوّلي صغير', 300, 86, COLORS.capActive, 12);
+    optBox(x0-14, y0-24, COLS*cw+28, ROWS*chh+30, COLORS.panel, COLORS.border);
+
+    for(let r=0;r<ROWS;r++){
+      for(let c=0;c<COLS;c++){
+        const i = r*COLS + c;
+        const cx = x0 + c*cw + cw/2, cy = y0 + r*chh + chh/2;
+        /* كلما زاد الترتيب اقتربت زاوية كل دقيقة من الصفر (اتجاه واحد) */
+        const ang = RAND[i]*(1-f) + jig*(1-f);
+        ctx.save(); ctx.translate(cx, cy); ctx.rotate(ang);
+        const cold = Math.abs(Math.cos(ang)) > 0.8;
+        ctx.fillStyle = cold ? '#e8523f' : '#9aa8bd';
+        ctx.beginPath(); ctx.moveTo(11,0); ctx.lineTo(-4,-4); ctx.lineTo(-4,4); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = cold ? '#2f6fe0' : '#c3ccda';
+        ctx.fillRect(-12, -2.4, 9, 4.8);
+        ctx.restore();
+      }
+    }
+
+    /* القطبان يظهران على طرفَي القطعة حين ينتظم الداخل */
+    if(f > 0.35){
+      optLabel('S', x0-4, y0+ROWS*chh/2+6, '#2f6fe0', 20, 'center', true);
+      optLabel('N', x0+COLS*cw+4, y0+ROWS*chh/2+6, '#e8523f', 20, 'center', true);
+      optLabel('ظهر للقطعة قطبان على طرفيها', 300, y0+ROWS*chh+28, COLORS.capDefault, 11.5);
+    } else {
+      optLabel('الدقائق مبعثرة ← يلغي بعضها بعضًا فلا قطبين', 300, y0+ROWS*chh+28, COLORS.muted, 11.5);
+    }
+
+    /* مقياس القوة المحصّلة */
+    optLabel('القوة المغناطيسية المحصّلة للقطعة', 300, 358, COLORS.capActive, 12);
+    optBox(150, 368, 300, 20, COLORS.panel, COLORS.border);
+    ctx.fillStyle = S > 0.6 ? COLORS.green : (S > 0.25 ? COLORS.capDefault : COLORS.red);
+    ctx.fillRect(151, 369, Math.max(2, S*298), 18);
+    optLabel((S*100).toFixed(0)+'%', 300, 404, COLORS.capActive, 11.5, 'center', true);
+
+    optHUD(600, 62, 268, [
+      {text:'ترتيب المغانط الأولية', bold:true, color:COLORS.capActive},
+      {text:'نسبة الترتيب', color:COLORS.muted},
+      {text: state.order.toFixed(0)+'%', ltr:true, color:COLORS.blue},
+      {text:'عدد الدقائق في الرسم', color:COLORS.muted},
+      {text: String(COLS*ROWS), ltr:true},
+      {text:'القوة المحصّلة', color:COLORS.muted},
+      {text:(S*100).toFixed(0)+'%', ltr:true, color:COLORS.capActive, bold:true}
+    ], COLORS);
+
+    let v, vc;
+    if(f > 0.8){ v='انتظمت الدقائق كلها في اتجاه واحد ← تمغنط تامّ وقطبان واضحان'; vc=COLORS.green; }
+    else if(f > 0.35){ v='انتظم جزء من الدقائق ← تمغنط جزئي وقوة متوسطة'; vc=COLORS.capDefault; }
+    else { v='الدقائق مبعثرة في كل اتجاه ← تلغي آثار بعضها فالقطعة غير ممغنطة'; vc=COLORS.red; }
+    optVerdict(v, COLORS, vc);
+    optCaption('الحديد فيه مغانط أولية دائمًا — والتمغنط ترتيبها، وإزالة التمغنط بعثرتها بالطرق أو التسخين.', COLORS);
+  }
+
+  window.t36Reading=function(){
+    return [state.order.toFixed(0)+'%', (netStrength()*100).toFixed(0)+'%',
+            frac() > 0.35 ? 'ظاهران' : 'لا يظهران',
+            frac() > 0.8 ? 'تمغنط تامّ' : (frac() > 0.35 ? 'تمغنط جزئي' : 'غير ممغنطة')];
+  };
+  window.t36State=state; window.t36Update=t36Update; window.t36Draw=t36Draw;
+})();
+</script>
+
+<script>
+/* =========================================================================
    الكانفاس والمؤشّر (لمس/فأرة/قلم) — منقولة من القالب
    ========================================================================= */
 const canvas = document.getElementById('simCanvas');
@@ -3240,7 +4604,7 @@ const EXPERIMENTS = {
     cols:['الطريقة','إلكترونات منتقلة','ما انتقل فعلًا','نوع الشحنتين'],
     conclusion:'بالدلك تنتقل الإلكترونات بين جسمين فيُشحنان بشحنتين متضادتين، وباللمس ينتقل جزء من الشحنة فيحمل الجسمان شحنة من النوع نفسه، أما بالحث فلا تنتقل شحنة بل تنفصل شحنات الجسم فقط. ومجموع الشحنات يبقى ثابتًا في الطرائق الثلاث.',
     question:'قرّبتَ قضيبًا مشحونًا من كرة متعادلة فانجذبت إليه دون أن تلمسه. أي الطرائق هذه؟ وما شحنة الكرة؟',
-    title:'نشاط ٢: طرائق شحن الأجسام',
+    title:'نشاط ٤: طرائق شحن الأجسام',
     subtitle:'الدلك واللمس والحث — وفي الثلاث يبقى مجموع الشحنة ثابتًا',
     tools:['مسطرة بلاستيكية وقطعة صوف','كرة معدنية على حامل عازل','قضيب مشحون','قصاصات ورق صغيرة'],
     steps:[
@@ -3257,7 +4621,7 @@ const EXPERIMENTS = {
     cols:['الطريقة','شحنة القضيب','البعد (cm)','زاوية الانفراج'],
     conclusion:'ورقتا الكشاف تحملان شحنة من النوع نفسه فتتنافران وتنفرجان، وتزداد الزاوية بزيادة الشحنة المؤثرة. وبالتقريب تعود الورقتان لتنطبقا عند إبعاد القضيب، أما بالملامسة فتبقيان منفرجتين لأن الشحنة انتقلت إلى الكشاف.',
     question:'كشافٌ ورقتاه منفرجتان. قرّبتَ منه قضيبًا فازداد الانفراج. ماذا تستنتج عن نوع شحنة القضيب؟',
-    title:'نشاط ٣: الكشاف الكهربائي',
+    title:'نشاط ٥: الكشاف الكهربائي',
     subtitle:'أداة تكشف وجود الشحنة ونوعها من انفراج ورقتيها',
     tools:['كشاف كهربائي ذو ورقتين','قضيب مشحون','مسطرة لقياس البعد','منقلة لقياس زاوية الانفراج'],
     steps:[
@@ -3274,7 +4638,7 @@ const EXPERIMENTS = {
     cols:['q₁ (µC)','q₂ (µC)','r (cm)','F (N)','نوع القوة'],
     conclusion:'القوة بين شحنتين تتناسب طرديًا مع حاصل ضرب الشحنتين وعكسيًا مع مربع البعد بينهما. فإذا ضاعفتَ البعد صارت القوة ربعًا، وإذا ضاعفتَ إحدى الشحنتين تضاعفت القوة.',
     question:'شحنتان متماثلتان بينهما قوة تنافر مقدارها 4 نيوتن. كم تصير القوة إذا ضاعفتَ البعد بينهما؟',
-    title:'نشاط ٤: قانون كولوم',
+    title:'نشاط ٧: قانون كولوم',
     subtitle:'القوة بين شحنتين: تناسب طردي مع الشحنتين وعكسي مع مربع البعد',
     tools:['شحنتان نقطيتان','مسطرة لقياس البعد','ميزان قوة حسّاس','منحني القوة مع البعد'],
     steps:[
@@ -3291,7 +4655,7 @@ const EXPERIMENTS = {
     cols:['نوع الشحنة','Q (µC)','d (cm)','E (N/C)'],
     conclusion:'خطوط المجال تخرج من الشحنة الموجبة وتدخل في الشحنة السالبة، وشدة المجال تتناسب طرديًا مع مقدار الشحنة وعكسيًا مع مربع البعد عنها. وتباعد الخطوط دليل على ضعف المجال.',
     question:'شحنة اختبار موجبة وُضعت قرب شحنة سالبة. ما اتجاه القوة المؤثرة فيها؟ ولماذا؟',
-    title:'نشاط ٥: المجال الكهربائي',
+    title:'نشاط ٨: المجال الكهربائي',
     subtitle:'المنطقة حول الشحنة التي تظهر فيها قوة كهربائية على أي شحنة أخرى',
     tools:['شحنة مصدر موجبة وسالبة','شحنة اختبار موجبة','مسطرة لقياس البعد','مخطط خطوط المجال'],
     steps:[
@@ -3308,7 +4672,7 @@ const EXPERIMENTS = {
     cols:['الحالة','شحنة السحابة','الشحنة المستحثة','النتيجة'],
     conclusion:'الشحنة السالبة في أسفل السحابة تستحثّ شحنة موجبة على سطح البناية، وتتجمع هذه الشحنة عند الأطراف المدبّبة. فمانعة الصواعق تجمعها عند طرفها وتمرّر التفريغ عبر سلك سميك إلى الأرض، فتحمي البناية.',
     question:'لماذا تُصنع مانعة الصواعق مدبّبة الطرف ولا تُترك مسطّحة؟',
-    title:'نشاط ٦: مانعة الصواعق',
+    title:'نشاط ٩: مانعة الصواعق',
     subtitle:'تطبيق عملي على الحثّ الكهربائي وتجمّع الشحنة عند الأطراف المدبّبة',
     tools:['نموذج سحابة مشحونة','بناية بمانعة صواعق وأخرى بدونها','سلك أرضي سميك','مؤشر الشحنة المستحثة'],
     steps:[
@@ -3405,6 +4769,152 @@ const EXPERIMENTS = {
       'احسب في دفترك كلفة تشغيل جهازك المفضّل شهرًا كاملًا.'
     ]
   },
+  17: {
+    purpose:'أن تشحن ساقًا بالدلك، وتستنتج أن نوع الشحنة يعتمد على الجسمين المتدالكين.',
+    cols:['الساق','القماش','مرّات الدلك','شحنة الساق','القصاصات المرتفعة'],
+    conclusion:'يتكهرب الجسم بالدلك لانتقال إلكترونات بينه وبين ما يُدلك به. فالساق الزجاجية تفقد إلكترونات أمام الحرير فتشحن موجبة، والساق الإيبونايتية تكتسب إلكترونات من الصوف فتشحن سالبة. وكلما زاد الدلك زادت الشحنة فزاد عدد القصاصات المرتفعة.',
+    question:'ساقان دُلِكت إحداهما بالحرير والأخرى بالصوف فجذبتا القصاصات كلتاهما. فهل شحنتاهما متماثلتان؟ فسّر إجابتك.',
+    title:'نشاط ٢: الشحن بالدلك',
+    subtitle:'الزجاج مع الحرير يشحن موجبًا، والإيبونايت مع الصوف يشحن سالبًا',
+    tools:['ساق زجاجية','ساق إيبونايت','قطعة حرير','قطعة صوف','قصاصات ورق صغيرة'],
+    steps:[
+      'ادلك الساق الزجاجية بالحرير عدّة مرّات.',
+      'قرّبها من قصاصات الورق وعُدّ ما ارتفع منها.',
+      'زِد عدد مرّات الدلك وأعِد العدّ.',
+      'أبعِد الساق قليلًا ولاحظ نقصان عدد القصاصات.',
+      'أعِد التجربة بالساق الإيبونايتية مع الصوف وقارن نوع الشحنة.',
+      'اكتب في دفترك: من فقد الإلكترونات ومن اكتسبها في كل حالة؟'
+    ]
+  },
+  18: {
+    purpose:'أن تستنتج قاعدة التجاذب والتنافر بين الشحنات من سلوك ساقين معلقتين.',
+    cols:['شحنة الأولى','شحنة الثانية','البعد (سم)','النتيجة'],
+    conclusion:'الشحنتان المتماثلتان تتنافران والمختلفتان تتجاذبان، وتزداد القوة كلما قلّ البعد بينهما. وإذا كانت إحدى الساقين متعادلة لم يظهر تنافر.',
+    question:'ساق معلقة تنافرت مع ساق زجاجية مدلوكة بالحرير. فما نوع شحنة الساق المعلقة؟',
+    title:'نشاط ٣: تجاذب الشحنات وتنافرها',
+    subtitle:'المتماثلتان تتنافران والمختلفتان تتجاذبان',
+    tools:['ساقان قابلتان للشحن','خيط حرير للتعليق','حامل','قطعة صوف وأخرى حرير'],
+    steps:[
+      'اشحن الساقين بشحنتين متماثلتين وعلّقهما متجاورتين.',
+      'لاحظ اتجاه ميل كل ساق وسجّل النتيجة.',
+      'اجعل شحنتيهما مختلفتين وأعِد الملاحظة.',
+      'قرّب الساقين ولاحظ ازدياد الميل.',
+      'اجعل إحداهما متعادلة وسجّل ما يحدث.'
+    ]
+  },
+  19: {
+    purpose:'أن تصنّف المواد إلى موصلة وعازلة وشبه موصلة بتجربة انتقال الشحنة.',
+    cols:['المادة','التصنيف','شحنة الكرة','ما وصل إلى الكشاف'],
+    conclusion:'في الموصل إلكترونات حرّة تنتقل خلاله فتصل الشحنة إلى الكشاف فتنفرج ورقتاه، وفي العازل تكون الإلكترونات مقيّدة فلا تنتقل الشحنة، أما شبه الموصل فيمرّر جزءًا قليلًا منها ويزداد توصيله بالتسخين.',
+    question:'لماذا يُصنع جسم المفكّ الكهربائي من الفلزّ ويُغلَّف مقبضه بالبلاستك؟',
+    title:'نشاط ٦: المواد من حيث التوصيل',
+    subtitle:'الموصل يمرّر الشحنة، والعازل يمنعها، وشبه الموصل بينهما',
+    tools:['كرة مشحونة','كشاف كهربائي','قطع من: نحاس، حديد، سليكون، جرمانيوم، زجاج، بلاستك','أسلاك توصيل'],
+    steps:[
+      'صِل الكرة المشحونة بقرص الكشاف عبر قطعة النحاس ولاحظ الورقتين.',
+      'كرّر التجربة مع كل مادة وسجّل زاوية الانفراج.',
+      'صنّف كل مادة: موصل أو عازل أو شبه موصل.',
+      'زِد شحنة الكرة ولاحظ أثر ذلك في المواد الموصلة وحدها.',
+      'اكتب في دفترك سبب تغليف أسلاك الكهرباء بالبلاستك.'
+    ]
+  },
+  31: {
+    purpose:'أن تتعرّف قطبَي المغناطيس، وتستنتج متى يتجاذبان ومتى يتنافران، وأن القطبين لا ينفصلان.',
+    cols:['القطبان المتقابلان','البعد (سم)','النتيجة','عدد القطع'],
+    conclusion:'لكل مغناطيس قطبان: شمالي وجنوبي. القطبان المتماثلان يتنافران والمختلفان يتجاذبان، وتزداد القوة كلما قلّ البعد بينهما. ومهما كسّرنا المغناطيس تبقى لكل قطعة قطبان، فلا يوجد قطب مفرد.',
+    question:'إذا قرّبت طرفَي مغناطيسين فتنافرا، فما نوع القطبين المتقابلين؟ وماذا يحدث لو قلبتَ أحدهما؟',
+    title:'نشاط ١: أقطاب المغناطيس',
+    subtitle:'المتماثلان يتنافران والمختلفان يتجاذبان، والقطبان لا ينفصلان',
+    tools:['مغناطيسان قضيبيان','خيط لتعليق أحدهما','مسطرة','مغناطيس قابل للتكسير'],
+    steps:[
+      'قرّب القطب الشمالي من القطب الشمالي ولاحظ اتجاه السهمين.',
+      'اقلب أحد المغناطيسين ليتقابل الشمالي مع الجنوبي ولاحظ الفرق.',
+      'قلّل البعد تدريجيًا وسجّل كيف تتغيّر القوة.',
+      'كسّر المغناطيس إلى قطعتين ثم إلى أربع، وعُدّ أقطاب كل قطعة.',
+      'اكتب في دفترك: هل حصلت على قطعة بقطب واحد؟'
+    ]
+  },
+  32: {
+    purpose:'أن تصنّف المواد إلى مغناطيسية وغير مغناطيسية بالاختبار العملي.',
+    cols:['المادة','البعد (سم)','هل انجذبت','التصنيف'],
+    conclusion:'الحديد والنيكل والكوبلت مواد مغناطيسية تنجذب إلى المغناطيس، أما النحاس والألمنيوم والخشب فلا تنجذب. فليس كل فلزّ مادة مغناطيسية.',
+    question:'النحاس فلزّ ولامع مثل الحديد، فلماذا لا ينجذب إلى المغناطيس؟',
+    title:'نشاط ٢: المواد المغناطيسية',
+    subtitle:'الحديد والنيكل والكوبلت تنجذب، والنحاس والألمنيوم والخشب لا تنجذب',
+    tools:['مغناطيس قضيبي','عيّنات: حديد، نيكل، كوبلت، نحاس، ألمنيوم، خشب','مسطرة'],
+    steps:[
+      'ضع عيّنة الحديد على المنضدة وقرّب المغناطيس منها تدريجيًا.',
+      'سجّل عند أي بعد بدأت العيّنة تتحرك.',
+      'أعِد التجربة مع كل عيّنة من العيّنات الستّ.',
+      'صنّف كل مادة: مغناطيسية أو غير مغناطيسية.',
+      'اكتب في دفترك قاعدة تميّز بها المادة المغناطيسية.'
+    ]
+  },
+  33: {
+    purpose:'أن تتعرّف شكل المجال المغناطيسي حول مغناطيس قضيبي واتجاهه وشدّته.',
+    cols:['موضع الإبرة x (سم)','موضع الإبرة y (سم)','شدة المجال','زاوية الإبرة'],
+    conclusion:'حول المغناطيس مجال مغناطيسي تبيّنه برادة الحديد. وخطوط المجال تخرج من القطب الشمالي وتدخل القطب الجنوبي، وتتقارب عند القطبين حيث يكون المجال أقوى، وتتباعد كلما ابتعدنا فيضعف المجال.',
+    question:'أين تتكدّس برادة الحديد أكثر: عند طرفَي المغناطيس أم عند وسطه؟ ولماذا؟',
+    title:'نشاط ٣: المجال المغناطيسي',
+    subtitle:'برادة الحديد تُظهر شكل المجال، والإبرة تُظهر اتجاهه',
+    tools:['مغناطيس قضيبي','برادة حديد','ورقة مقوّاة','إبرة مغناطيسية صغيرة'],
+    steps:[
+      'ضع الورقة فوق المغناطيس ورشّ عليها برادة الحديد.',
+      'زِد كثافة البرادة ولاحظ كيف يكتمل شكل المجال.',
+      'بدّل إلى عرض خطوط المجال ولاحظ اتجاه الأسهم.',
+      'ضع الإبرة المغناطيسية قرب القطب الشمالي وسجّل زاويتها.',
+      'انقل الإبرة بعيدًا وسجّل شدة المجال، ثم قارن بين القراءتين.'
+    ]
+  },
+  34: {
+    purpose:'أن تستنتج أن الأرض مغناطيس ضخم، وأن تفسّر انحراف إبرة البوصلة بقرب مغناطيس.',
+    cols:['المغناطيس','بعده (سم)','القطب المواجه','انحراف الإبرة'],
+    conclusion:'إبرة البوصلة مغناطيس صغير حرّ الحركة، فتستقرّ في اتجاه الشمال لأن الأرض نفسها مغناطيس ضخم مجاله ضعيف. وإذا قرّبنا مغناطيسًا غلب مجاله مجال الأرض فانحرفت الإبرة عن الشمال.',
+    question:'لماذا تعود إبرة البوصلة إلى اتجاه الشمال كلما أبعدنا المغناطيس عنها؟',
+    title:'نشاط ٤: البوصلة ومجال الأرض',
+    subtitle:'الأرض مغناطيس ضخم، ومغناطيس صغير قريب يكفي لسحب الإبرة عن الشمال',
+    tools:['بوصلة','مغناطيس قضيبي','مسطرة'],
+    steps:[
+      'أبعِد كل مغناطيس عن البوصلة ولاحظ أين تستقرّ الإبرة.',
+      'قرّب المغناطيس تدريجيًا وسجّل زاوية الانحراف عند كل بعد.',
+      'اقلب المغناطيس ليواجه البوصلة بقطبه الآخر ولاحظ اتجاه الانحراف.',
+      'أبعِد المغناطيس ولاحظ عودة الإبرة إلى الشمال.',
+      'اكتب في دفترك: أيّ المجالين أقوى عند البوصلة، مجال الأرض أم مجال المغناطيس القريب؟'
+    ]
+  },
+  35: {
+    purpose:'أن تمغنط قطعة حديد بطرائق مختلفة، وأن تزيل تمغنطها، وتقيس قوّتها بعدد المشابك.',
+    cols:['الطريقة','عدد المرات','قوة التمغنط','عدد المشابك'],
+    conclusion:'يتمغنط الحديد بالدلك باتجاه واحد وبالحث من مغناطيس قريب، ويزداد تمغنطه بزيادة عدد المرات حتى يبلغ حدّ التشبّع فلا يزيد بعده. ويفقد تمغنطه بالطرق العنيف وبالتسخين.',
+    question:'مسمار ممغنط يرفع خمسة مشابك، ثم طُرِق بالمطرقة مرّات فصار يرفع مشبكًا واحدًا. فسّر ما حدث داخل المسمار.',
+    title:'نشاط ٥: تمغنط المواد',
+    subtitle:'الدلك والحث يمغنطان، والطرق والتسخين يزيلان التمغنط',
+    tools:['مسمار حديد كبير','مغناطيس قضيبي','مشابك ورق صغيرة','مطرقة صغيرة','مصدر حرارة'],
+    steps:[
+      'امسح المغناطيس على المسمار باتجاه واحد خمس مرّات.',
+      'قرّب المسمار من المشابك وعُدّ كم مشبكًا رفع.',
+      'زِد عدد المسحات ولاحظ متى يتوقّف عدد المشابك عن الزيادة.',
+      'جرّب التمغنط بالحث دون ملامسة وقارن النتيجة.',
+      'اطرق المسمار أو سخّنه ثم أعِد اختبار المشابك.',
+      'اكتب في دفترك ما يزيد التمغنط وما يزيله.'
+    ]
+  },
+  36: {
+    purpose:'أن تفسّر التمغنط وإزالته بترتيب المغانط الأولية داخل المادة.',
+    cols:['نسبة الترتيب','القوة المحصّلة','القطبان','الحالة'],
+    conclusion:'داخل الحديد مغانط أولية صغيرة. فإذا كانت مبعثرة في كل اتجاه ألغى بعضها أثر بعض فلا تظهر للقطعة قوة مغناطيسية، وإذا انتظمت في اتجاه واحد جمعت آثارها وظهر للقطعة قطبان: شمالي وجنوبي.',
+    question:'لماذا لا تظهر للقطعة غير الممغنطة قوة مغناطيسية مع أن داخلها مغانط أولية كثيرة؟',
+    title:'نشاط ٦: نظرية المغانط الأولية',
+    subtitle:'التمغنط ترتيب للدقائق، وإزالته بعثرة لها',
+    tools:['نموذج المغانط الأولية','مسمار ممغنط وآخر غير ممغنط','بوصلة صغيرة'],
+    steps:[
+      'اجعل نسبة الترتيب صفرًا ولاحظ اتجاهات الدقائق والقوة المحصّلة.',
+      'زِد النسبة تدريجيًا وراقب متى يبدأ القطبان بالظهور.',
+      'اجعل النسبة مئة بالمئة وسجّل القوة المحصّلة.',
+      'قارن بين هذا النشاط ونشاط التمغنط السابق.',
+      'اكتب في دفترك تفسير إزالة التمغنط بالطرق والتسخين.'
+    ]
+  },
   26: {
     purpose:'أن تعرف وظيفة المصهر في دائرة البيت ولماذا لا يُستبدل بسلك أسمك.',
     cols:['عدد الأجهزة','التيار الكلي (A)','تقدير المصهر (A)','حالة المصهر'],
@@ -3428,19 +4938,25 @@ const CHAPTERS = {
   1: {
     color:'#ff9f1c', emoji:'⚡',
     title:'الفصل الأول: الكهربائية الساكنة',
-    subtitle:'الشحنة وتركيب الذرة، طرائق الشحن، الكشاف الكهربائي، قانون كولوم، المجال الكهربائي، ومانعة الصواعق',
-    tabs:[11,12,13,14,15,16]
+    subtitle:'الشحنة وتركيب الذرة، الشحن بالدلك، التجاذب والتنافر، طرائق الشحن، الكشاف، المواد الموصلة والعازلة، قانون كولوم، المجال، ومانعة الصواعق',
+    tabs:[11,17,18,12,13,19,14,15,16]
   },
   2: {
+    color:'#8a63d2', emoji:'🧲',
+    title:'الفصل الثاني: المغناطيسية',
+    subtitle:'أقطاب المغناطيس، المواد المغناطيسية، المجال المغناطيسي، البوصلة ومجال الأرض، التمغنط، والمغانط الأولية',
+    tabs:[31,32,33,34,35,36]
+  },
+  3: {
     color:'#3d7dfd', emoji:'🔌',
-    title:'الفصل الثاني: التيار الكهربائي',
+    title:'الفصل الثالث: التيار الكهربائي',
     subtitle:'شدة التيار، القوة الدافعة وفرق الجهد، قانون أوم، ربط المقاومات، القدرة والطاقة، والمصهر',
     tabs:[21,22,23,24,25,26]
   }
 };
 
 /* حالة التطبيق */
-let currentChapter = null;   // 1 أو 2 أو null (في شاشة اختيار الفصل)
+let currentChapter = null;   // رقم الفصل أو null (في شاشة اختيار الفصل)
 let activeTab = null;        // معرّف التجربة داخل الفصل الحالي
 
 /* ---------- بناء بطاقات الفصول ---------- */
@@ -3618,6 +5134,12 @@ function setControl(target, value){
 window.setControl = setControl;
 
 /* تعطيل منزلق لا أثر له في الحالة الحالية، بدل أن يتحرّك الطالب به بلا نتيجة. */
+/* تعطيل مجموعة أزرار: أزرار قلب المغناطيس مثلًا لا معنى لها بلا مغناطيس */
+function setBtnGroupEnabled(sel, on){
+  document.querySelectorAll(sel+' button').forEach(b=>{ b.disabled = !on; });
+}
+window.setBtnGroupEnabled = setBtnGroupEnabled;
+
 function setControlEnabled(target, on){
   const inp = document.querySelector('input[type=range][data-target="'+target+'"]');
   if(!inp) return;
@@ -3669,6 +5191,8 @@ bindGroup('#methodBtns12','data-method12', v=> t12SetMethod(v));
 bindGroup('#modeBtns13','data-mode13',     v=> t13SetMode(v));
 bindGroup('#signBtns15','data-sign15',     v=> t15SetSign(v));
 bindGroup('#rodBtns16','data-rod16',       v=> t16SetRod(v));
+bindGroup('#rodBtns17','data-rod17',       v=> t17SetRod(v));
+bindGroup('#matBtns19','data-mat19',       v=> t19SetMat(v));
 
 /* ---- الفصل الثاني: التيار الكهربائي ---- */
 /* مفاتيح الدوائر: الزر والمفتاح المرسوم يعملان معًا على الحالة نفسها */
@@ -3680,6 +5204,15 @@ document.querySelectorAll('[data-switch]').forEach(btn=>{
     syncSwitchBtn(id, st.sw);
   });
 });
+
+/* ---- الفصل الثاني: المغناطيسية ---- */
+bindGroup('#poleBtns31','data-pole31',     v=> t31SetPole(v));
+bindGroup('#matBtns32','data-mat32',       v=> t32SetMat(v));
+bindGroup('#viewBtns33','data-view33',     v=> t33SetView(v));
+bindGroup('#densBtns33','data-dens33',     v=> t33SetDensity(v));
+bindGroup('#magBtns34','data-mag34',       v=> t34SetMag(v));
+bindGroup('#flipBtns34','data-flip34',     v=> t34SetFlip(v));
+bindGroup('#methodBtns35','data-method35', v=> t35SetMethod(v));
 
 bindGroup('#modeBtns24','data-mode24',     v=> t24SetMode(v));
 bindGroup('#devBtns25','data-dev25',       v=> t25SetDevice(v));

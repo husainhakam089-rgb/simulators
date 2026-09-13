@@ -82,8 +82,8 @@ const VIEWPORTS = [
 
     /* ===== السحب باليد: إصبع حقيقي على الكانفاس =====
        نشاط ٤ (قانون كولوم): امسك الشحنة اليمنى واسحبها فيتغيّر البعد r. */
-    const tabs14 = await page.$$('.tab-btn');
-    await tabs14[3].click();
+    /* اختيار التجربة بهويّتها لا بموضعها: ترتيب التبويبات يتغيّر مع المنهج */
+    await page.click('.tab-btn[data-tab="14"]');
     await page.waitForTimeout(350);
     const before14 = await page.evaluate(()=> window.t14State.r);
     /* موقع الشحنة اليمنى بوحدات الكانفاس المنطقية 900×480 */

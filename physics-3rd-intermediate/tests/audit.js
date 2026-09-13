@@ -79,6 +79,7 @@ const wait = (page, ms)=> page.waitForTimeout(ms);
       for(const b of btns) wasOn.push(await b.evaluate(el=> el.classList.contains('on')));
       for(let bi = 0; bi < btns.length; bi++){
         const label = (await btns[bi].textContent()).trim();
+        if(await btns[bi].evaluate(el=> el.disabled)) continue;   // معطَّل عمدًا في هذه الحالة
         const isOn  = await btns[bi].evaluate(el=> el.classList.contains('on'));
         /* زر مجموعة مُفعَّل أصلًا: ننتقل إلى زر آخر أولًا ثم نعود إليه،
            وإلا حكمنا عليه بالفشل وهو يعمل. */
@@ -94,13 +95,12 @@ const wait = (page, ms)=> page.waitForTimeout(ms);
         if(modeBtn) { await modeBtn.click(); await wait(page, 200); }
       }
 
-      /* زرّ تبديل (مفتاح الدائرة مثلًا) تُرجَع حالته، وإلا فُحصت المنزلقات
-         ودائرةُ النشاط مفتوحة فبدت كأنها لا تعمل. */
+      /* أعِد كل زر إلى حالته الأولى قبل فحص المنزلقات: لو بقي النشاط على
+         «بلا مغناطيس» أو على دائرة مفتوحة لبدت المنزلقات وكأنها لا تعمل. */
       for(let bi = 0; bi < btns.length; bi++){
+        if(!wasOn[bi]) continue;
         const on = await btns[bi].evaluate(el=> el.classList.contains('on'));
-        if(on !== wasOn[bi] && await btns[bi].evaluate(el=> el.hasAttribute('data-switch'))){
-          await btns[bi].click(); await wait(page, 250);
-        }
+        if(!on){ await btns[bi].click(); await wait(page, 250); }
       }
 
       /* ---- 4. كل منزلق يغيّر الرسم ---- */
