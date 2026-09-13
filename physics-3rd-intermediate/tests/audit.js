@@ -13,7 +13,7 @@ const fs   = require('fs');
 const { chromium } = require('playwright');
 
 const ROOT = path.resolve(__dirname, '..');
-const URL  = 'file://' + path.join(ROOT, 'index.html');
+const URL  = 'file://' + (process.env.PHYS_HTML || path.join(ROOT, 'index.html'));
 
 /* بصمة الكانفاس: تُستعمل لمعرفة هل تغيّر الرسم فعلًا */
 async function frame(page){

@@ -10,7 +10,7 @@ const fs   = require('fs');
 const { chromium } = require('playwright');
 
 const ROOT = path.resolve(__dirname, '..');
-const URL  = 'file://' + path.join(ROOT, 'index.html');
+const URL  = 'file://' + (process.env.PHYS_HTML || path.join(ROOT, 'index.html'));
 const OUT  = path.join(ROOT, 'tests', 'browser');
 
 const VIEWPORTS = [
@@ -82,7 +82,10 @@ const VIEWPORTS = [
 
     /* ===== السحب باليد: إصبع حقيقي على الكانفاس =====
        نشاط ٤ (قانون كولوم): امسك الشحنة اليمنى واسحبها فيتغيّر البعد r. */
-    /* اختيار التجربة بهويّتها لا بموضعها: ترتيب التبويبات يتغيّر مع المنهج */
+    /* اختيار التجربة بهويّتها لا بموضعها: ترتيب التبويبات يتغيّر مع المنهج.
+       وقد لا تكون في الملف أصلًا (ملف فصل مفصول) فيُتخطّى فحص السحب. */
+    const has14 = await page.$('.tab-btn[data-tab="14"]');
+    if(has14){
     await page.click('.tab-btn[data-tab="14"]');
     await page.waitForTimeout(350);
     const before14 = await page.evaluate(()=> window.t14State.r);
@@ -126,6 +129,7 @@ const VIEWPORTS = [
     if(slider14 !== after14)
       problems.push(vp.name+': المنزلق ('+slider14+') لا يطابق الحالة ('+after14+') بعد السحب');
     await page.screenshot({ path: path.join(OUT, vp.name+'-7-drag.png'), fullPage:true });
+    }
 
     /* آخر تجربة في الفصل، ثم الرجوع */
     const tabs = await page.$$('.tab-btn');

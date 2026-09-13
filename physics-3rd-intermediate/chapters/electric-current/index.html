@@ -1,0 +1,3097 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#eaf1ff">
+<title>مختبر الفيزياء الافتراضي — الصف الثالث المتوسط</title>
+<!-- بلا أي اتصال بالإنترنت: لا خطوط ولا مكتبات خارجية. الخطوط تُطلب من النظام
+     أولًا، وإن لم تتوفر يُستعمل خط النظام الافتراضي دون أن يتأثر التخطيط. -->
+<style>
+  :root{
+    --font-body:'Tajawal','Dubai','Segoe UI',Tahoma,'Arial',sans-serif;
+    --font-head:'Cairo','Dubai','Segoe UI',Tahoma,'Arial',sans-serif;
+    /* ===== الهوية المرحة (الوضع الفاتح، وهو الافتراضي) ===== */
+    --bg-deep:#eaf1ff;
+    --bg-panel:#ffffff;
+    --bg-panel-alt:#f3f8ff;
+    --bg-canvas:#ffffff;
+    --border:#c6daf6;
+    --border-soft:#e2ecfb;
+    --text:#1e2b49;
+    --text-muted:#6a7a99;
+    --accent-amber:#ff9f1c;      /* شمسي */
+    --accent-cyan:#12b5a5;       /* نعناعي */
+    --accent-cyan-bright:#0e9e90;
+    --accent-red:#ff4d6d;        /* مرجاني */
+    --accent-blue:#3d7dfd;       /* سماوي */
+    --accent-green:#2fb457;
+    --accent-purple:#8a63d2;
+    --on-accent:#ffffff;         /* لون النص فوق الأزرار الملوّنة */
+    --radius:22px;
+    --shadow:0 10px 26px rgba(60,100,175,.13);
+    --glow-cyan:rgba(18,181,165,.10);
+    --glow-amber:rgba(255,159,28,.13);
+  }
+  /* ===== الوضع الداكن: الألوان نفسها لكن على ليل بنفسجي، لا رمادي كئيب ===== */
+  :root[data-theme="dark"]{
+    --bg-deep:#141a3d;
+    --bg-panel:#1e2555;
+    --bg-panel-alt:#272f68;
+    --bg-canvas:#1a2049;
+    --border:#3d4795;
+    --border-soft:#2f3877;
+    --text:#eef2ff;
+    --text-muted:#a7aede;
+    --accent-amber:#ffb443;
+    --accent-cyan:#3ddbc8;
+    --accent-cyan-bright:#7ff7e4;
+    --accent-red:#ff7a90;
+    --accent-blue:#6ba4ff;
+    --accent-green:#5ddc82;
+    --accent-purple:#b08cff;
+    --on-accent:#10163a;
+    --shadow:0 10px 28px rgba(0,0,0,.42);
+    --glow-cyan:rgba(61,219,200,.10);
+    --glow-amber:rgba(255,180,67,.10);
+  }
+  *{box-sizing:border-box;}
+  html{
+    margin:0; padding:0;
+    min-height:100%;
+    background:var(--bg-deep);
+    -webkit-text-size-adjust:100%;
+  }
+  /* ===== مستويا التنقّل =====
+     body بلا .started        → شاشة الترحيب وحدها
+     body.started بلا .in-chapter → شاشة اختيار الفصل
+     body.in-chapter          → تبويبات التجارب                              */
+  body:not(.started) header.app-header,
+  body:not(.started) #chapterSelect,
+  body:not(.started) nav.tabs,
+  body:not(.started) main.app-main,
+  body:not(.started) footer{ visibility:hidden; }
+  body:not(.in-chapter) nav.tabs,
+  body:not(.in-chapter) main.app-main{ display:none; }
+  body.in-chapter #chapterSelect{ display:none; }
+  body:not(.in-chapter) #backBtn,
+  body:not(.in-chapter) #chapterBadge{ display:none; }
+
+  body{
+    background:
+      radial-gradient(circle at 12% 4%,  var(--glow-amber), transparent 38%),
+      radial-gradient(circle at 88% 10%, var(--glow-cyan),  transparent 36%),
+      var(--bg-deep);
+    color:var(--text);
+    font-family:var(--font-body);
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+  }
+  h1,h2,h3,h4{font-family:var(--font-head); margin:0;}
+
+  header.app-header{
+    padding:calc(14px + env(safe-area-inset-top, 0px)) 22px 14px;
+    padding-inline-start:calc(22px + env(safe-area-inset-left, 0px));
+    padding-inline-end:calc(22px + env(safe-area-inset-right, 0px));
+    background:var(--bg-panel);
+    border-bottom:3px solid var(--border-soft);
+    display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
+    flex-shrink:0;
+  }
+  .brand{ display:flex; align-items:center; gap:10px; }
+  .brand .logo{
+    width:38px;height:38px;border-radius:10px;
+    background:conic-gradient(from 200deg, var(--accent-amber), var(--accent-cyan), var(--accent-amber));
+    display:flex;align-items:center;justify-content:center;
+    font-size:20px; font-weight:900; color:#fff;
+  }
+  .brand h1{font-size:17px;}
+  .brand span{display:block;font-size:11px;color:var(--text-muted);font-weight:400;margin-top:2px;}
+
+  /* زر الرجوع إلى الفصول + شارة اسم الفصل الحالي */
+  .back-btn{
+    flex:0 0 auto; display:flex; align-items:center; gap:6px;
+    background:var(--bg-panel-alt); border:2px solid var(--border-soft); color:var(--text);
+    padding:10px 16px; border-radius:999px; cursor:pointer; min-height:44px;
+    font-family:var(--font-body); font-size:13px; font-weight:700; white-space:nowrap; transition:.15s ease;
+  }
+  .back-btn:hover{ border-color:var(--accent-amber); }
+  .chapter-badge{
+    font-family:var(--font-head); font-weight:800; font-size:14px;
+    color:#fff; background:var(--accent-cyan);
+    border:none; border-radius:999px; padding:9px 18px; white-space:nowrap;
+    box-shadow:0 6px 14px rgba(18,181,165,.30);
+  }
+
+  .header-teacher{
+    font-family:var(--font-body); font-size:13.5px; color:var(--text-muted);
+    background:var(--bg-panel-alt); border:1px solid var(--border-soft);
+    border-radius:10px; padding:9px 18px; white-space:nowrap;
+    min-height:42px; cursor:pointer; transition:.15s ease;
+  }
+  .header-teacher:hover{ border-color:var(--accent-amber); }
+  .edit-ico{ font-size:11px; opacity:.65; margin-inline-start:4px; }
+
+  /* نافذة كتابة اسم الأستاذ */
+  .modal{
+    position:fixed; inset:0; z-index:10000;
+    display:flex; align-items:center; justify-content:center;
+    padding:18px; background:rgba(4,8,16,.72);
+  }
+  .modal[hidden]{ display:none !important; }
+  .modal-card{
+    width:100%; max-width:420px;
+    background:var(--bg-panel); border:1px solid var(--border);
+    border-radius:16px; padding:22px 22px 18px;
+    box-shadow:0 20px 60px rgba(0,0,0,.5);
+    display:flex; flex-direction:column; gap:12px;
+  }
+  .modal-card h3{ font-size:17px; color:var(--accent-amber); }
+  .modal-sub{ margin:0; font-size:12.5px; color:var(--text-muted); line-height:1.7; }
+  .modal-card input[type=text]{
+    font-family:var(--font-body); font-size:16px; color:var(--text);
+    background:var(--bg-panel-alt); border:1px solid var(--border-soft);
+    border-radius:10px; padding:13px 14px; min-height:48px; width:100%;
+    outline:none;
+  }
+  .modal-card input[type=text]:focus{ border-color:var(--accent-amber); }
+  .modal-note{ font-size:11.5px; color:var(--accent-red); line-height:1.7; }
+  .modal-note:empty{ display:none; }
+  .header-teacher b{
+    font-family:var(--font-head); font-weight:800; font-size:18px;
+    color:var(--accent-amber); margin-inline-start:4px;
+  }
+  @media (max-width:600px){
+    .header-teacher{ font-size:12px; padding:7px 12px; }
+    .header-teacher b{ font-size:15px; }
+    .chapter-badge{ font-size:12px; padding:6px 12px; }
+    .back-btn{ font-size:12px; padding:9px 11px; }
+  }
+
+  /* ===== شاشة اختيار الفصل ===== */
+  #chapterSelect{
+    flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:8px; padding:34px 18px calc(34px + env(safe-area-inset-bottom,0px));
+  }
+  .cs-title{
+    font-size:30px;
+    background:linear-gradient(90deg, var(--accent-amber), var(--accent-cyan-bright));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .cs-sub{ font-size:13.5px; color:var(--text-muted); margin:0 0 22px; text-align:center; }
+  .cs-grid{
+    /* auto-fit كي تتوسّط البطاقة حين يكون الفصل واحدًا لا أن تنزوي جانبًا */
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 441px));
+    justify-content:center;
+    gap:18px; width:100%; max-width:900px;
+  }
+  @media (max-width:760px){ .cs-grid{ grid-template-columns:1fr; } }
+  .chapter-card{
+    position:relative; overflow:hidden;
+    min-height:190px;
+    display:flex; flex-direction:column; align-items:flex-start; gap:9px; text-align:start;
+    background:var(--bg-panel);
+    border:3px solid var(--card-color, var(--border)); border-radius:28px;
+    padding:24px 26px; cursor:pointer;
+    box-shadow:var(--shadow);
+    transition:transform .18s cubic-bezier(.22,1.2,.36,1), box-shadow .18s ease;
+    font-family:var(--font-body); color:var(--text);
+  }
+  /* شريط لوني علوي وأيقونة شبحية كبيرة في الخلفية */
+  .chapter-card::before{
+    content:''; position:absolute; inset-inline:0; top:0; height:8px;
+    background:var(--card-color, var(--accent-amber));
+  }
+  .chapter-card::after{
+    content:var(--card-emoji, '"⚛"'); position:absolute;
+    inset-inline-end:-6px; bottom:-18px; font-size:96px; opacity:.10; line-height:1;
+    pointer-events:none;
+  }
+  .chapter-card:hover{ transform:translateY(-6px) rotate(-.6deg); box-shadow:0 18px 36px rgba(60,100,175,.25); }
+  .chapter-card:active{ transform:translateY(-1px) scale(.99); }
+  .cc-top{ display:flex; align-items:center; gap:12px; width:100%; }
+  .cc-num{
+    width:54px; height:54px; flex:0 0 auto; border-radius:18px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-head); font-weight:800; font-size:26px; color:#fff;
+    background:var(--card-color, var(--accent-amber));
+    box-shadow:0 6px 14px rgba(60,100,175,.22);
+  }
+  .cc-kicker{ font-size:11.5px; color:var(--text-muted); }
+  .cc-title{ font-family:var(--font-head); font-weight:800; font-size:21px; color:var(--card-color, var(--text)); }
+  .cc-sub{ font-size:13px; color:var(--text-muted); line-height:1.7; }
+  .cc-foot{
+    margin-top:auto; padding-top:12px; width:100%;
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    border-top:1px dashed var(--border); font-size:12.5px; color:var(--text-muted);
+  }
+  .cc-count b{ color:var(--accent-amber); font-family:var(--font-head); }
+  .cc-go{ color:var(--accent-cyan-bright); font-weight:700; }
+
+  nav.tabs{
+    display:flex; gap:8px; overflow-x:auto; padding:10px 18px;
+    background:var(--bg-panel-alt);
+    border-bottom:1px solid var(--border);
+    scrollbar-width:thin;
+    flex-shrink:0; min-height:56px;
+  }
+  nav.tabs::-webkit-scrollbar{height:6px;}
+  nav.tabs::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
+  .tab-btn{
+    flex:0 0 auto; display:flex; align-items:center; gap:9px;
+    background:var(--bg-panel); border:2px solid var(--border-soft); color:var(--text-muted);
+    padding:9px 16px; border-radius:999px; cursor:pointer; min-height:44px;
+    font-family:var(--font-body); font-size:14px; font-weight:700; white-space:nowrap;
+    transition:transform .15s ease, border-color .15s ease, color .15s ease;
+  }
+  .tab-btn .num{
+    width:24px;height:24px;border-radius:50%;
+    background:var(--tab-color, var(--border-soft));
+    display:flex;align-items:center;justify-content:center;
+    font-size:12px; font-weight:800; color:#fff; flex:0 0 auto;
+  }
+  .tab-btn:hover{ border-color:var(--tab-color, var(--accent-amber)); color:var(--text); transform:translateY(-2px); }
+  .tab-btn:active{ transform:translateY(0) scale(.97); }
+  .tab-btn.active{
+    background:var(--tab-color, var(--accent-amber));
+    border-color:var(--tab-color, var(--accent-amber));
+    color:#fff;
+    box-shadow:0 6px 16px rgba(60,100,175,.22);
+  }
+  .tab-btn.active .num{ background:rgba(255,255,255,.28); }
+
+  main.app-main{
+    flex:1; display:grid; grid-template-columns:340px 1fr; gap:18px; padding:18px; align-items:start;
+  }
+  /* بدون هذا يرفض عمود الشبكة أن يضيق عن محتواه، فيتمدّد الرسم العريض
+     ويصير التمرير الأفقي للصفحة كلها بدل أن يكون داخل حاوية الرسم وحدها. */
+  main.app-main > *{ min-width:0; }
+  @media (max-width:900px){
+    main.app-main{grid-template-columns:1fr; padding:12px; gap:12px;}
+    aside.sidebar{order:2; max-height:none;}
+    section.canvas-area{order:1; padding:12px;}
+  }
+  @media (max-width:900px) and (orientation:landscape){
+    header.app-header{
+      padding:calc(8px + env(safe-area-inset-top, 0px)) 14px 8px;
+      padding-inline-start:calc(14px + env(safe-area-inset-left, 0px));
+      padding-inline-end:calc(14px + env(safe-area-inset-right, 0px));
+    }
+    .brand .logo{width:30px;height:30px;font-size:15px;}
+    .brand h1{font-size:14px;}
+    .brand span{display:none;}
+    nav.tabs{padding:6px 12px; min-height:46px;}
+    .tab-btn{padding:7px 11px; font-size:12.5px;}
+    main.app-main{padding:8px; gap:8px;}
+    section.canvas-area{padding:8px;}
+    footer{display:none;}
+  }
+  @media (max-width:600px){
+    header.app-header{
+      padding:calc(10px + env(safe-area-inset-top, 0px)) 14px 10px;
+      padding-inline-start:calc(14px + env(safe-area-inset-left, 0px));
+      padding-inline-end:calc(14px + env(safe-area-inset-right, 0px));
+    }
+    .brand h1{font-size:14px;}
+    .brand span{font-size:9.5px;}
+    nav.tabs{padding:8px 10px; gap:6px;}
+    .tab-btn{padding:8px 10px; font-size:12px;}
+    .tab-btn .num{width:18px;height:18px;font-size:10px;}
+    .canvas-header{flex-direction:column; align-items:flex-start; gap:6px;}
+    .canvas-header h2{font-size:15px;}
+    .canvas-header .sub{font-size:11px;}
+    .status-pill{align-self:flex-start; font-size:11px; padding:5px 12px;}
+    .sidebar-section li{font-size:12.5px;}
+    .ctrl-btn{padding:11px 8px; font-size:12.5px;}
+    input[type=range]{height:8px;}
+    input[type=range]::-webkit-slider-thumb{width:20px;height:20px;}
+    footer{font-size:10.5px; padding:10px;}
+    .toolbar-btn{padding:7px 10px; font-size:11.5px;}
+    .icon-btn{width:34px; height:34px; font-size:15px;}
+    .exp-controls .control-panel .control-row{flex:1 1 100%;}
+    .cs-title{font-size:21px;}
+    .cc-title{font-size:17px;}
+  }
+
+  aside.sidebar{
+    background:var(--bg-panel); border:2px solid var(--border-soft); border-radius:var(--radius);
+    padding:18px; max-height:calc(100vh - 150px); overflow-y:auto; box-shadow:var(--shadow);
+  }
+  aside.sidebar::-webkit-scrollbar{width:6px;}
+  aside.sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
+  .sidebar-title{
+    font-size:16px; margin-bottom:14px; padding:10px 14px;
+    border-radius:14px; color:#fff; background:var(--accent-amber);
+    box-shadow:0 6px 14px rgba(255,159,28,.3);
+  }
+  .sidebar-section{margin-bottom:20px;}
+  .sidebar-section h3{
+    font-size:14px; display:flex; align-items:center; gap:7px; color:var(--text);
+    margin-bottom:10px; font-weight:800;
+  }
+  .sidebar-section ul, .sidebar-section ol{
+    margin:0; padding-inline-start:20px; display:flex; flex-direction:column; gap:6px;
+  }
+  .sidebar-section li{ font-size:13px; color:var(--text-muted); line-height:1.6; }
+  .sidebar-section ol li::marker{color:var(--accent-cyan-bright); font-weight:700;}
+  .sidebar-section ul li::marker{color:var(--accent-amber);}
+
+  /* ===== جدول تسجيل النتائج والاستنتاج ===== */
+  .lab-record{ margin-top:14px; padding-top:14px; border-top:1px dashed var(--border); }
+  .lab-record > h3{
+    font-size:13.5px; display:flex; align-items:center; gap:6px;
+    color:var(--text); margin-bottom:12px; font-weight:700;
+  }
+  .lab-record .btn-row{ margin-bottom:10px; }
+  .lab-record .btn-row .ctrl-btn{ flex:0 1 auto; padding-inline:16px; }
+  /* أزرار لوحة التحكم تأخذ عرض نصّها لا عرض الشاشة كلها */
+  .exp-controls .control-panel .btn-row .ctrl-btn{ flex:0 1 auto; min-width:130px; padding-inline:22px; }
+  .rec-hint{
+    font-size:11.5px; color:var(--text-muted); line-height:1.7;
+    background:var(--bg-panel-alt); border:1px dashed var(--border-soft);
+    border-radius:8px; padding:9px 11px; margin-bottom:10px;
+  }
+  .rec-wrap{ width:100%; overflow-x:auto; }
+  #recordTable{
+    width:100%; border-collapse:collapse; font-size:12.5px;
+    font-family:var(--font-body); min-width:420px;
+  }
+  #recordTable th, #recordTable td{
+    border:1px solid var(--border-soft); padding:8px 10px; text-align:center; white-space:nowrap;
+  }
+  #recordTable thead th{
+    background:var(--bg-panel-alt); color:var(--accent-amber);
+    font-family:var(--font-head); font-weight:800; font-size:12px;
+  }
+  #recordTable tbody tr:nth-child(even){ background:rgba(127,127,127,.06); }
+  #recordTable tbody td{ color:var(--text); }
+  #recordTable tbody td:first-child{ color:var(--text-muted); }
+  #recordTable:empty{ display:none; }
+
+  .conclusion{ margin-top:14px; }
+  .conclusion h4{
+    font-size:13px; color:var(--text); margin-bottom:8px; font-weight:700;
+  }
+  .conclusion .ctrl-btn{ width:100%; }
+  .conclusion p{
+    margin:10px 0 0; font-size:13px; line-height:1.9; color:var(--text);
+    background:rgba(18,181,165,.10);
+    border:2px solid rgba(18,181,165,.35); border-radius:16px; padding:13px 15px;
+  }
+
+  /* صندوق الغرض من النشاط */
+  .p-box p{
+    margin:0; font-size:13px; line-height:1.85; color:var(--text-muted);
+  }
+
+  /* صندوق سؤال النشاط: يبرز عن بقية السايدبار ليقرأه الطالب أخيرًا */
+  .q-box{ margin-bottom:0; }
+  .q-box p{
+    margin:0; font-size:13px; line-height:1.85; color:var(--text);
+    background:rgba(255,159,28,.12);
+    border:2px dashed rgba(255,159,28,.5); border-radius:16px; padding:12px 14px;
+  }
+
+  .control-panel{display:none; flex-direction:column; gap:14px;}
+  .control-panel.active{display:flex;}
+  .control-row{display:flex; flex-direction:column; gap:6px;}
+  .control-row label{ font-size:12.5px; color:var(--text-muted); display:flex; justify-content:space-between; }
+  .control-row label b{color:var(--accent-amber); font-weight:700;}
+  input[type=range]{
+    -webkit-appearance:none; width:100%; height:10px; border-radius:999px;
+    background:var(--border-soft); outline:none;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none; width:26px;height:26px;border-radius:50%;
+    background:var(--accent-amber); cursor:pointer; border:3px solid #fff;
+    box-shadow:0 3px 10px rgba(255,159,28,.5);
+  }
+  input[type=range]::-moz-range-thumb{
+    width:22px;height:22px;border-radius:50%;
+    background:var(--accent-amber); cursor:pointer; border:3px solid #fff;
+  }
+  .control-row.row-off{ opacity:.42; }
+  .control-row.row-off label::after{
+    content:' — معطَّل في هذه الحالة'; color:var(--accent-red); font-size:11px;
+  }
+  input[type=range]:disabled{ cursor:not-allowed; }
+  .ctrl-btn:disabled{ opacity:.40; cursor:not-allowed; filter:grayscale(.5); }
+
+  .btn-row{display:flex; gap:8px; flex-wrap:wrap;}
+  .ctrl-btn{
+    flex:1; background:var(--bg-panel-alt); border:2px solid var(--border-soft); color:var(--text);
+    padding:11px 10px; border-radius:16px; cursor:pointer; min-height:48px;
+    font-family:var(--font-body); font-size:13px; font-weight:700;
+    transition:transform .14s ease, border-color .14s ease, background .14s ease;
+    display:flex; align-items:center; justify-content:center; gap:6px;
+  }
+  .ctrl-btn:hover{ border-color:var(--accent-amber); transform:translateY(-2px); }
+  .ctrl-btn:active{ transform:translateY(0) scale(.97); }
+  .ctrl-btn.on{ background:var(--accent-amber); color:#fff; border-color:var(--accent-amber);
+                box-shadow:0 6px 14px rgba(255,159,28,.35); }
+  .ctrl-btn.cyan.on{ background:var(--accent-cyan); color:#fff; border-color:var(--accent-cyan);
+                     box-shadow:0 6px 14px rgba(18,181,165,.32); }
+  .hint{
+    font-size:12.5px; color:var(--text-muted); background:var(--bg-panel-alt);
+    border:2px dashed var(--border-soft); border-radius:16px; padding:10px 13px; line-height:1.75;
+  }
+
+  section.canvas-area{
+    background:var(--bg-panel); border:2px solid var(--border-soft); border-radius:var(--radius);
+    padding:18px; box-shadow:var(--shadow);
+  }
+  .canvas-header{ display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px; }
+  .canvas-header h2{font-size:18px;}
+  .canvas-header .sub{font-size:12px; color:var(--text-muted); margin-top:3px;}
+  .canvas-scroll{ width:100%; border-radius:10px; }
+  .canvas-wrap{
+    position:relative;
+    width:100%;
+    padding-top:53.333%;           /* 480/900 */
+    background:var(--bg-canvas);
+    border-radius:18px; border:2px solid var(--border-soft); overflow:hidden;
+  }
+  canvas#simCanvas{
+    position:absolute; top:0; left:0;
+    display:block; width:100%; height:100%;
+    touch-action:none; cursor:pointer;
+  }
+  canvas#simCanvas.dragging{cursor:grabbing;}
+  .status-pill{
+    flex:0 0 auto;
+    background:var(--bg-panel-alt); border:2px solid var(--border-soft);
+    border-radius:999px; padding:7px 16px; font-size:12.5px; color:var(--text-muted);
+    white-space:nowrap; font-weight:700;
+  }
+  .status-pill b{color:var(--accent-amber);}
+
+  .header-actions{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .icon-btn{
+    flex:0 0 auto; display:flex; align-items:center; justify-content:center;
+    width:44px; height:44px; border-radius:14px;
+    background:var(--bg-panel-alt); border:1px solid var(--border-soft); color:var(--text);
+    cursor:pointer; font-size:17px; transition:.15s ease; padding:0;
+  }
+  .icon-btn:hover{ border-color:var(--accent-amber); }
+  .icon-btn.muted{ color:var(--text-muted); background:rgba(239,91,107,.08); border-color:rgba(239,91,107,.3); }
+
+  .toolbar-btn{
+    flex:0 0 auto; display:flex; align-items:center; gap:6px;
+    background:var(--bg-panel-alt); border:2px solid var(--border-soft); color:var(--text-muted);
+    padding:9px 14px; border-radius:999px; cursor:pointer; min-height:42px;
+    font-family:var(--font-body); font-size:12.5px; font-weight:700; white-space:nowrap; transition:.15s ease;
+  }
+  .toolbar-btn:hover{ border-color:var(--accent-amber); color:var(--text); }
+  .toolbar-btn.active{
+    background:var(--accent-amber); border-color:var(--accent-amber); color:#fff;
+  }
+
+  main.app-main.sidebar-hidden{ grid-template-columns:1fr; }
+  main.app-main.sidebar-hidden aside.sidebar{ display:none; }
+  @media (max-width:900px){
+    main.app-main.sidebar-hidden{ grid-template-columns:1fr; }
+  }
+
+  .exp-controls{
+    margin-top:14px; padding-top:14px; border-top:1px dashed var(--border);
+  }
+  .exp-controls > h3{
+    font-size:13.5px; display:flex; align-items:center; gap:6px; color:var(--text); margin-bottom:12px; font-weight:700;
+  }
+  .exp-controls .control-panel.active{
+    display:flex; flex-direction:row; flex-wrap:wrap; align-items:flex-end; gap:14px 22px;
+  }
+  .exp-controls .control-panel .control-row{ flex:1 1 200px; min-width:170px; }
+  .exp-controls .control-panel .btn-row{ flex:1 1 100%; }
+  .exp-controls .control-panel .hint{ flex:1 1 260px; }
+
+  section.canvas-area:fullscreen,
+  section.canvas-area:-webkit-full-screen{
+    width:100vw; height:100vh; height:100dvh; max-width:none; max-height:none;
+    display:flex; flex-direction:column; overflow-y:auto;
+    -webkit-overflow-scrolling:touch; touch-action:pan-y; overscroll-behavior:contain;
+    padding:calc(14px + env(safe-area-inset-top,0px)) 18px
+            calc(24px + env(safe-area-inset-bottom,0px)); border-radius:0;
+    background:var(--bg-panel);
+  }
+  section.canvas-area:fullscreen .canvas-scroll,
+  section.canvas-area:-webkit-full-screen .canvas-scroll{ flex:0 0 auto; }
+  section.canvas-area:fullscreen .exp-controls,
+  section.canvas-area:-webkit-full-screen .exp-controls{ max-width:1100px; margin-inline:auto; width:100%; }
+
+  /* بديل ملء الشاشة بالـ CSS لأجهزة iOS التي لا تدعم requestFullscreen */
+  section.canvas-area.pseudo-fs{
+    position:fixed; inset:0; z-index:4000;
+    width:100vw; height:100vh; height:100dvh;
+    max-width:none; max-height:none; margin:0; border-radius:0;
+    display:flex; flex-direction:column;
+    overflow-y:auto; -webkit-overflow-scrolling:touch;
+    overscroll-behavior:contain; touch-action:pan-y;
+    padding:calc(12px + env(safe-area-inset-top,0px)) 16px
+            calc(16px + env(safe-area-inset-bottom,0px));
+    background:var(--bg-panel);
+  }
+  section.canvas-area.pseudo-fs .canvas-scroll{ flex:0 0 auto; }
+  section.canvas-area.pseudo-fs .exp-controls{ max-width:1100px; margin-inline:auto; width:100%; }
+  body.fs-lock{ overflow:hidden; }
+
+  footer{ text-align:center; font-size:11.5px; color:var(--text-muted);
+    padding:14px 14px calc(14px + env(safe-area-inset-bottom, 0px));
+    border-top:1px solid var(--border); }
+
+  /* ===== شاشة الترحيب ===== */
+  #welcomeOverlay{
+    position:fixed;
+    top:0; left:0; right:0; bottom:0;
+    width:100%;
+    height:100vh;
+    height:100dvh;
+    z-index:9999;
+    padding:env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px)
+            env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+    display:flex; align-items:center; justify-content:center;
+    overflow-y:auto;
+    background-color:var(--bg-deep);
+    background-image:
+      radial-gradient(circle at 18% 18%, rgba(255,159,28,.28), transparent 42%),
+      radial-gradient(circle at 84% 22%, rgba(61,125,253,.24), transparent 40%),
+      radial-gradient(circle at 78% 86%, rgba(18,181,165,.26), transparent 45%),
+      radial-gradient(circle at 22% 84%, rgba(255,77,109,.20), transparent 42%);
+    transition: opacity .5s ease, visibility .5s ease;
+  }
+  #welcomeOverlay.hidden{ opacity:0; visibility:hidden; pointer-events:none; }
+  /* فقاعات تطفو ببطء — حركة خفيفة على المعالج (transform فقط) */
+  .bubble{
+    position:absolute; border-radius:50%; pointer-events:none;
+    animation: floatUp 9s ease-in-out infinite;
+    opacity:.55;
+  }
+  .bubble.b1{ width:84px;  height:84px;  inset-inline-start:8%;  top:16%; background:rgba(255,159,28,.55); }
+  .bubble.b2{ width:54px;  height:54px;  inset-inline-end:12%;   top:24%; background:rgba(61,125,253,.50); animation-delay:-2.5s; }
+  .bubble.b3{ width:110px; height:110px; inset-inline-end:6%;    bottom:14%; background:rgba(18,181,165,.45); animation-delay:-5s; }
+  .bubble.b4{ width:42px;  height:42px;  inset-inline-start:16%; bottom:20%; background:rgba(255,77,109,.50); animation-delay:-7s; }
+  @keyframes floatUp{
+    0%,100%{ transform:translateY(0) scale(1); }
+    50%    { transform:translateY(-22px) scale(1.06); }
+  }
+  @media (prefers-reduced-motion: reduce){ .bubble{ animation:none; } }
+  .welcome-card{
+    position:relative; z-index:1;
+    display:flex; flex-direction:column; align-items:center; text-align:center;
+    gap:18px; padding:48px 52px; max-width:660px; width:92%;
+    margin:auto;
+    background:var(--bg-panel);
+    border:3px solid var(--border);
+    border-radius:34px;
+    box-shadow:0 22px 50px rgba(60,100,175,.22);
+    animation: welcomeRise .8s cubic-bezier(.22,1.2,.36,1);
+  }
+  @keyframes logoWobble{
+    0%,100%{ transform:rotate(-6deg); }
+    50%    { transform:rotate(6deg) scale(1.05); }
+  }
+  @media (prefers-reduced-motion: reduce){ .welcome-logo{ animation:none; } }
+  @keyframes welcomeRise{
+    from{ opacity:0; transform:translateY(22px) scale(.97); }
+    to{ opacity:1; transform:translateY(0) scale(1); }
+  }
+  .welcome-logo{
+    width:92px; height:92px; border-radius:28px;
+    animation: logoWobble 4s ease-in-out infinite;
+    background:conic-gradient(from 200deg, var(--accent-amber), var(--accent-cyan), var(--accent-amber));
+    display:flex; align-items:center; justify-content:center;
+    font-size:42px; font-weight:900; color:#fff;
+    box-shadow:0 12px 30px rgba(255,159,28,.32);
+  }
+  .welcome-title{
+    font-family:var(--font-head); font-weight:800; font-size:29px;
+    background:linear-gradient(90deg, var(--accent-amber), var(--accent-cyan-bright));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    line-height:1.4;
+  }
+  .welcome-subtitle{ font-size:16px; color:var(--text); opacity:.9; font-weight:500; }
+  .welcome-divider{
+    width:70px; height:3px; border-radius:2px;
+    background:linear-gradient(90deg, var(--accent-amber), var(--accent-cyan));
+  }
+  .welcome-author{
+    width:100%; max-width:420px;
+    font-family:var(--font-body);
+    font-size:15px; color:var(--text-muted);
+    background:var(--bg-panel-alt);
+    border:1px dashed var(--border-soft);
+    border-radius:10px; padding:14px 20px;
+    cursor:pointer; transition:.15s ease;
+  }
+  .welcome-author:hover{ border-color:var(--accent-amber); }
+  .welcome-author b{
+    font-family:var(--font-head); font-weight:800; font-size:21px;
+    color:var(--accent-amber); margin-inline-start:6px;
+  }
+  .welcome-start-btn{
+    margin-top:10px;
+    display:flex; align-items:center; gap:10px;
+    font-family:var(--font-head); font-weight:800; font-size:19px;
+    color:#ffffff;
+    background:linear-gradient(135deg, var(--accent-amber), #ffc65c);
+    border:none; border-radius:999px;
+    padding:17px 52px;
+    cursor:pointer;
+    box-shadow:0 12px 30px rgba(242,168,60,.3);
+    transition:.2s ease;
+  }
+  .welcome-start-btn:hover{ transform:translateY(-3px) scale(1.03); box-shadow:0 18px 40px rgba(255,159,28,.45); }
+  .welcome-start-btn:active{ transform:translateY(0) scale(.98); }
+  .welcome-hint{ font-size:11.5px; color:var(--text-muted); opacity:.75; line-height:1.7; }
+
+  @media (max-width:480px){
+    .welcome-card{ padding:34px 22px; gap:14px; }
+    .welcome-title{ font-size:23px; }
+    .welcome-start-btn{ padding:14px 30px; font-size:15px; }
+    .welcome-author{ font-size:13px; padding:11px 16px; }
+    .welcome-author b{ font-size:18px; }
+    .brand h1{ font-size:14px; }
+    .brand span{ font-size:10px; }
+    .canvas-header h2{ font-size:16px; }
+    .header-teacher{ order:3; width:100%; text-align:center; }
+  }
+
+  .rotate-hint{
+    display:none;
+    align-items:center; gap:10px;
+    margin-bottom:10px; padding:9px 12px;
+    background:rgba(255,159,28,.14);
+    border:2px solid rgba(255,159,28,.4);
+    border-radius:16px;
+    font-size:12px; color:var(--text); line-height:1.5;
+  }
+  .rotate-hint span.ico{ font-size:16px; flex:0 0 auto; }
+
+  @media (max-width:760px){
+    .rotate-hint{ display:flex; }
+    /* على الجوال لا يُصغَّر الرسم حتى يصير نصّه غير مقروء، بل يُمنح عرضًا
+       أدنى ويُسحب أفقيًا داخل حاويته — كما يَعِد التلميح أعلاه. */
+    .canvas-scroll{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
+    .canvas-wrap{ min-width:620px; height:331px; padding-top:0; }  /* 620 × 0.5333 */
+  }
+  @media (max-width:900px) and (orientation:landscape){ .rotate-hint{ display:none; } }
+</style>
+</head>
+<body>
+
+<!-- ============ المستوى ٠: شاشة الترحيب ============ -->
+<div id="welcomeOverlay">
+  <span class="bubble b1"></span><span class="bubble b2"></span>
+  <span class="bubble b3"></span><span class="bubble b4"></span>
+  <div class="welcome-card">
+    <div class="welcome-logo">⚛</div>
+    <div class="welcome-title">مختبر الفيزياء الافتراضي<br>الصف الثالث المتوسط</div>
+    <div class="welcome-subtitle">محاكي أنشطة تفاعلية — الكهربائية الساكنة والتيار الكهربائي</div>
+    <div class="welcome-divider"></div>
+    <button class="welcome-author" id="welcomeTeacherBtn" type="button"
+            title="اضغط لكتابة اسمك">إعداد: <b data-teacher-name>اسم الاستاذ</b> <span class="edit-ico">✏️</span></button>
+    <button class="welcome-start-btn" id="startBtn">🚀 ابدأ</button>
+    <div class="welcome-hint" id="welcomeHint"></div>
+  </div>
+</div>
+
+<div id="teacherModal" class="modal" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="teacherModalTitle">
+    <h3 id="teacherModalTitle">اسم الأستاذ</h3>
+    <p class="modal-sub">يظهر في شاشة الترحيب وأعلى الصفحة وفي أسفلها.</p>
+    <input id="teacherInput" type="text" maxlength="40" autocomplete="off"
+           placeholder="اكتب اسمك هنا" aria-label="اسم الأستاذ">
+    <div class="btn-row">
+      <button class="ctrl-btn on" id="teacherSave" type="button">حفظ</button>
+      <button class="ctrl-btn" id="teacherCancel" type="button">إلغاء</button>
+    </div>
+    <div class="modal-note" id="teacherNote"></div>
+  </div>
+</div>
+
+<header class="app-header">
+  <div class="brand">
+    <div class="logo">⚛</div>
+    <div>
+      <h1>مختبر الفيزياء الافتراضي</h1>
+      <span>الفيزياء — الصف الثالث المتوسط</span>
+    </div>
+  </div>
+  <div class="header-actions">
+    <button class="back-btn" id="backBtn" type="button">⟵ رجوع إلى الفصول</button>
+    <div class="chapter-badge" id="chapterBadge"></div>
+    <button class="icon-btn" id="soundToggleBtn" type="button" title="كتم/تشغيل صوت التجربة" aria-label="كتم/تشغيل الصوت">🔊</button>
+    <button class="icon-btn" id="themeToggleBtn" type="button" title="تبديل المظهر الفاتح/الداكن" aria-label="تبديل المظهر">🌙</button>
+    <button class="header-teacher" id="teacherBtn" type="button"
+            title="اضغط لتغيير اسم الأستاذ">إعداد: <b data-teacher-name>اسم الاستاذ</b> <span class="edit-ico">✏️</span></button>
+  </div>
+</header>
+
+<!-- ============ المستوى ١: اختيار الفصل ============ -->
+<section id="chapterSelect">
+  <h2 class="cs-title">اختر الفصل</h2>
+  <p class="cs-sub">اضغط على بطاقة الفصل لتبدأ أنشطته</p>
+  <div class="cs-grid" id="chapterCards"></div>
+</section>
+
+<!-- ============ المستوى ٢: تبويبات تجارب الفصل ============ -->
+<nav class="tabs" id="tabsNav"></nav>
+
+<main class="app-main" id="appMain">
+  <aside class="sidebar" id="sidebarPanel">
+    <div class="sidebar-title" id="sidebarTitle">النشاط الحالي</div>
+
+    <div class="sidebar-section p-box">
+      <h3>🎯 الغرض من النشاط</h3>
+      <p id="activityPurpose"></p>
+    </div>
+
+    <div class="sidebar-section">
+      <h3>🧰 المواد والأدوات</h3>
+      <ul id="toolsList"></ul>
+    </div>
+
+    <div class="sidebar-section">
+      <h3>📋 خطوات العمل</h3>
+      <ol id="stepsList"></ol>
+    </div>
+
+    <div class="sidebar-section q-box">
+      <h3>❓ سؤال النشاط</h3>
+      <p id="activityQuestion"></p>
+    </div>
+  </aside>
+
+  <section class="canvas-area" id="canvasArea">
+    <div class="canvas-header">
+      <div>
+        <h2 id="mainTitle"></h2>
+        <div class="sub" id="mainSubtitle"></div>
+      </div>
+      <div class="header-actions">
+        <button class="toolbar-btn active" id="sidebarToggleBtn" type="button">☰ الأدوات والخطوات</button>
+        <div class="status-pill">الوضع: <b id="modeStatus">تلقائي</b></div>
+        <button class="toolbar-btn" id="fullscreenBtn" type="button">⛶ ملء الشاشة</button>
+      </div>
+    </div>
+    <div class="rotate-hint">
+      <span class="ico">🔄</span>
+      <span>أدِر جهازك أفقيًا لعرض الرسم كاملًا — أو اسحب الرسم يمينًا ويسارًا.</span>
+    </div>
+    <div class="canvas-scroll">
+      <div class="canvas-wrap">
+        <canvas id="simCanvas" width="900" height="480"></canvas>
+      </div>
+    </div>
+
+    <div class="exp-controls">
+      <h3>🎛️ لوحة التحكم</h3>
+      <div id="controlPanels">
+<!-- ==== INSERT: CONTROL PANELS ==== -->
+
+        <!-- ===== نشاط ٢١: شدة التيار ===== -->
+        <div class="control-panel" data-tab="21">
+          <div class="btn-row">
+            <button class="ctrl-btn on" data-mode-tab="21">⚙️ تلقائي</button>
+            <button class="ctrl-btn switch-btn on" data-switch="21">🔌 المفتاح مغلق</button>
+          </div>
+          <div class="hint">💡 راقب سرعة الإلكترونات في السلك وإبرة الأميتر معًا: كلما مرّت شحنة أكبر في زمن أقصر زادت شدة التيار.</div>
+          <div class="control-row">
+            <label>الشحنة المارّة Q (C) <b id="val-Q-21">6</b></label>
+            <input type="range" min="1" max="20" step="1" value="6" data-target="t21State.Q" data-label="val-Q-21">
+          </div>
+          <div class="control-row">
+            <label>الزمن t (s) <b id="val-t-21">4</b></label>
+            <input type="range" min="1" max="20" step="1" value="4" data-target="t21State.time" data-label="val-t-21">
+          </div>
+        </div>
+
+        <!-- ===== نشاط ٢٢: القوة الدافعة وفرق الجهد ===== -->
+        <div class="control-panel" data-tab="22">
+          <div class="btn-row">
+            <button class="ctrl-btn on" data-mode-tab="22">⚙️ تلقائي</button>
+            <button class="ctrl-btn switch-btn on" data-switch="22">🔌 المفتاح مغلق</button>
+          </div>
+          <div class="hint">💡 البطارية مثل مضخة ترفع الشحنة إلى جهد أعلى، والمصباح ينزلها فيتحوّل الشغل إلى ضوء وحرارة.</div>
+          <div class="control-row">
+            <label>القوة الدافعة ε (V) <b id="val-emf-22">6.0</b></label>
+            <input type="range" min="1.5" max="12" step="0.5" value="6" data-target="t22State.emf" data-label="val-emf-22">
+          </div>
+          <div class="control-row">
+            <label>الشحنة المنقولة q (C) <b id="val-q-22">3.0</b></label>
+            <input type="range" min="0.5" max="10" step="0.5" value="3" data-target="t22State.q" data-label="val-q-22">
+          </div>
+        </div>
+
+        <!-- ===== نشاط ٢٣: قانون أوم ===== -->
+        <div class="control-panel" data-tab="23">
+          <div class="btn-row">
+            <button class="ctrl-btn on" data-mode-tab="23">⚙️ تلقائي</button>
+            <button class="ctrl-btn switch-btn on" data-switch="23">🔌 المفتاح مغلق</button>
+          </div>
+          <div class="hint">💡 ثبّت المقاومة وغيّر الجهد: النقطة الحمراء تتحرك على خط مستقيم. ثم غيّر المقاومة ولاحظ تغيّر ميل الخط نفسه.</div>
+          <div class="control-row">
+            <label>جهد المصدر V (V) <b id="val-V-23">6.0</b></label>
+            <input type="range" min="1" max="12" step="0.5" value="6" data-target="t23State.V" data-label="val-V-23">
+          </div>
+          <div class="control-row">
+            <label>المقاومة R (Ω) <b id="val-R-23">4</b></label>
+            <input type="range" min="1" max="20" step="1" value="4" data-target="t23State.R" data-label="val-R-23">
+          </div>
+        </div>
+
+        <!-- ===== نشاط ٢٤: ربط المقاومات ===== -->
+        <div class="control-panel" data-tab="24">
+          <div class="btn-row">
+            <button class="ctrl-btn on" data-mode-tab="24">⚙️ تلقائي</button>
+            <button class="ctrl-btn switch-btn on" data-switch="24">🔌 المفتاح مغلق</button>
+          </div>
+          <div class="hint">💡 بالقيم نفسها، بدّل بين التوالي والتوازي وراقب قراءة الأميتر: المقاومة المكافئة تنقلب من أكبر من المقاومتين إلى أصغر منهما.</div>
+          <div class="btn-row" id="modeBtns24">
+            <button class="ctrl-btn cyan on" data-mode24="series">على التوالي</button>
+            <button class="ctrl-btn cyan" data-mode24="parallel">على التوازي</button>
+          </div>
+          <div class="control-row">
+            <label>المقاومة الأولى R₁ (Ω) <b id="val-R1-24">4</b></label>
+            <input type="range" min="1" max="12" step="1" value="4" data-target="t24State.R1" data-label="val-R1-24">
+          </div>
+          <div class="control-row">
+            <label>المقاومة الثانية R₂ (Ω) <b id="val-R2-24">6</b></label>
+            <input type="range" min="1" max="12" step="1" value="6" data-target="t24State.R2" data-label="val-R2-24">
+          </div>
+          <div class="control-row">
+            <label>جهد المصدر ε (V) <b id="val-V-24">12</b></label>
+            <input type="range" min="3" max="24" step="1" value="12" data-target="t24State.V" data-label="val-V-24">
+          </div>
+        </div>
+
+        <!-- ===== نشاط ٢٥: القدرة والطاقة ===== -->
+        <div class="control-panel" data-tab="25">
+          <div class="btn-row">
+            <button class="ctrl-btn on" data-mode-tab="25">⚙️ تلقائي</button>
+          </div>
+          <div class="hint">💡 قارن المصباح بالمبرّدة: فرق القدرة كبير جدًا، ولهذا تظهر المبرّدة في الفاتورة أضعاف ما يظهره المصباح رغم تشغيلهما المدة نفسها.</div>
+          <div class="btn-row" id="devBtns25">
+            <button class="ctrl-btn cyan on" data-dev25="lamp">مصباح</button>
+            <button class="ctrl-btn cyan" data-dev25="tv">تلفاز</button>
+            <button class="ctrl-btn cyan" data-dev25="fridge">ثلاجة</button>
+            <button class="ctrl-btn cyan" data-dev25="iron">مكواة</button>
+            <button class="ctrl-btn cyan" data-dev25="cooler">مبرّدة</button>
+          </div>
+          <div class="control-row">
+            <label>ساعات التشغيل في اليوم <b id="val-h-25">4</b></label>
+            <input type="range" min="1" max="12" step="1" value="4" data-target="t25State.hours" data-label="val-h-25">
+          </div>
+          <div class="control-row">
+            <label>سعر الكيلوواط·ساعة (دينار) <b id="val-p-25">100</b></label>
+            <input type="range" min="25" max="300" step="25" value="100" data-target="t25State.price" data-label="val-p-25">
+          </div>
+        </div>
+
+        <!-- ===== نشاط ٢٦: المصهر ===== -->
+        <div class="control-panel" data-tab="26">
+          <div class="btn-row">
+            <button class="ctrl-btn on" data-mode-tab="26">⚙️ تلقائي</button>
+            <button class="ctrl-btn switch-btn on" data-switch="26">🔌 المفتاح مغلق</button>
+          </div>
+          <div class="hint">💡 شغّل أجهزة أكثر وراقب الشريط: حين يتجاوز التيار حدّ المصهر ينصهر فورًا فتنطفئ الأجهزة كلها — وهذا يحمي أسلاك البيت من الحريق.</div>
+          <div class="control-row">
+            <label>عدد الأجهزة العاملة <b id="val-n-26">3</b></label>
+            <input type="range" min="1" max="8" step="1" value="3" data-target="t26State.devices" data-label="val-n-26">
+          </div>
+          <div class="control-row">
+            <label>تقدير المصهر (A) <b id="val-f-26">10</b></label>
+            <input type="range" min="5" max="20" step="1" value="10" data-target="t26State.fuse" data-label="val-f-26">
+          </div>
+        </div>
+
+        
+      </div>
+    </div>
+
+    <div class="lab-record">
+      <h3>📝 جدول تسجيل النتائج</h3>
+      <div class="btn-row">
+        <button class="ctrl-btn cyan" id="recordBtn" type="button">➕ سجّل القراءة الحالية</button>
+        <button class="ctrl-btn" id="clearRecBtn" type="button">🗑️ امسح الجدول</button>
+      </div>
+      <div class="rec-hint" id="recEmpty">اضبط القيم على الشاشة ثم اضغط «سجّل القراءة الحالية» — يمتلئ الجدول كما تملؤه في دفترك، فتظهر لك العلاقة بين الأعمدة. وفي الوضع اليدوي تثبت القيم فيسهل تسجيلها بدقة.</div>
+      <div class="rec-wrap">
+        <table id="recordTable">
+          <thead></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="conclusion">
+        <h4>🧠 الاستنتاج</h4>
+        <button class="ctrl-btn" id="revealBtn" type="button">اكتب استنتاجك في دفترك أولًا، ثم اضغط هنا لتقارنه</button>
+        <p id="conclusionText" hidden></p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  مختبر الفيزياء الافتراضي — الصف الثالث المتوسط · إعداد: <b data-teacher-name>اسم الاستاذ</b>
+</footer>
+
+<script>
+/* =========================================================================
+   لوحة ألوان الكانفاس (مشتركة)
+   رسوم الكانفاس لا تقرأ متغيّرات CSS مباشرة، فهذه نسخة منها بـ JS. الكائن
+   window.CANVAS حيّ: تُبدَّل قيمه في مكانها عند تغيير المظهر، وكل تجربة تبني
+   COLORS كـ getters فوقه، فيكفي تبديل واحد لإعادة تلوين كل التجارب.
+   ========================================================================= */
+const CANVAS_THEMES = {
+  light: {
+    bg:'#fdfdff', wire:'#1e2b49', capDefault:'#ff9f1c', capActive:'#0e9e90',
+    red:'#ff4d6d', blue:'#3d7dfd', green:'#2fb457', muted:'#6a7a99', border:'#b7d0ef',
+    panel:'rgba(240,246,255,.96)', ground:'#cddff7',
+    ink:'#0b1424', badge:'rgba(255,255,255,.95)'
+  },
+  dark: {
+    bg:'#1a2049', wire:'#eef2ff', capDefault:'#ffb443', capActive:'#7ff7e4',
+    red:'#ff7a90', blue:'#6ba4ff', green:'#5ddc82', muted:'#a7aede', border:'#3d4795',
+    panel:'rgba(30,37,85,.88)', ground:'#2f3877',
+    ink:'#050a1e', badge:'rgba(30,37,85,.92)'
+  }
+};
+window.CANVAS = Object.assign({}, CANVAS_THEMES.light);
+window.applyCanvasTheme = function(name){
+  const t = CANVAS_THEMES[name] || CANVAS_THEMES.light;
+  Object.assign(window.CANVAS, t);
+};
+function makeColors(extra){
+  const o = {};
+  Object.keys(CANVAS_THEMES.light).forEach(k=>{
+    Object.defineProperty(o, k, { enumerable:true, get(){ return window.CANVAS[k]; } });
+  });
+  if (extra) Object.keys(extra).forEach(k=>{
+    Object.defineProperty(o, k, { enumerable:true, get(){ return (typeof extra[k]==='function') ? extra[k]() : window.CANVAS[extra[k]]; } });
+  });
+  return o;
+}
+
+/* =========================================================================
+   دوال الرسم المشتركة
+   قاعدة النص العربي: لا يُرسم نص بـ ctx.fillText مباشرة أبدًا — تُستعمل
+   optLabel / optHUD / optTitle / optCaption، وكل سطر فيه معادلة أو رقم
+   لاتيني يُعلَّم ltr:true وإلا قلبه المتصفح.
+   ========================================================================= */
+function optHUD(x,y,w,lines,COLORS){
+  const pad=12, lh=23, h=pad*2+lines.length*lh;
+  ctx.fillStyle=COLORS.panel; ctx.strokeStyle=COLORS.border; ctx.lineWidth=1;
+  ctx.beginPath();
+  ctx.roundRect ? ctx.roundRect(x,y,w,h,10) : ctx.rect(x,y,w,h);
+  ctx.fill(); ctx.stroke();
+  ctx.textAlign='right';
+  lines.forEach((ln,i)=>{
+    ctx.fillStyle=ln.color||COLORS.wire;
+    ctx.font=(ln.bold?'bold ':'')+"13px "+FONT_BODY;
+    ctx.direction = ln.ltr ? 'ltr' : 'rtl';
+    ctx.fillText(ln.text, x+w-pad, y+pad+17+i*lh);
+  });
+  ctx.direction='ltr'; ctx.textAlign='left';
+  return h;
+}
+function optTitle(text, COLORS){
+  ctx.fillStyle=COLORS.capActive; ctx.font="bold 17px "+FONT_HEAD;
+  ctx.textAlign='center'; ctx.direction='rtl';
+  ctx.fillText(text, CW/2, 28);
+  ctx.direction='ltr'; ctx.textAlign='left';
+}
+function optCaption(text, COLORS, color){
+  ctx.fillStyle=color||COLORS.muted; ctx.font="13px "+FONT_BODY;
+  ctx.textAlign='center'; ctx.direction='rtl';
+  ctx.fillText(text, CW/2, CH-16);
+  ctx.direction='ltr'; ctx.textAlign='left';
+}
+function optArrow(x1,y1,x2,y2,color,width,head){
+  const h=head||8;
+  ctx.strokeStyle=color; ctx.fillStyle=color; ctx.lineWidth=width||2;
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+  const a=Math.atan2(y2-y1,x2-x1);
+  ctx.beginPath(); ctx.moveTo(x2,y2);
+  ctx.lineTo(x2-h*Math.cos(a-0.4), y2-h*Math.sin(a-0.4));
+  ctx.lineTo(x2-h*Math.cos(a+0.4), y2-h*Math.sin(a+0.4));
+  ctx.closePath(); ctx.fill();
+}
+function optLabel(text,x,y,color,size,align,ltr){
+  ctx.fillStyle=color; ctx.font=(size||12)+"px "+FONT_BODY;
+  ctx.textAlign=align||'center'; ctx.direction= ltr ? 'ltr' : 'rtl';
+  ctx.fillText(text,x,y);
+  ctx.direction='ltr'; ctx.textAlign='left';
+}
+/* محاور رسم بياني: أصل المحاور عند (x0, yBottom)، الاتجاه LTR كما في الكتاب. */
+function optAxes(x0, yBottom, w, h, COLORS, xLab, yLab, grid){
+  if(grid){
+    ctx.strokeStyle=COLORS.border; ctx.lineWidth=1;
+    for(let i=1;i<=4;i++){
+      const gy = yBottom - h*i/4;
+      ctx.beginPath(); ctx.moveTo(x0, gy); ctx.lineTo(x0+w, gy); ctx.stroke();
+    }
+    for(let i=1;i<=4;i++){
+      const gx = x0 + w*i/4;
+      ctx.beginPath(); ctx.moveTo(gx, yBottom); ctx.lineTo(gx, yBottom-h); ctx.stroke();
+    }
+  }
+  ctx.strokeStyle=COLORS.muted; ctx.lineWidth=1.6;
+  ctx.beginPath();
+  ctx.moveTo(x0, yBottom-h-6); ctx.lineTo(x0, yBottom); ctx.lineTo(x0+w+6, yBottom);
+  ctx.stroke();
+  if(xLab) optLabel(xLab, x0+w+4, yBottom+18, COLORS.muted, 11, 'right', true);
+  if(yLab) optLabel(yLab, x0+6,  yBottom-h-10, COLORS.muted, 11, 'left', true);
+}
+
+/* مستطيل بأركان دائرية (لصناديق التوضيح داخل الرسم). */
+function optBox(x,y,w,h,fill,stroke){
+  ctx.fillStyle=fill; ctx.strokeStyle=stroke||fill; ctx.lineWidth=1;
+  ctx.beginPath();
+  ctx.roundRect ? ctx.roundRect(x,y,w,h,8) : ctx.rect(x,y,w,h);
+  ctx.fill(); if(stroke) ctx.stroke();
+}
+
+/* سطر الحكم فوق التعليق: يتغيّر بتغيّر الحالة. */
+function optVerdict(text, COLORS, color){
+  ctx.textAlign='center'; ctx.direction='rtl';
+  ctx.font="bold 14px "+FONT_HEAD;
+  ctx.fillStyle=color||COLORS.capActive;
+  ctx.fillText(text, CW/2, CH-42);
+  ctx.direction='ltr'; ctx.textAlign='left';
+}
+
+
+
+/* =========================================================================
+   رسوم أدوات الكهرباء — كلها من عناصر الكانفاس الأساسية، بلا صور خارجية.
+   ========================================================================= */
+
+/* صيغة علمية: 1.8×10⁶ — الأرقام الكهربائية كبيرة فلا تُكتب كاملة */
+const SUP = ['⁰','¹','²','³','⁴','⁵','⁶','⁷','⁸','⁹'];
+function sci(v, digits){
+  if(!isFinite(v)) return '—';
+  if(v === 0) return '0';
+  const neg = v < 0; v = Math.abs(v);
+  const e = Math.floor(Math.log10(v));
+  const m = v / Math.pow(10, e);
+  if(e >= -1 && e <= 3) return (neg?'−':'') + v.toFixed(digits===undefined?2:digits);
+  const exp = String(e).split('').map(c => c === '-' ? '⁻' : SUP[Number(c)]).join('');
+  return (neg?'−':'') + m.toFixed(digits===undefined?2:digits) + '×10' + exp;
+}
+
+
+/* ===== أدوات تعطي الرسم عمقًا: تدرّج كروي، ظلّ أرضي، لمعة زجاج ===== */
+function sphereFill(cx, cy, r, base, light){
+  const g = ctx.createRadialGradient(cx-r*0.35, cy-r*0.40, r*0.08, cx, cy, r*1.05);
+  g.addColorStop(0, light || '#ffffff');
+  g.addColorStop(0.45, base);
+  g.addColorStop(1, shadeHex(base, -0.35));
+  return g;
+}
+function tubeFill(x1, y1, x2, y2, base){
+  const g = ctx.createLinearGradient(x1, y1, x2, y2);
+  g.addColorStop(0,    shadeHex(base, -0.28));
+  g.addColorStop(0.30, shadeHex(base,  0.28));
+  g.addColorStop(0.55, base);
+  g.addColorStop(1,    shadeHex(base, -0.32));
+  return g;
+}
+/* تفتيح أو تغميق لون سداسي بنسبة f بين -1 و 1 */
+function shadeHex(hex, f){
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex || '');
+  if(!m) return hex;
+  const n = parseInt(m[1], 16);
+  const ch = [(n>>16)&255, (n>>8)&255, n&255].map(v=>{
+    const t = f < 0 ? 0 : 255;
+    return Math.round(v + (t - v) * Math.abs(f));
+  });
+  return 'rgb('+ch[0]+','+ch[1]+','+ch[2]+')';
+}
+/* ظلّ بيضوي تحت الجسم — يثبّته على الأرض بدل أن يطفو */
+function groundShadow(cx, gy, w, alpha){
+  ctx.save();
+  ctx.globalAlpha = alpha === undefined ? 0.16 : alpha;
+  ctx.fillStyle = '#0b1424';
+  ctx.beginPath(); ctx.ellipse(cx, gy+3, w/2, Math.max(3, w*0.10), 0, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+/* لمعة زجاج: قوس أبيض شفّاف على الحافة العليا */
+function glassShine(cx, cy, r, a0, a1){
+  ctx.save();
+  ctx.strokeStyle='rgba(255,255,255,.75)'; ctx.lineWidth=Math.max(2, r*0.13); ctx.lineCap='round';
+  ctx.beginPath(); ctx.arc(cx, cy, r*0.74, a0, a1); ctx.stroke();
+  ctx.restore();
+  ctx.lineCap='butt';
+}
+
+/* إنسان بسيط */
+function figPerson(cx, gy, h, color, lean, arm){
+  ctx.save();
+  ctx.translate(cx, gy);
+  if(lean) ctx.rotate(lean);
+  ctx.strokeStyle=color; ctx.fillStyle=color;
+  ctx.lineWidth=Math.max(2, h*0.06); ctx.lineCap='round'; ctx.lineJoin='round';
+  const head = h*0.13;
+  ctx.beginPath(); ctx.arc(0, -h+head, head, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(0, -h+2*head); ctx.lineTo(0, -h*0.40); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0, -h*0.40); ctx.lineTo(-h*0.17, 0); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0, -h*0.40); ctx.lineTo( h*0.17, 0); ctx.stroke();
+  const ay = -h*0.66, a = (arm===undefined) ? 0 : arm;
+  if(a === 0){
+    ctx.beginPath(); ctx.moveTo(0, ay); ctx.lineTo(-h*0.16, -h*0.36); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, ay); ctx.lineTo( h*0.16, -h*0.36); ctx.stroke();
+  } else {
+    ctx.beginPath(); ctx.moveTo(0, ay); ctx.lineTo(a*h*0.30, ay+h*0.04); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, ay); ctx.lineTo(a*h*0.24, ay+h*0.16); ctx.stroke();
+  }
+  ctx.restore();
+  ctx.lineCap='butt'; ctx.lineJoin='miter';
+}
+
+/* إشارة موجب أو سالب داخل دائرة صغيرة */
+function figSign(cx, cy, r, positive, COLORS){
+  ctx.fillStyle = positive ? COLORS.red : COLORS.blue;
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle='#fff'; ctx.lineWidth=Math.max(1.6, r*0.34); ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(cx-r*0.5, cy); ctx.lineTo(cx+r*0.5, cy); ctx.stroke();
+  if(positive){ ctx.beginPath(); ctx.moveTo(cx, cy-r*0.5); ctx.lineTo(cx, cy+r*0.5); ctx.stroke(); }
+  ctx.lineCap='butt';
+}
+
+/* ذرة: نواة وفيها بروتونات ونيوترونات، ومدارات عليها إلكترونات تدور */
+function figAtom(cx, cy, R, protons, electrons, t, COLORS){
+  const shells = [Math.min(electrons,2), Math.min(Math.max(electrons-2,0),8), Math.max(electrons-10,0)];
+  ctx.strokeStyle=COLORS.border; ctx.lineWidth=1.5;
+  shells.forEach((n,i)=>{
+    if(n<=0) return;
+    const rr = R*(0.45 + i*0.28);
+    ctx.beginPath(); ctx.arc(cx, cy, rr, 0, Math.PI*2); ctx.stroke();
+  });
+  /* النواة */
+  ctx.fillStyle=COLORS.red;
+  ctx.beginPath(); ctx.arc(cx, cy, R*0.26, 0, Math.PI*2); ctx.fill();
+  optLabel(String(protons)+'+', cx, cy+5, '#fff', 13, 'center', true);
+  /* الإلكترونات */
+  shells.forEach((n,i)=>{
+    const rr = R*(0.45 + i*0.28);
+    for(let k=0;k<n;k++){
+      const a = t*(0.7 - i*0.18) + k*(Math.PI*2/n) + i;
+      const ex = cx + Math.cos(a)*rr, ey = cy + Math.sin(a)*rr;
+      figSign(ex, ey, 7, false, COLORS);
+    }
+  });
+}
+
+/* كرة معدنية لامعة على حامل عازل */
+function figChargedBall(cx, gy, r, charge, COLORS, showSigns){
+  const by = gy - r*0.9 - r;
+  groundShadow(cx, gy, r*1.5);
+  /* الحامل: قاعدة وعمود */
+  ctx.fillStyle = tubeFill(cx-8, 0, cx+8, 0, '#8fa2bd');
+  ctx.fillRect(cx-5, by+r-4, 10, gy-(by+r)+4);
+  ctx.fillStyle = tubeFill(cx-r*0.8, 0, cx+r*0.8, 0, '#6b7f9c');
+  ctx.beginPath();
+  ctx.roundRect ? ctx.roundRect(cx-r*0.85, gy-7, r*1.7, 9, 4) : ctx.rect(cx-r*0.85, gy-7, r*1.7, 9);
+  ctx.fill();
+  /* الكرة */
+  const c = charge > 0 ? '#e8523f' : (charge < 0 ? '#2f6fe0' : '#b9c6d8');
+  ctx.fillStyle = sphereFill(cx, by, r, c);
+  ctx.beginPath(); ctx.arc(cx, by, r, 0, Math.PI*2); ctx.fill();
+  glassShine(cx, by, r, Math.PI*1.05, Math.PI*1.45);
+  if(showSigns !== false){
+    const n = Math.min(Math.abs(Math.round(charge)), 8);
+    for(let i=0;i<n;i++){
+      const a = -Math.PI/2 + (i - (n-1)/2)*0.62;
+      figSign(cx + Math.cos(a)*r*0.64, by + Math.sin(a)*r*0.64, 6.5, charge>0, COLORS);
+    }
+  }
+  return { x:cx, y:by };
+}
+
+/* ساق بلاستيكية أو زجاجية بلمعة أسطوانية */
+function figRod(cx, cy, len, charge, COLORS, vertical){
+  const base = charge > 0 ? '#d8cfa8' : '#5b6b86';     /* زجاجي أو بلاستيكي داكن */
+  ctx.save();
+  ctx.fillStyle = vertical ? tubeFill(cx-11, 0, cx+11, 0, base)
+                           : tubeFill(0, cy-11, 0, cy+11, base);
+  ctx.beginPath();
+  if(vertical) ctx.roundRect ? ctx.roundRect(cx-11, cy-len/2, 22, len, 11) : ctx.rect(cx-11, cy-len/2, 22, len);
+  else         ctx.roundRect ? ctx.roundRect(cx-len/2, cy-11, len, 22, 11) : ctx.rect(cx-len/2, cy-11, len, 22);
+  ctx.fill();
+  /* خطّ لمعة طولي */
+  ctx.globalAlpha=0.55; ctx.strokeStyle='#fff'; ctx.lineWidth=2.5; ctx.lineCap='round';
+  ctx.beginPath();
+  if(vertical){ ctx.moveTo(cx-4, cy-len/2+9); ctx.lineTo(cx-4, cy+len/2-9); }
+  else        { ctx.moveTo(cx-len/2+9, cy-4); ctx.lineTo(cx+len/2-9, cy-4); }
+  ctx.stroke();
+  ctx.restore();
+  const n = Math.min(Math.abs(Math.round(charge)), 6);
+  for(let i=0;i<n;i++){
+    const f = (i+0.5)/n - 0.5;
+    if(vertical) figSign(cx, cy + f*len*0.8, 6, charge>0, COLORS);
+    else         figSign(cx + f*len*0.8, cy, 6, charge>0, COLORS);
+  }
+}
+
+/* الكشاف الكهربائي: قرص معدني وساق وورقتا ذهب داخل وعاء زجاجي */
+function figElectroscope(cx, gy, s, angleDeg, charge, COLORS){
+  groundShadow(cx, gy+4, s*1.7);
+  /* القاعدة الخشبية */
+  ctx.fillStyle = tubeFill(0, gy-8, 0, gy+6, '#9c6b3f');
+  ctx.beginPath();
+  ctx.roundRect ? ctx.roundRect(cx-s*0.80, gy-8, s*1.60, 14, 5) : ctx.rect(cx-s*0.80, gy-8, s*1.60, 14);
+  ctx.fill();
+  /* الوعاء الزجاجي: تدرّج شفّاف وحافتان لامعتان */
+  const gx0 = cx-s*0.62, gw = s*1.24, gTop = gy-s*1.30;
+  const gg = ctx.createLinearGradient(gx0, 0, gx0+gw, 0);
+  gg.addColorStop(0,   'rgba(190,215,240,.55)');
+  gg.addColorStop(0.18,'rgba(255,255,255,.75)');
+  gg.addColorStop(0.5, 'rgba(214,232,250,.28)');
+  gg.addColorStop(0.88,'rgba(255,255,255,.55)');
+  gg.addColorStop(1,   'rgba(180,205,235,.55)');
+  ctx.fillStyle = gg;
+  ctx.beginPath();
+  ctx.roundRect ? ctx.roundRect(gx0, gTop, gw, s*1.30, 12) : ctx.rect(gx0, gTop, gw, s*1.30);
+  ctx.fill();
+  ctx.strokeStyle='rgba(120,160,205,.75)'; ctx.lineWidth=2; ctx.stroke();
+  /* إطار معدني علوي */
+  ctx.fillStyle = tubeFill(0, gTop-10, 0, gTop+6, '#8fa2bd');
+  ctx.beginPath();
+  ctx.roundRect ? ctx.roundRect(gx0-6, gTop-10, gw+12, 18, 6) : ctx.rect(gx0-6, gTop-10, gw+12, 18);
+  ctx.fill();
+  /* الساق والقرص */
+  const topY = gy - s*1.86;
+  ctx.fillStyle = tubeFill(cx-4, 0, cx+4, 0, '#8fa2bd');
+  ctx.fillRect(cx-4, topY, 8, gy-s*0.72-topY);
+  ctx.fillStyle = tubeFill(0, topY-9, 0, topY+5, '#a9bad2');
+  ctx.beginPath();
+  ctx.roundRect ? ctx.roundRect(cx-s*0.44, topY-9, s*0.88, 14, 6) : ctx.rect(cx-s*0.44, topY-9, s*0.88, 14);
+  ctx.fill();
+  ctx.globalAlpha=.6; ctx.strokeStyle='#fff'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(cx-s*0.36, topY-5); ctx.lineTo(cx+s*0.36, topY-5); ctx.stroke();
+  ctx.globalAlpha=1;
+  /* ورقتا الذهب: رقيقتان وشفّافتان قليلًا */
+  const a = angleDeg*Math.PI/180, L = s*0.64, hy = gy-s*0.72;
+  ctx.save();
+  ctx.fillStyle='#e6c24a'; ctx.strokeStyle='#b8912b'; ctx.lineWidth=1;
+  [-1, 1].forEach(sg=>{
+    const ex = cx + sg*Math.sin(a)*L, ey = hy + Math.cos(a)*L;
+    const nx = Math.cos(a)*3.4*sg, ny = -Math.sin(a)*3.4*sg;
+    ctx.beginPath();
+    ctx.moveTo(cx-nx*0.7, hy-ny*0.7); ctx.lineTo(cx+nx*0.7, hy+ny*0.7);
+    ctx.lineTo(ex+nx*1.5, ey+ny*1.5); ctx.lineTo(ex-nx*1.5, ey-ny*1.5);
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+  });
+  ctx.restore();
+  return { topX:cx, topY:topY };
+}
+
+/* بطارية: عمود أسطواني بقطبين، كما في مختبر الصف */
+function figBattery(cx, cy, w, COLORS, label){
+  const h = w*0.56;
+  groundShadow(cx, cy+h/2+2, w*0.95, 0.12);
+  /* الجسم */
+  ctx.fillStyle = tubeFill(0, cy-h/2, 0, cy+h/2, '#e0a12c');
+  ctx.beginPath();
+  ctx.roundRect ? ctx.roundRect(cx-w/2, cy-h/2, w, h, 6) : ctx.rect(cx-w/2, cy-h/2, w, h);
+  ctx.fill();
+  /* شريط علوي داكن ونصّ */
+  ctx.fillStyle='rgba(0,0,0,.16)';
+  ctx.fillRect(cx-w/2, cy-h/2, w, h*0.22);
+  /* القطب الموجب بارز */
+  ctx.fillStyle = tubeFill(0, cy-h*0.16, 0, cy+h*0.16, '#c8cfd8');
+  ctx.beginPath();
+  ctx.roundRect ? ctx.roundRect(cx+w/2, cy-h*0.16, w*0.09, h*0.32, 3) : ctx.rect(cx+w/2, cy-h*0.16, w*0.09, h*0.32);
+  ctx.fill();
+  /* القطب السالب مسطّح */
+  ctx.fillStyle = tubeFill(0, cy-h/2, 0, cy+h/2, '#b5bdc9');
+  ctx.fillRect(cx-w/2-w*0.05, cy-h/2, w*0.05, h);
+  optLabel('+', cx+w*0.36, cy+6, '#3a2a06', 16, 'center', true);
+  optLabel('−', cx-w*0.36, cy+6, '#3a2a06', 16, 'center', true);
+  if(label) optLabel(label, cx, cy+h/2+20, COLORS.muted, 12, 'center', true);
+}
+
+/* مصباح كهربائي: زجاجة وفتيلة وقاعدة لولبية */
+function figBulb(cx, cy, r, brightness, COLORS){
+  const b = Math.max(0, Math.min(1, brightness));
+  if(b > 0.02){
+    const g = ctx.createRadialGradient(cx, cy, r*0.2, cx, cy, r*3.4);
+    g.addColorStop(0, 'rgba(255,205,90,'+(0.60*b)+')');
+    g.addColorStop(1, 'rgba(255,205,90,0)');
+    ctx.fillStyle=g;
+    ctx.beginPath(); ctx.arc(cx, cy, r*3.4, 0, Math.PI*2); ctx.fill();
+  }
+  /* القاعدة اللولبية */
+  ctx.fillStyle = tubeFill(cx-r*0.4, 0, cx+r*0.4, 0, '#a9b3c1');
+  ctx.beginPath();
+  ctx.roundRect ? ctx.roundRect(cx-r*0.36, cy+r*0.80, r*0.72, r*0.58, 3)
+                : ctx.rect(cx-r*0.36, cy+r*0.80, r*0.72, r*0.58);
+  ctx.fill();
+  ctx.strokeStyle='rgba(0,0,0,.20)'; ctx.lineWidth=1.4;
+  for(let i=0;i<3;i++){
+    const yy = cy+r*0.92+i*r*0.16;
+    ctx.beginPath(); ctx.moveTo(cx-r*0.36, yy); ctx.lineTo(cx+r*0.36, yy); ctx.stroke();
+  }
+  /* الزجاجة */
+  const bulbBase = b>0.02 ? shadeHex('#ffd166', -0.05) : '#e9f0fa';
+  ctx.fillStyle = sphereFill(cx, cy, r, bulbBase, b>0.02 ? '#fff8dc' : '#ffffff');
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle='rgba(120,150,190,.6)'; ctx.lineWidth=1.6; ctx.stroke();
+  /* الفتيلة */
+  ctx.strokeStyle = b>0.02 ? '#ff8c1a' : '#8b97a8';
+  ctx.lineWidth = b>0.02 ? 2.6 : 1.8; ctx.lineCap='round';
+  ctx.beginPath();
+  ctx.moveTo(cx-r*0.34, cy+r*0.62);
+  ctx.lineTo(cx-r*0.34, cy+r*0.10);
+  for(let i=0;i<5;i++){
+    ctx.lineTo(cx-r*0.34 + (i+0.5)*(r*0.68/5), cy + (i%2 ? r*0.18 : -r*0.22));
+  }
+  ctx.lineTo(cx+r*0.34, cy+r*0.10);
+  ctx.lineTo(cx+r*0.34, cy+r*0.62);
+  ctx.stroke(); ctx.lineCap='butt';
+  glassShine(cx, cy, r, Math.PI*1.08, Math.PI*1.42);
+}
+
+/* مقاومة بجسمها البيج وأشرطتها الملوّنة كما في الواقع */
+function figResistor(cx, cy, w, COLORS, label, color){
+  const h = w*0.38;
+  ctx.strokeStyle='#8b97a8'; ctx.lineWidth=3; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(cx-w*0.72, cy); ctx.lineTo(cx-w/2, cy);
+  ctx.moveTo(cx+w/2, cy); ctx.lineTo(cx+w*0.72, cy); ctx.stroke();
+  ctx.lineCap='butt';
+  ctx.fillStyle = tubeFill(0, cy-h/2, 0, cy+h/2, '#d9c9a3');
+  ctx.beginPath();
+  ctx.roundRect ? ctx.roundRect(cx-w/2, cy-h/2, w, h, h*0.45) : ctx.rect(cx-w/2, cy-h/2, w, h);
+  ctx.fill();
+  const bands = [color||'#8a5a2b', '#c0392b', '#2c3e50'];
+  bands.forEach((bc,i)=>{
+    ctx.fillStyle=bc;
+    ctx.fillRect(cx-w*0.26+i*w*0.17, cy-h/2+2, w*0.075, h-4);
+  });
+  if(label) optLabel(label, cx, cy-h/2-9, color||COLORS.wire, 12.5, 'center', true);
+}
+
+/* مقياس بقرص وإبرة: A للأميتر و V للفولتميتر */
+/* ذاكرة إبر المقاييس: الإبرة الحقيقية لا تقفز إلى القيمة، بل تصل إليها في لحظة */
+const _needle = {};
+function figMeter(cx, cy, r, letter, reading, COLORS, color, frac, opt){
+  opt = opt || {};
+  groundShadow(cx, cy+r+2, r*1.6, 0.10);
+  ctx.fillStyle = tubeFill(0, cy-r, 0, cy+r, '#e8eef7');
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle='#8b97a8'; ctx.lineWidth=2.5; ctx.stroke();
+  ctx.fillStyle='#ffffff';
+  ctx.beginPath(); ctx.arc(cx, cy, r*0.82, 0, Math.PI*2); ctx.fill();
+  /* قوس التدريج */
+  const A0 = Math.PI*1.15, A1 = Math.PI*1.85;
+  ctx.strokeStyle='#9aa8bd'; ctx.lineWidth=1.6;
+  ctx.beginPath(); ctx.arc(cx, cy+r*0.18, r*0.62, A0, A1); ctx.stroke();
+  for(let i=0;i<=4;i++){
+    const a = A0 + (A1-A0)*i/4;
+    ctx.beginPath();
+    ctx.moveTo(cx+Math.cos(a)*r*0.62, cy+r*0.18+Math.sin(a)*r*0.62);
+    ctx.lineTo(cx+Math.cos(a)*r*0.50, cy+r*0.18+Math.sin(a)*r*0.50);
+    ctx.stroke();
+  }
+  /* أرقام التدريج عند طرفَي القوس: بها يقرأ الطالب الإبرة لا بالرقم وحده */
+  if(opt.full !== undefined){
+    [[A0, '0'], [A1, String(opt.full)]].forEach(([ang, txt])=>{
+      optLabel(txt, cx+Math.cos(ang)*r*0.75, cy+r*0.18+Math.sin(ang)*r*0.75 + 3,
+               '#6b7a90', r*0.26, 'center', true);
+    });
+  }
+
+  /* الإبرة */
+  const target = Math.max(0, Math.min(1, frac===undefined ? 0.5 : frac));
+  let f = target;
+  if(opt.id){
+    if(opt.ease === false || !(opt.id in _needle)) _needle[opt.id] = target;
+    else {
+      const cur = _needle[opt.id], nx = cur + (target-cur)*0.22;
+      _needle[opt.id] = Math.abs(nx-target) < 0.0015 ? target : nx;
+    }
+    f = _needle[opt.id];
+  }
+  const a = A0 + (A1-A0)*f;
+  ctx.strokeStyle=color||'#c0392b'; ctx.lineWidth=2.4; ctx.lineCap='round';
+  ctx.beginPath();
+  ctx.moveTo(cx, cy+r*0.18);
+  ctx.lineTo(cx+Math.cos(a)*r*0.58, cy+r*0.18+Math.sin(a)*r*0.58);
+  ctx.stroke(); ctx.lineCap='butt';
+  ctx.fillStyle='#2c3e50';
+  ctx.beginPath(); ctx.arc(cx, cy+r*0.18, 3, 0, Math.PI*2); ctx.fill();
+  optLabel(letter, cx, cy-r*0.30, color||'#2c3e50', r*0.62, 'center', true);
+  optLabel(reading, cx, cy+r*0.72, color||COLORS.muted, 11.5, 'center', true);
+}
+
+/* مفتاح: مفتوح أو مغلق */
+function figSwitch(x, y, w, closed, COLORS){
+  ctx.strokeStyle=COLORS.wire; ctx.lineWidth=3; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(x, y);
+  if(closed) ctx.lineTo(x+w, y); else ctx.lineTo(x+w*0.88, y-w*0.46);
+  ctx.stroke();
+  ctx.fillStyle=COLORS.wire;
+  ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(x+w, y, 4, 0, Math.PI*2); ctx.fill();
+  ctx.lineCap='butt';
+}
+
+/* ═══ التجاذب والتنافر: أداتان موحّدتان لكل نشاط يظهر فيه ═══
+   اللون وحده يفرّق: الأحمر تنافرٌ يدفع إلى الخارج، والأخضر تجاذبٌ يشدّ
+   إلى الداخل. والسهمان غليظان كي يُقرآ من آخر الصف. */
+const F_PUSH = '#e8523f', F_PULL = '#0e9e90';
+
+/* xA طرف الجسم الأيسر الخارجي، وxB طرف الأيمن الخارجي.
+   في التنافر يخرج السهمان منهما إلى الخارج، وفي التجاذب يأتيان من الخارج
+   إليهما — فيبقى للسهم مكان دائمًا حتى لو تلامس الجسمان. */
+function figForcePair(xA, xB, y, repel, mag, COLORS){
+  const col = repel ? F_PUSH : F_PULL;
+  const L = Math.max(32, Math.min(26 + mag, 92));
+  const aTail = repel ? xA : xA - L, aHead = repel ? xA - L : xA;
+  const bTail = repel ? xB : xB + L, bHead = repel ? xB + L : xB;
+  ctx.save();
+  ctx.globalAlpha = 0.20; ctx.strokeStyle = col; ctx.lineWidth = 16; ctx.lineCap='round';
+  ctx.beginPath();
+  ctx.moveTo(aTail, y); ctx.lineTo(aHead, y);
+  ctx.moveTo(bTail, y); ctx.lineTo(bHead, y);
+  ctx.stroke(); ctx.restore(); ctx.lineCap='butt';
+  optArrow(aTail, y, aHead, y, col, 7, 18);
+  optArrow(bTail, y, bHead, y, col, 7, 18);
+}
+
+/* شارة النتيجة: كلمة واحدة كبيرة على خلفية ملوّنة */
+function figBadge(text, cx, cy, repel, COLORS, sub){
+  const col = repel ? F_PUSH : F_PULL;
+  ctx.font = 'bold 20px ' + FONT_HEAD;
+  const w = Math.max(132, ctx.measureText(text).width + 56);
+  ctx.fillStyle = col;
+  ctx.beginPath();
+  if(ctx.roundRect) ctx.roundRect(cx-w/2, cy-20, w, 40, 20); else ctx.rect(cx-w/2, cy-20, w, 40);
+  ctx.fill();
+  optLabel(text, cx, cy+7, '#ffffff', 20);
+  if(sub) optLabel(sub, cx, cy+38, col, 12);
+}
+
+/* مفتاح الدائرة: يُرسم في فجوة من السلك، ويُفتح ويُغلق بلمسه على الشاشة.
+   تُخزَّن منطقته في الحالة كي يعرف tNNUpdate أين يلمسه الطالب. */
+function circuitSwitch(state, x, y, w, COLORS, labelY){
+  ctx.fillStyle = COLORS.bg;
+  ctx.fillRect(x-8, y-w*0.55-8, w+16, w*0.55+16);
+  figSwitch(x, y, w, state.sw === 1, COLORS);
+  optLabel(state.sw === 1 ? 'المفتاح مغلق' : 'المفتاح مفتوح', x+w/2, labelY,
+           state.sw === 1 ? COLORS.green : COLORS.red, 11);
+  dragHaloRect(x+w/2, y-w*0.16, w+26, w*0.62+16, COLORS, '');
+  state._swBox = { x:x-16, y:y-w*0.62-12, w:w+32, h:w*0.62+28 };
+}
+/* لمسة واحدة على المفتاح تقلبه، ويتبعها زر لوحة التحكم */
+function switchTap(state, tabId){
+  const P = window.pointer, b = state._swBox;
+  if(P && P.justPressed && b &&
+     P.x > b.x && P.x < b.x+b.w && P.y > b.y && P.y < b.y+b.h){
+    state.sw = state.sw === 1 ? 0 : 1;
+    syncSwitchBtn(tabId, state.sw);
+    if(window.SoundFX){ state.sw ? SoundFX.toggleOn() : SoundFX.toggleOff(); }
+  }
+}
+function syncSwitchBtn(tabId, on){
+  const b = document.querySelector('[data-switch="'+tabId+'"]');
+  if(b){ b.classList.toggle('on', !!on); b.textContent = on ? '🔌 المفتاح مغلق' : '🔌 المفتاح مفتوح'; }
+}
+window.syncSwitchBtn = syncSwitchBtn;
+
+/* مصهر (فيوز): سليم أو منصهر */
+function figFuse(cx, cy, w, blown, COLORS){
+  const h = w*0.42;
+  ctx.fillStyle=COLORS.panel; ctx.strokeStyle=blown?COLORS.red:COLORS.wire; ctx.lineWidth=2.5;
+  ctx.beginPath();
+  ctx.roundRect ? ctx.roundRect(cx-w/2, cy-h/2, w, h, 8) : ctx.rect(cx-w/2, cy-h/2, w, h);
+  ctx.fill(); ctx.stroke();
+  ctx.strokeStyle = blown ? COLORS.red : COLORS.wire; ctx.lineWidth=2.5; ctx.lineCap='round';
+  ctx.beginPath();
+  if(blown){
+    ctx.moveTo(cx-w*0.34, cy); ctx.lineTo(cx-w*0.10, cy);
+    ctx.moveTo(cx+w*0.10, cy); ctx.lineTo(cx+w*0.34, cy);
+    ctx.stroke();
+    optLabel('✕', cx, cy-h*0.62, COLORS.red, 13, 'center', true);
+  } else {
+    ctx.moveTo(cx-w*0.34, cy); ctx.lineTo(cx+w*0.34, cy); ctx.stroke();
+  }
+  ctx.lineCap='butt';
+}
+
+/* سحابة بتدرّج رمادي كما في يوم ممطر */
+function figCloud(cx, cy, w, COLORS, color){
+  const g = ctx.createLinearGradient(0, cy-w*0.22, 0, cy+w*0.20);
+  g.addColorStop(0, '#eef2f8');
+  g.addColorStop(1, '#9fb0c6');
+  ctx.fillStyle = color || g;
+  [[-0.30,0.04,0.26],[0,-0.10,0.34],[0.32,0.04,0.27],[-0.06,0.16,0.30]].forEach(([dx,dy,r])=>{
+    ctx.beginPath(); ctx.arc(cx+dx*w, cy+dy*w, r*w*0.5, 0, Math.PI*2); ctx.fill();
+  });
+}
+
+/* بناية بواجهة متدرّجة ونوافذ بعضها مضيء، ومانعة صواعق اختيارية */
+function figBuilding(cx, gy, w, hh, withRod, COLORS){
+  groundShadow(cx, gy, w*1.1, 0.14);
+  ctx.fillStyle = tubeFill(cx-w/2, 0, cx+w/2, 0, '#7c8ba1');
+  ctx.fillRect(cx-w/2, gy-hh, w, hh);
+  /* السطح */
+  ctx.fillStyle='#5d6b80';
+  ctx.fillRect(cx-w/2-6, gy-hh-8, w+12, 10);
+  /* النوافذ */
+  const cols = Math.max(2, Math.floor(w/40)), rows = Math.max(2, Math.floor(hh/46));
+  for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){
+    const lit = ((r*7 + c*3) % 5) < 2;
+    ctx.fillStyle = lit ? '#ffd98a' : '#46536b';
+    ctx.fillRect(cx-w/2+14+c*(w-28)/cols, gy-hh+18+r*(hh-30)/rows, 17, 23);
+  }
+  /* الباب */
+  ctx.fillStyle='#46536b';
+  ctx.fillRect(cx-15, gy-34, 30, 34);
+  if(withRod){
+    ctx.strokeStyle='#c8cfd8'; ctx.lineWidth=4; ctx.lineCap='round';
+    ctx.beginPath(); ctx.moveTo(cx, gy-hh-8); ctx.lineTo(cx, gy-hh-52); ctx.stroke();
+    ctx.lineCap='butt';
+    ctx.fillStyle='#c8cfd8';
+    ctx.beginPath();
+    ctx.moveTo(cx-6, gy-hh-52); ctx.lineTo(cx, gy-hh-70); ctx.lineTo(cx+6, gy-hh-52);
+    ctx.closePath(); ctx.fill();
+    return gy-hh-70;
+  }
+  return gy-hh-8;
+}
+
+/* شرارة متعرجة بين نقطتين */
+function figSpark(x1, y1, x2, y2, COLORS, seed){
+  const steps = 8;
+  ctx.strokeStyle=COLORS.capDefault; ctx.lineWidth=3.5; ctx.lineJoin='round';
+  ctx.beginPath(); ctx.moveTo(x1, y1);
+  for(let i=1;i<steps;i++){
+    const f=i/steps;
+    const wob = Math.sin(f*9 + (seed||0))*16*(1-Math.abs(f-0.5));
+    ctx.lineTo(x1+(x2-x1)*f + wob, y1+(y2-y1)*f);
+  }
+  ctx.lineTo(x2, y2); ctx.stroke();
+  ctx.strokeStyle='rgba(255,220,120,.55)'; ctx.lineWidth=8;
+  ctx.stroke();
+  ctx.lineJoin='miter';
+}
+
+const FONT_BODY = "'Tajawal','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
+const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
+</script>
+
+<!-- ==== INSERT: ACTIVITY SCRIPTS ==== -->
+
+
+
+
+
+
+
+<script>
+/* =========================================================================
+   أدوات مشتركة لرسم الدوائر الكهربائية: سلك متصل وإلكترونات تسري فيه
+   ========================================================================= */
+function wire(pts, color, width){
+  ctx.strokeStyle=color; ctx.lineWidth=width||4; ctx.lineJoin='round'; ctx.lineCap='round';
+  ctx.beginPath();
+  pts.forEach(([x,y],i)=>{ if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); });
+  ctx.stroke();
+  ctx.lineJoin='miter'; ctx.lineCap='butt';
+}
+function pathLen(pts){
+  let L=0; for(let i=1;i<pts.length;i++) L += Math.hypot(pts[i][0]-pts[i-1][0], pts[i][1]-pts[i-1][1]);
+  return L;
+}
+function pointAt(pts, d){
+  for(let i=1;i<pts.length;i++){
+    const seg = Math.hypot(pts[i][0]-pts[i-1][0], pts[i][1]-pts[i-1][1]);
+    if(d <= seg){
+      const f = seg ? d/seg : 0;
+      return [pts[i-1][0]+(pts[i][0]-pts[i-1][0])*f, pts[i-1][1]+(pts[i][1]-pts[i-1][1])*f];
+    }
+    d -= seg;
+  }
+  return pts[pts.length-1];
+}
+/* إلكترونات تسري في السلك: عددها ثابت وسرعتها تتبع شدة التيار */
+function flowDots(pts, phase, count, COLORS){
+  const L = pathLen(pts);
+  for(let i=0;i<count;i++){
+    const d = ((phase + i/count) % 1) * L;
+    const [x,y] = pointAt(pts, d);
+    figSign(x, y, 6, false, COLORS);
+  }
+}
+</script>
+
+<script>
+/* =========================================================================
+   نشاط 1 — التيار الكهربائي وشدته
+   ========================================================================= */
+(function(){
+  const COLORS = makeColors();
+  const E = 1.6e-19;
+  const state = { simMode:'auto', t:0, Q:6, time:4, sw:1 };
+
+  function current(){ return state.sw ? state.Q/state.time : 0; }
+  function t21Update(dt){ if(state.simMode==='auto') state.t += dt; switchTap(state, 21); }
+
+  function t21Draw(){
+    ctx.clearRect(0,0,CW,CH);
+    ctx.fillStyle=COLORS.bg; ctx.fillRect(0,0,CW,CH);
+    optTitle('نشاط ١: التيار الكهربائي وشدته', COLORS);
+
+    const I = current();
+    const L=110, R=470, T=120, B=300;
+    const loop = [[L,T],[R,T],[R,B],[L,B],[L,T]];
+    wire(loop, COLORS.muted, 5);
+    if(state.sw) flowDots(loop, (state.t*Math.min(I,5)*0.16) % 1, 16, COLORS);
+
+    figBattery(290, B, 96, COLORS, 'مصدر التيار');
+    circuitSwitch(state, 150, B, 56, COLORS, B-44);
+    figBulb(R, 210, 26, Math.min(I/4, 1), COLORS);
+    figMeter(L, 210, 34, 'A', I.toFixed(2)+' A', COLORS, '#c0392b', Math.min(I/5,1),
+             {id:'t21A', full:5, ease: state.simMode==='auto'});
+    optLabel('أميتر يقيس شدة التيار', L, 168, COLORS.muted, 11);
+
+    /* مقطع من السلك تمرّ خلاله الشحنة */
+    ctx.setLineDash([5,4]); ctx.strokeStyle=COLORS.capActive; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(330, T-24); ctx.lineTo(330, T+24); ctx.stroke();
+    ctx.setLineDash([]);
+    optLabel('مقطع السلك', 330, T-32, COLORS.capActive, 11);
+
+    optHUD(600, 62, 268, [
+      {text:'شدة التيار: شحنة في كل ثانية', bold:true, color:COLORS.capActive},
+      {text:'I = Q / t', ltr:true},
+      {text:'Q = '+state.Q.toFixed(0)+' C', ltr:true, color:COLORS.blue},
+      {text:'t = '+state.time.toFixed(0)+' s', ltr:true},
+      {text:'I = '+I.toFixed(2)+' A', ltr:true, color:COLORS.capActive, bold:true},
+      {text:'عدد الإلكترونات المارّة', color:COLORS.muted},
+      {text:'n = Q/e = '+sci(state.sw ? state.Q/E : 0)+' إلكترون', ltr:true, color:COLORS.capDefault}
+    ], COLORS);
+
+    let v, vc;
+    if(!state.sw){ v='المفتاح مفتوح ← الدائرة غير مغلقة فلا يمرّ تيار والمصباح مطفأ'; vc=COLORS.red; }
+    else if(I >= 3){ v='شحنة كبيرة في زمن قصير ← تيار شديد والمصباح يتوهّج'; vc=COLORS.capDefault; }
+    else if(I >= 1){ v='التيار متوسط ← المصباح يضيء إضاءة عادية'; vc=COLORS.capActive; }
+    else { v='شحنة قليلة في زمن طويل ← تيار ضعيف وإضاءة خافتة'; vc=COLORS.blue; }
+    optVerdict(v, COLORS, vc);
+    optCaption('الأمبير الواحد يعني مرور كولوم واحد من الشحنة خلال مقطع السلك في كل ثانية.', COLORS);
+  }
+
+  window.t21Reading=function(){
+    return [state.Q.toFixed(0), state.time.toFixed(0), current().toFixed(2),
+            sci(state.sw ? state.Q/E : 0)];
+  };
+  window.t21State=state; window.t21Update=t21Update; window.t21Draw=t21Draw;
+})();
+</script>
+
+<script>
+/* =========================================================================
+   نشاط 2 — القوة الدافعة الكهربائية وفرق الجهد
+   ========================================================================= */
+(function(){
+  const COLORS = makeColors();
+  const state = { simMode:'auto', t:0, emf:6, q:3, sw:1 };
+
+  function work(){ return state.q*state.emf; }
+  function t22Update(dt){ if(state.simMode==='auto') state.t += dt; switchTap(state, 22); }
+
+  function t22Draw(){
+    ctx.clearRect(0,0,CW,CH);
+    ctx.fillStyle=COLORS.bg; ctx.fillRect(0,0,CW,CH);
+    optTitle('نشاط ٢: القوة الدافعة الكهربائية وفرق الجهد', COLORS);
+
+    const W = work();
+    const L=110, R=470, T=126, B=312;
+    const loop = [[L,T],[R,T],[R,B],[L,B],[L,T]];
+    wire(loop, COLORS.muted, 5);
+    if(state.sw) flowDots(loop, (state.t*0.14) % 1, 14, COLORS);
+
+    figBattery(290, B, 100, COLORS, 'مصدر القوة الدافعة');
+    circuitSwitch(state, 150, B, 56, COLORS, B-44);
+    figBulb(R, 219, 26, state.sw ? Math.min(state.emf/12, 1) : 0, COLORS);
+
+    /* الفولتميتر يُربط على التوازي مع البطارية لا على التوالي معها —
+       فيقيس فرق الجهد بين قطبيها. */
+    wire([[230,B],[230,234],[269,234]], COLORS.muted, 2.5);
+    wire([[350,B],[350,234],[311,234]], COLORS.muted, 2.5);
+    figMeter(290, 255, 30, 'V', state.emf.toFixed(1)+' V', COLORS, '#2f6fe0',
+             Math.min(state.emf/12,1), {id:'t22V', full:12, ease: state.simMode==='auto'});
+    optLabel('فولتميتر موصول على التوازي', 290, 200, COLORS.muted, 11);
+
+    /* سلّم الجهد: البطارية ترفع الشحنة إلى جهد أعلى ثم تنزل عبر المصباح */
+    const sx = 626, sy0 = 366, sy1 = 366 - Math.min(state.emf,12)*18;
+    ctx.strokeStyle=COLORS.border; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(sx-30, sy0); ctx.lineTo(sx+130, sy0); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(sx-30, sy1); ctx.lineTo(sx+130, sy1); ctx.stroke();
+    optLabel('جهد منخفض', sx+50, sy0+18, COLORS.muted, 10.5);
+    optLabel('جهد مرتفع', sx+50, sy1-10, COLORS.muted, 10.5);
+    optArrow(sx-10, sy0-6, sx-10, sy1+6, COLORS.green, 3);
+    optLabel('البطارية ترفعها', sx-22, (sy0+sy1)/2, COLORS.green, 10.5, 'right');
+    optArrow(sx+118, sy1+6, sx+118, sy0-6, COLORS.capDefault, 3);
+    optLabel('تنزل عبر المصباح', sx+142, (sy0+sy1)/2, COLORS.capDefault, 10.5, 'left');
+    const dotY = sy0 + (sy1-sy0)*((state.t*0.5)%1);
+    figSign(sx-10, dotY, 7, false, COLORS);
+
+    optHUD(600, 62, 268, [
+      {text:'الشغل المبذول على الشحنة', bold:true, color:COLORS.capActive},
+      {text:'ε = W / q', ltr:true},
+      {text:'ε = '+state.emf.toFixed(1)+' V', ltr:true, color:COLORS.blue},
+      {text:'q = '+state.q.toFixed(1)+' C', ltr:true},
+      {text:'W = q·ε = '+W.toFixed(1)+' J', ltr:true, color:COLORS.capActive, bold:true}
+    ], COLORS);
+
+    let v, vc;
+    if(!state.sw){ v='المفتاح مفتوح ← الفولتميتر يقرأ القوة الدافعة، لكن الشحنة لا تتحرك فلا يُبذل شغل'; vc=COLORS.red; }
+    else if(state.emf >= 9){ v='قوة دافعة كبيرة ← شغل أكبر على كل كولوم، وإضاءة أقوى'; vc=COLORS.capDefault; }
+    else if(state.emf >= 3){ v='كل كولوم يكتسب '+state.emf.toFixed(1)+' جول من طاقة البطارية'; vc=COLORS.capActive; }
+    else { v='قوة دافعة صغيرة ← طاقة قليلة لكل كولوم وإضاءة خافتة'; vc=COLORS.blue; }
+    optVerdict(v, COLORS, vc);
+    optCaption('الفولت الواحد يعني أن البطارية تبذل جولًا واحدًا من الشغل لنقل كولوم واحد من الشحنة.', COLORS);
+  }
+
+  window.t22Reading=function(){
+    return [state.emf.toFixed(1), state.q.toFixed(1), work().toFixed(1),
+            (work()/state.q).toFixed(1)];
+  };
+  window.t22State=state; window.t22Update=t22Update; window.t22Draw=t22Draw;
+})();
+</script>
+
+<script>
+/* =========================================================================
+   نشاط 3 — المقاومة الكهربائية وقانون أوم
+   ========================================================================= */
+(function(){
+  const COLORS = makeColors();
+  const state = { simMode:'auto', t:0, V:6, R:4, sw:1 };
+
+  function current(){ return state.sw ? state.V/state.R : 0; }
+  function t23Update(dt){ if(state.simMode==='auto') state.t += dt; switchTap(state, 23); }
+
+  function t23Draw(){
+    ctx.clearRect(0,0,CW,CH);
+    ctx.fillStyle=COLORS.bg; ctx.fillRect(0,0,CW,CH);
+    optTitle('نشاط ٣: قانون أوم — العلاقة بين الجهد والتيار', COLORS);
+
+    const I = current(), VR = I*state.R;   // فرق الجهد على طرفَي المقاومة
+    const L=100, R=430, T=110, B=262;
+    const loop = [[L,T],[R,T],[R,B],[L,B],[L,T]];
+    wire(loop, COLORS.muted, 5);
+    if(state.sw) flowDots(loop, (state.t*Math.min(I,6)*0.14) % 1, 14, COLORS);
+
+    figBattery(265, B, 92, COLORS, 'ε = '+state.V.toFixed(1)+' V');
+    circuitSwitch(state, 130, B, 54, COLORS, B-42);
+    figResistor(265, T, 96, COLORS, 'R = '+state.R.toFixed(0)+' Ω', '#8a5a2b');
+    /* الأميتر على التوالي في الدائرة، والفولتميتر على التوازي مع المقاومة */
+    figMeter(L, 186, 32, 'A', I.toFixed(2)+' A', COLORS, '#c0392b', Math.min(I/6,1),
+             {id:'t23A', full:6, ease: state.simMode==='auto'});
+    wire([[217,T],[217,156],[244,156]], COLORS.muted, 2.5);
+    wire([[313,T],[313,156],[286,156]], COLORS.muted, 2.5);
+    figMeter(265, 177, 28, 'V', VR.toFixed(1)+' V', COLORS, '#2f6fe0', Math.min(VR/12,1),
+             {id:'t23V', full:12, ease: state.simMode==='auto'});
+
+    /* منحني الجهد–التيار: خط مستقيم ميله المقاومة */
+    const gx0=560, gyB=386, gw=290, gh=128;
+    optAxes(gx0, gyB, gw, gh, COLORS, 'I (A)', 'V (V)', true);
+    const IM = 12/Math.max(state.R,1)*1.05, VM = 12;
+    const PX = ii => gx0 + (ii/IM)*gw;
+    const PY = vv => gyB - (vv/VM)*gh;
+    ctx.strokeStyle=COLORS.capActive; ctx.lineWidth=2.5;
+    ctx.beginPath(); ctx.moveTo(PX(0), PY(0)); ctx.lineTo(PX(IM), PY(Math.min(IM*state.R, VM))); ctx.stroke();
+    ctx.fillStyle=COLORS.red;
+    ctx.beginPath(); ctx.arc(PX(I), PY(VR), 5.5, 0, Math.PI*2); ctx.fill();
+    optLabel('ميل الخط = المقاومة', gx0+gw-8, gyB-gh+16, COLORS.capActive, 11, 'right');
+
+    optHUD(580, 62, 270, [
+      {text:'قانون أوم', bold:true, color:COLORS.capActive},
+      {text:'V = I · R', ltr:true},
+      {text:'V = '+state.V.toFixed(1)+' V', ltr:true, color:COLORS.blue},
+      {text:'R = '+state.R.toFixed(0)+' Ω', ltr:true, color:COLORS.capDefault},
+      {text:'I = V/R = '+I.toFixed(2)+' A', ltr:true, color:COLORS.capActive, bold:true}
+    ], COLORS);
+
+    let v, vc;
+    if(!state.sw){ v='المفتاح مفتوح ← لا يمرّ تيار، والفولتميتر يقرأ صفرًا على المقاومة'; vc=COLORS.red; }
+    else if(state.R <= 2){ v='مقاومة صغيرة ← تيار كبير يمرّ بسهولة'; vc=COLORS.red; }
+    else if(state.R >= 12){ v='مقاومة كبيرة ← تيار ضعيف جدًا'; vc=COLORS.blue; }
+    else { v='التيار يتناسب طرديًا مع الجهد وعكسيًا مع المقاومة'; vc=COLORS.capActive; }
+    optVerdict(v, COLORS, vc);
+    optCaption('ثبّت المقاومة وزِد الجهد فترى النقطة تتحرك على خط مستقيم — هذا هو قانون أوم.', COLORS);
+  }
+
+  window.t23Reading=function(){
+    const I = current();
+    return [state.V.toFixed(1), state.R.toFixed(0), I.toFixed(2),
+            I ? (I*state.R/I).toFixed(1) : '—'];
+  };
+  window.t23State=state; window.t23Update=t23Update; window.t23Draw=t23Draw;
+})();
+</script>
+
+<script>
+/* =========================================================================
+   نشاط 4 — ربط المقاومات على التوالي وعلى التوازي
+   ========================================================================= */
+(function(){
+  const COLORS = makeColors();
+  const state = { simMode:'auto', t:0, V:12, R1:4, R2:6, mode:'series', sw:1 };
+
+  function req(){
+    return state.mode==='series' ? (state.R1+state.R2)
+                                 : (state.R1*state.R2)/(state.R1+state.R2);
+  }
+  function itot(){ return state.sw ? state.V/req() : 0; }
+  function t24Update(dt){ if(state.simMode==='auto') state.t += dt; switchTap(state, 24); }
+
+  function t24Draw(){
+    ctx.clearRect(0,0,CW,CH);
+    ctx.fillStyle=COLORS.bg; ctx.fillRect(0,0,CW,CH);
+    optTitle('نشاط ٤: ربط المقاومتين على التوالي وعلى التوازي', COLORS);
+
+    const Re = req(), I = itot(), series = state.mode==='series';
+    const L=100, R=470, T=112, B=300;
+
+    if(series){
+      const loop = [[L,T],[R,T],[R,B],[L,B],[L,T]];
+      wire(loop, COLORS.muted, 5);
+      if(state.sw) flowDots(loop, (state.t*Math.min(I,6)*0.14)%1, 14, COLORS);
+      figResistor(215, T, 86, COLORS, 'R₁ = '+state.R1+' Ω', '#8a5a2b');
+      figResistor(370, T, 86, COLORS, 'R₂ = '+state.R2+' Ω', '#2c7a4b');
+      optLabel('التيار نفسه يمرّ في المقاومتين', 290, T-42, COLORS.capActive, 12);
+      optLabel('V₁ = '+(I*state.R1).toFixed(1)+' V', 215, T+40, COLORS.capDefault, 11.5, 'center', true);
+      optLabel('V₂ = '+(I*state.R2).toFixed(1)+' V', 370, T+40, COLORS.green, 11.5, 'center', true);
+    } else {
+      const main = [[L,T],[R,T],[R,B],[L,B],[L,T]];
+      wire(main, COLORS.muted, 5);
+      /* الفرعان متباعدان كفاية كي لا يركب عنوان R₂ على جسم المقاومة الأولى */
+      const br1 = [[230,T],[230,180],[420,180],[420,T]];
+      const br2 = [[230,T],[230,240],[420,240],[420,T]];
+      wire(br1, COLORS.muted, 4); wire(br2, COLORS.muted, 4);
+      figResistor(325, 180, 86, COLORS, 'R₁ = '+state.R1+' Ω', '#8a5a2b');
+      figResistor(325, 240, 86, COLORS, 'R₂ = '+state.R2+' Ω', '#2c7a4b');
+      if(state.sw) flowDots(main, (state.t*Math.min(I,6)*0.12)%1, 12, COLORS);
+      optLabel('الجهد نفسه على المقاومتين', 325, T-30, COLORS.capActive, 12);
+      optLabel('I₁ = '+(state.sw ? state.V/state.R1 : 0).toFixed(2)+' A', 486, 176, COLORS.capDefault, 11.5, 'left', true);
+      optLabel('I₂ = '+(state.sw ? state.V/state.R2 : 0).toFixed(2)+' A', 486, 236, COLORS.green, 11.5, 'left', true);
+    }
+    figBattery(290, B, 96, COLORS, 'ε = '+state.V.toFixed(0)+' V');
+    circuitSwitch(state, 128, B, 54, COLORS, B-42);
+    figMeter(L, 206, 30, 'A', I.toFixed(2)+' A', COLORS, '#c0392b', Math.min(I/6,1),
+             {id:'t24A', full:6, ease: state.simMode==='auto'});
+
+    optHUD(600, 62, 268, [
+      {text: series ? 'الربط على التوالي' : 'الربط على التوازي', bold:true, color:COLORS.capActive},
+      {text: series ? 'R(eq) = R₁ + R₂' : 'R(eq) = R₁·R₂ / (R₁+R₂)', ltr:true},
+      {text:'R₁ = '+state.R1+' Ω , R₂ = '+state.R2+' Ω', ltr:true},
+      {text:'R(eq) = '+Re.toFixed(2)+' Ω', ltr:true, color:COLORS.capActive, bold:true},
+      {text:'ε = '+state.V.toFixed(0)+' V', ltr:true, color:COLORS.blue},
+      {text:'I = ε / R(eq) = '+I.toFixed(2)+' A', ltr:true, color:COLORS.red}
+    ], COLORS);
+
+    let v, vc;
+    if(!state.sw){ v='المفتاح مفتوح ← لا يمرّ تيار في أي فرع، والأميتر يقرأ صفرًا'; vc=COLORS.red; }
+    else if(series){ v='على التوالي: المقاومة المكافئة أكبر من كل مقاومة، فالتيار أقل'; vc=COLORS.capDefault; }
+    else { v='على التوازي: المقاومة المكافئة أصغر من أصغرهما، فالتيار أكبر'; vc=COLORS.green; }
+    optVerdict(v, COLORS, vc);
+    optCaption('بدّل بين الربطين بالقيم نفسها ولاحظ كيف تنقلب النتيجة تمامًا في قراءة الأميتر.', COLORS);
+  }
+
+  window.t24Reading=function(){
+    return [state.mode==='series'?'توالٍ':'توازٍ', state.R1, state.R2,
+            req().toFixed(2), itot().toFixed(2)];
+  };
+  window.t24State=state; window.t24Update=t24Update; window.t24Draw=t24Draw;
+  window.t24SetMode=function(m){ state.mode = m; };
+})();
+</script>
+
+<script>
+/* =========================================================================
+   نشاط 5 — القدرة والطاقة الكهربائية
+   ========================================================================= */
+(function(){
+  const COLORS = makeColors();
+  const state = { simMode:'auto', t:0, device:'lamp', hours:4, price:100 };
+  const DEVICES = {
+    lamp:   { name:'مصباح',   P:60   },
+    tv:     { name:'تلفاز',   P:120  },
+    fridge: { name:'ثلاجة',   P:250  },
+    iron:   { name:'مكواة',   P:1000 },
+    cooler: { name:'مبرّدة',  P:1500 }
+  };
+  const ORDER = ['lamp','tv','fridge','iron','cooler'];
+
+  /* رسم كل جهاز بعناصر الكانفاس، لا بإيموجي — ليراه الطالب كما هو في بيته */
+  function drawDevice(kind, cx, gy, s){
+    groundShadow(cx, gy, s*1.1, 0.13);
+    if(kind === 'lamp'){ figBulb(cx, gy-s*0.62, s*0.34, 1, COLORS); return; }
+    if(kind === 'tv'){
+      ctx.fillStyle = tubeFill(0, gy-s*0.92, 0, gy-s*0.22, '#39424f');
+      ctx.beginPath();
+      ctx.roundRect ? ctx.roundRect(cx-s*0.56, gy-s*0.92, s*1.12, s*0.70, 7)
+                    : ctx.rect(cx-s*0.56, gy-s*0.92, s*1.12, s*0.70);
+      ctx.fill();
+      const g = ctx.createLinearGradient(0, gy-s*0.86, 0, gy-s*0.30);
+      g.addColorStop(0, '#7fc4ff'); g.addColorStop(1, '#2f6fe0');
+      ctx.fillStyle = g;
+      ctx.fillRect(cx-s*0.48, gy-s*0.85, s*0.96, s*0.56);
+      ctx.fillStyle='#39424f';
+      ctx.fillRect(cx-s*0.10, gy-s*0.22, s*0.20, s*0.14);
+      ctx.fillRect(cx-s*0.34, gy-s*0.10, s*0.68, s*0.08);
+      return;
+    }
+    if(kind === 'fridge'){
+      ctx.fillStyle = tubeFill(cx-s*0.40, 0, cx+s*0.40, 0, '#dfe6ef');
+      ctx.beginPath();
+      ctx.roundRect ? ctx.roundRect(cx-s*0.40, gy-s*1.18, s*0.80, s*1.18, 8)
+                    : ctx.rect(cx-s*0.40, gy-s*1.18, s*0.80, s*1.18);
+      ctx.fill();
+      ctx.strokeStyle='#9aa8bd'; ctx.lineWidth=2;
+      ctx.beginPath(); ctx.moveTo(cx-s*0.40, gy-s*0.74); ctx.lineTo(cx+s*0.40, gy-s*0.74); ctx.stroke();
+      ctx.fillStyle='#8b97a8';
+      ctx.fillRect(cx+s*0.20, gy-s*0.68, s*0.06, s*0.26);
+      ctx.fillRect(cx+s*0.20, gy-s*1.08, s*0.06, s*0.24);
+      return;
+    }
+    if(kind === 'iron'){
+      ctx.fillStyle = tubeFill(0, gy-s*0.34, 0, gy, '#b9c6d8');
+      ctx.beginPath();
+      ctx.moveTo(cx-s*0.52, gy); ctx.lineTo(cx+s*0.46, gy);
+      ctx.lineTo(cx+s*0.30, gy-s*0.26); ctx.lineTo(cx-s*0.40, gy-s*0.26);
+      ctx.closePath(); ctx.fill();
+      ctx.fillStyle = tubeFill(0, gy-s*0.62, 0, gy-s*0.26, '#2f6fe0');
+      ctx.beginPath();
+      ctx.roundRect ? ctx.roundRect(cx-s*0.40, gy-s*0.62, s*0.72, s*0.36, 7)
+                    : ctx.rect(cx-s*0.40, gy-s*0.62, s*0.72, s*0.36);
+      ctx.fill();
+      ctx.strokeStyle='#2c3e50'; ctx.lineWidth=5; ctx.lineCap='round';
+      ctx.beginPath(); ctx.arc(cx-s*0.02, gy-s*0.62, s*0.26, Math.PI*1.05, Math.PI*1.95); ctx.stroke();
+      ctx.lineCap='butt';
+      return;
+    }
+    /* مبرّدة هوائية */
+    ctx.fillStyle = tubeFill(cx-s*0.52, 0, cx+s*0.52, 0, '#cfd9e6');
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(cx-s*0.52, gy-s*1.00, s*1.04, s*1.00, 9)
+                  : ctx.rect(cx-s*0.52, gy-s*1.00, s*1.04, s*1.00);
+    ctx.fill();
+    ctx.strokeStyle='#8b97a8'; ctx.lineWidth=2.4;
+    ctx.beginPath(); ctx.arc(cx, gy-s*0.56, s*0.30, 0, Math.PI*2); ctx.stroke();
+    for(let i=0;i<4;i++){
+      const a = i*Math.PI/2 + 0.4;
+      ctx.beginPath(); ctx.moveTo(cx, gy-s*0.56);
+      ctx.lineTo(cx+Math.cos(a)*s*0.28, gy-s*0.56+Math.sin(a)*s*0.28); ctx.stroke();
+    }
+    ctx.fillStyle='#9aa8bd';
+    for(let i=0;i<3;i++) ctx.fillRect(cx-s*0.40, gy-s*0.20+i*s*0.06, s*0.80, s*0.03);
+  }
+
+  function power(){ return DEVICES[state.device].P; }
+  function energy(){ return power()*state.hours/1000; }     // كيلوواط·ساعة
+  function cost(){ return energy()*state.price; }
+
+  function t25Update(dt){ if(state.simMode==='auto') state.t += dt; }
+
+  /* قرص عدّاد الكهرباء في البيت: عدد دوراته يتناسب مع الطاقة المستهلكة،
+     فسرعة دورانه تتناسب مع قدرة الجهاز المشتغل. */
+  function drawMeter(cx, cy, R, P){
+    optBox(cx-R-16, cy-R-14, (R+16)*2, (R+14)*2, COLORS.panel, COLORS.border);
+    ctx.fillStyle = COLORS.bg;
+    ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = COLORS.border; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI*2); ctx.stroke();
+    const ang = (state.simMode==='auto' ? state.t : 0) * (P/1500) * 7.0;
+    ctx.save(); ctx.translate(cx, cy); ctx.rotate(ang);
+    ctx.fillStyle = COLORS.red;
+    ctx.fillRect(-2.5, -R+3, 5, R*0.9);            // العلامة الحمراء على القرص
+    ctx.fillStyle = COLORS.capActive;
+    ctx.beginPath(); ctx.arc(0, 0, 4.5, 0, Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+
+  function t25Draw(){
+    ctx.clearRect(0,0,CW,CH);
+    ctx.fillStyle=COLORS.bg; ctx.fillRect(0,0,CW,CH);
+    optTitle('نشاط ٥: القدرة الكهربائية وطاقة الأجهزة', COLORS);
+
+    const P = power(), Ekwh = energy();
+    const I = P/220;
+
+    /* الجهاز المختار ولوحة بياناته */
+    const dx = 150, dy = 196;
+    drawMeter(735, 302, 34, P);
+    optLabel('قرص العدّاد يدور أسرع كلما زادت القدرة', 735, 362, COLORS.muted, 11);
+    drawDevice(state.device, dx, dy, 96);
+    optLabel(DEVICES[state.device].name, dx, dy+26, COLORS.capActive, 14);
+    optBox(dx-96, dy+40, 192, 58, COLORS.panel, COLORS.border);
+    optLabel('لوحة البيانات', dx, dy+60, COLORS.muted, 11);
+    optLabel('220 V — '+P+' W', dx, dy+82, COLORS.capDefault, 13.5, 'center', true);
+
+    /* مقارنة الأجهزة الخمسة بالساعات نفسها — هنا يظهر الفرق فعلًا */
+    const byB = 352, bh = 172, bx0 = 290, bw = 46, gap = 22;
+    const EM = 1500*state.hours/1000;
+    optLabel('الطاقة المستهلكة في '+state.hours.toFixed(0)+' ساعات (كيلوواط·ساعة)',
+             bx0 + (bw+gap)*2.5 - gap/2, byB-bh-26, COLORS.capActive, 12);
+    ORDER.forEach((k,i)=>{
+      const x = bx0 + i*(bw+gap);
+      const e = DEVICES[k].P*state.hours/1000;
+      const fill = Math.max(2, (e/EM)*bh);
+      ctx.fillStyle = COLORS.border;
+      ctx.fillRect(x, byB-bh, bw, bh);
+      ctx.fillStyle = (k===state.device) ? COLORS.capDefault : COLORS.blue;
+      ctx.globalAlpha = (k===state.device) ? 1 : 0.42;
+      ctx.fillRect(x, byB-fill, bw, fill);
+      ctx.globalAlpha = 1;
+      optLabel(e.toFixed(2), x+bw/2, byB-fill-8, (k===state.device)?COLORS.capDefault:COLORS.muted, 11, 'center', true);
+      optLabel(DEVICES[k].name, x+bw/2, byB+20, (k===state.device)?COLORS.capActive:COLORS.muted, 11);
+    });
+
+    optHUD(600, 62, 268, [
+      {text:'حساب الطاقة والكلفة', bold:true, color:COLORS.capActive},
+      {text:'P = V · I', ltr:true},
+      {text:'P = '+P+' W , I = '+I.toFixed(2)+' A', ltr:true, color:COLORS.red},
+      {text:'زمن التشغيل', color:COLORS.muted},
+      {text:'t = '+state.hours.toFixed(0)+' h', ltr:true},
+      {text:'E = P·t = '+Ekwh.toFixed(2)+' kWh', ltr:true, color:COLORS.capActive, bold:true},
+      {text:'الكلفة = '+cost().toFixed(0)+' دينار', color:COLORS.capDefault}
+    ], COLORS);
+
+    let v, vc;
+    if(P >= 1000){ v='جهاز عالي القدرة ← يستهلك طاقة كبيرة في وقت قصير'; vc=COLORS.red; }
+    else if(P >= 200){ v='قدرة متوسطة ← الاستهلاك معقول إذا قلّ زمن التشغيل'; vc=COLORS.capActive; }
+    else { v='قدرة صغيرة ← استهلاك قليل حتى لو طال زمن التشغيل'; vc=COLORS.green; }
+    optVerdict(v, COLORS, vc);
+    optCaption('الكيلوواط·ساعة هو ما تحسبه فاتورة الكهرباء: قدرة الجهاز بالكيلوواط مضروبة في ساعات تشغيله.', COLORS);
+  }
+
+  window.t25Reading=function(){
+    return [DEVICES[state.device].name, power(), state.hours.toFixed(0),
+            energy().toFixed(2), cost().toFixed(0)];
+  };
+  window.t25State=state; window.t25Update=t25Update; window.t25Draw=t25Draw;
+  window.t25SetDevice=function(d){ if(DEVICES[d]) state.device = d; };
+})();
+</script>
+
+<script>
+/* =========================================================================
+   نشاط 6 — الدائرة الكهربائية والمصهر (الفيوز)
+   ========================================================================= */
+(function(){
+  const COLORS = makeColors();
+  const state = { simMode:'auto', t:0, devices:3, fuse:10, sw:1 };
+  const EACH = 2.2;                                  // أمبير لكل جهاز
+
+  function load(){ return state.sw ? state.devices*EACH : 0; }
+  function blown(){ return state.sw && state.devices*EACH > state.fuse; }
+
+  function t26Update(dt){ if(state.simMode==='auto') state.t += dt; switchTap(state, 26); }
+
+  function t26Draw(){
+    ctx.clearRect(0,0,CW,CH);
+    ctx.fillStyle=COLORS.bg; ctx.fillRect(0,0,CW,CH);
+    optTitle('نشاط ٦: المصهر يحمي دائرة البيت', COLORS);
+
+    const I = load(), off = blown();
+    const L=100, R=490, T=122, B=316;
+    const loop = [[L,T],[R,T],[R,B],[L,B],[L,T]];
+    wire(loop, COLORS.muted, 5);
+    if(!off && state.sw) flowDots(loop, (state.t*Math.min(I,12)*0.08)%1, 14, COLORS);
+
+    figBattery(200, B, 88, COLORS, 'مصدر البيت');
+    circuitSwitch(state, 262, B, 50, COLORS, B-42);
+    figFuse(370, B, 74, off, COLORS);
+    optLabel(off ? 'المصهر انصهر فانقطعت الدائرة' : (state.sw ? 'المصهر سليم' : 'المصهر سليم — والمفتاح مفتوح'),
+             370, B+34, off?COLORS.red:COLORS.green, 12);
+
+    /* الأجهزة الموصولة — موزّعة على عرض السلك العلوي مهما كان عددها،
+       فلا يخرج جهاز خارج الدائرة حين يشغّل الطالب ثمانية أجهزة. */
+    const nDev = state.devices, xA = 148, xB = 448;
+    const step = nDev > 1 ? (xB-xA)/(nDev-1) : 0;
+    const br   = Math.max(13, Math.min(20, step*0.46));
+    for(let i=0;i<nDev;i++){
+      const x = nDev === 1 ? (xA+xB)/2 : xA + i*step;
+      figBulb(x, T, br, (off || !state.sw) ? 0 : 0.9, COLORS);
+      optLabel('جهاز', x, T+42, COLORS.muted, 10.5);
+    }
+
+    /* مقياس الحمل مقابل تقدير المصهر */
+    const bx0=600, byB=330, bw=250;
+    optLabel('التيار الكلي مقابل تقدير المصهر', 724, 250, COLORS.capActive, 12);
+    ctx.fillStyle=COLORS.border; ctx.fillRect(bx0, byB-26, bw, 26);
+    const fmax = 20;
+    ctx.fillStyle = off ? COLORS.red : COLORS.green;
+    ctx.fillRect(bx0, byB-26, bw*Math.min(I/fmax,1), 26);
+    const fx = bx0 + bw*Math.min(state.fuse/fmax,1);
+    ctx.strokeStyle=COLORS.capDefault; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.moveTo(fx, byB-36); ctx.lineTo(fx, byB+8); ctx.stroke();
+    optLabel('حدّ المصهر', fx, byB+26, COLORS.capDefault, 10.5);
+    optLabel(I.toFixed(1)+' A', bx0+bw*Math.min(I/fmax,1)/2, byB-32, COLORS.wire, 11.5, 'center', true);
+
+    optHUD(600, 62, 268, [
+      {text:'حمل الدائرة', bold:true, color:COLORS.capActive},
+      {text:'عدد الأجهزة العاملة', color:COLORS.muted},
+      {text:'n = '+state.devices+' × '+EACH+' A', ltr:true},
+      {text:'I = '+I.toFixed(1)+' A', ltr:true, color: off?COLORS.red:COLORS.green, bold:true},
+      {text:'تقدير المصهر', color:COLORS.muted},
+      {text:'I(fuse) = '+state.fuse.toFixed(0)+' A', ltr:true, color:COLORS.capDefault}
+    ], COLORS);
+
+    let v, vc;
+    if(!state.sw){ v='المفتاح مفتوح ← الدائرة مقطوعة، فلا تيار ولا خطر على المصهر'; vc=COLORS.muted; }
+    else if(off){ v='التيار تجاوز تقدير المصهر ← انصهر وقطع الدائرة فحمى الأسلاك'; vc=COLORS.red; }
+    else if(I > state.fuse*0.8){ v='الحمل اقترب من حدّ المصهر ← لا تُشغّل جهازًا آخر'; vc=COLORS.capDefault; }
+    else { v='الحمل ضمن الحدّ الآمن ← الدائرة تعمل بأمان'; vc=COLORS.green; }
+    optVerdict(v, COLORS, vc);
+    optCaption('المصهر سلك رفيع ينصهر قبل أن تسخن أسلاك البيت — فلا يُستبدل بسلك أسمك مهما بدا ذلك عمليًا.', COLORS);
+  }
+
+  window.t26Reading=function(){
+    return [state.devices, load().toFixed(1), state.fuse.toFixed(0),
+            blown() ? 'انصهر' : 'سليم'];
+  };
+  window.t26State=state; window.t26Update=t26Update; window.t26Draw=t26Draw;
+})();
+</script>
+
+<script>
+/* =========================================================================
+   أدوات مشتركة للمغناطيسية
+   المجال عند أي نقطة يُحسب من قطبَي المغناطيس لا يُرسم بالتخمين:
+   يُعامَل كل قطب كمصدر شدّته تقلّ مع مربع البعد، فيكون المجال المحصّل
+   جمعًا اتجاهيًا لمساهمة القطبين. منه تُشتق خطوط المجال واتجاه كل برادة
+   وزاوية كل إبرة مغناطيسية.
+   ========================================================================= */
+
+/* قطبا مغناطيس قضيبي طوله len عند (cx,cy)، وflip يبدّل الشمالي بالجنوبي */
+function magnetPoles(cx, cy, len, flip){
+  const d = len*0.34;
+  return flip ? [{x:cx-d, y:cy, m:+1}, {x:cx+d, y:cy, m:-1}]
+              : [{x:cx+d, y:cy, m:+1}, {x:cx-d, y:cy, m:-1}];
+}
+/* المجال المحصّل عند نقطة من مجموعة أقطاب */
+function fieldAtPoint(poles, x, y){
+  let bx = 0, by = 0;
+  poles.forEach(p=>{
+    const dx = x-p.x, dy = y-p.y;
+    const r2 = Math.max(dx*dx + dy*dy, 64);        // حدّ أدنى قرب القطب
+    const r  = Math.sqrt(r2);
+    const s  = p.m/r2;
+    bx += s*dx/r; by += s*dy/r;
+  });
+  return { x:bx, y:by, mag:Math.hypot(bx,by) };
+}
+/* خط مجال واحد: يُتتبَّع خطوة خطوة في اتجاه المجال */
+function fieldLine(poles, x, y, step, steps, bounds){
+  const pts = [[x,y]];
+  for(let i=0;i<steps;i++){
+    const B = fieldAtPoint(poles, x, y);
+    if(!isFinite(B.mag) || B.mag < 1e-9) break;
+    x += step*B.x/B.mag; y += step*B.y/B.mag;
+    if(x<bounds[0] || x>bounds[2] || y<bounds[1] || y>bounds[3]) { pts.push([x,y]); break; }
+    pts.push([x,y]);
+    /* توقّف عند بلوغ قطب جنوبي */
+    if(poles.some(p=> p.m<0 && Math.hypot(x-p.x, y-p.y) < 9)) break;
+  }
+  return pts;
+}
+/* مغناطيس قضيبي: نصفه الشمالي أحمر والجنوبي أزرق كما في مختبر المدرسة */
+function figMagnet(cx, cy, len, hh, flip, COLORS, faded){
+  const nRight = !flip;
+  groundShadow(cx, cy+hh/2+2, len*1.05, faded?0.06:0.12);
+  ctx.save();
+  if(faded) ctx.globalAlpha = 0.45;
+  const half = len/2;
+  const nx = nRight ? cx : cx-half, sx = nRight ? cx-half : cx;
+  ctx.fillStyle = tubeFill(0, cy-hh/2, 0, cy+hh/2, '#e8523f');
+  ctx.fillRect(nx, cy-hh/2, half, hh);
+  ctx.fillStyle = tubeFill(0, cy-hh/2, 0, cy+hh/2, '#2f6fe0');
+  ctx.fillRect(sx, cy-hh/2, half, hh);
+  ctx.strokeStyle='#2c3e50'; ctx.lineWidth=1.6;
+  ctx.strokeRect(cx-half, cy-hh/2, len, hh);
+  optLabel('N', nRight ? cx+half*0.5 : cx-half*0.5, cy+hh*0.20, '#fff', hh*0.56, 'center', true);
+  optLabel('S', nRight ? cx-half*0.5 : cx+half*0.5, cy+hh*0.20, '#fff', hh*0.56, 'center', true);
+  ctx.restore();
+}
+/* إبرة مغناطيسية حرّة: رأسها الأحمر يشير إلى اتجاه المجال عندها */
+function figNeedle(cx, cy, len, ang, COLORS){
+  ctx.save(); ctx.translate(cx, cy); ctx.rotate(ang);
+  ctx.fillStyle='#e8523f';
+  ctx.beginPath(); ctx.moveTo(len/2,0); ctx.lineTo(-2,-4.2); ctx.lineTo(-2,4.2); ctx.closePath(); ctx.fill();
+  ctx.fillStyle='#2f6fe0';
+  ctx.beginPath(); ctx.moveTo(-len/2,0); ctx.lineTo(2,-4.2); ctx.lineTo(2,4.2); ctx.closePath(); ctx.fill();
+  ctx.restore();
+  ctx.fillStyle='#2c3e50';
+  ctx.beginPath(); ctx.arc(cx, cy, 2.6, 0, Math.PI*2); ctx.fill();
+}
+/* بوصلة: علبة مدرّجة فيها إبرة */
+function figCompass(cx, cy, r, ang, COLORS){
+  groundShadow(cx, cy+r+2, r*1.7, 0.10);
+  ctx.fillStyle = tubeFill(0, cy-r, 0, cy+r, '#e8eef7');
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle='#8b97a8'; ctx.lineWidth=2.4; ctx.stroke();
+  ctx.fillStyle='#ffffff';
+  ctx.beginPath(); ctx.arc(cx, cy, r*0.84, 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle='#c3ccda'; ctx.lineWidth=1.2;
+  for(let i=0;i<8;i++){
+    const a = i*Math.PI/4;
+    ctx.beginPath();
+    ctx.moveTo(cx+Math.cos(a)*r*0.84, cy+Math.sin(a)*r*0.84);
+    ctx.lineTo(cx+Math.cos(a)*r*0.68, cy+Math.sin(a)*r*0.68);
+    ctx.stroke();
+  }
+  optLabel('ش', cx, cy-r*0.52, '#6b7a90', r*0.34);
+  optLabel('ج', cx, cy+r*0.76, '#6b7a90', r*0.34);
+  figNeedle(cx, cy, r*1.24, ang, COLORS);
+}
+/* برادة حديد: كل ذرّة برادة تستطيل في اتجاه المجال عندها */
+function figFilings(poles, x0, y0, w, hh, spacing, COLORS, alpha){
+  ctx.save();
+  ctx.strokeStyle = COLORS.wire; ctx.lineCap='round';
+  const base = alpha===undefined ? 0.7 : alpha;
+  let k = 0;
+  for(let x = x0; x <= x0+w; x += spacing){
+    for(let y = y0; y <= y0+hh; y += spacing){
+      /* نثر ثابت (لا عشوائي كل إطار) كي تبدو البرادة مرشوشة لا مصفوفة */
+      k++;
+      const jx = ((k*37)%11 - 5)*spacing*0.07, jy = ((k*53)%11 - 5)*spacing*0.07;
+      const px = x+jx, py = y+jy;
+      const B = fieldAtPoint(poles, px, py);
+      if(B.mag < 1.1e-5) continue;                  // مجال ضعيف جدًا: لا برادة تستجيب
+      /* الطول والعتامة يتبعان شدة المجال، فتتكدّس البرادة عند القطبين */
+      const s = Math.min(1, Math.sqrt(B.mag*900));
+      const L = spacing*(0.16 + 0.30*s);
+      ctx.lineWidth = 1.1 + s*1.3;
+      ctx.globalAlpha = base*(0.42 + 0.58*s);
+      const ux = B.x/B.mag, uy = B.y/B.mag;
+      ctx.beginPath();
+      ctx.moveTo(px-ux*L, py-uy*L); ctx.lineTo(px+ux*L, py+uy*L); ctx.stroke();
+    }
+  }
+  ctx.restore(); ctx.lineCap='butt';
+}
+</script>
+
+
+
+
+
+
+
+
+
+
+<script>
+/* =========================================================================
+   الكانفاس والمؤشّر (لمس/فأرة/قلم) — منقولة من القالب
+   ========================================================================= */
+const canvas = document.getElementById('simCanvas');
+const ctx = canvas.getContext('2d');
+// فضاء الرسم المنطقي 900×480 لكل التجارب.
+const CW = 900, CH = 480;
+
+function resizeCanvas(){
+  const rect = canvas.getBoundingClientRect();
+  const cssW = rect.width || canvas.clientWidth || CW;
+  const dpr  = window.devicePixelRatio || 1;
+  let scale = (cssW / CW) * dpr;
+  scale = Math.max(scale, dpr);
+  scale = Math.min(scale, 4);
+  canvas.width  = Math.round(CW * scale);
+  canvas.height = Math.round(CH * scale);
+  ctx.setTransform(scale, 0, 0, scale, 0, 0);
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+window.addEventListener('orientationchange', ()=> setTimeout(resizeCanvas, 200));
+window.addEventListener('load', ()=> setTimeout(resizeCanvas, 60));
+
+const pointer = { x: 0, y: 0, isDown: false, isClicked: false, justPressed: false,
+                  pressX: 0, pressY: 0 };
+let _clickPending = false;
+let _pressPending = false;
+let _pressPos = { x: 0, y: 0 };
+window.pointer = pointer;
+
+function getCanvasPos(evt){
+  const rect = canvas.getBoundingClientRect();
+  const t = (evt.touches && evt.touches.length) ? evt.touches[0] : (evt.changedTouches && evt.changedTouches[0]);
+  const clientX = t ? t.clientX : evt.clientX;
+  const clientY = t ? t.clientY : evt.clientY;
+  return { x: (clientX-rect.left)*(CW/rect.width), y: (clientY-rect.top)*(CH/rect.height) };
+}
+function hitZone(zone, pad){
+  const m = (pad === undefined) ? 18 : pad;
+  const x0 = zone.x - m, y0 = zone.y - m;
+  const x1 = zone.x + zone.w + m, y1 = zone.y + zone.h + m;
+  const inPress   = pointer.pressX >= x0 && pointer.pressX <= x1 &&
+                    pointer.pressY >= y0 && pointer.pressY <= y1;
+  const inCurrent = pointer.x >= x0 && pointer.x <= x1 &&
+                    pointer.y >= y0 && pointer.y <= y1;
+  return inPress || inCurrent;
+}
+window.hitZone = hitZone;
+
+window._dragHitTest = null;
+function onPointerDown(evt){
+  const p = getCanvasPos(evt); pointer.x=p.x; pointer.y=p.y; pointer.isDown=true;
+  _pressPending = true; _pressPos.x = p.x; _pressPos.y = p.y;
+  _clickPending = true;
+  const onDraggable = (typeof window._dragHitTest === 'function') && window._dragHitTest(p.x, p.y);
+  if (onDraggable) {
+    if (evt.cancelable) evt.preventDefault();
+    canvas.classList.add('dragging');
+    if (canvas.setPointerCapture && evt.pointerId != null) {
+      try { canvas.setPointerCapture(evt.pointerId); } catch(e){}
+    }
+  }
+}
+function onPointerMove(evt){
+  if(!pointer.isDown) return;
+  if (canvas.classList.contains('dragging') && evt.cancelable) evt.preventDefault();
+  const p = getCanvasPos(evt); pointer.x=p.x; pointer.y=p.y;
+}
+function onPointerUp(evt){
+  const wasDown = pointer.isDown;
+  if(pointer.isDown && evt){
+    const p = getCanvasPos(evt); pointer.x=p.x; pointer.y=p.y;
+  }
+  pointer.isDown=false;
+  canvas.classList.remove('dragging');
+  if (wasDown && window.SoundFX) SoundFX.tick();
+}
+function forceRelease(){
+  if (pointer.isDown){
+    pointer.isDown = false;
+    canvas.classList.remove('dragging');
+  }
+}
+window.addEventListener('blur', forceRelease);
+document.addEventListener('visibilitychange', ()=>{ if(document.hidden) forceRelease(); });
+canvas.addEventListener('pointerdown', onPointerDown);
+canvas.addEventListener('pointerup', onPointerUp);
+window.addEventListener('pointermove', onPointerMove, {passive:false});
+window.addEventListener('pointerup', onPointerUp);
+window.addEventListener('pointercancel', onPointerUp);
+
+/* تمرير التمرير يدويًّا فوق الكانفاس (لأن touch-action:none يعطّل التمرير) */
+(function(){
+  let scrollForwarding = false;
+  let lastTouchY = 0, lastTouchX = 0;
+  let scrollTarget = null, hScrollTarget = null;
+
+  function nearestScrollable(el){
+    for (let n = el; n && n !== document.body; n = n.parentElement){
+      const oy = getComputedStyle(n).overflowY;
+      if ((oy === 'auto' || oy === 'scroll') && n.scrollHeight > n.clientHeight) return n;
+    }
+    const area = document.getElementById('canvasArea');
+    if (area && area.scrollHeight > area.clientHeight) return area;
+    return document.scrollingElement || document.documentElement;
+  }
+  /* حاوية التمرير الأفقي: على الجوال يكون الرسم أعرض من الشاشة، والتلميح
+     يَعِد الطالب بأن يسحبه يمينًا ويسارًا — فيجب أن يعمل ذلك فعلًا. */
+  function nearestHScrollable(el){
+    for (let n = el; n && n !== document.body; n = n.parentElement){
+      const ox = getComputedStyle(n).overflowX;
+      if ((ox === 'auto' || ox === 'scroll') && n.scrollWidth > n.clientWidth + 2) return n;
+    }
+    return null;
+  }
+
+  canvas.addEventListener('touchstart', function(e){
+    if (e.touches.length !== 1) { scrollForwarding = false; return; }
+    const p = getCanvasPos(e);
+    const onDraggable = (typeof window._dragHitTest === 'function') && window._dragHitTest(p.x, p.y);
+    if (onDraggable) { scrollForwarding = false; return; }
+    scrollForwarding = true;
+    lastTouchY = e.touches[0].clientY;
+    lastTouchX = e.touches[0].clientX;
+    scrollTarget  = nearestScrollable(canvas);
+    hScrollTarget = nearestHScrollable(canvas);
+  }, {passive:true});
+
+  canvas.addEventListener('touchmove', function(e){
+    if (!scrollForwarding || e.touches.length !== 1 || !scrollTarget) return;
+    const y = e.touches[0].clientY, x = e.touches[0].clientX;
+    const dy = lastTouchY - y, dx = lastTouchX - x;
+    lastTouchY = y; lastTouchX = x;
+    /* الحركة الغالبة تقرّر: عموديًا تمرير الصفحة، وأفقيًا تحريك الرسم نفسه */
+    if (hScrollTarget && Math.abs(dx) > Math.abs(dy)) hScrollTarget.scrollLeft += dx;
+    else scrollTarget.scrollTop += dy;
+    if (e.cancelable) e.preventDefault();
+  }, {passive:false});
+
+  function endForward(){ scrollForwarding = false; scrollTarget = null; hScrollTarget = null; }
+  canvas.addEventListener('touchend', endForward);
+  canvas.addEventListener('touchcancel', endForward);
+})();
+
+/* متصفحات قديمة بلا Pointer Events */
+if (!('onpointerdown' in window)) {
+  canvas.addEventListener('touchstart', onPointerDown, {passive:true});
+  window.addEventListener('touchmove', onPointerMove, {passive:false});
+  window.addEventListener('touchend', onPointerUp);
+  window.addEventListener('touchcancel', onPointerUp);
+  canvas.addEventListener('mousedown', onPointerDown);
+  window.addEventListener('mouseup', onPointerUp);
+}
+
+/* =========================================================================
+   الصوت — نغمات مركّبة بلا ملفات صوتية، مع زر كتم.
+   ========================================================================= */
+const SoundFX = (function(){
+  let actx = null, enabled = true;
+  function ensure(){
+    if(!actx){
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if(!AC) return null;
+      actx = new AC();
+    }
+    if(actx.state === 'suspended') actx.resume();
+    return actx;
+  }
+  function tone(freq, dur, type, peak){
+    if(!enabled) return;
+    const c = ensure();
+    if(!c) return;
+    const osc = c.createOscillator(), gain = c.createGain();
+    osc.type = type || 'sine';
+    osc.frequency.setValueAtTime(freq, c.currentTime);
+    gain.gain.setValueAtTime(0.0001, c.currentTime);
+    gain.gain.linearRampToValueAtTime(peak || 0.07, c.currentTime + 0.008);
+    gain.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + dur);
+    osc.connect(gain); gain.connect(c.destination);
+    osc.start(); osc.stop(c.currentTime + dur + 0.03);
+  }
+  return {
+    click(){ tone(680, 0.09, 'sine', 0.06); },
+    tick(){ tone(560, 0.05, 'square', 0.035); },
+    toggleOn(){ tone(880, 0.12, 'triangle', 0.07); },
+    toggleOff(){ tone(420, 0.12, 'triangle', 0.07); },
+    setEnabled(v){ enabled = v; },
+    isEnabled(){ return enabled; }
+  };
+})();
+window.SoundFX = SoundFX;
+
+document.addEventListener('click', (e)=>{
+  const el = e.target.closest('.ctrl-btn, .tab-btn, .toolbar-btn, .welcome-start-btn, .chapter-card, .back-btn');
+  if(el) SoundFX.click();
+});
+
+const soundToggleBtn = document.getElementById('soundToggleBtn');
+if (soundToggleBtn) {
+  soundToggleBtn.addEventListener('click', ()=>{
+    const next = !SoundFX.isEnabled();
+    SoundFX.setEnabled(next);
+    soundToggleBtn.textContent = next ? '🔊' : '🔇';
+    soundToggleBtn.classList.toggle('muted', !next);
+    soundToggleBtn.setAttribute('aria-label', next ? 'كتم الصوت' : 'تشغيل الصوت');
+    if (next) SoundFX.click();
+  });
+}
+
+/* ===== تبديل المظهر الفاتح/الداكن ===== */
+const themeToggleBtn = document.getElementById('themeToggleBtn');
+if (themeToggleBtn) {
+  const meta = document.querySelector('meta[name="theme-color"]');
+  const setTheme = function(name){
+    const light = (name === 'light');
+    document.documentElement.setAttribute('data-theme', light ? 'light' : 'dark');
+    if (window.applyCanvasTheme) window.applyCanvasTheme(light ? 'light' : 'dark');
+    /* الزر يعرض المظهر الذي ستنتقل إليه */
+    themeToggleBtn.textContent = light ? '🌙' : '☀️';
+    themeToggleBtn.title = light ? 'التحويل إلى المظهر الليلي' : 'التحويل إلى المظهر النهاري';
+    if (meta) meta.setAttribute('content', light ? '#eaf1ff' : '#141a3d');
+    if (window.redrawOnce) window.redrawOnce();
+  };
+  let current = 'light';                 /* المرح النهاري هو الافتراضي */
+  setTheme(current);
+  themeToggleBtn.addEventListener('click', ()=>{
+    current = (current === 'dark') ? 'light' : 'dark';
+    setTheme(current);
+    if (window.SoundFX) SoundFX.click();
+  });
+}
+
+/* ===== إظهار/إخفاء السايدبار ===== */
+const appMain = document.getElementById('appMain');
+const sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
+if (sidebarToggleBtn && appMain) {
+  sidebarToggleBtn.addEventListener('click', ()=>{
+    const hidden = appMain.classList.toggle('sidebar-hidden');
+    sidebarToggleBtn.classList.toggle('active', !hidden);
+    sidebarToggleBtn.textContent = hidden ? '☰ إظهار الأدوات والخطوات' : '☰ الأدوات والخطوات';
+    setTimeout(resizeCanvas, 50);
+  });
+}
+
+/* ===== ملء الشاشة ===== */
+const canvasArea = document.getElementById('canvasArea');
+const fullscreenBtn = document.getElementById('fullscreenBtn');
+function realFsElement(){
+  return document.fullscreenElement || document.webkitFullscreenElement || null;
+}
+function isPseudoFs(){
+  return canvasArea && canvasArea.classList.contains('pseudo-fs');
+}
+function isFullscreen(){
+  return !!realFsElement() || isPseudoFs();
+}
+function updateFullscreenBtn(){
+  if(!fullscreenBtn) return;
+  const on = isFullscreen();
+  fullscreenBtn.textContent = on ? '✕ إنهاء ملء الشاشة' : '⛶ ملء الشاشة';
+  setTimeout(resizeCanvas, 120);
+}
+function enterPseudoFs(){
+  if(!canvasArea) return;
+  canvasArea.classList.add('pseudo-fs');
+  document.body.classList.add('fs-lock');
+  updateFullscreenBtn();
+}
+function exitPseudoFs(){
+  if(!canvasArea) return;
+  canvasArea.classList.remove('pseudo-fs');
+  document.body.classList.remove('fs-lock');
+  updateFullscreenBtn();
+}
+if (fullscreenBtn && canvasArea) {
+  fullscreenBtn.addEventListener('click', ()=>{
+    if (isPseudoFs()) { exitPseudoFs(); return; }
+    if (realFsElement()) {
+      const exit = document.exitFullscreen || document.webkitExitFullscreen;
+      if (exit) exit.call(document);
+      setTimeout(updateFullscreenBtn, 150);
+      return;
+    }
+    const req = canvasArea.requestFullscreen || canvasArea.webkitRequestFullscreen;
+    if (req) {
+      let p;
+      try { p = req.call(canvasArea); } catch(e){ p = null; }
+      if (p && typeof p.then === 'function') {
+        p.then(()=> updateFullscreenBtn())
+         .catch(()=> enterPseudoFs());
+      } else {
+        setTimeout(()=>{ if (!realFsElement()) enterPseudoFs(); else updateFullscreenBtn(); }, 120);
+      }
+    } else {
+      enterPseudoFs();
+    }
+  });
+  document.addEventListener('fullscreenchange', updateFullscreenBtn);
+  document.addEventListener('webkitfullscreenchange', updateFullscreenBtn);
+  document.addEventListener('keydown', e=>{
+    if (e.key === 'Escape' && isPseudoFs()) exitPseudoFs();
+  });
+}
+</script>
+
+<script>
+/* =========================================================================
+   هيكل التطبيق — اسم الأستاذ، الفصول، التجارب، التنقّل، حلقة الرسم
+   ========================================================================= */
+
+/* ===== اسم الأستاذ =====
+   يُكتب من الشاشة نفسها (زر «إعداد» في الهيدر أو في شاشة الترحيب) ويُحفظ في
+   المتصفح فلا يُعاد كتابته في كل مرة. وهذا السطر يبقى القيمة الافتراضية لمن
+   يفضّل تثبيت الاسم داخل الملف قبل توزيعه على الطلاب. */
+const TEACHER = 'اسم الاستاذ';
+const TEACHER_KEY = 'physics3m.teacherName';
+
+function readStoredTeacher(){
+  try { return localStorage.getItem(TEACHER_KEY); } catch(e){ return null; }
+}
+function storeTeacher(name){
+  try { localStorage.setItem(TEACHER_KEY, name); return true; } catch(e){ return false; }
+}
+function applyTeacher(name){
+  document.querySelectorAll('[data-teacher-name]').forEach(el=>{ el.textContent = name; });
+}
+let teacherName = (readStoredTeacher() || TEACHER).trim() || TEACHER;
+applyTeacher(teacherName);
+
+(function initTeacherEditor(){
+  const modal  = document.getElementById('teacherModal');
+  const input  = document.getElementById('teacherInput');
+  const note   = document.getElementById('teacherNote');
+  const openers = ['teacherBtn','welcomeTeacherBtn'].map(id=>document.getElementById(id));
+
+  function open(){
+    input.value = (teacherName === TEACHER) ? '' : teacherName;
+    note.textContent = '';
+    modal.hidden = false;
+    setTimeout(()=>{ try{ input.focus(); input.select(); }catch(e){} }, 40);
+  }
+  function close(){ modal.hidden = true; }
+  function save(){
+    const v = input.value.trim();
+    if(!v){ note.textContent = 'اكتب الاسم أولًا.'; return; }
+    teacherName = v;
+    applyTeacher(teacherName);
+    if(storeTeacher(teacherName)) close();
+    else {
+      /* بعض المتصفحات تمنع الحفظ عند فتح الملف مباشرة من القرص */
+      note.textContent = 'تعذّر الحفظ في هذا المتصفح، فالاسم يظهر الآن لكنه يعود إلى الافتراضي بعد إغلاق الملف.';
+      setTimeout(close, 2600);
+    }
+  }
+
+  openers.forEach(b=>{ if(b) b.addEventListener('click', open); });
+  document.getElementById('teacherSave').addEventListener('click', save);
+  document.getElementById('teacherCancel').addEventListener('click', close);
+  modal.addEventListener('click', e=>{ if(e.target === modal) close(); });
+  input.addEventListener('keydown', e=>{
+    if(e.key === 'Enter') save();
+    if(e.key === 'Escape') close();
+  });
+  document.addEventListener('keydown', e=>{ if(e.key === 'Escape' && !modal.hidden) close(); });
+})();
+
+/* بيانات التجارب مفهرسة بالفصل: 11،12… للفصل الأول و21،22… للثاني */
+const EXPERIMENTS = {
+  21: {
+    purpose:'أن تعرف معنى شدة التيار الكهربائي وتحسبها من الشحنة والزمن.',
+    cols:['Q (C)','t (s)','I (A)','عدد الإلكترونات'],
+    conclusion:'شدة التيار هي مقدار الشحنة التي تمرّ في مقطع الموصل في وحدة الزمن. والأمبير الواحد يعني مرور كولوم واحد في كل ثانية، وهو ما يقيسه الأميتر الموصول على التوالي في الدائرة.',
+    question:'مرّت شحنة مقدارها 12 كولومًا في موصل خلال 4 ثوانٍ. كم شدة التيار؟',
+    title:'نشاط ١: التيار الكهربائي وشدته',
+    subtitle:'شدة التيار = الشحنة المارّة في مقطع الموصل مقسومة على الزمن',
+    tools:['بطارية وأسلاك توصيل','مصباح صغير','أميتر','ساعة توقيت','مفتاح كهربائي'],
+    steps:[
+      'صِل الدائرة ولاحظ سريان الإلكترونات في السلك.',
+      'اقرأ شدة التيار على الأميتر.',
+      'ثبّت الزمن وزِد الشحنة المارّة ولاحظ زيادة شدة التيار.',
+      'ثبّت الشحنة وزِد الزمن ولاحظ نقصان شدة التيار.',
+      'قارن إضاءة المصباح في الحالتين.',
+      'احسب في دفترك عدد الإلكترونات التي تمرّ في كل ثانية.'
+    ]
+  },
+  22: {
+    purpose:'أن تميّز بين القوة الدافعة الكهربائية وفرق الجهد، وتحسب الشغل المبذول على الشحنة.',
+    cols:['ε (V)','q (C)','W (J)','W/q (V)'],
+    conclusion:'القوة الدافعة الكهربائية هي الشغل الذي يبذله المصدر لنقل وحدة الشحنات خلال الدائرة كاملة، وتُقاس بالفولت. والفولت الواحد يعني بذل جول واحد من الشغل لنقل كولوم واحد من الشحنة.',
+    question:'بطارية قوتها الدافعة 9 فولت. كم جولًا تبذل لنقل شحنة مقدارها 2 كولوم؟',
+    title:'نشاط ٢: القوة الدافعة وفرق الجهد',
+    subtitle:'الفولت الواحد هو جول واحد من الشغل لكل كولوم من الشحنة',
+    tools:['بطارية معلومة القوة الدافعة','فولتميتر','مصباح صغير','أسلاك توصيل','مفتاح كهربائي'],
+    steps:[
+      'صِل الفولتميتر على قطبي البطارية واقرأ القوة الدافعة.',
+      'تابع الشحنة في سلّم الجهد: البطارية ترفعها والمصباح ينزلها.',
+      'زِد القوة الدافعة ولاحظ زيادة الشغل المبذول على الشحنة نفسها.',
+      'زِد الشحنة المنقولة ولاحظ زيادة الشغل أيضًا.',
+      'احسب W/q وقارنه بقيمة القوة الدافعة: ستجدهما متساويين.',
+      'استنتج لماذا تُقاس القوة الدافعة بالفولت لا بالجول.'
+    ]
+  },
+  23: {
+    purpose:'أن تتحقق من قانون أوم وتستنتج العلاقة بين الجهد والتيار والمقاومة.',
+    cols:['V (V)','R (Ω)','I (A)','V/I (Ω)'],
+    conclusion:'شدة التيار المارّ في موصل تتناسب طرديًا مع فرق الجهد بين طرفيه وعكسيًا مع مقاومته. ولذلك يكون منحني الجهد مع التيار خطًا مستقيمًا ميله يساوي المقاومة.',
+    question:'موصل مقاومته 6 أوم وُصل بمصدر جهده 12 فولت. كم شدة التيار المارّ فيه؟',
+    title:'نشاط ٣: المقاومة وقانون أوم',
+    subtitle:'التيار يتناسب طرديًا مع الجهد وعكسيًا مع المقاومة',
+    tools:['مصدر جهد متغيّر','مقاومة معلومة','أميتر وفولتميتر','ورقة رسم بياني','مفتاح كهربائي'],
+    steps:[
+      'ثبّت المقاومة وزِد الجهد تدريجيًا وسجّل قراءة الأميتر عند كل قيمة.',
+      'ارسم النقاط على منحني الجهد مع التيار ولاحظ استقامتها.',
+      'احسب V/I في كل صف من جدولك: ستجدها ثابتة وتساوي المقاومة.',
+      'زِد المقاومة ولاحظ نقصان التيار وزيادة ميل الخط.',
+      'اجعل المقاومة صغيرة جدًا ولاحظ ارتفاع التيار.',
+      'اكتب نصّ قانون أوم بعبارتك أنت.'
+    ]
+  },
+  24: {
+    purpose:'أن تحسب المقاومة المكافئة للمقاومتين على التوالي وعلى التوازي وتقارن بينهما.',
+    cols:['نوع الربط','R₁ (Ω)','R₂ (Ω)','R المكافئة','I (A)'],
+    conclusion:'على التوالي تُجمع المقاومتان فتكون المكافئة أكبر من كل منهما ويكون التيار واحدًا فيهما، وعلى التوازي تكون المكافئة أصغر من أصغرهما ويكون الجهد واحدًا عليهما بينما ينقسم التيار بينهما.',
+    question:'مقاومتان 4 أوم و6 أوم. احسب المقاومة المكافئة في الربطين، وأيّهما يمرّر تيارًا أكبر؟',
+    title:'نشاط ٤: ربط المقاومات',
+    subtitle:'التوالي يزيد المقاومة المكافئة، والتوازي ينقصها',
+    tools:['مقاومتان مختلفتان','بطارية','أميتر','أسلاك وصلات','مفتاح كهربائي'],
+    steps:[
+      'ابدأ بالربط على التوالي وسجّل المقاومة المكافئة وقراءة الأميتر.',
+      'لاحظ أن التيار نفسه يمرّ في المقاومتين بينما ينقسم الجهد عليهما.',
+      'بدّل إلى الربط على التوازي بالقيم نفسها وسجّل القراءات.',
+      'لاحظ أن الجهد نفسه على المقاومتين بينما ينقسم التيار بينهما.',
+      'قارن المقاومة المكافئة في الحالتين من جدولك.',
+      'استنتج أي الربطين تستعمله إذا أردت تيارًا أكبر.'
+    ]
+  },
+  25: {
+    purpose:'أن تحسب القدرة الكهربائية للأجهزة والطاقة التي تستهلكها وكلفتها.',
+    cols:['الجهاز','القدرة (W)','ساعات','الطاقة (kWh)','الكلفة'],
+    conclusion:'القدرة الكهربائية هي الطاقة المستهلكة في وحدة الزمن وتساوي حاصل ضرب الجهد في التيار. والطاقة تساوي القدرة مضروبة في زمن التشغيل، وتُحسب في الفاتورة بالكيلوواط·ساعة.',
+    question:'مكواة قدرتها 1000 واط عملت ساعتين. كم كيلوواط·ساعة استهلكت؟ وكم كلفتها؟',
+    title:'نشاط ٥: القدرة والطاقة الكهربائية',
+    subtitle:'ما الذي يرفع فاتورة الكهرباء: قدرة الجهاز أم زمن تشغيله؟',
+    tools:['أجهزة كهربائية بقدرات مختلفة','لوحة بيانات كل جهاز','ساعة','فاتورة كهرباء للمقارنة'],
+    steps:[
+      'اقرأ لوحة بيانات المصباح: الجهد والقدرة.',
+      'احسب التيار الذي يسحبه من العلاقة بين القدرة والجهد.',
+      'ثبّت ساعات التشغيل وبدّل بين الأجهزة ولاحظ فرق الطاقة.',
+      'اختر المبرّدة وقارن استهلاكها باستهلاك المصباح في المدة نفسها.',
+      'زِد ساعات التشغيل ولاحظ زيادة الطاقة والكلفة معًا.',
+      'احسب في دفترك كلفة تشغيل جهازك المفضّل شهرًا كاملًا.'
+    ]
+  },
+  26: {
+    purpose:'أن تعرف وظيفة المصهر في دائرة البيت ولماذا لا يُستبدل بسلك أسمك.',
+    cols:['عدد الأجهزة','التيار الكلي (A)','تقدير المصهر (A)','حالة المصهر'],
+    conclusion:'المصهر سلك رفيع ينصهر إذا تجاوز التيار الحدّ المسموح، فيقطع الدائرة قبل أن تسخن أسلاك البيت وتحترق. ولذلك يجب أن يكون تقديره مناسبًا للأسلاك، ولا يجوز استبداله بسلك أسمك مهما بدا ذلك عمليًا.',
+    question:'انصهر مصهر بيتكم مرتين في يوم واحد. ما السبب المحتمل؟ وما الحلّ الصحيح؟',
+    title:'نشاط ٦: الدائرة الكهربائية والمصهر',
+    subtitle:'المصهر هو صمّام الأمان الذي يحمي أسلاك البيت من الحريق',
+    tools:['دائرة بيت مصغّرة','مصهر بتقديرات مختلفة','أجهزة قابلة للتشغيل','أميتر لقياس الحمل','مفتاح كهربائي'],
+    steps:[
+      'شغّل جهازًا واحدًا ولاحظ التيار الكلي على الشريط.',
+      'زِد الأجهزة تدريجيًا وراقب اقتراب التيار من حدّ المصهر.',
+      'تجاوز الحدّ ولاحظ انصهار المصهر وانقطاع الدائرة.',
+      'زِد تقدير المصهر وأعِد التجربة ولاحظ متى ينصهر هذه المرة.',
+      'قلّل عدد الأجهزة حتى تعود الدائرة إلى الحالة الآمنة.',
+      'اكتب في دفترك خطر استبدال المصهر بسلك أسمك.'
+    ]
+  }
+};
+
+const CHAPTERS = {
+  3: {
+    color:'#3d7dfd', emoji:'🔌',
+    title:'الفصل الثالث: التيار الكهربائي',
+    subtitle:'شدة التيار، القوة الدافعة وفرق الجهد، قانون أوم، ربط المقاومات، القدرة والطاقة، والمصهر',
+    tabs:[21,22,23,24,25,26]
+  }
+};
+
+/* حالة التطبيق */
+let currentChapter = null;   // رقم الفصل أو null (في شاشة اختيار الفصل)
+let activeTab = null;        // معرّف التجربة داخل الفصل الحالي
+
+/* ---------- بناء بطاقات الفصول ---------- */
+const chapterCards = document.getElementById('chapterCards');
+Object.keys(CHAPTERS).forEach(key=>{
+  const num = Number(key), ch = CHAPTERS[num];
+  const card = document.createElement('button');
+  card.type = 'button';
+  card.className = 'chapter-card';
+  card.dataset.chapter = num;
+  if(ch.color) card.style.setProperty('--card-color', ch.color);
+  if(ch.emoji) card.style.setProperty('--card-emoji', '"'+ch.emoji+'"');
+  card.innerHTML =
+    '<div class="cc-top">' +
+      '<div class="cc-num">' + (ch.emoji || num) + '</div>' +
+      '<div><div class="cc-kicker">الفيزياء — الثالث المتوسط</div>' +
+      '<div class="cc-title">' + ch.title + '</div></div>' +
+    '</div>' +
+    '<div class="cc-sub">' + ch.subtitle + '</div>' +
+    '<div class="cc-foot">' +
+      '<span class="cc-count"><b>' + ch.tabs.length + '</b> أنشطة تفاعلية</span>' +
+      '<span class="cc-go">ادخل ⟵</span>' +
+    '</div>';
+  card.addEventListener('click', ()=> enterChapter(num));
+  chapterCards.appendChild(card);
+});
+
+/* نص التلميح في شاشة الترحيب — مبني من الفصول نفسها فلا يتناقض معها */
+document.getElementById('welcomeHint').textContent =
+  Object.keys(CHAPTERS).map(k=>CHAPTERS[k].title).join('  ·  ');
+
+/* ---------- التنقّل بين المستويات ---------- */
+function enterChapter(num){
+  currentChapter = num;
+  const ch = CHAPTERS[num];
+  document.getElementById('chapterBadge').textContent = ch.title;
+  buildTabs(num);
+  document.body.classList.add('in-chapter');
+  // الرجوع لا يُعيد التهيئة: إن كانت هناك تجربة نشطة سابقًا في هذا الفصل تُفتح،
+  // وإلا فأول تجربة فيه.
+  const remembered = ch._lastTab && ch.tabs.indexOf(ch._lastTab) !== -1 ? ch._lastTab : ch.tabs[0];
+  switchTab(remembered);
+  setTimeout(resizeCanvas, 30);
+  startLoop();
+}
+
+function backToChapters(){
+  stopLoop();                       // لا رسم إطلاقًا خارج شاشة التجارب
+  if (currentChapter) CHAPTERS[currentChapter]._lastTab = activeTab;
+  currentChapter = null;
+  activeTab = null;
+  document.body.classList.remove('in-chapter');
+  // حالة كل تجربة (t11State…) تبقى كما هي — لا إعادة تهيئة.
+}
+document.getElementById('backBtn').addEventListener('click', backToChapters);
+
+/* ---------- بناء تبويبات الفصل المختار ديناميكيًّا ---------- */
+const tabsNav = document.getElementById('tabsNav');
+/* لكل نشاط لونه الخاص، فيميّزه الطالب بلونه قبل أن يقرأ اسمه */
+const TAB_COLORS = ['#ff9f1c','#3d7dfd','#12b5a5','#ff4d6d','#8a63d2','#2fb457'];
+function buildTabs(chapterNum){
+  tabsNav.innerHTML = '';
+  CHAPTERS[chapterNum].tabs.forEach((id, idx)=>{
+    const btn = document.createElement('button');
+    btn.className = 'tab-btn';
+    btn.style.setProperty('--tab-color', TAB_COLORS[idx % TAB_COLORS.length]);
+    btn.dataset.tab = id;
+    btn.innerHTML = '<span class="num">' + (idx+1) + '</span><span>' + EXPERIMENTS[id].title + '</span>';
+    btn.addEventListener('click', ()=> switchTab(id));
+    tabsNav.appendChild(btn);
+  });
+}
+
+function currentState(){
+  return window['t' + activeTab + 'State'] || null;
+}
+
+function switchTab(id){
+  activeTab = id;
+  if (currentChapter) CHAPTERS[currentChapter]._lastTab = id;
+  document.querySelectorAll('.tab-btn').forEach(b=> b.classList.toggle('active', Number(b.dataset.tab)===id));
+  document.querySelectorAll('.control-panel').forEach(p=> p.classList.toggle('active', Number(p.dataset.tab)===id));
+
+  const exp = EXPERIMENTS[id];
+  document.getElementById('sidebarTitle').textContent = exp.title;
+  document.getElementById('mainTitle').textContent = exp.title;
+  document.getElementById('mainSubtitle').textContent = exp.subtitle;
+  document.getElementById('toolsList').innerHTML = exp.tools.map(t=>'<li>'+t+'</li>').join('');
+  document.getElementById('stepsList').innerHTML = exp.steps.map(s=>'<li>'+s+'</li>').join('');
+  document.getElementById('activityQuestion').textContent = exp.question || '';
+  document.getElementById('activityPurpose').textContent = exp.purpose || '';
+  conclusionText.textContent = exp.conclusion || '';
+  conclusionText.hidden = true;                 // كل نشاط يبدأ باستنتاجه مخفيًا
+  revealBtn.textContent = 'اكتب استنتاجك في دفترك أولًا، ثم اضغط هنا لتقارنه';
+  renderRecords();
+
+  updateModeStatusPill();
+  window._dragHitTest = (typeof window['t'+id+'DragHitTest'] === 'function') ? window['t'+id+'DragHitTest'] : null;
+}
+
+/* ---------- جدول تسجيل النتائج ----------
+   لكل نشاط جدوله الخاص، ويبقى محفوظًا عند التنقّل بين الأنشطة والفصول. */
+const RECORDS = {};
+const recTable = document.getElementById('recordTable');
+const recEmpty = document.getElementById('recEmpty');
+const conclusionText = document.getElementById('conclusionText');
+const revealBtn = document.getElementById('revealBtn');
+
+function renderRecords(){
+  const exp = EXPERIMENTS[activeTab];
+  const cols = (exp && exp.cols) || [];
+  const rows = RECORDS[activeTab] || [];
+  recTable.tHead.innerHTML = rows.length
+    ? '<tr><th>القراءة</th>' + cols.map(c=>'<th>'+c+'</th>').join('') + '</tr>' : '';
+  recTable.tBodies[0].innerHTML = rows.map((r,i)=>
+    '<tr><td>'+(i+1)+'</td>' + r.map(v=>'<td>'+v+'</td>').join('') + '</tr>').join('');
+  recEmpty.hidden = rows.length > 0;
+}
+function recordReading(){
+  const fn = window['t'+activeTab+'Reading'];
+  if(typeof fn !== 'function') return;
+  const rows = RECORDS[activeTab] || (RECORDS[activeTab] = []);
+  if(rows.length >= 8) rows.shift();          // الجدول يعرض آخر ثماني قراءات
+  rows.push(fn());
+  renderRecords();
+}
+document.getElementById('recordBtn').addEventListener('click', recordReading);
+document.getElementById('clearRecBtn').addEventListener('click', ()=>{
+  RECORDS[activeTab] = []; renderRecords();
+});
+revealBtn.addEventListener('click', ()=>{
+  conclusionText.hidden = !conclusionText.hidden;
+  revealBtn.textContent = conclusionText.hidden
+    ? 'اكتب استنتاجك في دفترك أولًا، ثم اضغط هنا لتقارنه'
+    : 'إخفاء الاستنتاج';
+});
+
+function updateModeStatusPill(){
+  const s = currentState();
+  document.getElementById('modeStatus').textContent = (s && s.simMode==='manual') ? 'يدوي' : 'تلقائي';
+}
+
+document.querySelectorAll('[data-mode-tab]').forEach(btn=>{
+  btn.addEventListener('click', e=>{
+    const tab = Number(e.currentTarget.dataset.modeTab);
+    const s = window['t'+tab+'State'];
+    if(!s) return;
+    s.simMode = (s.simMode === 'auto') ? 'manual' : 'auto';
+    e.currentTarget.classList.toggle('on', s.simMode==='auto');
+    e.currentTarget.textContent = s.simMode==='auto' ? '⚙️ تلقائي' : '🖐️ يدوي';
+    if(tab===activeTab) updateModeStatusPill();
+  });
+});
+
+/* رابط عام لأزرار المجموعة الواحدة */
+function bindGroup(sel, attr, fn){
+  document.querySelectorAll(sel+' button['+attr+']').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+      document.querySelectorAll(sel+' button['+attr+']').forEach(b=>b.classList.remove('on'));
+      e.currentTarget.classList.add('on');
+      fn(e.currentTarget.getAttribute(attr));
+    });
+  });
+}
+window.bindGroup = bindGroup;
+
+/* ضبط منزلق من الكود (لأزرار الحالات الجاهزة) — يمرّ بمستمع input نفسه
+   فتتحدّث الحالة والقيمة المعروضة معًا. */
+function setControl(target, value){
+  const inp = document.querySelector('input[type=range][data-target="'+target+'"]');
+  if(!inp) return;
+  inp.value = value;
+  inp.dispatchEvent(new Event('input', {bubbles:true}));
+}
+window.setControl = setControl;
+
+/* تعطيل منزلق لا أثر له في الحالة الحالية، بدل أن يتحرّك الطالب به بلا نتيجة. */
+/* تعطيل مجموعة أزرار: أزرار قلب المغناطيس مثلًا لا معنى لها بلا مغناطيس */
+function setBtnGroupEnabled(sel, on){
+  document.querySelectorAll(sel+' button').forEach(b=>{ b.disabled = !on; });
+}
+window.setBtnGroupEnabled = setBtnGroupEnabled;
+
+function setControlEnabled(target, on){
+  const inp = document.querySelector('input[type=range][data-target="'+target+'"]');
+  if(!inp) return;
+  inp.disabled = !on;
+  const row = inp.closest('.control-row');
+  if(row) row.classList.toggle('row-off', !on);
+}
+window.setControlEnabled = setControlEnabled;
+
+/* يستعملها السحب باليد: تقرّب القيمة إلى خطوة المنزلق وتحدّثه فقط إن تغيّرت،
+   فيبقى المنزلق والرسم متطابقين مهما سحب الطالب بإصبعه. */
+function setControlSnap(target, value){
+  const inp = document.querySelector('input[type=range][data-target="'+target+'"]');
+  if(!inp || inp.disabled) return;
+  const mn = Number(inp.min), mx = Number(inp.max), st = Number(inp.step) || 1;
+  let v = Math.min(mx, Math.max(mn, value));
+  v = Number((mn + Math.round((v - mn)/st)*st).toFixed(6));
+  if(Number(inp.value) !== v){
+    inp.value = String(v);
+    inp.dispatchEvent(new Event('input', {bubbles:true}));
+  }
+}
+window.setControlSnap = setControlSnap;
+
+/* هالة متقطّعة حول الجسم القابل للسحب، ليعرف الطالب أنه يستطيع مسكه بإصبعه */
+function dragHalo(x, y, r, COLORS, label){
+  ctx.save();
+  ctx.setLineDash([5,5]); ctx.strokeStyle=COLORS.capActive; ctx.lineWidth=2; ctx.globalAlpha=0.75;
+  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.stroke();
+  ctx.restore();
+  if(label) optLabel(label, x, y-r-10, COLORS.capActive, 10.5);
+}
+window.dragHalo = dragHalo;
+
+/* هالة مستطيلة للأجسام الطويلة (قضيب، ساق)، وتسميتها إلى جانبها لا فوقها */
+function dragHaloRect(x, y, w, hh, COLORS, label){
+  ctx.save();
+  ctx.setLineDash([5,5]); ctx.strokeStyle=COLORS.capActive; ctx.lineWidth=2; ctx.globalAlpha=0.75;
+  ctx.beginPath();
+  ctx.roundRect ? ctx.roundRect(x-w/2, y-hh/2, w, hh, hh/2) : ctx.rect(x-w/2, y-hh/2, w, hh);
+  ctx.stroke();
+  ctx.restore();
+  if(label) optLabel(label, x-w/2-10, y+4, COLORS.capActive, 10.5, 'right');
+}
+window.dragHaloRect = dragHaloRect;
+
+/* ---- الفصل الأول: الكهربائية الساكنة ---- */
+
+/* ---- الفصل الثاني: التيار الكهربائي ---- */
+/* مفاتيح الدوائر: الزر والمفتاح المرسوم يعملان معًا على الحالة نفسها */
+document.querySelectorAll('[data-switch]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const id = btn.dataset.switch, st = window['t'+id+'State'];
+    if(!st) return;
+    st.sw = st.sw === 1 ? 0 : 1;
+    syncSwitchBtn(id, st.sw);
+  });
+});
+
+/* ---- الفصل الثاني: المغناطيسية ---- */
+
+bindGroup('#modeBtns24','data-mode24',     v=> t24SetMode(v));
+bindGroup('#devBtns25','data-dev25',       v=> t25SetDevice(v));
+
+/* المنزلقات ← الحالة */
+document.querySelectorAll('input[type=range][data-target]').forEach(inp=>{
+  inp.addEventListener('input', e=>{
+    const path = e.target.dataset.target.split('.');
+    const value = Number(e.target.value);
+    let obj = window[path[0]];
+    if(!obj) return;
+    for(let i=1;i<path.length-1;i++) obj = obj[isNaN(path[i]) ? path[i] : Number(path[i])];
+    const lastKey = path[path.length-1];
+    obj[isNaN(lastKey) ? lastKey : Number(lastKey)] = value;
+    const labelEl = document.getElementById(e.target.dataset.label);
+    if(labelEl){
+      const step = Number(e.target.step) || 1;
+      const dec = (step >= 1) ? 0 : (step >= 0.1 ? 1 : 2);
+      labelEl.textContent = value.toFixed(dec);
+    }
+    if (window.redrawOnce) window.redrawOnce();   // يستجيب فورًا حتى في الوضع اليدوي
+  });
+});
+
+/* ---------- حلقة الرسم: التجربة النشطة فقط، ولا تعمل خارج شاشة التجارب ---------- */
+let rafId = null;
+let lastTime = null;
+
+function drawActive(dt){
+  if(activeTab === null) return;
+  const up = window['t'+activeTab+'Update'];
+  const dr = window['t'+activeTab+'Draw'];
+  if(typeof up === 'function') up(dt);
+  if(typeof dr === 'function') dr();
+}
+function loop(ts){
+  if(lastTime===null) lastTime = ts;
+  let dt = (ts - lastTime) / 1000; dt = Math.min(dt, 0.05); lastTime = ts;
+
+  pointer.isClicked = _clickPending; _clickPending = false;
+  pointer.justPressed = _pressPending;
+  if (_pressPending) { pointer.pressX = _pressPos.x; pointer.pressY = _pressPos.y; }
+  _pressPending = false;
+
+  drawActive(dt);
+  rafId = requestAnimationFrame(loop);
+}
+function startLoop(){
+  if(rafId !== null) return;
+  lastTime = null;
+  rafId = requestAnimationFrame(loop);
+}
+function stopLoop(){
+  if(rafId === null) return;
+  cancelAnimationFrame(rafId);
+  rafId = null;
+}
+/* إعادة رسم إطار واحد دون تقديم الزمن — للوضع اليدوي وتبديل المظهر */
+window.redrawOnce = function(){
+  if(activeTab === null) return;
+  const dr = window['t'+activeTab+'Draw'];
+  if(typeof dr === 'function') dr();
+};
+
+/* شاشة الترحيب ← شاشة اختيار الفصل (وليس التجارب) */
+(function initWelcome(){
+  const overlay = document.getElementById('welcomeOverlay');
+  const btn = document.getElementById('startBtn');
+  function dismiss(){
+    document.body.classList.add('started');
+    if (overlay){ overlay.classList.add('hidden'); setTimeout(()=>{ overlay.style.display='none'; }, 550); }
+  }
+  if (btn) btn.addEventListener('click', dismiss);
+  if (!overlay || !btn) document.body.classList.add('started');
+})();
+</script>
+
+</body>
+</html>

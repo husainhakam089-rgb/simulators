@@ -12,7 +12,8 @@ const path = require('path');
 const { JSDOM, VirtualConsole } = require('jsdom');
 
 const ROOT    = path.resolve(__dirname, '..');
-const HTML    = path.join(ROOT, 'index.html');
+/* PHYS_HTML يتيح فحص ملف فصل مفصول لا الملف الرئيسي وحده */
+const HTML    = process.env.PHYS_HTML || path.join(ROOT, 'index.html');
 const OUT_DIR = process.argv[2] || path.join(ROOT, 'tests', 'shots');
 
 const errors = [];
