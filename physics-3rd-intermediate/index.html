@@ -1719,6 +1719,42 @@ function figSwitch(x, y, w, closed, COLORS){
   ctx.lineCap='butt';
 }
 
+/* ═══ التجاذب والتنافر: أداتان موحّدتان لكل نشاط يظهر فيه ═══
+   اللون وحده يفرّق: الأحمر تنافرٌ يدفع إلى الخارج، والأخضر تجاذبٌ يشدّ
+   إلى الداخل. والسهمان غليظان كي يُقرآ من آخر الصف. */
+const F_PUSH = '#e8523f', F_PULL = '#0e9e90';
+
+/* xA طرف الجسم الأيسر الخارجي، وxB طرف الأيمن الخارجي.
+   في التنافر يخرج السهمان منهما إلى الخارج، وفي التجاذب يأتيان من الخارج
+   إليهما — فيبقى للسهم مكان دائمًا حتى لو تلامس الجسمان. */
+function figForcePair(xA, xB, y, repel, mag, COLORS){
+  const col = repel ? F_PUSH : F_PULL;
+  const L = Math.max(32, Math.min(26 + mag, 92));
+  const aTail = repel ? xA : xA - L, aHead = repel ? xA - L : xA;
+  const bTail = repel ? xB : xB + L, bHead = repel ? xB + L : xB;
+  ctx.save();
+  ctx.globalAlpha = 0.20; ctx.strokeStyle = col; ctx.lineWidth = 16; ctx.lineCap='round';
+  ctx.beginPath();
+  ctx.moveTo(aTail, y); ctx.lineTo(aHead, y);
+  ctx.moveTo(bTail, y); ctx.lineTo(bHead, y);
+  ctx.stroke(); ctx.restore(); ctx.lineCap='butt';
+  optArrow(aTail, y, aHead, y, col, 7, 18);
+  optArrow(bTail, y, bHead, y, col, 7, 18);
+}
+
+/* شارة النتيجة: كلمة واحدة كبيرة على خلفية ملوّنة */
+function figBadge(text, cx, cy, repel, COLORS, sub){
+  const col = repel ? F_PUSH : F_PULL;
+  ctx.font = 'bold 20px ' + FONT_HEAD;
+  const w = Math.max(132, ctx.measureText(text).width + 56);
+  ctx.fillStyle = col;
+  ctx.beginPath();
+  if(ctx.roundRect) ctx.roundRect(cx-w/2, cy-20, w, 40, 20); else ctx.rect(cx-w/2, cy-20, w, 40);
+  ctx.fill();
+  optLabel(text, cx, cy+7, '#ffffff', 20);
+  if(sub) optLabel(sub, cx, cy+38, col, 12);
+}
+
 /* مفتاح الدائرة: يُرسم في فجوة من السلك، ويُفتح ويُغلق بلمسه على الشاشة.
    تُخزَّن منطقته في الحالة كي يعرف tNNUpdate أين يلمسه الطالب. */
 function circuitSwitch(state, x, y, w, COLORS, labelY){
@@ -2167,8 +2203,10 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
     const half = state.r*SC/2;
     /* الكرتان معلّقتان بخيطين، فترتجّان حول موضعهما، وسعة الارتجاج تكبر بكبر القوة —
        الموضع المرسوم فقط يتغيّر، أما البعد المقيس r فيبقى كما ضبطه الطالب. */
+    /* الكرتان معلّقتان بخيطين: تندفعان في اتجاه القوة ثم تعودان، وسعة
+       الاندفاع تكبر بكبر القوة — فيُرى التنافر دفعًا والتجاذب شدًّا. */
     const vib = state.simMode==='auto'
-              ? Math.sin(state.t*7.2)*Math.min(0.7 + F*0.55, 5) : 0;
+              ? (0.5 - 0.5*Math.cos(state.t*4.2)) * Math.min(3 + F*1.1, 13) : 0;
     const push = rep ? vib : -vib;
     const x1 = cxm - half - push, x2 = cxm + half + push;
     state._cx = cxm; state._sc = SC;
@@ -2195,17 +2233,11 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
     dragHalo(x2, cy, state._balls[1].r+13, COLORS,
              state.drag ? 'اسحب لتغيير البعد' : 'اسحبني بإصبعك');
 
-    /* سهما القوة: متساويان في المقدار ومتضادان */
-    const L = Math.min(18 + F*9, 96);
-    if(rep){
-      optArrow(x1-20, cy, x1-20-L, cy, COLORS.capActive, 4);
-      optArrow(x2+20, cy, x2+20+L, cy, COLORS.capActive, 4);
-    } else {
-      optArrow(x1+20, cy, x1+20+L*0.7, cy, COLORS.capActive, 4);
-      optArrow(x2-20, cy, x2-20-L*0.7, cy, COLORS.capActive, 4);
-    }
+    /* سهما القوة: متساويان في المقدار ومتضادان في الاتجاه */
+    const r1 = state._balls[0].r, r2 = state._balls[1].r;
+    figForcePair(x1-r1-4, x2+r2+4, cy, rep, F*9, COLORS);
     ctx.restore();
-    optLabel(rep ? 'تنافر' : 'تجاذب', cxm, cy-70, rep?COLORS.capActive:COLORS.capDefault, 14);
+    figBadge(rep ? 'تنافر' : 'تجاذب', cxm, cy-88, rep, COLORS);
 
     /* منحني القوة مع البعد */
     const gx0=80, gyB=380, gw=420, gh=102;
@@ -3275,20 +3307,26 @@ function figFilings(poles, x0, y0, w, hh, spacing, COLORS, alpha){
    ========================================================================= */
 (function(){
   const COLORS = makeColors();
-  const state = { simMode:'auto', t:0, q1:1, q2:1, gap:14, ang:0, angV:0 };
+  const state = { simMode:'auto', t:0, q1:1, q2:1, gap:14, ang:null, angV:0 };
+  const SC = 5, LEN = 96, RW = 26;      // بكسل لكل سنتيمتر، طول الخيط، عرض الساق
 
   function like(){ return state.q1 === state.q2; }
   /* زاوية ميل الساق المعلقة: تكبر بصغر البعد، وتنعدم إن كانت إحداهما متعادلة */
   function target(){
     if(state.q1 === 0 || state.q2 === 0) return 0;
     const f = 3600/(state.gap*state.gap);
-    return (like() ? 1 : -1) * Math.min(f, 30) * Math.PI/180;
+    const ang = Math.min(f, 30) * Math.PI/180;
+    if(like()) return ang;
+    /* في التجاذب تقترب الساقان حتى تتلامسا ولا تتداخلان */
+    const touch = Math.asin(Math.max(0, Math.min(1, (state.gap*SC - RW)/(2*LEN))));
+    return -Math.min(ang, touch);
   }
 
   function t18Update(dt){
     if(state.simMode==='auto') state.t += dt;
     /* الساق معلقة بخيط، فتتأرجح حول وضع اتزانها ثم تستقرّ */
     const tg = target();
+    if(state.ang === null) state.ang = tg;      // أول ظهور: الميل صحيح فورًا
     if(state.simMode==='auto'){
       state.angV = (state.angV + (tg - state.ang)*22*dt) * Math.pow(0.15, dt);
       state.ang += state.angV*dt;
@@ -3324,7 +3362,7 @@ function figFilings(poles, x0, y0, w, hh, spacing, COLORS, alpha){
       if(q === 0) break;
       figSign(bx, by - 16 + i*16, 7, q > 0, COLORS);
     }
-    optLabel(label, bx, by + 50, COLORS.muted, 11.5);
+    optLabel(label, px, by + 62, COLORS.muted, 11.5);   // عند نقطة التعليق لا تحت الساق
     return { x:bx, y:by };
   }
 
@@ -3333,7 +3371,7 @@ function figFilings(poles, x0, y0, w, hh, spacing, COLORS, alpha){
     ctx.fillStyle=COLORS.bg; ctx.fillRect(0,0,CW,CH);
     optTitle('نشاط ٣: ساقان معلقتان — متى تتجاذبان ومتى تتنافران؟', COLORS);
 
-    const py = 96, len = 96, SC = 5, MID = 300;
+    const py = 96, len = LEN, MID = 300;
     const px1 = MID - state.gap*SC/2, px2 = MID + state.gap*SC/2;
     state._pivot = { x:MID, y:py };
 
@@ -3341,7 +3379,9 @@ function figFilings(poles, x0, y0, w, hh, spacing, COLORS, alpha){
     ctx.strokeStyle=COLORS.border; ctx.lineWidth=5;
     ctx.beginPath(); ctx.moveTo(160, py); ctx.lineTo(440, py); ctx.stroke();
 
-    const a = state.ang;
+    /* الساق معلقة بخيط حرير، فتبقى تتمايل قليلًا حتى بعد استقرارها */
+    const sway = state.simMode==='auto' ? Math.sin(state.t*1.9)*0.016 : 0;
+    const a = ((state.ang === null) ? target() : state.ang) + sway;
     const nameOf = q => q>0?'موجبة':(q<0?'سالبة':'متعادلة');
     drawHanging(px1, py, len, -a, state.q1, nameOf(state.q1));
     const tip = drawHanging(px2, py, len, a, state.q2, nameOf(state.q2));
@@ -3349,15 +3389,23 @@ function figFilings(poles, x0, y0, w, hh, spacing, COLORS, alpha){
     dragHalo(tip.x, tip.y, 40, COLORS, state.drag ? 'اسحب لتغيير البعد' : 'اسحبني بإصبعك');
 
     const none = (state.q1 === 0 || state.q2 === 0);
-    optLabel(none ? 'لا قوة تُذكر' : (like() ? 'تنافر' : 'تجاذب'), MID, py+len+74,
-             none ? COLORS.muted : (like()?COLORS.red:COLORS.green), 14);
-
+    /* سهما القوة عند أسفل الساقين، ثم شارة الكلمة تحتهما */
+    if(!none){
+      const tip1 = { x: px1 + Math.sin(-a)*len, y: py + Math.cos(-a)*len };
+      const mag = 3600/(state.gap*state.gap);
+      figForcePair(tip1.x-15, tip.x+15, tip1.y+18, like(), mag, COLORS);
+    }
+    /* مسطرة البعد أولًا، ثم شارة النتيجة تحتها فلا يركب أحدهما الآخر */
     ctx.strokeStyle=COLORS.muted; ctx.lineWidth=1.4;
-    ctx.beginPath(); ctx.moveTo(px1, py+len+102); ctx.lineTo(px2, py+len+102); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(px1, py+len+78); ctx.lineTo(px2, py+len+78); ctx.stroke();
     [px1,px2].forEach(x=>{
-      ctx.beginPath(); ctx.moveTo(x, py+len+96); ctx.lineTo(x, py+len+108); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x, py+len+72); ctx.lineTo(x, py+len+84); ctx.stroke();
     });
-    optLabel('البعد '+state.gap.toFixed(0)+' سم', MID, py+len+126, COLORS.muted, 11.5);
+    optLabel('البعد '+state.gap.toFixed(0)+' سم', MID, py+len+100, COLORS.muted, 11.5);
+
+    if(none) optLabel('لا قوة تُذكر', MID, py+len+146, COLORS.muted, 14);
+    else figBadge(like() ? 'تنافر' : 'تجاذب', MID, py+len+140, like(), COLORS,
+                  like() ? 'الساقان تتباعدان' : 'الساقان تتقاربان');
 
     optHUD(600, 62, 268, [
       {text:'ماذا يحدث بين الساقين؟', bold:true, color:COLORS.capActive},
@@ -3531,7 +3579,9 @@ function figFilings(poles, x0, y0, w, hh, spacing, COLORS, alpha){
     const cy = 168, F = force(), att = attract();
     const len = 150, hh = 38, sc = 4;               // 4 بكسل لكل سنتيمتر
     /* اهتزاز خفيف سعته تتبع القوة: المغناطيس المعلّق لا يسكن تحت قوة كبيرة */
-    const vib = state.simMode==='auto' ? Math.sin(state.t*6.5)*Math.min(0.6+F*0.35, 4) : 0;
+    /* اندفاع محسوس في اتجاه القوة ثم عودة، سعته تتبع مقدار القوة */
+    const vib = state.simMode==='auto'
+              ? (0.5 - 0.5*Math.cos(state.t*3.6)) * Math.min(3 + F*0.9, 14) : 0;
     const push = att ? -vib : vib;
 
     const x1 = 250, x2 = x1 + len/2 + state.gap*sc + len/2 + push;
@@ -3543,18 +3593,11 @@ function figFilings(poles, x0, y0, w, hh, spacing, COLORS, alpha){
     dragHaloRect(x2, cy, len+24, hh+22, COLORS, '');
     optLabel(state.drag ? 'اسحب لتغيير البعد' : 'اسحبني بإصبعك', x2, cy+hh/2+34, COLORS.capActive, 10.5);
 
-    /* سهما القوة بين الطرفين المتقابلين */
+    /* سهما القوة: من الطرف الخارجي للمغناطيس في اتجاه دفعه أو شدّه */
     const inner1 = x1 + len/2 - push, inner2 = x2 - len/2;
-    const L = Math.min(14 + F*3.2, 62);
-    if(att){
-      optArrow(inner1, cy-hh, inner1+L, cy-hh, COLORS.green, 3.5);
-      optArrow(inner2, cy-hh, inner2-L, cy-hh, COLORS.green, 3.5);
-    } else {
-      optArrow(inner1, cy-hh, inner1-L, cy-hh, COLORS.red, 3.5);
-      optArrow(inner2, cy-hh, inner2+L, cy-hh, COLORS.red, 3.5);
-    }
-    optLabel(att ? 'تجاذب' : 'تنافر', (inner1+inner2)/2, cy-hh-16,
-             att?COLORS.green:COLORS.red, 14);
+    figForcePair(x1 - len/2 - push, x2 + len/2, cy, !att, F*3.2, COLORS);
+    figBadge(att ? 'تجاذب' : 'تنافر', (x1+x2)/2, cy-hh-46, !att, COLORS,
+             att ? 'قطبان مختلفان يشدّ أحدهما الآخر' : 'قطبان متماثلان يتدافعان');
 
     /* مسطرة البعد بين الطرفين */
     ctx.strokeStyle=COLORS.muted; ctx.lineWidth=1.5;
