@@ -1699,7 +1699,8 @@ function flowDots(pts, phase, count, COLORS){
   const COLORS = makeColors();
   const state = { simMode:'auto', t:0, emf:6, q:3, sw:1 };
 
-  function work(){ return state.q*state.emf; }
+  /* لا شغل يُبذل ما لم تتحرك الشحنة، فالمفتاح المفتوح يجعله صفرًا */
+  function work(){ return state.sw ? state.q*state.emf : 0; }
   function t22Update(dt){ if(state.simMode==='auto') state.t += dt; switchTap(state, 22); }
 
   function t22Draw(){
@@ -1744,7 +1745,8 @@ function flowDots(pts, phase, count, COLORS){
       {text:'ε = W / q', ltr:true},
       {text:'ε = '+state.emf.toFixed(1)+' V', ltr:true, color:COLORS.blue},
       {text:'q = '+state.q.toFixed(1)+' C', ltr:true},
-      {text:'W = q·ε = '+W.toFixed(1)+' J', ltr:true, color:COLORS.capActive, bold:true}
+      state.sw ? {text:'W = q·ε = '+W.toFixed(1)+' J', ltr:true, color:COLORS.capActive, bold:true}
+               : {text:'الشحنة لا تتحرك ← لا شغل مبذول', color:COLORS.red, bold:true}
     ], COLORS);
 
     let v, vc;
@@ -1814,7 +1816,8 @@ function flowDots(pts, phase, count, COLORS){
       {text:'V = I · R', ltr:true},
       {text:'V = '+state.V.toFixed(1)+' V', ltr:true, color:COLORS.blue},
       {text:'R = '+state.R.toFixed(0)+' Ω', ltr:true, color:COLORS.capDefault},
-      {text:'I = V/R = '+I.toFixed(2)+' A', ltr:true, color:COLORS.capActive, bold:true}
+      state.sw ? {text:'I = V/R = '+I.toFixed(2)+' A', ltr:true, color:COLORS.capActive, bold:true}
+               : {text:'الدائرة مفتوحة ← لا يمرّ تيار', color:COLORS.red, bold:true}
     ], COLORS);
 
     let v, vc;
@@ -1868,15 +1871,19 @@ function flowDots(pts, phase, count, COLORS){
       optLabel('V₁ = '+(I*state.R1).toFixed(1)+' V', 215, T+40, COLORS.capDefault, 11.5, 'center', true);
       optLabel('V₂ = '+(I*state.R2).toFixed(1)+' V', 370, T+40, COLORS.green, 11.5, 'center', true);
     } else {
-      const main = [[L,T],[R,T],[R,B],[L,B],[L,T]];
-      wire(main, COLORS.muted, 5);
-      /* الفرعان متباعدان كفاية كي لا يركب عنوان R₂ على جسم المقاومة الأولى */
+      /* لا سلك يصل نقطتَي التفرّع مباشرة، وإلا قصَر السلكُ المقاومتين معًا.
+         فالمسار يمرّ من العقدة اليسرى في أحد الفرعين ثم إلى العقدة اليمنى. */
       const br1 = [[230,T],[230,180],[420,180],[420,T]];
       const br2 = [[230,T],[230,240],[420,240],[420,T]];
-      wire(br1, COLORS.muted, 4); wire(br2, COLORS.muted, 4);
+      const outer = [[L,T],[230,T]].concat(br1).concat([[R,T],[R,B],[L,B],[L,T]]);
+      wire(outer, COLORS.muted, 5);
+      wire(br2, COLORS.muted, 4);
       figResistor(325, 180, 86, COLORS, 'R₁ = '+state.R1+' Ω', '#8a5a2b');
       figResistor(325, 240, 86, COLORS, 'R₂ = '+state.R2+' Ω', '#2c7a4b');
-      if(state.sw) flowDots(main, (state.t*Math.min(I,6)*0.12)%1, 12, COLORS);
+      if(state.sw){
+        flowDots(outer, (state.t*Math.min(I,6)*0.12)%1, 14, COLORS);
+        flowDots(br2,  (state.t*Math.min(state.V/state.R2,6)*0.12)%1, 5, COLORS);
+      }
       optLabel('الجهد نفسه على المقاومتين', 325, T-30, COLORS.capActive, 12);
       optLabel('I₁ = '+(state.sw ? state.V/state.R1 : 0).toFixed(2)+' A', 486, 176, COLORS.capDefault, 11.5, 'left', true);
       optLabel('I₂ = '+(state.sw ? state.V/state.R2 : 0).toFixed(2)+' A', 486, 236, COLORS.green, 11.5, 'left', true);
@@ -1892,7 +1899,8 @@ function flowDots(pts, phase, count, COLORS){
       {text:'R₁ = '+state.R1+' Ω , R₂ = '+state.R2+' Ω', ltr:true},
       {text:'R(eq) = '+Re.toFixed(2)+' Ω', ltr:true, color:COLORS.capActive, bold:true},
       {text:'ε = '+state.V.toFixed(0)+' V', ltr:true, color:COLORS.blue},
-      {text:'I = ε / R(eq) = '+I.toFixed(2)+' A', ltr:true, color:COLORS.red}
+      state.sw ? {text:'I = ε / R(eq) = '+I.toFixed(2)+' A', ltr:true, color:COLORS.red}
+               : {text:'الدائرة مفتوحة ← لا يمرّ تيار', color:COLORS.red}
     ], COLORS);
 
     let v, vc;
@@ -1993,6 +2001,13 @@ function flowDots(pts, phase, count, COLORS){
     for(let i=0;i<3;i++) ctx.fillRect(cx-s*0.40, gy-s*0.20+i*s*0.06, s*0.80, s*0.03);
   }
 
+  /* صياغة العدد مع «ساعة» كما تُنطق في العربية */
+  function hoursText(n){
+    if(n === 1) return 'ساعة واحدة';
+    if(n === 2) return 'ساعتين';
+    if(n <= 10) return n.toFixed(0)+' ساعات';
+    return n.toFixed(0)+' ساعة';
+  }
   function power(){ return DEVICES[state.device].P; }
   function energy(){ return power()*state.hours/1000; }     // كيلوواط·ساعة
   function cost(){ return energy()*state.price; }
@@ -2037,7 +2052,7 @@ function flowDots(pts, phase, count, COLORS){
     /* مقارنة الأجهزة الخمسة بالساعات نفسها — هنا يظهر الفرق فعلًا */
     const byB = 352, bh = 172, bx0 = 290, bw = 46, gap = 22;
     const EM = 1500*state.hours/1000;
-    optLabel('الطاقة المستهلكة في '+state.hours.toFixed(0)+' ساعات (كيلوواط·ساعة)',
+    optLabel('الطاقة المستهلكة في '+hoursText(state.hours)+' (كيلوواط·ساعة)',
              bx0 + (bw+gap)*2.5 - gap/2, byB-bh-26, COLORS.capActive, 12);
     ORDER.forEach((k,i)=>{
       const x = bx0 + i*(bw+gap);
@@ -2100,10 +2115,21 @@ function flowDots(pts, phase, count, COLORS){
     optTitle('نشاط ٦: المصهر يحمي دائرة البيت', COLORS);
 
     const I = load(), off = blown();
-    const L=100, R=490, T=122, B=316;
-    const loop = [[L,T],[R,T],[R,B],[L,B],[L,T]];
-    wire(loop, COLORS.muted, 5);
-    if(!off && state.sw) flowDots(loop, (state.t*Math.min(I,12)*0.08)%1, 14, COLORS);
+    const L=100, R=490, T=122, B=316, RAIL2 = 206;
+    /* أجهزة البيت تُربط على التوازي بين سكّتين، ولهذا تُجمع تياراتها.
+       السكّة العليا تصل إلى السلك الأيسر، والسفلى إلى الأيمن، ولا تلتقيان
+       إلا عبر الأجهزة نفسها. */
+    const feed = [[L,T],[R-46,T]];
+    const back = [[L+46,RAIL2],[R,RAIL2]];
+    const outerL = [[L,T],[L,B],[R,B],[R,RAIL2]];
+    wire(outerL, COLORS.muted, 5);
+    wire(feed, COLORS.muted, 5);
+    wire(back, COLORS.muted, 5);
+    if(!off && state.sw){
+      flowDots(outerL, (state.t*Math.min(I,12)*0.08)%1, 14, COLORS);
+      flowDots(feed,   (state.t*Math.min(I,12)*0.08)%1, 5, COLORS);
+      flowDots(back,   (state.t*Math.min(I,12)*0.08)%1, 5, COLORS);
+    }
 
     figBattery(200, B, 88, COLORS, 'مصدر البيت');
     circuitSwitch(state, 262, B, 50, COLORS, B-42);
@@ -2111,16 +2137,21 @@ function flowDots(pts, phase, count, COLORS){
     optLabel(off ? 'المصهر انصهر فانقطعت الدائرة' : (state.sw ? 'المصهر سليم' : 'المصهر سليم — والمفتاح مفتوح'),
              370, B+34, off?COLORS.red:COLORS.green, 12);
 
-    /* الأجهزة الموصولة — موزّعة على عرض السلك العلوي مهما كان عددها،
-       فلا يخرج جهاز خارج الدائرة حين يشغّل الطالب ثمانية أجهزة. */
-    const nDev = state.devices, xA = 148, xB = 448;
+    /* كل جهاز فرع رأسي بين السكّتين: هذا هو ربط التوازي في دائرة البيت */
+    const nDev = state.devices, xA = 152, xB = 432;
     const step = nDev > 1 ? (xB-xA)/(nDev-1) : 0;
-    const br   = Math.max(13, Math.min(20, step*0.46));
+    const br   = Math.max(12, Math.min(19, step*0.44));
+    const mid  = (T + RAIL2)/2;
     for(let i=0;i<nDev;i++){
       const x = nDev === 1 ? (xA+xB)/2 : xA + i*step;
-      figBulb(x, T, br, (off || !state.sw) ? 0 : 0.9, COLORS);
-      optLabel('جهاز', x, T+42, COLORS.muted, 10.5);
+      wire([[x,T],[x,mid-br]], COLORS.muted, 3);
+      wire([[x,mid+br],[x,RAIL2]], COLORS.muted, 3);
+      figBulb(x, mid, br, (off || !state.sw) ? 0 : 0.9, COLORS);
+      if(!off && state.sw)
+        flowDots([[x,T],[x,RAIL2]], (state.t*0.5)%1, 3, COLORS);
     }
+    optLabel('كل جهاز فرع مستقلّ بين السكّتين ← تياراتها تُجمع',
+             (xA+xB)/2, RAIL2+26, COLORS.muted, 11);
 
     /* مقياس الحمل مقابل تقدير المصهر */
     const bx0=600, byB=330, bw=250;

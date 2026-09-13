@@ -411,6 +411,7 @@
     width:22px;height:22px;border-radius:50%;
     background:var(--accent-amber); cursor:pointer; border:3px solid #fff;
   }
+  .ctrl-note{ font-size:12px; color:var(--text-muted); margin:10px 2px 2px; font-weight:700; }
   .control-row.row-off{ opacity:.42; }
   .control-row.row-off label::after{
     content:' — معطَّل في هذه الحالة'; color:var(--accent-red); font-size:11px;
@@ -828,10 +829,12 @@
           <div class="btn-row">
             <button class="ctrl-btn on" data-mode-tab="13">⚙️ تلقائي</button>
           </div>
-          <div class="hint">💡 بالتقريب تنفرج الورقتان ثم تعودان إذا أبعدتَ القضيب. أما بالملامسة فتبقيان منفرجتين لأن الشحنة انتقلت إلى الكشاف فعلًا.<br><b>✋ يمكنك مسك القضيب بإصبعك على الرسم وتحريكه لأعلى وأسفل بدل استعمال المنزلق.</b></div>
+          <div class="hint">💡 جرّب الترتيب: «تقريب» ثم أبعِد القضيب فتعود الورقتان. ثم «ملامسة القرص» ثم «ارفع القضيب» — وستبقى الورقتان منفرجتين لأن الشحنة انتقلت فعلًا. و«تفريغ الكشاف» يعيده متعادلًا.<br><b>✋ يمكنك مسك القضيب بإصبعك على الرسم وتحريكه لأعلى وأسفل بدل استعمال المنزلق.</b></div>
           <div class="btn-row" id="modeBtns13">
             <button class="ctrl-btn cyan on" data-mode13="near">تقريب القضيب</button>
             <button class="ctrl-btn cyan" data-mode13="touch">ملامسة القرص</button>
+            <button class="ctrl-btn cyan" data-mode13="lifted">ارفع القضيب</button>
+            <button class="ctrl-btn cyan" data-mode13="discharge">تفريغ الكشاف</button>
           </div>
           <div class="control-row">
             <label>شحنة القضيب (وحدة) <b id="val-q-13">4</b></label>
@@ -925,13 +928,17 @@
             <button class="ctrl-btn on" data-mode-tab="18">⚙️ تلقائي</button>
           </div>
           <div class="hint">💡 جرّب الحالات الثلاث: موجبة مع موجبة، وسالبة مع سالبة، وموجبة مع سالبة، وراقب ميل الساقين.<br><b>✋ اسحب الساق اليمنى بإصبعك لتغيّر البعد بينهما.</b></div>
-          <div class="control-row">
-            <label>شحنة الساق الأولى <b id="val-q1-18">1</b></label>
-            <input type="range" min="-1" max="1" step="1" value="1" data-target="t18State.q1" data-label="val-q1-18">
+          <div class="ctrl-note">شحنة الساق الأولى</div>
+          <div class="btn-row" id="q1Btns18">
+            <button class="ctrl-btn cyan on" data-q118="pos">موجبة</button>
+            <button class="ctrl-btn cyan" data-q118="zero">متعادلة</button>
+            <button class="ctrl-btn cyan" data-q118="neg">سالبة</button>
           </div>
-          <div class="control-row">
-            <label>شحنة الساق الثانية <b id="val-q2-18">1</b></label>
-            <input type="range" min="-1" max="1" step="1" value="1" data-target="t18State.q2" data-label="val-q2-18">
+          <div class="ctrl-note">شحنة الساق الثانية</div>
+          <div class="btn-row" id="q2Btns18">
+            <button class="ctrl-btn cyan on" data-q218="pos">موجبة</button>
+            <button class="ctrl-btn cyan" data-q218="zero">متعادلة</button>
+            <button class="ctrl-btn cyan" data-q218="neg">سالبة</button>
           </div>
           <div class="control-row">
             <label>البعد بين الساقين (سم) <b id="val-d-18">14</b></label>
@@ -1016,12 +1023,12 @@
             <button class="ctrl-btn cyan" data-dens33="13">كثيفة</button>
           </div>
           <div class="control-row">
-            <label>موضع الإبرة الأفقي <b id="val-x-33">390</b></label>
-            <input type="range" min="96" max="544" step="2" value="390" data-target="t33State.needleX" data-label="val-x-33">
+            <label>موضع الإبرة أفقيًا من مركز المغناطيس (سم) <b id="val-x-33">9</b></label>
+            <input type="range" min="-20" max="24" step="0.5" value="9" data-target="t33State.nx" data-label="val-x-33">
           </div>
           <div class="control-row">
-            <label>موضع الإبرة الرأسي <b id="val-y-33">150</b></label>
-            <input type="range" min="106" max="382" step="2" value="150" data-target="t33State.needleY" data-label="val-y-33">
+            <label>موضع الإبرة رأسيًا من مركز المغناطيس (سم) <b id="val-y-33">6.6</b></label>
+            <input type="range" min="-16" max="11" step="0.5" value="6.6" data-target="t33State.ny" data-label="val-y-33">
           </div>
         </div>
 
@@ -1040,8 +1047,8 @@
             <button class="ctrl-btn cyan" data-flip34="south">القطب الجنوبي نحو البوصلة</button>
           </div>
           <div class="control-row">
-            <label>موضع المغناطيس <b id="val-x-34">250</b></label>
-            <input type="range" min="110" max="330" step="5" value="250" data-target="t34State.magX" data-label="val-x-34">
+            <label>بعد المغناطيس عن البوصلة (سم) <b id="val-d-34">21</b></label>
+            <input type="range" min="2" max="45" step="1" value="21" data-target="t34State.dist" data-label="val-d-34">
           </div>
         </div>
 
@@ -1404,7 +1411,12 @@ function figRod(cx, cy, len, charge, COLORS, vertical){
 }
 
 /* الكشاف الكهربائي: قرص معدني وساق وورقتا ذهب داخل وعاء زجاجي */
+/* charge: رقم (إشارة واحدة للقرص والورقتين) أو كائن {disc, leaf}
+   حيث الإشارة +1 موجبة و−1 سالبة و0 بلا شحنة. */
 function figElectroscope(cx, gy, s, angleDeg, charge, COLORS){
+  const SG = (charge && typeof charge === 'object')
+           ? { disc: Math.sign(charge.disc||0), leaf: Math.sign(charge.leaf||0) }
+           : { disc: Math.sign(charge||0),      leaf: Math.sign(charge||0) };
   groundShadow(cx, gy+4, s*1.7);
   /* القاعدة الخشبية */
   ctx.fillStyle = tubeFill(0, gy-8, 0, gy+6, '#9c6b3f');
@@ -1440,6 +1452,10 @@ function figElectroscope(cx, gy, s, angleDeg, charge, COLORS){
   ctx.globalAlpha=.6; ctx.strokeStyle='#fff'; ctx.lineWidth=2;
   ctx.beginPath(); ctx.moveTo(cx-s*0.36, topY-5); ctx.lineTo(cx+s*0.36, topY-5); ctx.stroke();
   ctx.globalAlpha=1;
+  /* إشارة شحنة القرص */
+  if(SG.disc){
+    [-1, 1].forEach(k=> figSign(cx + k*s*0.22, topY-2, s*0.072, SG.disc > 0, COLORS));
+  }
   /* ورقتا الذهب: رقيقتان وشفّافتان قليلًا */
   const a = angleDeg*Math.PI/180, L = s*0.64, hy = gy-s*0.72;
   ctx.save();
@@ -1452,6 +1468,13 @@ function figElectroscope(cx, gy, s, angleDeg, charge, COLORS){
     ctx.lineTo(ex+nx*1.5, ey+ny*1.5); ctx.lineTo(ex-nx*1.5, ey-ny*1.5);
     ctx.closePath(); ctx.fill(); ctx.stroke();
   });
+  /* إشارتا شحنة الورقتين: على كل ورقة إشارة واحدة في منتصفها */
+  if(SG.leaf){
+    [-1, 1].forEach(sg=>{
+      const mx = cx + sg*Math.sin(a)*L*0.62, my = hy + Math.cos(a)*L*0.62;
+      figSign(mx + sg*7, my, s*0.072, SG.leaf > 0, COLORS);
+    });
+  }
   ctx.restore();
   return { topX:cx, topY:topY };
 }
@@ -1630,8 +1653,8 @@ function figForcePair(xA, xB, y, repel, mag, COLORS){
 }
 
 /* شارة النتيجة: كلمة واحدة كبيرة على خلفية ملوّنة */
-function figBadge(text, cx, cy, repel, COLORS, sub){
-  const col = repel ? F_PUSH : F_PULL;
+function figBadge(text, cx, cy, repel, COLORS, sub, colorOverride){
+  const col = colorOverride || (repel ? F_PUSH : F_PULL);
   ctx.font = 'bold 20px ' + FONT_HEAD;
   const w = Math.max(132, ctx.measureText(text).width + 56);
   ctx.fillStyle = col;
@@ -1798,8 +1821,8 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
 
     let v, vc;
     if(n === 0){ v='عدد الإلكترونات يساوي عدد البروتونات ← الجسم متعادل كهربائيًا'; vc=COLORS.green; }
-    else if(n > 0){ v='فقد الجسم إلكترونات ← صار موجب الشحنة'; vc=COLORS.red; }
-    else { v='اكتسب الجسم إلكترونات ← صار سالب الشحنة'; vc=COLORS.blue; }
+    else if(n > 0){ v='الإلكترونات أقلّ من البروتونات ← الجسم موجب الشحنة'; vc=COLORS.red; }
+    else { v='الإلكترونات أكثر من البروتونات ← الجسم سالب الشحنة'; vc=COLORS.blue; }
     optVerdict(v, COLORS, vc);
     optCaption('الجسم لا يكتسب شحنة إلا بانتقال إلكترونات إليه أو منه — أما البروتونات في النواة فلا تنتقل.', COLORS);
   }
@@ -1881,14 +1904,17 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
     }
     else if(state.method === 'contact'){
       const sep = 150 - f*118;
-      figRod(180, 214, 130, +state.moved, COLORS, false);
+      figRod(180, 214, 130, +(state.moved - state.moved*f/2), COLORS, false);
       optLabel('قضيب موجب الشحنة', 180, 172, COLORS.red, 11.5);
-      const ball = figChargedBall(180 + sep + 90, gy, 42, +moved, COLORS);
-      optLabel('كرة معدنية متعادلة', ball.x, gy+28, COLORS.muted, 11.5);
-      for(let i=0;i<Math.round(moved);i++)
+      /* الجسمان متشابهان، فتتوزّع الشحنة بينهما بالتساوي: نصفها لكلٍّ منهما */
+      const half = state.moved*f/2;
+      const ball = figChargedBall(180 + sep + 90, gy, 42, +half, COLORS);
+      optLabel(half > 0.05 ? 'الكرة صارت موجبة مثل القضيب' : 'كرة معدنية متعادلة',
+               ball.x, gy+28, half > 0.05 ? COLORS.red : COLORS.muted, 11.5);
+      for(let i=0;i<Math.round(half);i++)
         figSign(ball.x - 60 - i*18, ball.y, 6.5, false, COLORS);
-      qLeft = +state.moved - moved; qRight = +moved;
-      note = 'عند التلامس تنتقل الشحنة فعلًا، فيصير الجسمان بالشحنة نفسها';
+      qLeft = state.moved - half; qRight = half;
+      note = 'عند التلامس تتوزّع الشحنة على الجسمين، فيحمل كلٌّ منهما نصفها';
     }
     else {
       const rodX = 180 + (1-f)*70;
@@ -1930,8 +1956,9 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
 
   window.t12Reading=function(){
     const f = prog();
-    return [METHODS[state.method].name, state.moved,
-            (state.method==='induction' ? '0' : (state.moved*f).toFixed(1)),
+    const movedNow = state.method==='induction' ? 0
+                   : (state.method==='contact' ? state.moved*f/2 : state.moved*f);
+    return [METHODS[state.method].name, state.moved, movedNow.toFixed(1),
             (state.method==='rub' ? 'متضادتان' : (state.method==='contact' ? 'متماثلتان' : 'لا شحنة منتقلة'))];
   };
   window.t12State=state; window.t12Update=t12Update; window.t12Draw=t12Draw;
@@ -1945,14 +1972,28 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
    ========================================================================= */
 (function(){
   const COLORS = makeColors();
-  const state = { simMode:'auto', t:0, rodCharge:4, dist:14, mode:'near', aNow:null, aV:0 };
+  /* stored: الشحنة التي انتقلت إلى الكشاف فعلًا وبقيت فيه بعد رفع القضيب.
+     الأوضاع: near تقريب بلا لمس، touch ملامسة، lifted بعد رفع القضيب. */
+  const state = { simMode:'auto', t:0, rodCharge:4, dist:14, mode:'near',
+                  stored:0, aNow:null, aV:0 };
 
-  /* الشحنة المؤثرة في الورقتين: بالتقريب تعتمد على البعد، وباللمس تنتقل كاملة */
-  function leafCharge(){
-    if(state.mode === 'touch') return state.rodCharge*0.75;
+  /* الشحنة المستحثة في الورقتين بالتقريب: تأخذ إشارة القضيب وتقلّ مع البعد */
+  function induced(){
+    if(state.mode !== 'near') return 0;
     return state.rodCharge * Math.pow(10/Math.max(state.dist,6), 2) * 0.9;
   }
+  /* شحنة الورقتين: ما استُحثّ بالتقريب مضافًا إلى ما بقي مخزونًا في الكشاف */
+  function leafCharge(){
+    if(state.mode === 'touch') return state.stored;
+    return state.stored + induced();
+  }
   function angle(){ return Math.min(Math.abs(leafCharge())*16, 48); }
+  /* إشارة القرص: في الحثّ تعاكس القضيب، وبعد الملامسة تماثل الورقتين */
+  function discSign(){
+    if(state.mode === 'near' && Math.abs(induced()) > 0.05 && state.stored === 0)
+      return -Math.sign(state.rodCharge);
+    return Math.sign(leafCharge());
+  }
 
   function t13Update(dt){
     if(state.simMode==='auto') state.t += dt;
@@ -1987,64 +2028,84 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
     ctx.fillStyle=COLORS.bg; ctx.fillRect(0,0,CW,CH);
     optTitle('نشاط ٥: الكشاف الكهربائي — كيف نعرف أن الجسم مشحون؟', COLORS);
 
-    const gy = 344, q = leafCharge(), a = angle();
+    const gy = 344, q = leafCharge(), a = angle(), lifted = (state.mode === 'lifted');
     /* الرقاقتان ورق ألمنيوم رقيق، فترتعشان دائمًا ما دامتا مشحونتين */
     const quiver = state.simMode==='auto' ? Math.sin(state.t*7.4)*(0.5 + a*0.035) : 0;
     const base = (state.aNow === null) ? a : state.aNow;   // قبل أول تحديث: الزاوية المحسوبة
     const aShown = Math.max(0, base + quiver);
     ctx.fillStyle=COLORS.ground; ctx.fillRect(90, gy, 460, 7);
 
-    /* الكشاف، وشحنة الورقتين تأخذ إشارة القضيب في اللمس وتعاكسه قربًا في الحث */
-    const leafSign = (state.mode === 'touch') ? state.rodCharge : state.rodCharge;
-    const es = figElectroscope(320, gy, 92, aShown, leafSign, COLORS);
+    /* الورقتان تأخذان إشارة شحنتهما، والقرص إشارته الخاصة: في الحثّ يعاكس
+       القضيب، وبعد الملامسة يماثل الورقتين. */
+    const es = figElectroscope(320, gy, 92, aShown,
+                               { disc: discSign(), leaf: Math.sign(q) }, COLORS);
 
-    /* القضيب المشحون فوق القرص */
+    /* القضيب المشحون فوق القرص — ويُرفع تمامًا في وضع «ارفع القضيب» */
     const gap = (state.mode === 'touch') ? 6 : state.dist*2.6;
     const rodY = es.topY - gap - 14;
     state._topY = es.topY;
-    state._rodBox = { x:320-75, y:rodY-11, w:150, h:22 };
-    figRod(320, rodY, 150, state.rodCharge, COLORS, false);
-    if(state.mode !== 'touch')
-      dragHaloRect(320, rodY, 186, 46, COLORS, state.drag ? 'اسحب لأعلى وأسفل' : 'اسحبني بإصبعك');
-    optLabel(state.rodCharge >= 0 ? 'قضيب موجب الشحنة' : 'قضيب سالب الشحنة',
-             320, es.topY - gap - 42, state.rodCharge>=0?COLORS.red:COLORS.blue, 12);
-    if(state.mode !== 'touch'){
+    state._rodBox = lifted ? null : { x:320-75, y:rodY-11, w:150, h:22 };
+    if(!lifted){
+      figRod(320, rodY, 150, state.rodCharge, COLORS, false);
+      if(state.mode !== 'touch')
+        dragHaloRect(320, rodY, 186, 46, COLORS, state.drag ? 'اسحب لأعلى وأسفل' : 'اسحبني بإصبعك');
+      optLabel(state.rodCharge >= 0 ? 'قضيب موجب الشحنة' : 'قضيب سالب الشحنة',
+               320, es.topY - gap - 42, state.rodCharge>=0?COLORS.red:COLORS.blue, 12);
+    } else {
+      optLabel('رُفِع القضيب بعيدًا عن الكشاف', 320, es.topY - 52, COLORS.muted, 12);
+    }
+    if(state.mode === 'near'){
       ctx.setLineDash([4,4]); ctx.strokeStyle=COLORS.muted; ctx.lineWidth=1.4;
       ctx.beginPath(); ctx.moveTo(360, es.topY-gap); ctx.lineTo(360, es.topY); ctx.stroke();
       ctx.setLineDash([]);
       optLabel('البعد '+state.dist.toFixed(0)+' سم', 404, es.topY-gap/2+4, COLORS.muted, 11);
     }
     optLabel('الورقتان تنفرجان بزاوية '+a.toFixed(0)+' درجة', 320, gy+30, COLORS.capActive, 12);
+    if(Math.abs(state.stored) > 0.05)
+      optLabel('الكشاف يحمل شحنة '+(state.stored > 0 ? 'موجبة' : 'سالبة')+' انتقلت إليه بالملامسة',
+               320, gy+50, state.stored > 0 ? COLORS.red : COLORS.blue, 11);
 
     optHUD(608, 62, 262, [
       {text:'ماذا يقيس الكشاف؟', bold:true, color:COLORS.capActive},
       {text:'شحنة القضيب', color:COLORS.muted},
       {text:'q(rod) = '+(state.rodCharge>0?'+':'')+state.rodCharge.toFixed(0)+' e', ltr:true,
        color: state.rodCharge>=0?COLORS.red:COLORS.blue},
-      {text: state.mode==='touch' ? 'بالملامسة: تنتقل الشحنة' : 'بالتقريب: حثّ بلا انتقال', color:COLORS.muted},
+      {text: state.mode==='touch' ? 'بالملامسة: تنتقل الشحنة'
+           : (lifted ? 'بعد رفع القضيب: الشحنة باقية' : 'بالتقريب: حثّ بلا انتقال'),
+       color:COLORS.muted},
       {text:'q(leaves) = '+q.toFixed(2)+' e', ltr:true, color:COLORS.capActive},
+      {text:'نوع شحنة الورقتين', color:COLORS.muted},
+      {text: Math.abs(q) < 0.05 ? 'لا شحنة' : (q > 0 ? 'موجبة' : 'سالبة'),
+       color: Math.abs(q) < 0.05 ? COLORS.muted : (q > 0 ? COLORS.red : COLORS.blue)},
       {text:'زاوية الانفراج', color:COLORS.muted},
       {text:'θ = '+a.toFixed(0)+'°', ltr:true, color:COLORS.capDefault}
     ], COLORS);
 
     let v, vc;
     if(a < 2){ v='لا انفراج ← لا شحنة مؤثرة في الورقتين'; vc=COLORS.muted; }
-    else if(state.mode === 'touch'){ v='بالملامسة انتقلت الشحنة، فبقيت الورقتان منفرجتين حتى بعد إبعاد القضيب'; vc=COLORS.red; }
-    else { v='بالتقريب تنفرج الورقتان، فإذا أبعدتَ القضيب عادتا وانطبقتا'; vc=COLORS.capActive; }
+    else if(state.mode === 'touch'){ v='بالملامسة تنتقل الشحنة إلى الكشاف نفسه ← اضغط «ارفع القضيب» وانظر'; vc=COLORS.red; }
+    else if(lifted){ v='رُفِع القضيب وبقيت الورقتان منفرجتين ← الشحنة انتقلت فعلًا إلى الكشاف'; vc=COLORS.red; }
+    else if(Math.abs(state.stored) > 0.05){ v='الكشاف مشحون أصلًا، وتقريب القضيب يزيد الانفراج أو ينقصه حسب نوع الشحنة'; vc=COLORS.capDefault; }
+    else { v='بالتقريب تنفرج الورقتان، فإذا أبعدتَ القضيب عادتا وانطبقتا لأن لا شحنة انتقلت'; vc=COLORS.capActive; }
     optVerdict(v, COLORS, vc);
     optCaption('الورقتان تحملان شحنة من النوع نفسه فتتنافران — وكلما زادت الشحنة زادت زاوية الانفراج.', COLORS);
   }
 
   window.t13Reading=function(){
-    return [state.mode==='touch' ? 'ملامسة' : 'تقريب',
-            (state.rodCharge>0?'+':'')+state.rodCharge.toFixed(0),
-            state.mode==='touch' ? '—' : state.dist.toFixed(0),
+    const q = leafCharge();
+    const st = state.mode==='touch' ? 'ملامسة' : (state.mode==='lifted' ? 'بعد رفع القضيب' : 'تقريب');
+    return [st, (state.rodCharge>0?'+':'')+state.rodCharge.toFixed(0),
+            state.mode==='near' ? state.dist.toFixed(0) : '—',
+            Math.abs(q) < 0.05 ? 'لا شحنة' : (q > 0 ? 'موجبة' : 'سالبة'),
             angle().toFixed(0)+'°'];
   };
   window.t13State=state; window.t13Update=t13Update; window.t13Draw=t13Draw;
   window.t13SetMode=function(m){
+    /* الملامسة تنقل ثلاثة أرباع شحنة القضيب إلى الكشاف وتبقى فيه */
+    if(m === 'touch') state.stored = state.rodCharge*0.75;
+    if(m === 'discharge'){ state.stored = 0; m = 'near'; }
     state.mode = m;
-    setControlEnabled('t13State.dist', m !== 'touch');
+    setControlEnabled('t13State.dist', m === 'near');
   };
 })();
 </script>
@@ -2058,7 +2119,12 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
   const state = { simMode:'auto', t:0, q1:3, q2:3, r:12 };
   /* بالميكروكولوم والسنتيمتر:  F = 90·q₁·q₂ / r²  نيوتن */
   function force(){ return 90*Math.abs(state.q1*state.q2)/(state.r*state.r); }
-  function repel(){ return state.q1*state.q2 > 0; }
+  /* ثلاث حالات لا اثنتان: تنافر، تجاذب، ولا قوة إن كانت إحدى الشحنتين صفرًا */
+  function mode(){
+    const pr = state.q1*state.q2;
+    return pr > 0 ? 'rep' : (pr < 0 ? 'att' : 'none');
+  }
+  function repel(){ return mode() === 'rep'; }
 
   function t14Update(dt){
     if(state.simMode==='auto') state.t += dt;
@@ -2122,9 +2188,11 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
 
     /* سهما القوة: متساويان في المقدار ومتضادان في الاتجاه */
     const r1 = state._balls[0].r, r2 = state._balls[1].r;
-    figForcePair(x1-r1-4, x2+r2+4, cy, rep, F*9, COLORS);
+    const md = mode();
+    if(md !== 'none') figForcePair(x1-r1-4, x2+r2+4, cy, rep, F*9, COLORS);
     ctx.restore();
-    figBadge(rep ? 'تنافر' : 'تجاذب', cxm, cy-88, rep, COLORS);
+    if(md === 'none') figBadge('لا قوة', cxm, cy-88, false, COLORS, null, COLORS.muted);
+    else figBadge(rep ? 'تنافر' : 'تجاذب', cxm, cy-88, rep, COLORS);
 
     /* منحني القوة مع البعد */
     const gx0=80, gyB=380, gw=420, gh=102;
@@ -2154,15 +2222,18 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
     ], COLORS);
 
     let v, vc;
-    if(rep){ v='الشحنتان من النوع نفسه ← تتنافران، والسهمان متعاكسان إلى الخارج'; vc=COLORS.capActive; }
+    if(md === 'none'){ v='إحدى الشحنتين صفر ← لا توجد قوة بينهما مهما قرّبتهما'; vc=COLORS.muted; }
+    else if(rep){ v='الشحنتان من النوع نفسه ← تتنافران، والسهمان متعاكسان إلى الخارج'; vc=COLORS.capActive; }
     else { v='الشحنتان مختلفتان في النوع ← تتجاذبان، والسهمان متجهان إلى الداخل'; vc=COLORS.capDefault; }
     optVerdict(v, COLORS, vc);
     optCaption('ضاعف البعد تصر القوة ربعًا، لأن القوة تتناسب عكسيًا مع مربع البعد لا مع البعد نفسه.', COLORS);
   }
 
   window.t14Reading=function(){
+    const md = mode();
     return [state.q1.toFixed(0), state.q2.toFixed(0), state.r.toFixed(0),
-            force().toFixed(2), repel()?'تنافر':'تجاذب'];
+            force().toFixed(2),
+            md === 'none' ? 'لا قوة' : (md === 'rep' ? 'تنافر' : 'تجاذب')];
   };
   window.t14State=state; window.t14Update=t14Update; window.t14Draw=t14Draw;
 })();
@@ -2241,8 +2312,11 @@ const FONT_HEAD = "'Cairo','Dubai','Segoe UI',Tahoma,Arial,sans-serif";
     /* شحنة الاختبار على بعد d */
     const px = cx + state.d*SC + 26;
     state._cx = cx; state._sc = SC; state._probe = {x:px, y:cy};
-    ctx.fillStyle = sphereFill(px, cy, 11, '#0e9e90');
-    ctx.beginPath(); ctx.arc(px, cy, 11, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = sphereFill(px, cy, 13, '#0e9e90');
+    ctx.beginPath(); ctx.arc(px, cy, 13, 0, Math.PI*2); ctx.fill();
+    /* شحنة الاختبار موجبة دائمًا، وعليها يُبنى اتجاه السهم فتُكتب إشارتها */
+    optLabel('+', px, cy+5, '#ffffff', 15, 'center', true);
+    optLabel('شحنة اختبار موجبة', px, cy+34, COLORS.muted, 10.5);
     dragHalo(px, cy, 24, COLORS, state.drag ? 'اسحب لتغيير البعد' : 'امسك شحنة الاختبار');
     const L = Math.min(20 + E/6e5, 90);
     optArrow(px+14, cy, px+14 + (pos? L : -Math.min(L, state.d*SC-6)), cy,
@@ -2653,8 +2727,9 @@ function figFilings(poles, x0, y0, w, hh, spacing, COLORS, alpha){
   }
 
   window.t17Reading=function(){
+    const q = charge()*RODS[state.rod].sign;
     return [RODS[state.rod].name, RODS[state.rod].cloth, state.rubs.toFixed(0),
-            (charge()*RODS[state.rod].sign > 0 ? '+' : '−')+charge().toFixed(0), lifted()];
+            q === 0 ? 'لا شحنة' : ((q > 0 ? '+' : '−')+Math.abs(q).toFixed(0)), lifted()];
   };
   window.t17State=state; window.t17Update=t17Update; window.t17Draw=t17Draw;
   window.t17SetRod=function(r){ if(RODS[r]) state.rod = r; };
@@ -2794,6 +2869,9 @@ function figFilings(poles, x0, y0, w, hh, spacing, COLORS, alpha){
     return [nm(state.q1), nm(state.q2), state.gap.toFixed(0),
             (state.q1===0||state.q2===0) ? 'لا شيء' : (like()?'تنافر':'تجاذب')];
   };
+  const QV = { pos:1, zero:0, neg:-1 };
+  window.t18SetQ1=function(v){ if(v in QV){ state.q1 = QV[v]; state.ang = null; } };
+  window.t18SetQ2=function(v){ if(v in QV){ state.q2 = QV[v]; state.ang = null; } };
   window.t18State=state; window.t18Update=t18Update; window.t18Draw=t18Draw;
 })();
 </script>
@@ -3215,16 +3293,21 @@ function figFilings(poles, x0, y0, w, hh, spacing, COLORS, alpha){
    ========================================================================= */
 (function(){
   const COLORS = makeColors();
-  const state = { simMode:'auto', t:0, density:9, needleX:390, needleY:150, view:'filings' };
+  /* موضع الإبرة بالسنتيمتر من مركز المغناطيس: عشرة بكسلات لكل سنتيمتر */
+  const PX = 10, ORG = { x:300, y:216 };
+  const state = { simMode:'auto', t:0, density:9, nx:9, ny:6.6, view:'filings' };
+  const needlePx = ()=> ({ x: ORG.x + state.nx*PX, y: ORG.y - state.ny*PX });
   /* منزلقا الإبرة يقابلان السحب باليد، فالرقم والرسم لا يفترقان */
 
   function poles(){ return magnetPoles(300, 216, 170, false); }
   /* شدة المجال عند الإبرة بوحدات نسبية، للمقارنة لا للقياس المطلق */
   function strengthAtNeedle(){
-    return fieldAtPoint(poles(), state.needleX, state.needleY).mag * 1e4;
+    const n = needlePx();
+    return fieldAtPoint(poles(), n.x, n.y).mag * 1e4;
   }
   function needleAngle(){
-    const B = fieldAtPoint(poles(), state.needleX, state.needleY);
+    const n = needlePx();
+    const B = fieldAtPoint(poles(), n.x, n.y);
     return Math.atan2(B.y, B.x);
   }
 
@@ -3235,13 +3318,14 @@ function figFilings(poles, x0, y0, w, hh, spacing, COLORS, alpha){
       if(P.justPressed && t33DragHitTest(P.x, P.y)) state.drag = true;
       if(!P.isDown) state.drag = false;
       if(state.drag){
-        setControlSnap('t33State.needleX', Math.max(96, Math.min(544, P.x)));
-        setControlSnap('t33State.needleY', Math.max(106, Math.min(382, P.y)));
+        setControlSnap('t33State.nx', (Math.max(96, Math.min(544, P.x)) - ORG.x)/PX);
+        setControlSnap('t33State.ny', (ORG.y - Math.max(106, Math.min(382, P.y)))/PX);
       }
     }
   }
   function t33DragHitTest(x, y){
-    return Math.hypot(x-state.needleX, y-state.needleY) < 26;
+    const n = needlePx();
+    return Math.hypot(x-n.x, y-n.y) < 26;
   }
   window.t33DragHitTest = t33DragHitTest;
 
@@ -3297,15 +3381,15 @@ function figFilings(poles, x0, y0, w, hh, spacing, COLORS, alpha){
     figMagnet(300, 216, 170, 44, false, COLORS);
 
     /* الإبرة المغناطيسية: يضعها الطالب حيث شاء فتدور مع المجال */
-    figNeedle(state.needleX, state.needleY, 34, needleAngle(), COLORS);
-    dragHalo(state.needleX, state.needleY, 25, COLORS,
-             state.drag ? 'ضعها حيث شئت' : 'اسحب الإبرة');
+    const np = needlePx();
+    figNeedle(np.x, np.y, 34, needleAngle(), COLORS);
+    dragHalo(np.x, np.y, 25, COLORS, state.drag ? 'ضعها حيث شئت' : 'اسحب الإبرة');
     ctx.restore();
 
     optHUD(600, 62, 268, [
       {text:'المجال عند الإبرة', bold:true, color:COLORS.capActive},
       {text:'اتجاه الإبرة يتبع اتجاه المجال', color:COLORS.muted},
-      {text:'x = '+((state.needleX-300)/10).toFixed(1)+' cm , y = '+((216-state.needleY)/10).toFixed(1)+' cm', ltr:true},
+      {text:'x = '+state.nx.toFixed(1)+' cm , y = '+state.ny.toFixed(1)+' cm', ltr:true},
       {text:'شدة المجال عندها (نسبية)', color:COLORS.muted},
       {text:'B = '+strengthAtNeedle().toFixed(2), ltr:true, color:COLORS.capActive, bold:true},
       {text:'زاوية الإبرة', color:COLORS.muted},
@@ -3322,7 +3406,7 @@ function figFilings(poles, x0, y0, w, hh, spacing, COLORS, alpha){
   }
 
   window.t33Reading=function(){
-    return [((state.needleX-300)/10).toFixed(1), ((216-state.needleY)/10).toFixed(1),
+    return [state.nx.toFixed(1), state.ny.toFixed(1),
             strengthAtNeedle().toFixed(2), Math.round(needleAngle()*180/Math.PI)+'°'];
   };
   window.t33State=state; window.t33Update=t33Update; window.t33Draw=t33Draw;
@@ -3337,14 +3421,16 @@ function figFilings(poles, x0, y0, w, hh, spacing, COLORS, alpha){
    ========================================================================= */
 (function(){
   const COLORS = makeColors();
-  const state = { simMode:'auto', t:0, magX:250, magOn:1, flip:0, nAng:null, nV:0 };
+  /* بعد المغناطيس عن البوصلة بالسنتيمتر: أربعة بكسلات لكل سنتيمتر */
+  const state = { simMode:'auto', t:0, dist:21, magOn:1, flip:0, nAng:null, nV:0 };
+  const magPx = ()=> CX - 44 - state.dist*4 - 75;
   const CX = 440, CY = 236;                       // موضع البوصلة
 
   /* مجال الأرض: ضعيف وثابت يشير إلى الشمال، والشمال إلى أعلى الرسم.
      والمغناطيس يقترب من جانب البوصلة، فيكون مجاله عندها عموديًا على مجال
      الأرض — وهذا هو وضع التجربة الذي تنحرف فيه الإبرة انحرافًا متدرّجًا. */
   const EARTH = { x:0, y:-3.4e-5 };
-  function poles(){ return magnetPoles(state.magX, CY, 150, state.flip===1); }
+  function poles(){ return magnetPoles(magPx(), CY, 150, state.flip===1); }
   function totalField(){
     const B = state.magOn ? fieldAtPoint(poles(), CX, CY) : {x:0,y:0};
     return { x: B.x + EARTH.x, y: B.y + EARTH.y };
@@ -3357,8 +3443,7 @@ function figFilings(poles, x0, y0, w, hh, spacing, COLORS, alpha){
     while(d < -180) d += 360;
     return d;
   }
-  /* البعد بين حافة المغناطيس وحافة البوصلة بالسنتيمتر (4 بكسل لكل سنتيمتر) */
-  function gapCm(){ return Math.max(0, ((CX-44) - (state.magX+75))/4); }
+  function gapCm(){ return state.dist; }
 
   function t34Update(dt){
     if(state.simMode==='auto') state.t += dt;
@@ -3377,11 +3462,11 @@ function figFilings(poles, x0, y0, w, hh, spacing, COLORS, alpha){
     if(P){
       if(P.justPressed && t34DragHitTest(P.x, P.y)) state.drag = true;
       if(!P.isDown) state.drag = false;
-      if(state.drag) setControlSnap('t34State.magX', Math.max(110, Math.min(330, P.x)));
+      if(state.drag) setControlSnap('t34State.dist', (CX - 44 - 75 - Math.max(110, Math.min(330, P.x)))/4);
     }
   }
   function t34DragHitTest(x, y){
-    return state.magOn === 1 && Math.abs(x-state.magX) < 86 && Math.abs(y-CY) < 30;
+    return state.magOn === 1 && Math.abs(x-magPx()) < 86 && Math.abs(y-CY) < 30;
   }
   window.t34DragHitTest = t34DragHitTest;
 
@@ -3399,14 +3484,17 @@ function figFilings(poles, x0, y0, w, hh, spacing, COLORS, alpha){
 
     /* مغناطيس يقرّبه الطالب من البوصلة */
     if(state.magOn){
-      figMagnet(state.magX, CY, 150, 38, state.flip===1, COLORS);
-      dragHaloRect(state.magX, CY, 172, 58, COLORS, state.drag ? 'اسحبه قربًا وبعدًا' : 'اسحبني بإصبعك');
-      const d = gapCm();
+      const mx = magPx();
+      figMagnet(mx, CY, 150, 38, state.flip===1, COLORS);
+      dragHaloRect(mx, CY, 172, 58, COLORS, state.drag ? 'اسحبه قربًا وبعدًا' : 'اسحبني بإصبعك');
       ctx.setLineDash([4,4]); ctx.strokeStyle=COLORS.muted; ctx.lineWidth=1.3;
       ctx.beginPath();
-      ctx.moveTo(state.magX+75, CY+64); ctx.lineTo(CX-44, CY+64); ctx.stroke();
+      ctx.moveTo(mx+75, CY+64); ctx.lineTo(CX-44, CY+64); ctx.stroke();
+      [mx+75, CX-44].forEach(x=>{
+        ctx.beginPath(); ctx.moveTo(x, CY+58); ctx.lineTo(x, CY+70); ctx.stroke();
+      });
       ctx.setLineDash([]);
-      optLabel('البعد '+d.toFixed(0)+' سم', (state.magX+75+CX-44)/2, CY+82, COLORS.muted, 11);
+      optLabel('البعد '+state.dist.toFixed(0)+' سم', (mx+75+CX-44)/2, CY+86, COLORS.muted, 11);
     } else {
       optLabel('لا مغناطيس قريب — البوصلة تحت تأثير مجال الأرض وحده',
                236, CY, COLORS.muted, 12);
@@ -3456,7 +3544,7 @@ function figFilings(poles, x0, y0, w, hh, spacing, COLORS, alpha){
   window.t34State=state; window.t34Update=t34Update; window.t34Draw=t34Draw;
   window.t34SetMag=function(v){
     state.magOn = (v === 'on') ? 1 : 0;
-    setControlEnabled('t34State.magX', state.magOn === 1);
+    setControlEnabled('t34State.dist', state.magOn === 1);
     setBtnGroupEnabled('#flipBtns34', state.magOn === 1);
   };
   window.t34SetFlip=function(v){ state.flip = (v === 'south') ? 1 : 0; };
@@ -3577,6 +3665,8 @@ function figFilings(poles, x0, y0, w, hh, spacing, COLORS, alpha){
     optHUD(600, 62, 268, [
       {text:'الطريقة المستعملة', bold:true, color:COLORS.capActive},
       {text: M.name, color:COLORS.capActive, bold:true},
+      {text: M.gain > 0 ? 'نبدأ بمسمار غير ممغنط' : 'نبدأ بمسمار ممغنط',
+       color:COLORS.muted},
       {text: M.gain > 0 ? 'تزيد التمغنط' : 'تزيل التمغنط',
        color: M.gain > 0 ? COLORS.green : COLORS.red},
       {text:'عدد المرات', color:COLORS.muted},
@@ -4103,7 +4193,7 @@ const EXPERIMENTS = {
   },
   13: {
     purpose:'أن تستعمل الكشاف الكهربائي للكشف عن وجود الشحنة وتقدير مقدارها.',
-    cols:['الطريقة','شحنة القضيب','البعد (cm)','زاوية الانفراج'],
+    cols:['الحالة','شحنة القضيب','البعد (cm)','نوع شحنة الورقتين','زاوية الانفراج'],
     conclusion:'ورقتا الكشاف تحملان شحنة من النوع نفسه فتتنافران وتنفرجان، وتزداد الزاوية بزيادة الشحنة المؤثرة. وبالتقريب تعود الورقتان لتنطبقا عند إبعاد القضيب، أما بالملامسة فتبقيان منفرجتين لأن الشحنة انتقلت إلى الكشاف.',
     question:'كشافٌ ورقتاه منفرجتان. قرّبتَ منه قضيبًا فازداد الانفراج. ماذا تستنتج عن نوع شحنة القضيب؟',
     title:'نشاط ٥: الكشاف الكهربائي',
@@ -4113,7 +4203,8 @@ const EXPERIMENTS = {
       'امسك القضيب بإصبعك على الشاشة وقرّبه من القرص ببطء ولاحظ انفراج الورقتين.',
       'قلّل البعد تدريجيًا وسجّل زاوية الانفراج عند كل بعد.',
       'أبعِد القضيب ولاحظ عودة الورقتين إلى وضعهما.',
-      'اضغط «ملامسة القرص» ولاحظ بقاء الانفراج بعد رفع القضيب.',
+      'اضغط «ملامسة القرص» ثم «ارفع القضيب» ولاحظ بقاء الورقتين منفرجتين.',
+      'اضغط «تفريغ الكشاف» ليعود متعادلًا قبل التجربة التالية.',
       'غيّر شحنة القضيب من موجبة إلى سالبة ولاحظ أن الانفراج يحدث في الحالتين.',
       'استنتج لماذا ينفرج الكشاف مهما كان نوع الشحنة.'
     ]
@@ -4570,6 +4661,8 @@ bindGroup('#modeBtns13','data-mode13',     v=> t13SetMode(v));
 bindGroup('#signBtns15','data-sign15',     v=> t15SetSign(v));
 bindGroup('#rodBtns16','data-rod16',       v=> t16SetRod(v));
 bindGroup('#rodBtns17','data-rod17',       v=> t17SetRod(v));
+bindGroup('#q1Btns18','data-q118',         v=> t18SetQ1(v));
+bindGroup('#q2Btns18','data-q218',         v=> t18SetQ2(v));
 bindGroup('#matBtns19','data-mat19',       v=> t19SetMat(v));
 
 /* ---- الفصل الثاني: التيار الكهربائي ---- */
