@@ -1098,14 +1098,15 @@
           <div class="btn-row">
             <button class="ctrl-btn on" data-mode-tab="32">⚙️ تلقائي</button>
           </div>
-          <div class="hint">💡 جرّب المواد الستّ واحدة واحدة وسجّل أيّها انجذب. انتبه: النحاس والألمنيوم فلزّان ومع ذلك لا ينجذبان.<br><b>✋ يمكنك سحب المغناطيس بإصبعك لتقرّبه من العيّنة.</b></div>
+          <div class="hint">💡 ليست المواد صنفين بل ثلاثة: جرّب الحديد فيميل بقوة، ثم الألمنيوم فيميل ميلًا لا يُرى إلا مكبّرًا، ثم النحاس فيُدفع بعيدًا بدل أن ينجذب.<br><b>✋ يمكنك سحب المغناطيس بإصبعك لتقرّبه من العيّنة.</b></div>
           <div class="btn-row" id="matBtns32">
             <button class="ctrl-btn cyan on" data-mat32="iron">حديد</button>
             <button class="ctrl-btn cyan" data-mat32="nickel">نيكل</button>
             <button class="ctrl-btn cyan" data-mat32="cobalt">كوبلت</button>
-            <button class="ctrl-btn cyan" data-mat32="copper">نحاس</button>
+            <button class="ctrl-btn cyan" data-mat32="platinum">بلاتين</button>
             <button class="ctrl-btn cyan" data-mat32="aluminum">ألمنيوم</button>
-            <button class="ctrl-btn cyan" data-mat32="wood">خشب</button>
+            <button class="ctrl-btn cyan" data-mat32="copper">نحاس</button>
+            <button class="ctrl-btn cyan" data-mat32="glass">زجاج</button>
           </div>
           <div class="control-row">
             <label>بعد المغناطيس عن العيّنة (سم) <b id="val-d-32">10</b></label>
@@ -3644,126 +3645,208 @@ function figFilings(poles, x0, y0, w, hh, spacing, COLORS, alpha){
 
 <script>
 /* =========================================================================
-   نشاط 32 — المواد المغناطيسية: أيّ المواد ينجذب إلى المغناطيس؟
+   نشاط 32 — المواد المغناطيسية: التصنيف حسب قوة الجذب
+   الحديد والنيكل والكوبلت تنجذب انجذابًا قويًا (فيرومغناطيسية)، والألمنيوم
+   والبلاتين تنجذب انجذابًا ضعيفًا جدًا (بارامغناطيسية)، والنحاس والزجاج
+   تُدفع دفعًا ضعيفًا جدًا (دايامغناطيسية).
    ========================================================================= */
 (function(){
   const COLORS = makeColors();
+  /* chi قابلية التمغنط، قيم تقريبية: إشارتها ومقدارها هما اللذان يصنّفان */
   const MATS = {
-    iron:     {name:'حديد',    pull:1.00, kind:'مادة مغناطيسية',      color:'#8b97a8'},
-    nickel:   {name:'نيكل',    pull:0.62, kind:'مادة مغناطيسية',      color:'#aeb8c6'},
-    cobalt:   {name:'كوبلت',   pull:0.48, kind:'مادة مغناطيسية',      color:'#7f8fa6'},
-    copper:   {name:'نحاس',    pull:0.00, kind:'مادة غير مغناطيسية',  color:'#c9772f'},
-    aluminum: {name:'ألمنيوم', pull:0.00, kind:'مادة غير مغناطيسية',  color:'#cfd9e6'},
-    wood:     {name:'خشب',     pull:0.00, kind:'مادة غير مغناطيسية',  color:'#b08048'}
+    iron:     {name:'حديد',    chi: 5000,     color:'#8b97a8'},
+    nickel:   {name:'نيكل',    chi: 600,      color:'#aeb8c6'},
+    cobalt:   {name:'كوبلت',   chi: 250,      color:'#7f8fa6'},
+    platinum: {name:'بلاتين',  chi: 2.9e-4,   color:'#d8dee8'},
+    aluminum: {name:'ألمنيوم', chi: 2.2e-5,   color:'#cfd9e6'},
+    copper:   {name:'نحاس',    chi:-9.6e-6,   color:'#c9772f'},
+    glass:    {name:'زجاج',    chi:-1.4e-5,   color:'#bcd7ea'}
   };
-  const ORDER = ['iron','nickel','cobalt','copper','aluminum','wood'];
-  const state = { simMode:'auto', t:0, mat:'iron', dist:10 };
+  const ORDER = ['iron','nickel','cobalt','platinum','aluminum','copper','glass'];
+  const CLASSES = [
+    {key:'ferro', name:'فيرومغناطيسية', note:'تنجذب انجذابًا قويًا',        color:'#0e9e90'},
+    {key:'para',  name:'بارامغناطيسية', note:'تنجذب انجذابًا ضعيفًا جدًا',  color:'#ff9f1c'},
+    {key:'dia',   name:'دايامغناطيسية', note:'تُدفع دفعًا ضعيفًا جدًا',     color:'#e8523f'}
+  ];
+  const state = { simMode:'auto', t:0, mat:'iron', dist:10, ang:null, angV:0 };
 
-  function pulled(){ return MATS[state.mat].pull > 0; }
-  /* جذب العيّنة يقلّ مع البعد، ويصير صفرًا في المواد غير المغناطيسية */
-  function pullStrength(){ return MATS[state.mat].pull * Math.pow(10/Math.max(state.dist,4), 2); }
+  const PIV = { x:430, y:104 }, LEN = 118;
+
+  /* التكبير دائمًا قوة للعشرة، فيُكتب هكذا لا بصيغة علمية كاملة */
+  const SUP = {'0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+  function powText(z){
+    const e = Math.round(Math.log10(z));
+    return '10' + String(e).split('').map(d=> SUP[d] || d).join('');
+  }
+  /* القيم الكبيرة تُكتب عددًا صحيحًا، والصغيرة جدًا بالصيغة العلمية */
+  function chiText(c){
+    const a = Math.abs(c);
+    return a >= 1 ? String(Math.round(a)) : sci(a);
+  }
+  function classOf(m){
+    const c = MATS[m].chi;
+    return c > 1 ? 'ferro' : (c > 0 ? 'para' : 'dia');
+  }
+  function classInfo(m){ return CLASSES.find(c=> c.key === classOf(m)); }
+  /* زاوية ميل العيّنة المعلقة: تكبر بكبر القابلية وتقلّ مع مربع البعد */
+  function angleDeg(){
+    const chi = MATS[state.mat].chi;
+    const pull = chi * Math.pow(10/Math.max(state.dist, 3), 2);
+    return 60 * pull / (Math.abs(pull) + 500);
+  }
+  /* الأثر الضعيف لا يُرى إلا مكبّرًا، والتكبير يُكتب على الشاشة صراحةً */
+  function zoom(){
+    const a = Math.abs(angleDeg());
+    if(a >= 4) return 1;
+    return Math.pow(10, Math.ceil(Math.log10(14/Math.max(a, 1e-12))));
+  }
+  /* الميل الحقيقي كما يراه الطالب: العيّنة تقف عند سطح المغناطيس */
+  function realDeg(){
+    const touch = Math.asin(Math.max(0, Math.min(1, (state.dist*4 + 4)/LEN)))*180/Math.PI;
+    return Math.max(-34, Math.min(Math.min(34, touch), angleDeg()));
+  }
+  /* الميل مكبّرًا: يُرسم طيفًا متقطّعًا للمواد التي لا يُرى أثرها */
+  function ghostDeg(){
+    return Math.max(-16, Math.min(16, angleDeg()*zoom()));
+  }
 
   function t32Update(dt){
     if(state.simMode==='auto') state.t += dt;
+    /* العيّنة معلقة بخيط: تتأرجح إلى وضع اتزانها ثم تستقرّ */
+    const tg = realDeg()*Math.PI/180;
+    if(state.ang === null) state.ang = tg;
+    if(state.simMode==='auto'){
+      state.angV = (state.angV + (tg - state.ang)*24*dt) * Math.pow(0.12, dt);
+      state.ang += state.angV*dt;
+    } else { state.ang = tg; state.angV = 0; }
+
     const P = window.pointer;
     if(P){
       if(P.justPressed && t32DragHitTest(P.x, P.y)) state.drag = true;
       if(!P.isDown) state.drag = false;
-      if(state.drag && state._magX != null)
-        setControlSnap('t32State.dist', (state._sampleX - 26 - 55 - P.x)/4);
+      if(state.drag) setControlSnap('t32State.dist', (PIV.x - 26 - 55 - P.x)/4);
     }
   }
   function t32DragHitTest(x, y){
     const b = state._magBox;
-    return !!b && x > b.x-10 && x < b.x+b.w+10 && y > b.y-14 && y < b.y+b.h+14;
+    return !!b && x > b.x-12 && x < b.x+b.w+12 && y > b.y-16 && y < b.y+b.h+16;
   }
   window.t32DragHitTest = t32DragHitTest;
 
   function t32Draw(){
     ctx.clearRect(0,0,CW,CH);
     ctx.fillStyle=COLORS.bg; ctx.fillRect(0,0,CW,CH);
-    optTitle('نشاط ٢: المواد المغناطيسية — ما الذي ينجذب إلى المغناطيس؟', COLORS);
+    optTitle('نشاط ٢: المواد المغناطيسية — التصنيف حسب قوة الجذب', COLORS);
 
-    const M = MATS[state.mat], s = pullStrength(), gy = 262, cy = 190;
-    ctx.fillStyle=COLORS.ground; ctx.fillRect(70, gy, 480, 7);
+    const M = MATS[state.mat], cls = classInfo(state.mat);
+    const real = angleDeg(), z = zoom();
+    const sway = state.simMode==='auto' ? Math.sin(state.t*2.1)*0.012 : 0;
+    const a = ((state.ang === null) ? realDeg()*Math.PI/180 : state.ang) + sway;
 
-    /* مقياس واحد للرسم كله: أربعة بكسلات لكل سنتيمتر، فالبعد المرسوم
-       يطابق البعد المكتوب تمامًا. */
-    const SC = 4, sampleX0 = 430, sampleHalf = 26, magHalf = 55;
-    const gapPx = state.dist*SC;
-    const slide = Math.min(s, 1) * Math.max(0, gapPx - 10);
-    /* العيّنة المجذوبة لا تسكن: ترتجف على المنضدة بقدر ما يشدّها المغناطيس */
-    const shiver = (s > 0.05 && state.simMode==='auto')
-                 ? Math.sin(state.t*9)*Math.min(0.6 + s*1.6, 3) : 0;
-    const sampleX = sampleX0 - slide + shiver;
-    state._sampleX = sampleX0;
-    ctx.fillStyle = tubeFill(0, cy-16, 0, cy+16, M.color);
-    ctx.beginPath();
-    ctx.roundRect ? ctx.roundRect(sampleX-26, gy-34, 52, 34, 6) : ctx.rect(sampleX-26, gy-34, 52, 34);
-    ctx.fill();
-    ctx.strokeStyle='#6b7a90'; ctx.lineWidth=1.4; ctx.stroke();
-    optLabel(M.name, sampleX, gy+22, COLORS.capActive, 12.5);
+    /* الحامل والخيط والعيّنة المعلقة */
+    ctx.strokeStyle=COLORS.border; ctx.lineWidth=5;
+    ctx.beginPath(); ctx.moveTo(PIV.x-92, PIV.y); ctx.lineTo(PIV.x+70, PIV.y); ctx.stroke();
+    const sx = PIV.x - Math.sin(a)*LEN, sy = PIV.y + Math.cos(a)*LEN;
 
-    /* المغناطيس يقرّبه الطالب بإصبعه: حافته اليمنى تبعد d عن حافة العيّنة */
-    const magX = sampleX0 - sampleHalf - gapPx - magHalf;
-    state._magX = magX;
-    state._magBox = { x:magX-magHalf, y:gy-30, w:magHalf*2, h:26 };
-    figMagnet(magX, gy-17, magHalf*2, 26, false, COLORS);
-    dragHaloRect(magX, gy-17, magHalf*2+22, 46, COLORS, '');
-    optLabel(state.drag ? 'اسحب لتقريبه' : 'اسحبني بإصبعك', magX, gy+22, COLORS.capActive, 10.5);
-
-    /* مسطرة البعد بين حافة المغناطيس وحافة العيّنة قبل انزلاقها */
-    ctx.setLineDash([4,4]); ctx.strokeStyle=COLORS.muted; ctx.lineWidth=1.3;
-    ctx.beginPath();
-    ctx.moveTo(magX+magHalf, gy-52); ctx.lineTo(sampleX0-sampleHalf, gy-52); ctx.stroke();
-    [magX+magHalf, sampleX0-sampleHalf].forEach(x=>{
-      ctx.beginPath(); ctx.moveTo(x, gy-58); ctx.lineTo(x, gy-46); ctx.stroke();
-    });
-    ctx.setLineDash([]);
-    optLabel('البعد '+state.dist.toFixed(0)+' سم',
-             (magX+magHalf+sampleX0-sampleHalf)/2, gy-64, COLORS.muted, 11);
-
-    if(s > 0.05){
-      optArrow(sampleX-sampleHalf-6, cy, magX+magHalf+8, cy, COLORS.green, 3.5);
-      optLabel('تنجذب إلى المغناطيس', (magX+sampleX)/2, cy-38, COLORS.green, 11.5);
-    } else {
-      optLabel('لا تتحرك — لا جذب', (magX+sampleX)/2, cy-38, COLORS.muted, 11.5);
+    /* طيف الميل المكبّر: يُرى به الأثر الضعيف دون أن يُوهم بأنه أثر قوي */
+    if(z > 1){
+      const ga = ghostDeg()*Math.PI/180;
+      const gx = PIV.x - Math.sin(ga)*LEN, gy = PIV.y + Math.cos(ga)*LEN;
+      ctx.save();
+      ctx.setLineDash([5,4]); ctx.strokeStyle = cls.color; ctx.lineWidth = 1.8;
+      ctx.globalAlpha = 0.85;
+      ctx.beginPath(); ctx.moveTo(PIV.x, PIV.y); ctx.lineTo(gx, gy); ctx.stroke();
+      ctx.beginPath();
+      if(ctx.roundRect) ctx.roundRect(gx-22, gy-14, 44, 28, 6); else ctx.rect(gx-22, gy-14, 44, 28);
+      ctx.stroke();
+      ctx.restore(); ctx.setLineDash([]);
     }
 
-    /* جدول المواد الستّ: ما جُرّب منها يبقى مسجّلًا أمام الطالب */
-    optLabel('المواد التي تُختبر', 300, 318, COLORS.capActive, 12);
-    ORDER.forEach((k, i)=>{
-      const x = 96 + i*72, on = (k === state.mat);
-      const mm = MATS[k];
-      optBox(x-33, 330, 66, 54, on?COLORS.panel:COLORS.bg, on?COLORS.capActive:COLORS.border);
-      optLabel(mm.name, x, 350, on?COLORS.capActive:COLORS.muted, 11.5);
-      optLabel(mm.pull>0 ? 'تنجذب' : 'لا تنجذب', x, 370,
-               mm.pull>0 ? COLORS.green : COLORS.red, 10.5);
+    ctx.strokeStyle=COLORS.muted; ctx.lineWidth=1.6;
+    ctx.beginPath(); ctx.moveTo(PIV.x, PIV.y); ctx.lineTo(sx, sy); ctx.stroke();
+    ctx.fillStyle=COLORS.wire;
+    ctx.beginPath(); ctx.arc(PIV.x, PIV.y, 4, 0, Math.PI*2); ctx.fill();
+
+    ctx.fillStyle = tubeFill(sx-22, 0, sx+22, 0, M.color);
+    ctx.beginPath();
+    if(ctx.roundRect) ctx.roundRect(sx-22, sy-14, 44, 28, 6); else ctx.rect(sx-22, sy-14, 44, 28);
+    ctx.fill();
+    ctx.strokeStyle='#6b7a90'; ctx.lineWidth=1.4; ctx.stroke();
+    optLabel(M.name, sx, sy+34, COLORS.capActive, 12.5);
+
+    /* المغناطيس يقرّبه الطالب بإصبعه، وقطبه الشمالي نحو العيّنة */
+    const magHalf = 55, gapPx = state.dist*4;
+    const magX = PIV.x - 26 - gapPx - magHalf;
+    state._magBox = { x:magX-magHalf, y:PIV.y+LEN-16, w:magHalf*2, h:32 };
+    figMagnet(magX, PIV.y+LEN, magHalf*2, 32, false, COLORS);
+    dragHaloRect(magX, PIV.y+LEN, magHalf*2+22, 52, COLORS, '');
+    optLabel(state.drag ? 'اسحب لتقريبه' : 'اسحبني بإصبعك', magX, PIV.y+LEN+42, COLORS.capActive, 10.5);
+
+    /* مسطرة البعد بين طرف المغناطيس وموضع العيّنة قبل ميلها */
+    const rulY = PIV.y+LEN-44;
+    ctx.setLineDash([4,4]); ctx.strokeStyle=COLORS.muted; ctx.lineWidth=1.3;
+    ctx.beginPath(); ctx.moveTo(magX+magHalf, rulY); ctx.lineTo(PIV.x-26, rulY); ctx.stroke();
+    [magX+magHalf, PIV.x-26].forEach(x=>{
+      ctx.beginPath(); ctx.moveTo(x, rulY-6); ctx.lineTo(x, rulY+6); ctx.stroke();
+    });
+    ctx.setLineDash([]);
+    optLabel('البعد '+state.dist.toFixed(0)+' سم', (magX+magHalf+PIV.x-26)/2, rulY-12, COLORS.muted, 11);
+
+    /* سهم التأثر: أخضر ينجذب نحو المغناطيس، أحمر يُدفع بعيدًا عنه */
+    /* السهم فوق العيّنة كي لا يختفي خلف المغناطيس حين تلتصق به */
+    const dirPull = MATS[state.mat].chi > 0, L = 46;
+    const ax = (z > 1) ? PIV.x - Math.sin(ghostDeg()*Math.PI/180)*LEN : sx;
+    const ay = ((z > 1) ? PIV.y + Math.cos(ghostDeg()*Math.PI/180)*LEN : sy) - 42;
+    if(dirPull) optArrow(ax+14+L, ay, ax+14, ay, F_PULL, 7, 18);
+    else        optArrow(ax-14-L, ay, ax-14, ay, F_PUSH, 7, 18);
+
+    /* شارة التصنيف، ويُكتب التكبير صراحةً حين لا يُرى الأثر إلا مكبّرًا */
+    ctx.fillStyle = cls.color;
+    ctx.beginPath();
+    if(ctx.roundRect) ctx.roundRect(110, 58, 230, 38, 19); else ctx.rect(110, 58, 230, 38);
+    ctx.fill();
+    optLabel(cls.name, 225, 84, '#ffffff', 18);
+    optLabel(cls.note, 225, 116, cls.color, 12);
+    if(z > 1) optLabel('الخطّ المتقطّع هو الميل مكبّرًا ×'+powText(z), 225, 140, COLORS.muted, 11);
+
+    /* أصناف المواد الثلاثة، وصنف المادة المختبَرة مضيء */
+    const by = 330;
+    CLASSES.forEach((c, i)=>{
+      const x = 96 + i*164, on = (c.key === cls.key);
+      optBox(x-74, by, 148, 74, on?COLORS.panel:COLORS.bg, on?c.color:COLORS.border);
+      optLabel(c.name, x, by+22, on?c.color:COLORS.muted, 12.5);
+      const names = ORDER.filter(k=> classOf(k) === c.key).map(k=> MATS[k].name).join('، ');
+      optLabel(names, x, by+44, COLORS.muted, 11);
+      optLabel(c.note, x, by+64, on?c.color:COLORS.border, 10.5);
     });
 
     optHUD(600, 62, 268, [
       {text:'نتيجة الاختبار', bold:true, color:COLORS.capActive},
       {text:'المادة المختبَرة', color:COLORS.muted},
       {text: M.name, color:COLORS.capActive, bold:true},
+      {text:'قابلية التمغنط (تقريبية)', color:COLORS.muted},
+      {text:'χ = '+(M.chi>0?'+':'−')+chiText(M.chi), ltr:true,
+       color: M.chi>0 ? COLORS.green : COLORS.red},
       {text:'البعد عن المغناطيس', color:COLORS.muted},
       {text:'d = '+state.dist.toFixed(0)+' cm', ltr:true},
-      {text:'التصنيف', color:COLORS.muted},
-      {text: M.kind, color: pulled()?COLORS.green:COLORS.red}
+      {text:'التصنيف: '+cls.name, color:cls.color, bold:true}
     ], COLORS);
 
-    let v, vc;
-    if(pulled()){ v='الحديد والنيكل والكوبلت مواد مغناطيسية ← تنجذب إلى المغناطيس'; vc=COLORS.green; }
-    else { v='النحاس والألمنيوم والخشب مواد غير مغناطيسية ← لا ينجذب منها شيء'; vc=COLORS.red; }
-    optVerdict(v, COLORS, vc);
-    optCaption('ليس كل فلزّ ينجذب إلى المغناطيس: النحاس والألمنيوم فلزّان ولا ينجذبان.', COLORS);
+    let v;
+    if(cls.key === 'ferro') v='قابلية التمغنط كبيرة وموجبة ← تنجذب العيّنة انجذابًا قويًا يُرى بالعين';
+    else if(cls.key === 'para') v='قابلية التمغنط موجبة لكنها صغيرة جدًا ← انجذاب ضعيف لا يُرى إلا بأداة حساسة';
+    else v='قابلية التمغنط سالبة ← تُدفع العيّنة بعيدًا عن المغناطيس دفعًا ضعيفًا جدًا';
+    optVerdict(v, COLORS, cls.color);
+    optCaption('ليست المواد مغناطيسية وغير مغناطيسية فحسب: بل تُصنَّف حسب قوة الجذب واتجاهه إلى ثلاثة أصناف.', COLORS);
   }
 
   window.t32Reading=function(){
-    return [MATS[state.mat].name, state.dist.toFixed(0),
-            pulled() ? 'انجذبت' : 'لم تنجذب', MATS[state.mat].kind];
+    const M = MATS[state.mat];
+    return [M.name, (M.chi>0?'+':'−')+chiText(M.chi), state.dist.toFixed(0),
+            M.chi > 0 ? 'تنجذب' : 'تُدفع', classInfo(state.mat).name];
   };
   window.t32State=state; window.t32Update=t32Update; window.t32Draw=t32Draw;
-  window.t32SetMat=function(m){ if(MATS[m]) state.mat = m; };
+  window.t32SetMat=function(m){ if(MATS[m]){ state.mat = m; state.ang = null; } };
 })();
 </script>
 
@@ -4878,19 +4961,20 @@ const EXPERIMENTS = {
     ]
   },
   32: {
-    purpose:'أن تصنّف المواد إلى مغناطيسية وغير مغناطيسية بالاختبار العملي.',
-    cols:['المادة','البعد (سم)','هل انجذبت','التصنيف'],
-    conclusion:'الحديد والنيكل والكوبلت مواد مغناطيسية تنجذب إلى المغناطيس، أما النحاس والألمنيوم والخشب فلا تنجذب. فليس كل فلزّ مادة مغناطيسية.',
-    question:'النحاس فلزّ ولامع مثل الحديد، فلماذا لا ينجذب إلى المغناطيس؟',
+    purpose:'أن تصنّف المواد حسب قوة الجذب واتجاهه إلى فيرومغناطيسية وبارامغناطيسية ودايامغناطيسية.',
+    cols:['المادة','قابلية التمغنط','البعد (سم)','اتجاه التأثر','التصنيف'],
+    conclusion:'تُصنَّف المواد حسب قوة الجذب واتجاهه إلى ثلاثة أصناف: فيرومغناطيسية كالحديد والنيكل والكوبلت تنجذب انجذابًا قويًا يُرى بالعين، وبارامغناطيسية كالألمنيوم والبلاتين تنجذب انجذابًا ضعيفًا جدًا لا يُرى إلا بأداة حساسة، ودايامغناطيسية كالنحاس والزجاج تُدفع بعيدًا عن المغناطيس دفعًا ضعيفًا جدًا.',
+    question:'عيّنتان لم تتحركا أمام مغناطيس عادي، فلما استُعمل مغناطيس قوي جدًا اقتربت إحداهما وابتعدت الأخرى. فما صنف كل منهما؟',
     title:'نشاط ٢: المواد المغناطيسية',
-    subtitle:'الحديد والنيكل والكوبلت تنجذب، والنحاس والألمنيوم والخشب لا تنجذب',
-    tools:['مغناطيس قضيبي','عيّنات: حديد، نيكل، كوبلت، نحاس، ألمنيوم، خشب','مسطرة'],
+    subtitle:'ثلاثة أصناف حسب قوة الجذب: فيرومغناطيسية وبارامغناطيسية ودايامغناطيسية',
+    tools:['مغناطيس قوي','عيّنات معلقة: حديد، نيكل، كوبلت، بلاتين، ألمنيوم، نحاس، زجاج','خيط رفيع','مسطرة'],
     steps:[
-      'ضع عيّنة الحديد على المنضدة وقرّب المغناطيس منها تدريجيًا.',
-      'سجّل عند أي بعد بدأت العيّنة تتحرك.',
-      'أعِد التجربة مع كل عيّنة من العيّنات الستّ.',
-      'صنّف كل مادة: مغناطيسية أو غير مغناطيسية.',
-      'اكتب في دفترك قاعدة تميّز بها المادة المغناطيسية.'
+      'علّق عيّنة الحديد بخيط رفيع وقرّب المغناطيس منها وسجّل ميلها.',
+      'أعِد التجربة مع النيكل والكوبلت وقارن قوة الجذب.',
+      'جرّب الألمنيوم والبلاتين: الميل ضعيف جدًا، فلاحظ مقدار التكبير المكتوب.',
+      'جرّب النحاس والزجاج ولاحظ أن العيّنة تُدفع بعيدًا لا تنجذب.',
+      'صنّف كل مادة في أحد الأصناف الثلاثة حسب إشارة قابلية التمغنط ومقدارها.',
+      'اكتب في دفترك: لماذا يبدو النحاس والألمنيوم متشابهين أمام مغناطيس عادي؟'
     ]
   },
   33: {
