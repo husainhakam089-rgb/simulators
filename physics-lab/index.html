@@ -832,39 +832,6 @@
   }
   .wx-key{ font-size:calc(var(--u) * .98); color:#a9bcd9; opacity:.75; }
 
-  /* ---- أدوات صورة الواجهة ---- */
-  .wx-tools{
-    position:absolute; z-index:3;
-    top:calc(var(--u) * .9 + env(safe-area-inset-top, 0px));
-    inset-inline-start:calc(var(--u) * .9 + env(safe-area-inset-left, 0px));
-    display:flex; gap:calc(var(--u) * .45); direction:rtl;
-  }
-  .wx-tool{
-    font-family:var(--font-body); font-size:calc(var(--u) * 1.02); font-weight:600;
-    color:#e6eefc; background:rgba(12,22,46,.55);
-    border:1px solid rgba(214,230,255,.30); border-radius:999px;
-    padding:calc(var(--u) * .42) calc(var(--u) * .95);
-    cursor:pointer; opacity:.55; transition:.16s ease;
-    -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
-  }
-  .wx-tool:hover, .wx-tool:focus-visible{ opacity:1; border-color:var(--gold-2); }
-  .wx-tool[hidden]{ display:none; }
-  /* منطقة الإفلات: تظهر فقط أثناء سحب صورة فوق الشاشة */
-  .wx-drop{
-    position:absolute; inset:calc(var(--u) * 1.2); z-index:4;
-    display:none; align-items:center; justify-content:center;
-    border:3px dashed rgba(246,230,180,.75); border-radius:calc(var(--u) * 1.6);
-    background:rgba(10,18,40,.72);
-    font-family:var(--font-body); font-size:calc(var(--u) * 1.5); font-weight:700;
-    color:#f6e6b4; text-align:center; direction:rtl; padding:calc(var(--u) * 2);
-    pointer-events:none;
-  }
-  #welcomeOverlay.dragging .wx-drop{ display:flex; }
-  .wx-note{
-    font-family:var(--font-body); font-size:calc(var(--u) * 1.02);
-    color:#ffd7a8; direction:rtl; min-height:1.2em;
-  }
-
   /* شاشات قصيرة جدًّا (مثل الجوّال عرضيًّا): تُخفى التفاصيل الثانوية بدل أن يظهر تمرير */
   @media (max-height:430px){
     .wx-emblem{ display:none; }
@@ -994,17 +961,9 @@
               title="اضغط لكتابة اسمك">إعداد: <b data-teacher-name>أحمد نعمة العبودي</b> <span class="edit-ico">✏️</span></button>
       <div class="welcome-hint" id="welcomeHint"></div>
       <div class="wx-key">أو اضغط <b>Enter</b> للبدء</div>
-      <div class="wx-note" id="wxNote"></div>
     </div>
   </div>
 
-  <!-- اختيار صورة الواجهة من الجهاز وحفظها داخل المتصفّح -->
-  <div class="wx-tools">
-    <button class="wx-tool" id="wxPickBtn" type="button">🖼️ صورة الواجهة</button>
-    <button class="wx-tool" id="wxClearBtn" type="button" hidden>✖ إزالة الصورة</button>
-  </div>
-  <input type="file" id="wxFile" accept="image/*" hidden>
-  <div class="wx-drop">أفلِت الصورة هنا لتصير واجهة المحاكي</div>
 </div>
 
 <div id="teacherModal" class="modal" hidden>
@@ -5741,25 +5700,15 @@ const WELCOME_ART = {
   const btn     = document.getElementById('startBtn');
 
   /* ---- صورة الواجهة ----
-     تُقرأ بهذا الترتيب: صورة محفوظة في المتصفّح ← ملف assets/welcome.jpg ←
-     المشهد المرسوم. ويستطيع المستخدم اختيار صورته من جهازه مرّة واحدة
-     (زر «صورة الواجهة» أو سحبها وإفلاتها) فتُحفظ وتبقى بعد إغلاق المتصفّح. */
-  const ART_KEY = 'physics3m.welcomeArt';
-  const bgImg   = document.getElementById('wxBg');
-  const phImg   = document.getElementById('wxPhoto');
-  const fileInp = document.getElementById('wxFile');
-  const pickBtn = document.getElementById('wxPickBtn');
-  const clrBtn  = document.getElementById('wxClearBtn');
-  const note    = document.getElementById('wxNote');
-
-  function say(msg){ if(note) note.textContent = msg || ''; }
-
+     الصورة مدمجة في WELCOME_ART.background أعلاه، فتُعرض مباشرة بلا أي
+     خطوة من المستخدم. وإن تعذّر تحميلها يظهر المشهد المرسوم بدلها. */
+  const bgImg  = document.getElementById('wxBg');
+  const phImg  = document.getElementById('wxPhoto');
   const frame  = document.getElementById('wxFrame');
-  const btnHome = document.querySelector('.wx-foot');   /* مرجع موضع الزر الأصلي */
   const blurBg = document.getElementById('wxBlur');
   const stage  = document.querySelector('.wx-stage');
 
-  /* الزر الحقيقي يُركّب فوق موضع الزر المرسوم داخل الصورة مهما كان مقاس الشاشة */
+  /* موضع الزر حين لا يكون مرسومًا داخل الصورة */
   function placeButton(){
     if(!overlay || !overlay.classList.contains('has-bg') || !frame || !stage || !btn) return;
     const fr = frame.getBoundingClientRect();
@@ -5781,9 +5730,8 @@ const WELCOME_ART = {
       bgImg.style.setProperty('--wx-h',   (100 / (1 - c)).toFixed(3) + '%');
       bgImg.style.setProperty('--wx-top', (-100 * c / (1 - c)).toFixed(3) + '%');
       overlay.classList.add('has-bg');
-      if(clrBtn) clrBtn.hidden = false;
       if(blurBg) blurBg.src = src;
-      /* إن كان الزرّ مرسومًا داخل الصورة: انقل الزر الحقيقي إلى إطارها واجعله شفّافًا فوقه */
+      /* الزرّ مرسوم داخل الصورة: يُنقل الزر الحقيقي إلى إطارها شفّافًا فوقه */
       if(WELCOME_ART.buttonOnArt && frame && btn){
         overlay.style.setProperty('--wx-bx', (WELCOME_ART.buttonX * 100) + '%');
         overlay.style.setProperty('--wx-by', (WELCOME_ART.buttonY * 100) + '%');
@@ -5792,103 +5740,25 @@ const WELCOME_ART = {
         overlay.classList.add('art-btn');
         btn.title = 'ابدأ المحاكاة';
         frame.appendChild(btn);
-        if(stage) stage.style.paddingBottom = '';
+        stage.style.paddingBottom = '';
       } else {
         requestAnimationFrame(placeButton);
       }
     };
-    bgImg.onerror = function(){
-      overlay.classList.remove('has-bg');
-      if(clrBtn) clrBtn.hidden = true;
-    };
+    /* فشل التحميل ← المشهد المرسوم، فلا تظهر شاشة فارغة */
+    bgImg.onerror = function(){ overlay.classList.remove('has-bg'); };
     bgImg.src = src;
   }
-  function clearBg(){
-    if(!bgImg || !overlay) return;
-    overlay.classList.remove('has-bg');
-    overlay.classList.remove('art-btn');
-    bgImg.removeAttribute('src');
-    if(blurBg) blurBg.removeAttribute('src');
-    if(stage) stage.style.paddingBottom = '';
-    /* إرجاع الزر إلى مكانه في المشهد المرسوم */
-    if(btn && btnHome && btn.parentNode !== stage){
-      btnHome.parentNode.insertBefore(btn, btnHome);
-      btn.removeAttribute('title');
-    }
-    if(clrBtn) clrBtn.hidden = true;
-    try{ localStorage.removeItem(ART_KEY); }catch(e){}
-    say('رُجِع المشهد المرسوم.');
-  }
+
   window.addEventListener('resize', placeButton);
   window.addEventListener('orientationchange', ()=> setTimeout(placeButton, 220));
 
-  /* تصغير الصورة قبل الحفظ حتى لا تتجاوز سعة تخزين المتصفّح */
-  function shrink(dataUrl, cb){
-    const im = new Image();
-    im.onload = function(){
-      const MAX = 1600;
-      const k = Math.min(1, MAX / Math.max(im.naturalWidth, im.naturalHeight));
-      if(k >= 1 && dataUrl.length < 900000){ cb(dataUrl); return; }
-      try{
-        const c = document.createElement('canvas');
-        c.width  = Math.round(im.naturalWidth  * k);
-        c.height = Math.round(im.naturalHeight * k);
-        c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
-        cb(c.toDataURL('image/jpeg', 0.86));
-      }catch(e){ cb(dataUrl); }
-    };
-    im.onerror = function(){ cb(dataUrl); };
-    im.src = dataUrl;
-  }
-
-  function useFile(file){
-    if(!file || !/^image\//.test(file.type)){ say('اختر ملف صورة من فضلك.'); return; }
-    say('جارٍ تحميل الصورة…');
-    const fr = new FileReader();
-    fr.onload = function(){
-      shrink(String(fr.result), function(src){
-        showBg(src);
-        try{
-          localStorage.setItem(ART_KEY, src);
-          say('تمّ حفظ صورة الواجهة وتظهر تلقائيًا في كل مرّة.');
-        }catch(e){
-          say('ظهرت الصورة، لكن تعذّر حفظها في هذا المتصفّح فستحتاج اختيارها مجددًا.');
-        }
-      });
-    };
-    fr.onerror = function(){ say('تعذّرت قراءة الملف.'); };
-    fr.readAsDataURL(file);
-  }
-
-  /* التحميل الأوّلي */
-  let saved = null;
-  try{ saved = localStorage.getItem(ART_KEY); }catch(e){}
-  if(saved)                       showBg(saved);
-  else if(WELCOME_ART.background) showBg(WELCOME_ART.background);
+  if(WELCOME_ART.background) showBg(WELCOME_ART.background);
 
   if(phImg && WELCOME_ART.photo){
     phImg.onload  = ()=> overlay.classList.add('has-photo');
     phImg.onerror = ()=> overlay.classList.remove('has-photo');
     phImg.src = WELCOME_ART.photo;
-  }
-
-  if(pickBtn && fileInp){
-    pickBtn.addEventListener('click', ()=> fileInp.click());
-    fileInp.addEventListener('change', ()=>{ useFile(fileInp.files && fileInp.files[0]); fileInp.value=''; });
-  }
-  if(clrBtn) clrBtn.addEventListener('click', clearBg);
-
-  /* السحب والإفلات فوق الشاشة */
-  if(overlay){
-    let depth = 0;
-    overlay.addEventListener('dragenter', e=>{ e.preventDefault(); if(++depth===1) overlay.classList.add('dragging'); });
-    overlay.addEventListener('dragover',  e=>{ e.preventDefault(); });
-    overlay.addEventListener('dragleave', e=>{ e.preventDefault(); if(--depth<=0){ depth=0; overlay.classList.remove('dragging'); } });
-    overlay.addEventListener('drop', e=>{
-      e.preventDefault(); depth = 0; overlay.classList.remove('dragging');
-      const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
-      useFile(f);
-    });
   }
 
   /* ---- سطر الاسم الإنجليزي يُخفى إن غيّر المستخدم اسمه (فلا يبقى اسم غيره) ---- */
