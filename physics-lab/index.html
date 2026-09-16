@@ -127,40 +127,14 @@
     box-shadow:0 6px 14px rgba(18,181,165,.30);
   }
 
+  /* اسم الأستاذ في الترويسة — نصّ يُقرأ فقط، لا يُضغط */
   .header-teacher{
+    display:flex; align-items:center;
     font-family:var(--font-body); font-size:13.5px; color:var(--text-muted);
     background:var(--bg-panel-alt); border:1px solid var(--border-soft);
     border-radius:10px; padding:9px 18px; white-space:nowrap;
-    min-height:42px; cursor:pointer; transition:.15s ease;
+    min-height:42px;
   }
-  .header-teacher:hover{ border-color:var(--accent-amber); }
-  .edit-ico{ font-size:11px; opacity:.65; margin-inline-start:4px; }
-
-  /* نافذة كتابة اسم الأستاذ */
-  .modal{
-    position:fixed; inset:0; z-index:10000;
-    display:flex; align-items:center; justify-content:center;
-    padding:18px; background:rgba(4,8,16,.72);
-  }
-  .modal[hidden]{ display:none !important; }
-  .modal-card{
-    width:100%; max-width:420px;
-    background:var(--bg-panel); border:1px solid var(--border);
-    border-radius:16px; padding:22px 22px 18px;
-    box-shadow:0 20px 60px rgba(0,0,0,.5);
-    display:flex; flex-direction:column; gap:12px;
-  }
-  .modal-card h3{ font-size:17px; color:var(--accent-amber); }
-  .modal-sub{ margin:0; font-size:12.5px; color:var(--text-muted); line-height:1.7; }
-  .modal-card input[type=text]{
-    font-family:var(--font-body); font-size:16px; color:var(--text);
-    background:var(--bg-panel-alt); border:1px solid var(--border-soft);
-    border-radius:10px; padding:13px 14px; min-height:48px; width:100%;
-    outline:none;
-  }
-  .modal-card input[type=text]:focus{ border-color:var(--accent-amber); }
-  .modal-note{ font-size:11.5px; color:var(--accent-red); line-height:1.7; }
-  .modal-note:empty{ display:none; }
   .header-teacher b{
     font-family:var(--font-head); font-weight:800; font-size:18px;
     color:var(--accent-amber); margin-inline-start:4px;
@@ -604,7 +578,12 @@
     background:radial-gradient(closest-side, rgba(10,18,40,.94), rgba(10,18,40,.72) 70%, rgba(10,18,40,0) 100%);
     -webkit-backdrop-filter:blur(calc(var(--u)*1.2)); backdrop-filter:blur(calc(var(--u)*1.2));
   }
-  #welcomeOverlay.has-bg .wx-scene{ display:none; }
+  #welcomeOverlay.drawn .wx-scene{ display:block; }
+  /* قبل أن يُعرف مصير الصورة لا يظهر شيء إلا لون الخلفية، فلا تومض
+     الواجهة المرسومة لحظة ثم تُستبدل بالصورة. */
+  .wx-art, .wx-stage{ transition:opacity .28s ease; }
+  #welcomeOverlay:not(.has-bg):not(.drawn) .wx-art,
+  #welcomeOverlay:not(.has-bg):not(.drawn) .wx-stage{ opacity:0; }
   /* مع صورة الواجهة تُخفى النصوص المكرّرة (الاسم والعنوان مرسومان داخلها)،
      وينزل الزر الحقيقي أسفل الشاشة فوق تعتيم يغطّي الزرّ المرسوم في الصورة.     */
   #welcomeOverlay.has-bg .wx-emblem,
@@ -626,8 +605,6 @@
   }
   #welcomeOverlay.has-bg .welcome-hint,
   #welcomeOverlay.has-bg .wx-key{ display:none; }
-  #welcomeOverlay.has-bg .wx-author{ opacity:.62; }
-  #welcomeOverlay.has-bg .wx-author:hover{ opacity:1; }
   /* الزر يكبُر بقدر عرض الصورة حتى يغطي موضع الزرّ المرسوم فيها */
   #welcomeOverlay.has-bg .wx-start{ min-width:var(--wx-btn-w, auto); }
 
@@ -638,8 +615,7 @@
   /* المسرح يغطّي الشاشة كلّها ويعلو الإطار، فلولا تعطيل المؤشر عليه
      لابتلع الضغطات قبل أن تصل إلى الزر الشفّاف داخل الإطار. */
   #welcomeOverlay.art-btn .wx-stage{ pointer-events:none; }
-  #welcomeOverlay.art-btn .wx-stage .wx-foot,
-  #welcomeOverlay.art-btn .wx-stage .wx-author{ pointer-events:auto; }
+  #welcomeOverlay.art-btn .wx-stage .wx-foot{ pointer-events:auto; }
   #welcomeOverlay.art-btn .wx-start{
     position:absolute; z-index:5;
     inset-inline-start:var(--wx-bx, 50%); top:var(--wx-by, 88%);
@@ -669,7 +645,8 @@
   }
 
   /* مشهد المختبر المرسوم بالـ CSS (بديل مستقل عن أي ملف خارجي) */
-  .wx-scene{ position:absolute; inset:0;
+  /* المشهد المرسوم احتياطيّ بحت: لا يظهر إلا إن تعذّر تحميل صورة الواجهة */
+  .wx-scene{ display:none; position:absolute; inset:0;
     background:
       radial-gradient(120% 90% at 50% 0%,   #33507f 0%, #1b2c53 45%, #0d1730 100%),
       linear-gradient(180deg, #16254a, #0b1226);
@@ -715,8 +692,9 @@
             calc(var(--u) * 1.6 + env(safe-area-inset-bottom, 0px))
             calc(var(--u) * 1.6 + env(safe-area-inset-left, 0px));
     overflow-y:auto; overscroll-behavior:contain;
-    animation: wxRise .75s cubic-bezier(.22,1.2,.36,1) both;
   }
+  #welcomeOverlay.has-bg .wx-stage,
+  #welcomeOverlay.drawn  .wx-stage{ animation: wxRise .6s cubic-bezier(.22,1.2,.36,1) both; }
   @keyframes wxRise{ from{ opacity:0; transform:translateY(calc(var(--u)*1.6)); } to{ opacity:1; transform:none; } }
   @media (prefers-reduced-motion: reduce){ .wx-stage{ animation:none; } }
   #welcomeOverlay.has-photo .wx-stage{ align-items:flex-start; text-align:start; direction:rtl;
@@ -814,17 +792,6 @@
     margin-top:calc(var(--u) * .4); direction:rtl;
   }
   #welcomeOverlay.has-photo .wx-foot{ align-items:flex-start; }
-  .wx-author{
-    font-family:var(--font-body); font-size:calc(var(--u) * 1.18); font-weight:600;
-    color:#dbe6fa;
-    background:rgba(255,255,255,.08);
-    border:1px solid rgba(214,230,255,.28);
-    border-radius:999px; padding:calc(var(--u) * .5) calc(var(--u) * 1.2);
-    cursor:pointer; transition:.15s ease;
-    -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
-  }
-  .wx-author:hover{ border-color:var(--gold-2); color:#fff; background:rgba(255,255,255,.14); }
-  .wx-author b{ font-family:var(--font-head); font-weight:800; color:#f6e6b4; margin-inline-start:6px; }
   .welcome-hint{
     font-family:var(--font-body);
     font-size:calc(var(--u) * 1.05); color:#c2d1e9; opacity:.8; line-height:1.8;
@@ -946,7 +913,7 @@
     <p class="wx-kicker">Welcome to the<b>Physics Simulator</b></p>
 
     <h1 class="wx-name-ar">الأستاذ: <b data-teacher-name>أحمد نعمة العبودي</b></h1>
-    <p class="wx-name-en" id="wxNameEn">Ahmed Ne’ma Al-Aboudi</p>
+    <p class="wx-name-en" data-teacher-name-en>Ahmed Ne’ma Al-Aboudi</p>
 
     <span class="wx-rule"></span>
     <p class="wx-sub">مختبر الفيزياء الافتراضي — الصف الثالث المتوسط<br>محاكي أنشطة تفاعلية بالكامل</p>
@@ -957,27 +924,11 @@
     </button>
 
     <div class="wx-foot">
-      <button class="wx-author" id="welcomeTeacherBtn" type="button"
-              title="اضغط لكتابة اسمك">إعداد: <b data-teacher-name>أحمد نعمة العبودي</b> <span class="edit-ico">✏️</span></button>
       <div class="welcome-hint" id="welcomeHint"></div>
       <div class="wx-key">أو اضغط <b>Enter</b> للبدء</div>
     </div>
   </div>
 
-</div>
-
-<div id="teacherModal" class="modal" hidden>
-  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="teacherModalTitle">
-    <h3 id="teacherModalTitle">اسم الأستاذ</h3>
-    <p class="modal-sub">يظهر في شاشة الترحيب وأعلى الصفحة وفي أسفلها.</p>
-    <input id="teacherInput" type="text" maxlength="40" autocomplete="off"
-           placeholder="اكتب اسمك هنا" aria-label="اسم الأستاذ">
-    <div class="btn-row">
-      <button class="ctrl-btn on" id="teacherSave" type="button">حفظ</button>
-      <button class="ctrl-btn" id="teacherCancel" type="button">إلغاء</button>
-    </div>
-    <div class="modal-note" id="teacherNote"></div>
-  </div>
 </div>
 
 <header class="app-header">
@@ -993,8 +944,7 @@
     <div class="chapter-badge" id="chapterBadge"></div>
     <button class="icon-btn" id="soundToggleBtn" type="button" title="كتم/تشغيل صوت التجربة" aria-label="كتم/تشغيل الصوت">🔊</button>
     <button class="icon-btn" id="themeToggleBtn" type="button" title="تبديل المظهر الفاتح/الداكن" aria-label="تبديل المظهر">🌙</button>
-    <button class="header-teacher" id="teacherBtn" type="button"
-            title="اضغط لتغيير اسم الأستاذ">إعداد: <b data-teacher-name>اسم الاستاذ</b> <span class="edit-ico">✏️</span></button>
+    <div class="header-teacher">إعداد: <b data-teacher-name>أحمد نعمة العبودي</b></div>
   </div>
 </header>
 
@@ -1488,7 +1438,7 @@
 </main>
 
 <footer>
-  مختبر الفيزياء الافتراضي — الصف الثالث المتوسط · إعداد: <b data-teacher-name>اسم الاستاذ</b>
+  مختبر الفيزياء الافتراضي — الصف الثالث المتوسط · إعداد: <b data-teacher-name>أحمد نعمة العبودي</b>
 </footer>
 
 <script>
@@ -4805,7 +4755,7 @@ const SoundFX = (function(){
 window.SoundFX = SoundFX;
 
 document.addEventListener('click', (e)=>{
-  const el = e.target.closest('.ctrl-btn, .tab-btn, .toolbar-btn, .wx-start, .wx-author, .chapter-card, .back-btn');
+  const el = e.target.closest('.ctrl-btn, .tab-btn, .toolbar-btn, .wx-start, .chapter-card, .back-btn');
   if(el) SoundFX.click();
 });
 
@@ -4926,58 +4876,19 @@ if (fullscreenBtn && canvasArea) {
    يُكتب من الشاشة نفسها (زر «إعداد» في الهيدر أو في شاشة الترحيب) ويُحفظ في
    المتصفح فلا يُعاد كتابته في كل مرة. وهذا السطر يبقى القيمة الافتراضية لمن
    يفضّل تثبيت الاسم داخل الملف قبل توزيعه على الطلاب. */
-const TEACHER = 'أحمد نعمة العبودي';
+/* ======================= اسم الأستاذ =======================
+   يُعدّل من هنا فقط. غيّر السطرين التاليين فيتغيّر الاسم في كل موضع
+   يظهر فيه: شاشة الترحيب وأعلى الصفحة وأسفلها.
+   (الاسم مرسوم أيضًا داخل صورة الواجهة نفسها، فإن غيّرته هنا بدّل الصورة
+    من WELCOME_ART.background حتى لا يتناقضا.)                                  */
+const TEACHER    = 'أحمد نعمة العبودي';
 const TEACHER_EN = 'Ahmed Ne’ma Al-Aboudi';
-const TEACHER_KEY = 'physics3m.teacherName';
 
-function readStoredTeacher(){
-  try { return localStorage.getItem(TEACHER_KEY); } catch(e){ return null; }
+function applyTeacher(){
+  document.querySelectorAll('[data-teacher-name]').forEach(el=>{ el.textContent = TEACHER; });
+  document.querySelectorAll('[data-teacher-name-en]').forEach(el=>{ el.textContent = TEACHER_EN; });
 }
-function storeTeacher(name){
-  try { localStorage.setItem(TEACHER_KEY, name); return true; } catch(e){ return false; }
-}
-function applyTeacher(name){
-  document.querySelectorAll('[data-teacher-name]').forEach(el=>{ el.textContent = name; });
-}
-let teacherName = (readStoredTeacher() || TEACHER).trim() || TEACHER;
-applyTeacher(teacherName);
-
-(function initTeacherEditor(){
-  const modal  = document.getElementById('teacherModal');
-  const input  = document.getElementById('teacherInput');
-  const note   = document.getElementById('teacherNote');
-  const openers = ['teacherBtn','welcomeTeacherBtn'].map(id=>document.getElementById(id));
-
-  function open(){
-    input.value = (teacherName === TEACHER) ? '' : teacherName;
-    note.textContent = '';
-    modal.hidden = false;
-    setTimeout(()=>{ try{ input.focus(); input.select(); }catch(e){} }, 40);
-  }
-  function close(){ modal.hidden = true; }
-  function save(){
-    const v = input.value.trim();
-    if(!v){ note.textContent = 'اكتب الاسم أولًا.'; return; }
-    teacherName = v;
-    applyTeacher(teacherName);
-    if(storeTeacher(teacherName)) close();
-    else {
-      /* بعض المتصفحات تمنع الحفظ عند فتح الملف مباشرة من القرص */
-      note.textContent = 'تعذّر الحفظ في هذا المتصفح، فالاسم يظهر الآن لكنه يعود إلى الافتراضي بعد إغلاق الملف.';
-      setTimeout(close, 2600);
-    }
-  }
-
-  openers.forEach(b=>{ if(b) b.addEventListener('click', open); });
-  document.getElementById('teacherSave').addEventListener('click', save);
-  document.getElementById('teacherCancel').addEventListener('click', close);
-  modal.addEventListener('click', e=>{ if(e.target === modal) close(); });
-  input.addEventListener('keydown', e=>{
-    if(e.key === 'Enter') save();
-    if(e.key === 'Escape') close();
-  });
-  document.addEventListener('keydown', e=>{ if(e.key === 'Escape' && !modal.hidden) close(); });
-})();
+applyTeacher();
 
 /* بيانات التجارب مفهرسة بالفصل: 11،12… للفصل الأول و21،22… للثاني */
 const EXPERIMENTS = {
@@ -5746,7 +5657,10 @@ const WELCOME_ART = {
       }
     };
     /* فشل التحميل ← المشهد المرسوم، فلا تظهر شاشة فارغة */
-    bgImg.onerror = function(){ overlay.classList.remove('has-bg'); };
+    bgImg.onerror = function(){
+      overlay.classList.remove('has-bg');
+      overlay.classList.add('drawn');
+    };
     bgImg.src = src;
   }
 
@@ -5754,24 +5668,13 @@ const WELCOME_ART = {
   window.addEventListener('orientationchange', ()=> setTimeout(placeButton, 220));
 
   if(WELCOME_ART.background) showBg(WELCOME_ART.background);
+  else if(overlay) overlay.classList.add('drawn');
 
   if(phImg && WELCOME_ART.photo){
     phImg.onload  = ()=> overlay.classList.add('has-photo');
     phImg.onerror = ()=> overlay.classList.remove('has-photo');
     phImg.src = WELCOME_ART.photo;
   }
-
-  /* ---- سطر الاسم الإنجليزي يُخفى إن غيّر المستخدم اسمه (فلا يبقى اسم غيره) ---- */
-  const enLine = document.getElementById('wxNameEn');
-  function syncEnName(name){
-    if (!enLine) return;
-    enLine.hidden = (String(name).trim() !== TEACHER);
-  }
-  if (typeof applyTeacher === 'function'){
-    const baseApply = applyTeacher;
-    applyTeacher = function(name){ baseApply(name); syncEnName(name); };
-  }
-  syncEnName(typeof teacherName === 'string' ? teacherName : TEACHER);
 
   /* ---- بدء المحاكاة فعليًا: ينتقل إلى شاشة اختيار الفصل ---- */
   let started = false;
