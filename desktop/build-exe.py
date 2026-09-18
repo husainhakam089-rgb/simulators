@@ -26,6 +26,9 @@ APPS = [
     dict(slug='phy-sixth-3-4',
          product='Phy Sixth 3-4',
          appId='com.aboudi.physixth34'),
+    dict(slug='phy-sixth-5',
+         product='Phy Sixth 5',
+         appId='com.aboudi.physixth5'),
 ]
 
 

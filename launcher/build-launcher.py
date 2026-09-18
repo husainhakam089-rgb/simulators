@@ -24,6 +24,8 @@ APPS = [
          desc='Physics virtual lab - chapters 1 and 2'),
     dict(slug='phy-sixth-3-4', product='Phy Sixth 3-4',
          desc='Physics virtual lab - chapters 3 and 4'),
+    dict(slug='phy-sixth-5', product='Phy Sixth 5',
+         desc='Physics virtual lab - chapter 5'),
 ]
 
 RC = '''#include <windows.h>

@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a0f1c">
+<title>Phy Sixth 5 | مختبر الفيزياء — البصريات الفيزيائية</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&family=Cairo:wght@600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-deep:#0a0f1c;
+    --bg-panel:#111a2c;
+    --bg-panel-alt:#16213a;
+    --border:#243252;
+    --text:#e8edf7;
+    --text-muted:#8b98b4;
+    --gold:#f2c14e;
+    --gold-soft:#ffd97a;
+    --cyan:#38e1c6;
+    --cyan-soft:#6ffbe0;
+    --shadow:0 8px 24px rgba(0,0,0,.4);
+  }
+  *{ box-sizing:border-box; }
+  html,body{ height:100%; }
+  body{
+    margin:0;
+    background:var(--bg-deep);
+    color:var(--text);
+    font-family:'Tajawal',system-ui,-apple-system,'Segoe UI',sans-serif;
+    overflow:hidden;
+  }
+  .sr-only{
+    position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+    overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0;
+  }
+
+  /* الشاشات الثلاث تتبادل الظهور في نفس المكان */
+  .screen{
+    position:fixed; inset:0;
+    opacity:0; visibility:hidden;
+    transition:opacity .45s ease, visibility .45s ease;
+  }
+  .screen.on{ opacity:1; visibility:visible; }
+
+  /* =====================================================================
+     ١ — شاشة الترحيب: الصورة نفسها هي الواجهة، وزرّها هو زر التشغيل الحقيقي
+     ===================================================================== */
+  #splash{
+    z-index:30;
+    display:flex; align-items:center; justify-content:center;
+    background:var(--bg-deep);
+  }
+  /* نسخة مموّهة من الصورة تملأ الفراغ حولها بدل الأشرطة السوداء */
+  .splash-backdrop{
+    position:absolute; inset:-6%;
+    background:url('assets/welcome.jpg') center/cover no-repeat;
+    filter:blur(52px) brightness(.55) saturate(1.05);
+    transform:scale(1.1);
+  }
+  .splash-backdrop::after{
+    content:''; position:absolute; inset:0;
+    background:radial-gradient(ellipse at center, transparent 35%, rgba(6,10,20,.75) 100%);
+  }
+  /* الإطار يحافظ على نسبة الصورة تماماً حتى يبقى موضع الزر مطابقاً لها */
+  .splash-frame{
+    position:relative;
+    aspect-ratio:1052 / 1008;
+    width:min(100%, calc(100dvh * 1052 / 1008));
+    max-height:100dvh;
+    border-radius:4px;
+    box-shadow:0 0 0 1px rgba(255,214,120,.22),
+               0 30px 80px rgba(0,0,0,.6);
+    overflow:hidden;
+  }
+  .splash-art{
+    display:block; width:100%; height:100%;
+    object-fit:contain;
+    user-select:none; -webkit-user-drag:none;
+  }
+  /* زر «ابدأ المحاكاة» — شفاف، مرسوم فوق الزر الموجود داخل الصورة */
+  .splash-start{
+    position:absolute;
+    left:35.2%; top:80.6%;
+    width:32.6%; height:15.4%;
+    padding:0; border:0; background:transparent;
+    border-radius:50%;
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .splash-start::before{
+    content:''; position:absolute; inset:0;
+    border-radius:50%;
+    background:radial-gradient(ellipse at 50% 45%, rgba(255,224,150,.34), rgba(255,200,90,.10) 55%, transparent 72%);
+    opacity:0; transition:opacity .28s ease;
+  }
+  .splash-start::after{
+    content:''; position:absolute; inset:0;
+    border-radius:50%;
+    box-shadow:0 0 0 0 rgba(255,213,120,.55);
+    animation:beacon 2.8s cubic-bezier(.22,.9,.3,1) infinite;
+  }
+  @keyframes beacon{
+    0%   { box-shadow:0 0 0 0 rgba(255,213,120,.5); }
+    70%  { box-shadow:0 0 0 22px rgba(255,213,120,0); }
+    100% { box-shadow:0 0 0 0 rgba(255,213,120,0); }
+  }
+  .splash-start:hover::before,
+  .splash-start:focus-visible::before{ opacity:1; }
+  .splash-start:focus-visible{ outline:3px solid var(--gold-soft); outline-offset:4px; }
+  .splash-start:active{ transform:translateY(2px) scale(.985); }
+  @media (prefers-reduced-motion:reduce){
+    .splash-start::after{ animation:none; box-shadow:0 0 0 2px rgba(255,213,120,.45); }
+  }
+  .splash-hint{
+    position:absolute; left:50%; bottom:2.2%;
+    transform:translateX(-50%);
+    font-size:13px; font-weight:700; letter-spacing:.2px;
+    color:#f6e3b4;
+    background:rgba(10,16,30,.62);
+    border:1px solid rgba(255,214,120,.35);
+    padding:6px 16px; border-radius:999px;
+    backdrop-filter:blur(6px);
+    opacity:0; transition:opacity .5s ease;
+    pointer-events:none; white-space:nowrap;
+  }
+  .splash-hint.show{ opacity:1; }
+
+  /* =====================================================================
+     ٢ — شاشة الفصول: هي المدخل إلى تجارب كل فصل
+     ===================================================================== */
+  #picker{
+    z-index:20;
+    overflow-y:auto;
+    background:
+      radial-gradient(ellipse 80% 55% at 50% -10%, rgba(242,193,78,.10), transparent 70%),
+      radial-gradient(ellipse 70% 50% at 50% 110%, rgba(56,225,198,.08), transparent 70%),
+      var(--bg-deep);
+  }
+  .picker-inner{
+    min-height:100%;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    gap:34px;
+    padding:48px 22px 40px;
+  }
+  .picker-head{ text-align:center; }
+  /* الشعار نفسه المقصوص من صورة الواجهة، فيتطابق مع ما يراه الطالب أولاً */
+  .picker-mark{
+    display:block;
+    width:76px; height:76px; margin:0 auto 16px;
+    border-radius:50%;
+    /* القرص أسود، فيحتاج حافة ذهبية كي ينفصل عن الخلفية الداكنة كما ينفصل
+       عن خلفية الصورة الفاتحة */
+    box-shadow:0 0 0 1px rgba(255,214,120,.45),
+               0 0 22px rgba(242,193,78,.16),
+               0 10px 26px rgba(0,0,0,.5);
+  }
+  .picker-eyebrow{
+    font-size:13px; font-weight:700; letter-spacing:2px;
+    color:var(--text-muted); margin-bottom:8px;
+  }
+  .picker-head h1{
+    margin:0 0 10px;
+    font-family:'Cairo',sans-serif; font-size:32px; font-weight:800;
+    background:linear-gradient(100deg, var(--gold-soft), #fff 45%, var(--cyan-soft));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .picker-head p{ margin:0; font-size:14px; color:var(--text-muted); }
+
+  .chapter-grid{
+    display:grid; gap:20px;
+    grid-template-columns:minmax(0, 420px);
+    width:100%; max-width:420px;
+  }
+  .chapter-card{
+    position:relative; overflow:hidden;
+    display:flex; flex-direction:column; gap:12px;
+    text-align:right;
+    padding:26px 24px 22px;
+    border-radius:20px;
+    background:linear-gradient(165deg, var(--bg-panel-alt), var(--bg-panel));
+    border:1px solid var(--border);
+    color:inherit; font-family:inherit;
+    cursor:pointer;
+    transition:transform .25s cubic-bezier(.16,1,.3,1), border-color .25s ease, box-shadow .25s ease;
+  }
+  .chapter-card::before{
+    content:''; position:absolute; inset:0 0 auto 0; height:3px;
+    background:linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity:.8;
+  }
+  .chapter-card::after{
+    content:''; position:absolute; inset:-40% -40% auto auto;
+    width:220px; height:220px; border-radius:50%;
+    background:radial-gradient(circle, var(--accent-glow), transparent 68%);
+    opacity:0; transition:opacity .35s ease;
+    pointer-events:none;
+  }
+  .chapter-card:hover,
+  .chapter-card:focus-visible{
+    transform:translateY(-5px);
+    border-color:var(--accent);
+    box-shadow:0 18px 40px rgba(0,0,0,.45);
+    outline:none;
+  }
+  .chapter-card:hover::after,
+  .chapter-card:focus-visible::after{ opacity:1; }
+  .chapter-card:active{ transform:translateY(-1px); }
+  .chapter-card.c5{ --accent:#6fb5ff; --accent-glow:rgba(111,181,255,.18); }
+
+  .card-top{ display:flex; align-items:center; gap:13px; }
+  .card-num{
+    width:46px; height:46px; flex:none;
+    display:grid; place-items:center;
+    border-radius:14px;
+    font-family:'Cairo',sans-serif; font-size:21px; font-weight:800;
+    color:#12192a;
+    background:linear-gradient(160deg, #fff, var(--accent));
+    box-shadow:0 5px 14px rgba(0,0,0,.35);
+  }
+  .card-num small{ display:block; font-size:9px; font-weight:700; opacity:.7; margin-top:-3px; }
+  .card-title{ min-width:0; }
+  .card-title b{
+    display:block;
+    font-family:'Cairo',sans-serif; font-size:18px; font-weight:800;
+    line-height:1.35;
+  }
+  .card-title span{ font-size:12.5px; color:var(--text-muted); }
+
+  .card-topics{ display:flex; flex-wrap:wrap; gap:6px; }
+  .card-topics i{
+    font-style:normal; font-size:11.5px;
+    color:var(--text-muted);
+    background:rgba(255,255,255,.05);
+    border:1px solid var(--border);
+    padding:4px 10px; border-radius:999px;
+  }
+  .card-go{
+    margin-top:4px; padding-top:14px;
+    border-top:1px dashed var(--border);
+    display:flex; align-items:center; justify-content:space-between;
+    font-size:13px; font-weight:700;
+    color:var(--accent);
+  }
+  .card-go svg{ transition:transform .25s ease; }
+  .chapter-card:hover .card-go svg{ transform:translateX(-5px); }
+  .card-count{ color:var(--text-muted); font-weight:500; font-size:12px; }
+
+  .picker-foot{
+    display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+    justify-content:center;
+    font-size:13px; color:var(--text-muted);
+  }
+  .picker-foot b{ color:var(--gold-soft); }
+  .link-btn{
+    font-family:inherit; font-size:13px; font-weight:700;
+    color:var(--text-muted);
+    background:transparent; border:1px solid var(--border);
+    padding:8px 15px; border-radius:10px; cursor:pointer;
+    transition:color .2s ease, border-color .2s ease;
+  }
+  .link-btn:hover{ color:var(--gold-soft); border-color:var(--gold); }
+
+  /* =====================================================================
+     ٣ — شاشة التجارب: الفصل المختار بملء الشاشة وشريط رجوع واحد
+     ===================================================================== */
+  #viewer{ z-index:10; display:flex; flex-direction:column; }
+  #viewer.on{ display:flex; }
+  .viewer-bar{
+    display:flex; align-items:center; gap:12px;
+    padding:8px 14px;
+    background:linear-gradient(180deg, var(--bg-panel-alt), var(--bg-panel));
+    border-bottom:1px solid var(--border);
+    box-shadow:var(--shadow);
+    flex:none;
+  }
+  .back-btn{
+    display:flex; align-items:center; gap:8px;
+    font-family:inherit; font-size:13.5px; font-weight:700;
+    color:var(--text);
+    background:var(--bg-panel-alt);
+    border:1px solid var(--border);
+    padding:9px 15px; border-radius:10px;
+    cursor:pointer; white-space:nowrap;
+    transition:border-color .2s ease, color .2s ease, transform .15s ease;
+  }
+  .back-btn:hover{ border-color:var(--gold); color:var(--gold-soft); }
+  .back-btn:active{ transform:translateY(1px); }
+  .viewer-title{ min-width:0; }
+  .viewer-title b{
+    display:block;
+    font-family:'Cairo',sans-serif; font-size:15px; font-weight:800;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .viewer-title span{
+    display:block; font-size:11.5px; color:var(--text-muted);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .teacher-chip{
+    margin-inline-start:auto;
+    font-size:12px; color:var(--text-muted);
+    background:var(--bg-panel-alt);
+    border:1px solid var(--border);
+    padding:7px 13px; border-radius:999px;
+    white-space:nowrap;
+  }
+  .teacher-chip b{ color:var(--gold-soft); font-size:13.5px; }
+
+  .panes{ position:relative; flex:1; min-height:0; background:var(--bg-deep); }
+  .pane{ position:absolute; inset:0; display:none; }
+  .pane.active{ display:block; }
+  .pane iframe{
+    width:100%; height:100%;
+    border:0; display:block;
+    background:var(--bg-deep);
+  }
+  .pane-loading{
+    position:absolute; inset:0;
+    display:grid; place-items:center; gap:14px;
+    align-content:center;
+    color:var(--text-muted); font-size:13.5px;
+    background:var(--bg-deep);
+    transition:opacity .4s ease;
+  }
+  .pane-loading.done{ opacity:0; pointer-events:none; }
+  .spinner{
+    width:38px; height:38px; border-radius:50%;
+    border:3px solid var(--border);
+    border-top-color:var(--gold);
+    animation:spin .9s linear infinite;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+
+  @media (max-width:760px){
+    .chapter-grid{ grid-template-columns:minmax(0, 1fr); max-width:420px; gap:16px; }
+    .picker-inner{ gap:26px; padding:36px 18px 32px; }
+    .picker-head h1{ font-size:25px; }
+    .picker-mark{ width:54px; height:54px; font-size:21px; }
+  }
+  @media (max-width:520px){
+    .teacher-chip{ display:none; }
+    .viewer-title span{ display:none; }
+    .back-btn{ padding:8px 12px; font-size:12.5px; }
+    .chapter-card{ padding:20px 18px 18px; }
+    .card-title b{ font-size:16px; }
+    .splash-hint{ font-size:11.5px; padding:5px 12px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===================== ١ — شاشة الترحيب ===================== -->
+<div class="screen on" id="splash">
+  <div class="splash-backdrop" aria-hidden="true"></div>
+  <div class="splash-frame">
+    <img class="splash-art" src="assets/welcome.jpg"
+         alt="مرحباً بكم في محاكي الفيزياء — إعداد الأستاذ أحمد نعمة العبودي">
+    <button class="splash-start" id="beginBtn" type="button" title="ابدأ المحاكاة">
+      <span class="sr-only">ابدأ المحاكاة — عرض الفصول</span>
+    </button>
+    <div class="splash-hint" id="splashHint" aria-hidden="true">اضغط «ابدأ المحاكاة» لعرض الفصول</div>
+  </div>
+</div>
+
+<!-- ===================== ٢ — شاشة الفصول ===================== -->
+<div class="screen" id="picker">
+  <div class="picker-inner">
+    <div class="picker-head">
+      <img class="picker-mark" src="assets/logo.png" alt="" aria-hidden="true">
+      <div class="picker-eyebrow">مختبر الفيزياء الافتراضي · Phy Sixth 5</div>
+      <h1>اختر الفصل</h1>
+      <p>الفيزياء — الصف السادس الإعدادي (الثاني عشر) — الفصل الخامس</p>
+    </div>
+
+    <div class="chapter-grid">
+      <button class="chapter-card c5" type="button" data-chapter="5">
+        <div class="card-top">
+          <div class="card-num" aria-hidden="true">٥<small>الفصل</small></div>
+          <div class="card-title">
+            <b>البصريات الفيزيائية</b>
+            <span>الطبيعة الموجية للضوء وتداخله وحيوده</span>
+          </div>
+        </div>
+        <div class="card-topics">
+          <i>التداخل</i>
+          <i>شقّا يونك</i>
+          <i>الأغشية الرقيقة</i>
+          <i>الحيود والمحزز</i>
+          <i>الاستقطاب</i>
+          <i>الاستطارة</i>
+        </div>
+        <div class="card-go">
+          <span class="card-count">٨ تجارب تفاعلية</span>
+          <span>ادخل التجارب
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+                 stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5l7 7-7 7M20 12H4"/></svg>
+          </span>
+        </div>
+      </button>
+    </div>
+
+    <div class="picker-foot">
+      <span>إعداد: <b>الأستاذ أحمد نعمة العبودي</b></span>
+      <button class="link-btn" id="toSplashBtn" type="button">⌂ الواجهة الرئيسية</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== ٣ — شاشة التجارب ===================== -->
+<div class="screen" id="viewer">
+  <div class="viewer-bar">
+    <button class="back-btn" id="backBtn" type="button">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor"
+           stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M11 19l-7-7 7-7M4 12h16"/></svg>
+      الفصول
+    </button>
+    <div class="viewer-title">
+      <b id="viewerTitle">الفصل الخامس — البصريات الفيزيائية</b>
+      <span id="viewerSub">الفيزياء — الصف السادس الإعدادي (الثاني عشر)</span>
+    </div>
+    <div class="teacher-chip">إعداد: <b>الأستاذ أحمد نعمة العبودي</b></div>
+  </div>
+
+  <div class="panes">
+    <!-- «fullscreen *» وليس «fullscreen»: عند فتح الملف من القرص مباشرة
+         (file://) يكون أصل الإطار معتماً، فالصيغة الضيّقة لا تفوّض له
+         الصلاحية ويتعطّل زر «ملء الشاشة» داخل التجربة. -->
+    <section class="pane" id="pane-5" data-chapter="5">
+      <iframe title="الفصل الخامس — البصريات الفيزيائية"
+              data-src="chapters/chapter-5-optics.html"
+              allow="fullscreen *; autoplay *"
+              allowfullscreen></iframe>
+      <div class="pane-loading"><div class="spinner"></div><div>جارٍ تحميل تجارب الفصل الخامس…</div></div>
+    </section>
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  var splash   = document.getElementById('splash');
+  var picker   = document.getElementById('picker');
+  var viewer   = document.getElementById('viewer');
+  var beginBtn = document.getElementById('beginBtn');
+  var backBtn  = document.getElementById('backBtn');
+  var homeBtn  = document.getElementById('toSplashBtn');
+  var hint     = document.getElementById('splashHint');
+  var cards    = Array.prototype.slice.call(document.querySelectorAll('.chapter-card'));
+  var panes    = Array.prototype.slice.call(document.querySelectorAll('.pane'));
+  var screens  = [splash, picker, viewer];
+  var current  = 'splash';
+
+  var CHAPTERS = {
+    '5': { title:'الفصل الخامس — البصريات الفيزيائية',
+           sub:'التداخل والحيود والاستقطاب — ٨ تجارب تفاعلية' }
+  };
+
+  function show(name){
+    current = name;
+    screens.forEach(function(s){ s.classList.toggle('on', s.id === name); });
+  }
+
+  /* كل فصل يُحمَّل مرة واحدة فقط، عند أول دخول إليه، ويبقى محمَّلاً بعدها
+     حتى لا تضيع حالة التجربة عند الرجوع إلى شاشة الفصول والعودة. */
+  function loadPane(pane){
+    var frame = pane.querySelector('iframe');
+    if(!frame || frame.src) return;
+    var loading = pane.querySelector('.pane-loading');
+    frame.addEventListener('load', function(){
+      if(loading) loading.classList.add('done');
+    });
+    frame.src = frame.getAttribute('data-src');
+  }
+
+  function openChapter(n){
+    var info = CHAPTERS[n];
+    if(!info) return;
+    document.getElementById('viewerTitle').textContent = info.title;
+    document.getElementById('viewerSub').textContent = info.sub;
+    panes.forEach(function(pane){
+      var on = pane.dataset.chapter === n;
+      pane.classList.toggle('active', on);
+      if(on) loadPane(pane);
+    });
+    show('viewer');
+    setTimeout(function(){ backBtn.focus(); }, 500);
+  }
+
+  function toPicker(){
+    show('picker');
+    if(hint) hint.classList.remove('show');
+    setTimeout(function(){ cards[0].focus(); }, 500);
+  }
+
+  function toSplash(){
+    show('splash');
+    beginBtn.focus();
+  }
+
+  beginBtn.addEventListener('click', toPicker);
+  backBtn.addEventListener('click', toPicker);
+  homeBtn.addEventListener('click', toSplash);
+  cards.forEach(function(card){
+    card.addEventListener('click', function(){ openChapter(card.dataset.chapter); });
+  });
+
+  /* Esc يرجع خطوة واحدة للخلف — إلا أثناء ملء الشاشة، فوظيفته هناك الخروج
+     من ملء الشاشة لا الخروج من التجربة كلها. */
+  document.addEventListener('keydown', function(e){
+    if(e.key !== 'Escape') return;
+    if(document.fullscreenElement || document.webkitFullscreenElement) return;
+    if(current === 'viewer') toPicker();
+    else if(current === 'picker') toSplash();
+  });
+
+  /* الفصل يمرّر Esc إلينا حين يكون التركيز داخله. لا نقبل من الرسائل إلا
+     هذا الإجراء الواحد، وهو مجرد رجوع خطوة في التنقل. */
+  window.addEventListener('message', function(e){
+    var d = e.data;
+    if(!d || d.__lab !== 'back') return;
+    if(document.fullscreenElement || document.webkitFullscreenElement) return;
+    if(current === 'viewer') toPicker();
+  });
+
+  /* التلميح يظهر فقط إن تأخّر المستخدم عن الضغط */
+  setTimeout(function(){ if(current === 'splash' && hint) hint.classList.add('show'); }, 4000);
+
+  beginBtn.focus({ preventScroll:true });
+})();
+</script>
+</body>
+</html>
