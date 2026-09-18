@@ -19,6 +19,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 SRC = os.path.join(HERE, 'index.html')
 OUT = os.path.join(HERE, 'physics-lab-standalone.html')
 IMAGE = os.path.join(HERE, 'assets', 'welcome.jpg')
+LOGO = os.path.join(HERE, 'assets', 'logo.png')
 CHAPTERS = [
     ('ch1', os.path.join(HERE, 'chapters', 'chapter-1-capacitors.html')),
     ('ch2', os.path.join(HERE, 'chapters', 'chapter-2-induction.html')),
@@ -50,6 +51,12 @@ def main():
                         "url('%s')" % data_uri, 'backdrop image url')
     html = replace_once(html, 'src="assets/welcome.jpg"',
                         'src="%s"' % data_uri, 'splash <img> src')
+
+    # الشعار: مقصوص من الصورة نفسها. الفصلان يحملانه مدمجاً أصلاً، فلا يحتاج
+    # إلا شعار الواجهة هنا.
+    logo_uri = 'data:image/png;base64,' + b64_file(LOGO)
+    html = replace_once(html, 'src="assets/logo.png"',
+                        'src="%s"' % logo_uri, 'picker logo src')
 
     # 2) الفصلان: base64 داخل كتل نصية لا يفسّرها المتصفح
     blocks = []
