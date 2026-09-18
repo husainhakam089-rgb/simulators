@@ -314,17 +314,20 @@
   </header>
 
   <div class="panes">
+    <!-- «fullscreen *» وليس «fullscreen»: عند فتح الملف من القرص مباشرة
+         (file://) يكون أصل الإطار معتماً، فالصيغة الضيّقة لا تفوّض له
+         الصلاحية ويتعطّل زر «ملء الشاشة» داخل التجربة. -->
     <section class="pane active" id="pane-1" role="tabpanel" aria-labelledby="tab-1" data-chapter="1">
       <iframe title="الفصل الأول — المتسعات"
               data-src="chapters/chapter-1-capacitors.html"
-              allow="fullscreen; autoplay"
+              allow="fullscreen *; autoplay *"
               allowfullscreen></iframe>
       <div class="pane-loading"><div class="spinner"></div><div>جارٍ تحميل تجارب الفصل الأول…</div></div>
     </section>
     <section class="pane" id="pane-2" role="tabpanel" aria-labelledby="tab-2" data-chapter="2">
       <iframe title="الفصل الثاني — الحث الكهرومغناطيسي"
               data-src="chapters/chapter-2-induction.html"
-              allow="fullscreen; autoplay"
+              allow="fullscreen *; autoplay *"
               allowfullscreen></iframe>
       <div class="pane-loading"><div class="spinner"></div><div>جارٍ تحميل تجارب الفصل الثاني…</div></div>
     </section>
@@ -408,9 +411,12 @@
     tabs[next].focus();
   });
 
-  /* Esc من داخل التطبيق يعيدك إلى الواجهة */
+  /* Esc من داخل التطبيق يعيدك إلى الواجهة — إلا أثناء ملء الشاشة، فـ Esc
+     هناك وظيفته الخروج من ملء الشاشة لا الخروج من التجربة كلها. */
   document.addEventListener('keydown', function(e){
-    if(e.key === 'Escape' && started) goHome();
+    if(e.key !== 'Escape' || !started) return;
+    if(document.fullscreenElement || document.webkitFullscreenElement) return;
+    goHome();
   });
 
   /* التلميح يظهر فقط إن تأخّر المستخدم عن الضغط */
