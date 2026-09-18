@@ -1,0 +1,12 @@
+{
+  "name": "phy-sixth",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Physics virtual lab desktop build",
+  "main": "main.js",
+  "author": "Ahmed Ne'ma Al-Aboudi",
+  "devDependencies": {
+    "electron": "^38.0.0",
+    "electron-builder": "^25.1.8"
+  }
+}

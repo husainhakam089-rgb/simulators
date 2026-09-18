@@ -1,0 +1,5 @@
+# مخرجات البناء ومكتباته: ضخمة ويعاد توليدها بـ build-exe.py
+node_modules/
+dist/
+app.html
+.builder-*.json
