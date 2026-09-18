@@ -1,0 +1,3855 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a0f1c">
+<title>مختبر الفيزياء الافتراضي | الفصل الأول - المتسعات</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&family=Cairo:wght@600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-deep:#0a0f1c;
+    --bg-panel:#111a2c;
+    --bg-panel-alt:#16213a;
+    --bg-canvas:#0d1526;
+    --border:#243252;
+    --border-soft:#1c2942;
+    --text:#e8edf7;
+    --text-muted:#8b98b4;
+    --accent-amber:#f2a83c;
+    --accent-cyan:#38e1c6;
+    --accent-cyan-bright:#6ffbe0;
+    --accent-red:#ef5b6b;
+    --accent-blue:#4d8dff;
+    --radius:14px;
+    --shadow:0 8px 24px rgba(0,0,0,.35);
+    /* glow tints used in the body background — themed so they don't wash out */
+    --glow-cyan:rgba(56,225,198,.06);
+    --glow-amber:rgba(242,168,60,.06);
+  }
+  /* Light theme: same accents (kept vivid for contrast on white), but the
+     structural greys/blues are inverted to a bright paper-like palette. */
+  :root[data-theme="light"]{
+    --bg-deep:#e9eef6;
+    --bg-panel:#ffffff;
+    --bg-panel-alt:#f1f5fb;
+    --bg-canvas:#f4f7fc;
+    --border:#c7d3e6;
+    --border-soft:#d8e1ef;
+    --text:#1a2438;
+    --text-muted:#5a6a86;
+    --accent-amber:#c9791a;
+    --accent-cyan:#0f9d8a;
+    --accent-cyan-bright:#0c8475;
+    --accent-red:#d63a4c;
+    --accent-blue:#2f6fe0;
+    --shadow:0 8px 24px rgba(40,60,100,.14);
+    --glow-cyan:rgba(15,157,138,.05);
+    --glow-amber:rgba(201,121,26,.05);
+  }
+  *{box-sizing:border-box;}
+  html{
+    margin:0; padding:0;
+    min-height:100%;
+    background:var(--bg-deep);          /* paints the safe-area strip */
+    -webkit-text-size-adjust:100%;
+  }
+  /* app stays hidden until the welcome screen is dismissed */
+  body:not(.started) header.app-header,
+  body:not(.started) nav.tabs,
+  body:not(.started) main.app-main,
+  body:not(.started) footer{ visibility:hidden; }
+  body{
+    background:
+      radial-gradient(circle at 15% 0%, var(--glow-cyan), transparent 40%),
+      radial-gradient(circle at 90% 90%, var(--glow-amber), transparent 45%),
+      var(--bg-deep);
+    color:var(--text);
+    font-family:'Tajawal', sans-serif;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+  }
+  h1,h2,h3,h4{font-family:'Cairo', sans-serif; margin:0;}
+
+  header.app-header{
+    /* pad down past the notch/status bar, and pull the header's own background
+       up into that strip so it never reads as a black bar */
+    padding:calc(14px + env(safe-area-inset-top, 0px)) 22px 14px;
+    padding-inline-start:calc(22px + env(safe-area-inset-left, 0px));
+    padding-inline-end:calc(22px + env(safe-area-inset-right, 0px));
+    background:linear-gradient(180deg, var(--bg-panel), rgba(17,26,44,.6));
+    border-bottom:1px solid var(--border);
+    display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
+    flex-shrink:0;
+  }
+  .brand{ display:flex; align-items:center; gap:10px; }
+  .brand .logo{
+    width:38px;height:38px;border-radius:10px;
+    background:conic-gradient(from 200deg, var(--accent-amber), var(--accent-cyan), var(--accent-amber));
+    display:flex;align-items:center;justify-content:center;
+    font-size:18px; font-weight:900; color:#081018;
+  }
+  .brand h1{font-size:17px;}
+  .brand span{display:block;font-size:11px;color:var(--text-muted);font-weight:400;margin-top:2px;}
+
+  .header-teacher{
+    font-family:'Tajawal', sans-serif; font-size:13.5px; color:var(--text-muted);
+    background:var(--bg-panel-alt); border:1px solid var(--border-soft);
+    border-radius:10px; padding:9px 18px; white-space:nowrap;
+  }
+  .header-teacher b{
+    font-family:'Cairo', sans-serif; font-weight:800; font-size:18px;
+    color:var(--accent-amber); margin-inline-start:4px;
+  }
+  @media (max-width:600px){
+    .header-teacher{ font-size:12px; padding:7px 12px; }
+    .header-teacher b{ font-size:15px; }
+  }
+
+  nav.tabs{
+    display:flex; gap:8px; overflow-x:auto; padding:10px 18px;
+    background:var(--bg-panel-alt);
+    border-bottom:1px solid var(--border);
+    scrollbar-width:thin;
+    flex-shrink:0; min-height:56px;
+  }
+  nav.tabs::-webkit-scrollbar{height:6px;}
+  nav.tabs::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
+  .tab-btn{
+    flex:0 0 auto; display:flex; align-items:center; gap:8px;
+    background:var(--bg-panel); border:1px solid var(--border-soft); color:var(--text-muted);
+    padding:9px 14px; border-radius:10px; cursor:pointer;
+    font-family:'Tajawal'; font-size:13.5px; font-weight:500; white-space:nowrap; transition:.15s ease;
+  }
+  .tab-btn .num{
+    width:20px;height:20px;border-radius:50%; background:var(--border-soft);
+    display:flex;align-items:center;justify-content:center;
+    font-size:11px; font-weight:700; color:var(--text-muted); flex:0 0 auto;
+  }
+  .tab-btn:hover{border-color:var(--accent-amber); color:var(--text);}
+  .tab-btn.active{
+    background:linear-gradient(135deg, rgba(242,168,60,.16), rgba(56,225,198,.10));
+    border-color:var(--accent-amber); color:var(--text);
+    box-shadow:0 0 0 1px rgba(242,168,60,.25) inset;
+  }
+  .tab-btn.active .num{background:var(--accent-amber); color:#301b02;}
+
+  main.app-main{
+    flex:1; display:grid; grid-template-columns:340px 1fr; gap:18px; padding:18px; align-items:start;
+  }
+  @media (max-width:900px){
+    main.app-main{grid-template-columns:1fr; padding:12px; gap:12px;}
+    aside.sidebar{order:2; max-height:none;}
+    section.canvas-area{order:1; padding:12px;}
+  }
+  /* Landscape phones/tablets: give the canvas nearly the whole viewport. */
+  @media (max-width:900px) and (orientation:landscape){
+    header.app-header{
+      padding:calc(8px + env(safe-area-inset-top, 0px)) 14px 8px;
+      padding-inline-start:calc(14px + env(safe-area-inset-left, 0px));
+      padding-inline-end:calc(14px + env(safe-area-inset-right, 0px));
+    }
+    .brand .logo{width:30px;height:30px;font-size:15px;}
+    .brand h1{font-size:14px;}
+    .brand span{display:none;}
+    nav.tabs{padding:6px 12px; min-height:46px;}
+    .tab-btn{padding:7px 11px; font-size:12.5px;}
+    main.app-main{padding:8px; gap:8px;}
+    section.canvas-area{padding:8px;}
+    footer{display:none;}
+  }
+  /* Portrait phones: stack everything, keep every reading legible. */
+  @media (max-width:600px){
+    header.app-header{
+      padding:calc(10px + env(safe-area-inset-top, 0px)) 14px 10px;
+      padding-inline-start:calc(14px + env(safe-area-inset-left, 0px));
+      padding-inline-end:calc(14px + env(safe-area-inset-right, 0px));
+    }
+    .brand h1{font-size:14px;}
+    .brand span{font-size:9.5px;}
+    nav.tabs{padding:8px 10px; gap:6px;}
+    .tab-btn{padding:8px 10px; font-size:12px;}
+    .tab-btn .num{width:18px;height:18px;font-size:10px;}
+    .canvas-header{flex-direction:column; align-items:flex-start; gap:6px;}
+    .canvas-header h2{font-size:15px;}
+    .canvas-header .sub{font-size:11px;}
+    .status-pill{align-self:flex-start; font-size:11px; padding:5px 12px;}
+    .sidebar-section li{font-size:12.5px;}
+    .ctrl-btn{padding:11px 8px; font-size:12.5px;}
+    input[type=range]{height:8px;}
+    input[type=range]::-webkit-slider-thumb{width:20px;height:20px;}
+    footer{font-size:10.5px; padding:10px;}
+    .toolbar-btn{padding:7px 10px; font-size:11.5px;}
+    .icon-btn{width:34px; height:34px; font-size:15px;}
+    .exp-controls .control-panel .control-row{flex:1 1 100%;}
+  }
+
+  aside.sidebar{
+    background:var(--bg-panel); border:1px solid var(--border); border-radius:var(--radius);
+    padding:16px; max-height:calc(100vh - 150px); overflow-y:auto; box-shadow:var(--shadow);
+  }
+  aside.sidebar::-webkit-scrollbar{width:6px;}
+  aside.sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
+  .sidebar-title{
+    font-size:15px; margin-bottom:14px; padding-bottom:10px;
+    border-bottom:1px dashed var(--border); color:var(--accent-amber);
+  }
+  .sidebar-section{margin-bottom:20px;}
+  .sidebar-section h3{
+    font-size:13.5px; display:flex; align-items:center; gap:6px; color:var(--text); margin-bottom:10px; font-weight:700;
+  }
+  .sidebar-section ul, .sidebar-section ol{
+    margin:0; padding-inline-start:20px; display:flex; flex-direction:column; gap:6px;
+  }
+  .sidebar-section li{ font-size:13px; color:var(--text-muted); line-height:1.6; }
+  .sidebar-section ol li::marker{color:var(--accent-cyan-bright); font-weight:700;}
+  .sidebar-section ul li::marker{color:var(--accent-amber);}
+
+  .control-panel{display:none; flex-direction:column; gap:14px;}
+  .control-panel.active{display:flex;}
+  .control-row{display:flex; flex-direction:column; gap:6px;}
+  .control-row label{ font-size:12.5px; color:var(--text-muted); display:flex; justify-content:space-between; }
+  .control-row label b{color:var(--accent-amber); font-weight:700;}
+  input[type=range]{
+    -webkit-appearance:none; width:100%; height:6px; border-radius:4px; background:var(--border-soft); outline:none;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none; width:16px;height:16px;border-radius:50%;
+    background:var(--accent-amber); cursor:pointer; border:2px solid #301b02;
+    box-shadow:0 0 0 3px rgba(242,168,60,.2);
+  }
+  .btn-row{display:flex; gap:8px; flex-wrap:wrap;}
+  .ctrl-btn{
+    flex:1; background:var(--bg-panel-alt); border:1px solid var(--border-soft); color:var(--text);
+    padding:10px 8px; border-radius:9px; cursor:pointer;
+    font-family:'Tajawal'; font-size:12.5px; font-weight:700; transition:.15s;
+    display:flex; align-items:center; justify-content:center; gap:6px;
+  }
+  .ctrl-btn:hover{border-color:var(--accent-amber);}
+  .ctrl-btn.on{background:linear-gradient(135deg, var(--accent-amber), #b9791f); color:#301b02; border-color:transparent;}
+  .ctrl-btn.cyan.on{background:linear-gradient(135deg, var(--accent-cyan-bright), #1fae95); color:#06251f;}
+  .hint{
+    font-size:11.5px; color:var(--text-muted); background:var(--bg-panel-alt);
+    border:1px dashed var(--border-soft); border-radius:8px; padding:8px 10px; line-height:1.6;
+  }
+
+  section.canvas-area{
+    background:var(--bg-panel); border:1px solid var(--border); border-radius:var(--radius);
+    padding:16px; box-shadow:var(--shadow);
+  }
+  .canvas-header{ display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px; }
+  .canvas-header h2{font-size:18px;}
+  /* help modal */
+  .help-modal{
+    position:fixed; inset:0; z-index:60; display:flex; align-items:center; justify-content:center;
+    background:rgba(6,11,22,.72); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px);
+    opacity:0; visibility:hidden; transition:opacity .25s ease, visibility .25s ease; padding:20px;
+  }
+  .help-modal.open{ opacity:1; visibility:visible; }
+  .help-box{
+    position:relative; max-width:440px; width:100%;
+    background:linear-gradient(180deg, rgba(30,44,72,.98), rgba(17,26,46,.99));
+    border:1px solid transparent; border-radius:20px; padding:30px 28px 26px;
+    box-shadow:0 30px 70px rgba(0,0,0,.6);
+    transform:translateY(14px) scale(.97); transition:transform .3s cubic-bezier(.16,1,.3,1);
+  }
+  .help-box::before{
+    content:''; position:absolute; inset:0; border-radius:20px; padding:1px;
+    background:linear-gradient(140deg, rgba(242,168,60,.5), rgba(56,225,198,.4));
+    -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor; mask-composite:exclude; pointer-events:none;
+  }
+  .help-modal.open .help-box{ transform:translateY(0) scale(1); }
+  .help-box h3{
+    font-family:'Cairo',sans-serif; font-size:19px; font-weight:800; margin:0 0 14px;
+    background:linear-gradient(90deg, var(--accent-amber), var(--accent-cyan-bright));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .help-box .help-law{
+    font-family:'Cairo',sans-serif; font-size:20px; font-weight:700; color:var(--accent-cyan-bright);
+    background:rgba(56,225,198,.08); border:1px solid rgba(56,225,198,.2);
+    border-radius:12px; padding:12px 16px; text-align:center; margin-bottom:14px; direction:ltr;
+  }
+  .help-box p{ font-size:14.5px; line-height:1.9; color:var(--text); opacity:.9; margin:0 0 14px; }
+  .help-box .help-tip{
+    font-size:13px; line-height:1.7; color:var(--text-muted);
+    background:rgba(242,168,60,.07); border-inline-start:3px solid var(--accent-amber);
+    border-radius:8px; padding:10px 14px;
+  }
+  .help-close{
+    position:absolute; top:14px; left:14px; width:32px; height:32px; border-radius:50%;
+    background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); color:var(--text);
+    font-size:15px; cursor:pointer; transition:.2s ease; display:flex; align-items:center; justify-content:center;
+  }
+  .help-close:hover{ background:rgba(239,91,107,.2); border-color:var(--accent-red); transform:rotate(90deg); }
+  .canvas-header .sub{font-size:12px; color:var(--text-muted); margin-top:3px;}
+  .canvas-scroll{ width:100%; border-radius:10px; }
+  .canvas-wrap{
+    position:relative;
+    width:100%;
+    padding-top:53.333%;           /* 480/900 — reserves correct height everywhere */
+    background:
+      linear-gradient(rgba(242,168,60,.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(242,168,60,.035) 1px, transparent 1px),
+      var(--bg-canvas);
+    background-size:30px 30px, 30px 30px, 100% 100%;
+    border-radius:10px; border:1px solid var(--border-soft); overflow:hidden;
+  }
+  canvas#simCanvas{
+    position:absolute; top:0; left:0;
+    display:block; width:100%; height:100%;
+    /* Always none: this keeps every touchmove on the canvas cancellable, so JS
+       can decide per-gesture — a finger on a draggable part moves that part
+       (no scroll), a finger on empty canvas is forwarded to the scroll
+       container manually (see the touch handlers). A static CSS value can't be
+       "scroll here but not there", so the choice has to live in JS. */
+    touch-action:none; cursor:pointer;
+  }
+  canvas#simCanvas.dragging{cursor:grabbing;}
+  /* Status pill now lives in the header row (flows with the page, never
+     overlaps canvas-drawn content regardless of how much the canvas shrinks). */
+  .status-pill{
+    flex:0 0 auto;
+    background:rgba(10,15,28,.72); border:1px solid var(--border-soft);
+    border-radius:20px; padding:6px 14px; font-size:12px; color:var(--text-muted);
+    white-space:nowrap;
+  }
+  .status-pill b{color:var(--accent-amber);}
+
+  /* ===== Header sound toggle ===== */
+  .header-actions{ display:flex; align-items:center; gap:10px; }
+  .icon-btn{
+    flex:0 0 auto; display:flex; align-items:center; justify-content:center;
+    width:38px; height:38px; border-radius:10px;
+    background:var(--bg-panel-alt); border:1px solid var(--border-soft); color:var(--text);
+    cursor:pointer; font-size:17px; transition:.15s ease; padding:0;
+  }
+  .icon-btn:hover{ border-color:var(--accent-amber); }
+  .icon-btn.muted{ color:var(--text-muted); background:rgba(239,91,107,.08); border-color:rgba(239,91,107,.3); }
+
+  /* ===== Canvas-header toolbar buttons (sidebar show/hide + fullscreen) ===== */
+  .toolbar-btn{
+    flex:0 0 auto; display:flex; align-items:center; gap:6px;
+    background:var(--bg-panel-alt); border:1px solid var(--border-soft); color:var(--text-muted);
+    padding:8px 12px; border-radius:9px; cursor:pointer;
+    font-family:'Tajawal'; font-size:12.5px; font-weight:700; white-space:nowrap; transition:.15s ease;
+  }
+  .toolbar-btn:hover{ border-color:var(--accent-amber); color:var(--text); }
+  .toolbar-btn.active{
+    background:linear-gradient(135deg, rgba(242,168,60,.16), rgba(56,225,198,.10));
+    border-color:var(--accent-amber); color:var(--text);
+  }
+
+  /* ===== Sidebar show/hide: tools & steps keep their spot, but can collapse ===== */
+  main.app-main.sidebar-hidden{ grid-template-columns:1fr; }
+  main.app-main.sidebar-hidden aside.sidebar{ display:none; }
+  @media (max-width:900px){
+    main.app-main.sidebar-hidden{ grid-template-columns:1fr; }
+  }
+
+  /* ===== In-experiment control panel (moved out of the sidebar) ===== */
+  .exp-controls{
+    margin-top:14px; padding-top:14px; border-top:1px dashed var(--border);
+  }
+  .exp-controls > h3{
+    font-size:13.5px; display:flex; align-items:center; gap:6px; color:var(--text); margin-bottom:12px; font-weight:700;
+  }
+  .exp-controls .control-panel.active{
+    display:flex; flex-direction:row; flex-wrap:wrap; align-items:flex-end; gap:14px 22px;
+  }
+  .exp-controls .control-panel .control-row{ flex:1 1 200px; min-width:170px; }
+  .exp-controls .control-panel .btn-row{ flex:1 1 100%; }
+  .exp-controls .control-panel .hint{ flex:1 1 260px; }
+
+  /* ===== Fullscreen mode for the experiment (canvas + controls, no sidebar) ===== */
+  section.canvas-area:fullscreen,
+  section.canvas-area:-webkit-full-screen{
+    width:100vw; height:100vh; height:100dvh; max-width:none; max-height:none;
+    display:flex; flex-direction:column; overflow-y:auto;
+    -webkit-overflow-scrolling:touch; touch-action:pan-y; overscroll-behavior:contain;
+    padding:calc(14px + env(safe-area-inset-top,0px)) 18px
+            calc(24px + env(safe-area-inset-bottom,0px)); border-radius:0;
+    background:var(--bg-panel);
+  }
+  section.canvas-area:fullscreen .canvas-scroll,
+  section.canvas-area:-webkit-full-screen .canvas-scroll{ flex:0 0 auto; }
+  section.canvas-area:fullscreen .exp-controls,
+  section.canvas-area:-webkit-full-screen .exp-controls{ max-width:1100px; margin-inline:auto; width:100%; }
+
+  /* CSS-only fullscreen fallback. iPhone Safari does NOT support
+     requestFullscreen() on ordinary elements (only <video>), so the real
+     :fullscreen path above never fires there and the teacher was left with a
+     view they couldn't scroll. This class fills the visual viewport with plain
+     CSS instead — it works on every browser, and being a normal scroll
+     container, the controls below the canvas are reachable by touch. */
+  section.canvas-area.pseudo-fs{
+    position:fixed; inset:0; z-index:4000;
+    width:100vw; height:100vh; height:100dvh;   /* dvh tracks the iOS URL bar */
+    max-width:none; max-height:none; margin:0; border-radius:0;
+    display:flex; flex-direction:column;
+    overflow-y:auto; -webkit-overflow-scrolling:touch;
+    overscroll-behavior:contain; touch-action:pan-y;
+    padding:calc(12px + env(safe-area-inset-top,0px)) 16px
+            calc(16px + env(safe-area-inset-bottom,0px)); 
+    background:var(--bg-panel);
+  }
+  section.canvas-area.pseudo-fs .canvas-scroll{ flex:0 0 auto; }
+  section.canvas-area.pseudo-fs .exp-controls{ max-width:1100px; margin-inline:auto; width:100%; }
+  /* lock the page behind the overlay so only the experiment scrolls */
+  body.fs-lock{ overflow:hidden; }
+
+  footer{ text-align:center; font-size:11.5px; color:var(--text-muted);
+    padding:14px 14px calc(14px + env(safe-area-inset-bottom, 0px));
+    border-top:1px solid var(--border); }
+
+  /* ===== Welcome / Landing Overlay ===== */
+  #welcomeOverlay{
+    position:fixed;
+    top:0; left:0; right:0; bottom:0;
+    width:100%;
+    height:100vh;
+    height:100dvh;              /* dynamic vh: correct even with the URL bar up */
+    z-index:9999;
+    padding:env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px)
+            env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+    display:flex; align-items:center; justify-content:center;
+    overflow-y:auto;
+    /* OPAQUE base colour first, so the app never shows through — some mobile
+       browsers ignore backdrop-filter, which used to leave this see-through. */
+    background-color:#080b16;
+    background-image:
+      radial-gradient(circle at 18% 12%, rgba(242,168,60,.18), transparent 42%),
+      radial-gradient(circle at 88% 88%, rgba(56,225,198,.16), transparent 48%),
+      radial-gradient(circle at 75% 20%, rgba(120,90,220,.10), transparent 45%),
+      radial-gradient(ellipse 120% 100% at 50% 120%, rgba(88,60,180,.12), transparent 60%),
+      linear-gradient(160deg, #05080f, #0c1424 50%, #080e1c);
+    transition: opacity .5s ease, visibility .5s ease;
+  }
+  /* soft vignette to focus the eye on the card */
+  #welcomeOverlay::after{
+    content:''; position:absolute; inset:0; z-index:0; pointer-events:none;
+    background:radial-gradient(ellipse 70% 60% at 50% 45%, transparent 55%, rgba(3,6,12,.55));
+  }
+  #welcomeOverlay.hidden{ opacity:0; visibility:hidden; pointer-events:none; }
+  #welcomeOverlay::before{
+    content:''; position:absolute; inset:0;
+    background-image:
+      linear-gradient(rgba(242,168,60,.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(242,168,60,.05) 1px, transparent 1px);
+    background-size:42px 42px;
+    -webkit-mask-image: radial-gradient(circle at 50% 40%, black, transparent 75%);
+            mask-image: radial-gradient(circle at 50% 40%, black, transparent 75%);
+  }
+  .welcome-card{
+    position:relative; z-index:1;
+    display:flex; flex-direction:column; align-items:center; text-align:center;
+    gap:0; padding:60px 56px 44px; max-width:520px; width:90%;
+    margin:auto;
+    background:
+      radial-gradient(140% 120% at 50% -10%, rgba(56,225,198,.12), transparent 58%),
+      linear-gradient(180deg, rgba(30,44,72,.94), rgba(15,23,42,.97));
+    border:1px solid transparent;
+    border-radius:28px;
+    box-shadow:
+      0 40px 90px rgba(0,0,0,.6),
+      0 0 60px rgba(56,225,198,.06),
+      0 1px 0 rgba(255,255,255,.08) inset;
+    backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+    animation: welcomeRise .9s cubic-bezier(.16,1,.3,1);
+    transition:transform .18s ease-out;
+    transform-style:preserve-3d;
+  }
+  /* glowing gradient border that gently breathes */
+  .welcome-card::before{
+    content:''; position:absolute; inset:0; border-radius:28px; padding:1px;
+    background:linear-gradient(140deg,
+      rgba(242,168,60,.55), rgba(56,225,198,.15) 35%,
+      rgba(56,225,198,.5) 65%, rgba(242,168,60,.2));
+    -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor; mask-composite:exclude;
+    pointer-events:none; z-index:2;
+    animation: cardBorder 5s ease-in-out infinite;
+  }
+  @keyframes cardBorder{
+    0%,100%{ opacity:.55; }
+    50%{ opacity:.9; }
+  }
+  /* soft glass sheen across the top */
+  .welcome-card::after{
+    content:''; position:absolute; top:0; left:0; right:0; height:45%;
+    border-radius:28px 28px 60% 60%;
+    background:linear-gradient(180deg, rgba(255,255,255,.06), transparent);
+    pointer-events:none; z-index:0;
+  }
+  @keyframes welcomeRise{
+    from{ opacity:0; transform:translateY(26px) scale(.96); }
+    to{ opacity:1; transform:translateY(0) scale(1); }
+  }
+  /* staggered entrance: each element fades up a beat after the previous one */
+  .welcome-card > *{ animation: itemRise .7s cubic-bezier(.16,1,.3,1) both; position:relative; z-index:1; }
+  .welcome-card > .welcome-logo{ animation-delay:.15s; }
+  .welcome-card > .welcome-eyebrow{ animation-delay:.25s; }
+  .welcome-card > .welcome-title{ animation-delay:.33s, 0s; }
+  .welcome-card > .welcome-subtitle{ animation-delay:.41s; }
+  .welcome-card > .welcome-tags{ animation-delay:.49s; }
+  .welcome-card > .welcome-author{ animation-delay:.57s; }
+  .welcome-card > .welcome-start-btn{ animation-delay:.65s; }
+  .welcome-card > .welcome-stats{ animation-delay:.73s; }
+  @keyframes itemRise{
+    from{ opacity:0; transform:translateY(14px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+  .welcome-logo{
+    position:relative;
+    width:72px; height:72px; border-radius:50%;
+    background:linear-gradient(145deg, var(--accent-amber), #f2c76e 45%, var(--accent-cyan));
+    display:flex; align-items:center; justify-content:center;
+    margin-bottom:26px;
+    box-shadow:0 12px 34px rgba(242,168,60,.32);
+    animation: logoGlow 4s ease-in-out infinite;
+  }
+  .welcome-logo span{
+    font-family:'Cairo',sans-serif; font-size:36px; font-weight:900; color:#0a1220;
+  }
+  .welcome-logo::after{
+    content:''; position:absolute; inset:-2px; border-radius:50%;
+    background:linear-gradient(145deg, var(--accent-amber), var(--accent-cyan));
+    filter:blur(16px); opacity:.35; z-index:-1;
+  }
+  /* pulsing halo ring that breathes outward behind the logo */
+  .welcome-logo::before{
+    content:''; position:absolute; inset:0; border-radius:50%;
+    box-shadow:0 0 0 0 rgba(56,225,198,.5);
+    z-index:-1;
+    animation: logoPulse 2.8s ease-out infinite;
+  }
+  @keyframes logoPulse{
+    0%{ box-shadow:0 0 0 0 rgba(56,225,198,.45), 0 0 0 0 rgba(242,168,60,.35); opacity:1; }
+    70%{ box-shadow:0 0 0 22px rgba(56,225,198,0), 0 0 0 34px rgba(242,168,60,0); opacity:0; }
+    100%{ box-shadow:0 0 0 0 rgba(56,225,198,0), 0 0 0 0 rgba(242,168,60,0); opacity:0; }
+  }
+  @keyframes logoGlow{
+    0%,100%{ box-shadow:0 12px 34px rgba(242,168,60,.32); }
+    50%{ box-shadow:0 12px 44px rgba(56,225,198,.4); }
+  }
+  /* charging ring that sweeps around the logo (like a capacitor charging) */
+  .logo-ring{
+    position:absolute; inset:-13px; width:calc(100% + 26px); height:calc(100% + 26px);
+    transform:rotate(-90deg); pointer-events:none; z-index:2;
+  }
+  .logo-ring .ring-track{
+    fill:none; stroke:rgba(255,255,255,.10); stroke-width:2.5;
+  }
+  .logo-ring .ring-charge{
+    fill:none; stroke:var(--accent-cyan-bright); stroke-width:3; stroke-linecap:round;
+    stroke-dasharray:289; stroke-dashoffset:289;
+    filter:drop-shadow(0 0 5px rgba(56,225,198,.7));
+    animation: ringCharge 3.6s ease-in-out infinite;
+  }
+  @keyframes ringCharge{
+    0%{ stroke-dashoffset:289; opacity:.4; }
+    45%{ stroke-dashoffset:0; opacity:1; }
+    70%{ stroke-dashoffset:0; opacity:1; }
+    100%{ stroke-dashoffset:0; opacity:.1; }
+  }
+  /* particle + field-line canvas behind the card */
+  #welcomeFx{
+    position:absolute; inset:0; width:100%; height:100%;
+    z-index:0; pointer-events:none;
+  }
+  /* soft glow that follows the pointer */
+  .welcome-cursor-glow{
+    position:absolute; top:0; left:0; width:340px; height:340px;
+    border-radius:50%; z-index:0; pointer-events:none;
+    transform:translate(-50%,-50%);
+    background:radial-gradient(circle, rgba(56,225,198,.13), rgba(242,168,60,.05) 45%, transparent 70%);
+    opacity:0; transition:opacity .4s ease;
+    will-change:left,top;
+  }
+  .welcome-eyebrow{
+    font-family:'Tajawal',sans-serif; font-size:13px; font-weight:600;
+    letter-spacing:2px; color:var(--accent-cyan-bright); opacity:.85;
+    margin-bottom:10px;
+  }
+  .welcome-title{
+    font-family:'Cairo', sans-serif; font-weight:800; font-size:44px; margin:0;
+    background:linear-gradient(100deg, #fff 0%, var(--accent-cyan-bright) 35%, var(--accent-amber) 55%, #fff 100%);
+    background-size:220% auto;
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    line-height:1.15; letter-spacing:-.5px;
+    animation: itemRise .7s cubic-bezier(.16,1,.3,1) both, titleSheen 6s ease-in-out 1s infinite;
+  }
+  @keyframes titleSheen{
+    0%,100%{ background-position:0% center; }
+    50%{ background-position:100% center; }
+  }
+  .welcome-subtitle{
+    font-size:15px; color:var(--text); opacity:.68; font-weight:400;
+    margin:14px 0 30px; line-height:1.7; max-width:360px;
+  }
+  .welcome-author{
+    display:inline-flex; align-items:center; gap:10px;
+    font-size:13px; color:var(--text-muted);
+    background:rgba(255,255,255,.04);
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:100px; padding:9px 20px 9px 16px;
+    margin-bottom:30px;
+  }
+  .welcome-author-label{ opacity:.7; }
+  .welcome-author b{
+    font-family:'Cairo', sans-serif; font-weight:700; font-size:16px;
+    color:var(--accent-amber);
+  }
+  .welcome-start-btn{
+    position:relative; overflow:hidden;
+    display:inline-flex; align-items:center; gap:12px;
+    font-family:'Cairo', sans-serif; font-weight:800; font-size:17px;
+    color:#2a1800;
+    background:linear-gradient(135deg, #ffd77a, var(--accent-amber) 55%, #e89a2c);
+    border:none; border-radius:100px;
+    padding:17px 44px;
+    cursor:pointer;
+    box-shadow:
+      0 14px 34px rgba(242,168,60,.4),
+      0 2px 4px rgba(0,0,0,.15),
+      0 1px 0 rgba(255,255,255,.4) inset,
+      0 -2px 6px rgba(180,110,20,.3) inset;
+    transition:transform .25s cubic-bezier(.16,1,.3,1), box-shadow .25s ease;
+  }
+  .welcome-start-btn svg{ transition:transform .25s ease; }
+  .welcome-start-btn:hover{
+    transform:translateY(-3px);
+    box-shadow:
+      0 22px 50px rgba(242,168,60,.55),
+      0 2px 4px rgba(0,0,0,.15),
+      0 1px 0 rgba(255,255,255,.5) inset,
+      0 -2px 6px rgba(180,110,20,.3) inset;
+  }
+  .welcome-start-btn:hover svg{ transform:translateX(-4px); }
+  .welcome-start-btn:active{ transform:translateY(-1px); }
+  .welcome-start-btn::before{
+    content:''; position:absolute; top:0; left:-60%; width:45%; height:100%;
+    background:linear-gradient(100deg, transparent, rgba(255,255,255,.6), transparent);
+    transform:skewX(-20deg);
+    animation: btnShine 3.5s ease-in-out infinite;
+  }
+  @keyframes btnShine{
+    0%,70%{ left:-60%; } 85%,100%{ left:130%; }
+  }
+  .welcome-hint{
+    font-size:12px; color:var(--text-muted); opacity:.6; line-height:1.7;
+    margin-top:24px;
+  }
+
+  /* floating physics motifs behind the card */
+  .welcome-bg{ position:absolute; inset:0; z-index:0; overflow:hidden; pointer-events:none; }
+  .welcome-bg .motif{
+    position:absolute; opacity:.16;
+    filter:drop-shadow(0 0 10px currentColor);
+    animation: motifFloat linear infinite;
+  }
+  @keyframes motifFloat{
+    0%{ transform:translateY(0) rotate(var(--rot,0deg)); }
+    50%{ transform:translateY(-18px) rotate(var(--rot,0deg)); }
+    100%{ transform:translateY(0) rotate(var(--rot,0deg)); }
+  }
+  .welcome-bg .m1{ top:14%; left:9%;  width:130px; --rot:-8deg;  animation-duration:7s; }
+  .welcome-bg .m2{ top:24%; right:8%; width:150px; --rot:6deg;   animation-duration:9s; }
+  .welcome-bg .m3{ top:62%; left:12%; width:96px;  --rot:0deg;   animation-duration:8s; }
+  .welcome-bg .m4{ bottom:16%; right:11%; width:140px; --rot:-5deg; animation-duration:10s; }
+  .welcome-bg .m5{ bottom:12%; left:16%; width:90px; --rot:7deg;  animation-duration:7.5s; }
+  .welcome-bg .m6{ top:12%; right:22%; width:110px; --rot:-10deg; animation-duration:11s; }
+  .welcome-bg .m7{ bottom:26%; left:6%; width:100px; --rot:4deg;  animation-duration:9.5s; }
+  .welcome-bg .m8{ top:52%; right:6%; width:120px; --rot:-6deg;  animation-duration:8.5s; }
+
+  /* topic tags inside the card */
+  .welcome-tags{
+    display:flex; flex-wrap:wrap; justify-content:center; gap:9px;
+    margin:4px 0 28px; max-width:410px;
+  }
+  .welcome-tags .wtag{
+    display:inline-flex; align-items:center; gap:6px;
+    font-size:12.5px; color:var(--text); opacity:.92;
+    background:rgba(56,225,198,.06);
+    border:1px solid rgba(56,225,198,.16);
+    border-radius:100px; padding:7px 15px;
+    transition:transform .2s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease;
+  }
+  .welcome-tags .wtag:hover{
+    transform:translateY(-2px);
+    background:rgba(56,225,198,.13);
+    border-color:rgba(56,225,198,.42);
+    box-shadow:0 4px 14px rgba(56,225,198,.15);
+  }
+  .welcome-tags .wtag i{ display:none; }
+
+  /* stat strip under the button */
+  .welcome-stats{
+    display:flex; align-items:center; justify-content:center; gap:20px;
+    margin-top:26px;
+  }
+  .welcome-stats .wstat{ display:flex; flex-direction:column; align-items:center; gap:3px; }
+  .welcome-stats .wstat b{
+    font-family:'Cairo',sans-serif; font-weight:800; font-size:22px;
+    background:linear-gradient(135deg, var(--accent-amber), var(--accent-cyan-bright));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    line-height:1;
+  }
+  .welcome-stats .wstat small{ font-size:10.5px; color:var(--text-muted); }
+  .welcome-stats .wstat-sep{ width:1px; height:30px; background:linear-gradient(180deg, transparent, rgba(255,255,255,.18), transparent); }
+
+  @media (max-width:480px){
+    .welcome-card{ padding:44px 28px 34px; border-radius:24px; }
+    .welcome-title{ font-size:34px; }
+    .welcome-subtitle{ font-size:13.5px; margin:12px 0 24px; }
+    .welcome-logo{ width:62px; height:62px; margin-bottom:20px; }
+    .welcome-logo span{ font-size:30px; }
+    .welcome-start-btn{ padding:14px 34px; font-size:16px; }
+    .brand h1{ font-size:14px; }
+    .brand span{ font-size:10px; }
+    .canvas-header h2{ font-size:16px; }
+    .header-teacher{ order:3; width:100%; text-align:center; }
+  }
+
+
+  /* On a narrow phone the 900x480 diagram cannot shrink to fit and stay
+     readable — at 360px wide its labels would render around 4px. So instead of
+     squeezing it, we give the canvas a real minimum size and let the user pan
+     horizontally. Nothing is cut off; it is all reachable by scrolling, and
+     rotating to landscape removes the need to scroll at all. */
+  .rotate-hint{
+    display:none;
+    align-items:center; gap:10px;
+    margin-bottom:10px; padding:9px 12px;
+    background:linear-gradient(135deg, rgba(242,168,60,.14), rgba(56,225,198,.08));
+    border:1px solid rgba(242,168,60,.35);
+    border-radius:10px;
+    font-size:12px; color:var(--text); line-height:1.5;
+  }
+  .rotate-hint span.ico{ font-size:16px; flex:0 0 auto; }
+
+  @media (max-width:760px){
+    .rotate-hint{ display:flex; }
+  }
+  @media (max-width:900px) and (orientation:landscape){
+    .rotate-hint{ display:none; }
+  }
+</style>
+</head>
+<body>
+
+<div id="welcomeOverlay">
+  <canvas id="welcomeFx" aria-hidden="true"></canvas>
+  <div class="welcome-cursor-glow" aria-hidden="true"></div>
+  <div class="welcome-bg" aria-hidden="true">
+    <!-- floating physics motifs that hint at the project -->
+    <svg class="motif m1" viewBox="0 0 120 80"><g stroke="var(--accent-cyan)" stroke-width="3" fill="none"><line x1="10" y1="40" x2="45" y2="40"/><line x1="45" y1="14" x2="45" y2="66"/><line x1="75" y1="14" x2="75" y2="66"/><line x1="75" y1="40" x2="110" y2="40"/></g><text x="26" y="30" fill="var(--accent-cyan)" font-size="13">+</text><text x="88" y="30" fill="var(--accent-cyan)" font-size="13">−</text></svg>
+    <svg class="motif m2" viewBox="0 0 120 60"><text x="4" y="40" fill="var(--accent-amber)" font-size="30" font-family="Cairo">C = εA/d</text></svg>
+    <svg class="motif m3" viewBox="0 0 90 90"><circle cx="45" cy="45" r="34" stroke="var(--accent-cyan)" stroke-width="2.5" fill="none" stroke-dasharray="5 6"/><circle cx="45" cy="45" r="18" stroke="var(--accent-amber)" stroke-width="2.5" fill="none"/></svg>
+    <svg class="motif m4" viewBox="0 0 120 60"><text x="4" y="42" fill="var(--accent-cyan-bright)" font-size="28" font-family="Cairo">Q = C·V</text></svg>
+    <svg class="motif m5" viewBox="0 0 100 70"><g stroke="var(--accent-amber)" stroke-width="3" fill="none"><line x1="20" y1="10" x2="20" y2="60"/><line x1="8" y1="60" x2="32" y2="60"/><line x1="12" y1="66" x2="28" y2="66"/><line x1="16" y1="71" x2="24" y2="71"/></g></svg>
+    <svg class="motif m6" viewBox="0 0 120 50"><text x="4" y="36" fill="var(--accent-amber)" font-size="26" font-family="Cairo">½CV²</text></svg>
+    <svg class="motif m7" viewBox="0 0 100 100"><g stroke="var(--accent-cyan)" stroke-width="2" fill="none" opacity=".8"><path d="M15 20 H85"/><path d="M15 35 H85"/><path d="M15 50 H85"/><path d="M20 20 V50"/><path d="M40 20 V50"/><path d="M60 20 V50"/><path d="M80 20 V50"/></g></svg>
+    <svg class="motif m8" viewBox="0 0 120 60"><text x="4" y="40" fill="var(--accent-cyan)" font-size="26" font-family="Cairo">τ = RC</text></svg>
+  </div>
+  <div class="welcome-card">
+    <div class="welcome-logo">
+      <svg class="logo-ring" viewBox="0 0 100 100" aria-hidden="true">
+        <circle class="ring-track" cx="50" cy="50" r="46"/>
+        <circle class="ring-charge" cx="50" cy="50" r="46"/>
+      </svg>
+      <span>C</span>
+    </div>
+    <div class="welcome-eyebrow">مختبر الفيزياء الافتراضي</div>
+    <h1 class="welcome-title">المتسعات</h1>
+    <p class="welcome-subtitle">محاكي تفاعلي لتجارب الفصل الأول — الصف السادس الإعدادي</p>
+    <div class="welcome-tags">
+      <span class="wtag"><i></i>⚡ السعة الكهربائية</span>
+      <span class="wtag"><i></i>🔬 العوازل</span>
+      <span class="wtag"><i></i>🔋 الشحن والتفريغ</span>
+      <span class="wtag"><i></i>⇄ التوالي والتوازي</span>
+    </div>
+    <div class="welcome-author">
+      <span class="welcome-author-label">إعداد الأستاذ</span>
+      <b>أحمد نعمة العبودي</b>
+    </div>
+    <button class="welcome-start-btn" id="startBtn">
+      لنبدأ الاستكشاف والتعلم
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5l7 7-7 7M20 12H4"/></svg>
+    </button>
+    <div class="welcome-stats">
+      <div class="wstat"><b>٦</b><small>تجارب تفاعلية</small></div>
+      <div class="wstat-sep"></div>
+      <div class="wstat"><b>✋</b><small>لمس وسحب</small></div>
+      <div class="wstat-sep"></div>
+      <div class="wstat"><b>∿</b><small>محاكاة حيّة</small></div>
+    </div>
+  </div>
+</div>
+
+<header class="app-header">
+  <div class="brand">
+    <div class="logo">C</div>
+    <div>
+      <h1>مختبر الفيزياء الافتراضي — المتسعات</h1>
+      <span>الفيزياء — الصف السادس الإعدادي (الثاني عشر) — الفصل الأول</span>
+    </div>
+  </div>
+  <div class="header-actions">
+    <button class="icon-btn" id="soundToggleBtn" type="button" title="كتم/تشغيل صوت التجربة" aria-label="كتم/تشغيل الصوت">🔊</button>
+    <button class="icon-btn" id="themeToggleBtn" type="button" title="تبديل المظهر الفاتح/الداكن" aria-label="تبديل المظهر">🌙</button>
+    <div class="header-teacher">إعداد: <b>أحمد نعمة العبودي</b></div>
+  </div>
+</header>
+
+<nav class="tabs" id="tabsNav"></nav>
+
+<main class="app-main" id="appMain">
+  <aside class="sidebar" id="sidebarPanel">
+    <div class="sidebar-title" id="sidebarTitle">النشاط الحالي</div>
+
+    <div class="sidebar-section">
+      <h3>🧰 أدوات النشاط</h3>
+      <ul id="toolsList"></ul>
+    </div>
+
+    <div class="sidebar-section">
+      <h3>📋 خطوات النشاط</h3>
+      <ol id="stepsList"></ol>
+    </div>
+  </aside>
+
+  <section class="canvas-area" id="canvasArea">
+    <div class="canvas-header">
+      <div>
+        <h2 id="mainTitle">العوامل المؤثرة على السعة</h2>
+        <div class="sub" id="mainSubtitle">اسحب اللوح العلوي لتغيير المساحة والمسافة</div>
+      </div>
+      <div class="header-actions">
+        <button class="toolbar-btn" id="helpBtn" type="button" title="شرح التجربة">؟ شرح</button>
+        <button class="toolbar-btn active" id="sidebarToggleBtn" type="button">☰ الأدوات والخطوات</button>
+        <div class="status-pill">الوضع: <b id="modeStatus">تلقائي</b></div>
+        <button class="toolbar-btn" id="fullscreenBtn" type="button">⛶ ملء الشاشة</button>
+      </div>
+    </div>
+    <div class="help-modal" id="helpModal" aria-hidden="true">
+      <div class="help-box">
+        <button class="help-close" id="helpClose" type="button" aria-label="إغلاق">✕</button>
+        <h3 id="helpTitle">شرح التجربة</h3>
+        <div class="help-law" id="helpLaw"></div>
+        <p id="helpBody"></p>
+        <div class="help-tip" id="helpTip"></div>
+      </div>
+    </div>
+    <div class="rotate-hint">
+      <span class="ico">🔄</span>
+      <span>أدِر جهازك أفقيًا لعرض الرسم كاملًا — أو اسحب الرسم يمينًا ويسارًا.</span>
+    </div>
+    <div class="canvas-scroll">
+      <div class="canvas-wrap">
+        <canvas id="simCanvas" width="900" height="480"></canvas>
+      </div>
+    </div>
+
+    <div class="exp-controls">
+      <h3>🎛️ لوحة التحكم</h3>
+      <div id="controlPanels">
+
+        <!-- ===== Tab 1: Parallel Plate ===== -->
+        <div class="control-panel" data-tab="1">
+          <div class="btn-row">
+            <button class="ctrl-btn on" data-mode-tab="1">⚙️ تلقائي</button>
+          </div>
+          <div class="btn-row">
+            <button class="ctrl-btn cyan on" id="sourceToggleBtn1">🔌 الحالة: مفصولة عن البطارية</button>
+          </div>
+          <div class="hint" id="hint1">💡 تلقائي: اللوح العلوي يتحرك تلقائيًا ليبيّن تغيّر A و d. يدوي: اسحب اللوح العلوي بنفسك (عموديًا لتغيير d، أفقيًا لتغيير A).</div>
+          <div class="hint">💡 مفصولة: الشحنة Q ثابتة، فيتحرك مؤشر الفولتميتر مع كل تغيّر بـ A أو d (V = Q/C). موصولة: الجهد V يثبته المصدر، والشحنة Q هي التي تتغيّر.</div>
+          <div class="control-row">
+            <label>سرعة الحركة التلقائية <b id="val-speed1">0.6</b></label>
+            <input type="range" min="0.1" max="1.5" step="0.05" value="0.6" data-target="t1State.speed" data-label="val-speed1">
+          </div>
+          <div class="control-row">
+            <label>العازل (عامل ثالث يؤثر على السعة) — أو اسحبه بيدك ✋</label>
+          </div>
+          <div class="btn-row" id="dielectricInsert1">
+            <button class="ctrl-btn cyan on" data-insert="out">⬅️ أخرِج العازل</button>
+            <button class="ctrl-btn" data-insert="in">➡️ أدخِل العازل</button>
+          </div>
+          <div class="control-row">
+            <label>نوع المادة العازلة</label>
+          </div>
+          <div class="btn-row" id="dielectricMaterials1">
+            <button class="ctrl-btn" data-k="1">فراغ (k=1)</button>
+            <button class="ctrl-btn" data-k="2.5">ورق (k=2.5)</button>
+            <button class="ctrl-btn on" data-k="4">زجاج (k=4)</button>
+            <button class="ctrl-btn" data-k="6">ميكا (k=6)</button>
+          </div>
+        </div>
+
+        <!-- ===== Tab 2: Dielectric ===== -->
+        <div class="control-panel" data-tab="2">
+          <div class="btn-row">
+            <button class="ctrl-btn on" data-mode-tab="2">⚙️ تلقائي</button>
+          </div>
+          <div class="btn-row">
+            <button class="ctrl-btn cyan on" id="sourceToggleBtn2">🔌 الحالة: مفصولة عن البطارية</button>
+          </div>
+          <div class="hint">💡 تلقائي: كتلة العازل تدخل وتخرج تلقائيًا. يدوي: اسحب كتلة العازل بنفسك داخل الفجوة بين اللوحين.</div>
+          <div class="hint" id="hint2">💡 مفصولة: الشحنة Q ثابتة ويهبط الجهد V مع دخول العازل. متصلة: الجهد V ثابت (يفرضه المصدر) وترتفع الشحنة Q مع دخول العازل.</div>
+          <div class="control-row">
+            <label>سرعة الحركة التلقائية <b id="val-speed2">0.6</b></label>
+            <input type="range" min="0.1" max="1.5" step="0.05" value="0.6" data-target="t2State.speed" data-label="val-speed2">
+          </div>
+          <div class="control-row">
+            <label>نوع المادة العازلة</label>
+          </div>
+          <div class="btn-row" id="dielectricMaterials">
+            <button class="ctrl-btn" data-k="2.5">ورق (k=2.5)</button>
+            <button class="ctrl-btn on" data-k="4">زجاج (k=4)</button>
+            <button class="ctrl-btn" data-k="6">ميكا (k=6)</button>
+          </div>
+        </div>
+
+        <!-- ===== Tab 3: Series/Parallel ===== -->
+        <div class="control-panel" data-tab="3">
+          <div class="btn-row">
+            <button class="ctrl-btn on" data-mode-tab="3">⚙️ تلقائي</button>
+          </div>
+          <div class="btn-row">
+            <button class="ctrl-btn cyan" id="toggleBtn3">🔁 تبديل توالي/توازي</button>
+          </div>
+          <div class="hint">💡 تلقائي: يتبدّل الربط بين التوالي والتوازي كل بضع ثوانٍ. يدوي: اضغط الزر (أو اضغط على الزر داخل الرسم مباشرة).</div>
+          <div class="control-row">
+            <label>C1 (µF) <b id="val-c1-3">2.0</b></label>
+            <input type="range" min="1" max="10" step="0.5" value="2" data-target="t3State.C.0" data-label="val-c1-3">
+          </div>
+          <div class="control-row">
+            <label>C2 (µF) <b id="val-c2-3">4.0</b></label>
+            <input type="range" min="1" max="10" step="0.5" value="4" data-target="t3State.C.1" data-label="val-c2-3">
+          </div>
+          <div class="control-row">
+            <label>C3 (µF) <b id="val-c3-3">6.0</b></label>
+            <input type="range" min="1" max="10" step="0.5" value="6" data-target="t3State.C.2" data-label="val-c3-3">
+          </div>
+          <div class="control-row">
+            <label>جهد البطارية (V) <b id="val-v3">12.0</b></label>
+            <input type="range" min="3" max="20" step="1" value="12" data-target="t3State.Vbattery" data-label="val-v3">
+          </div>
+        </div>
+
+        <!-- ===== Tab 4: RC Circuit ===== -->
+        <div class="control-panel" data-tab="4">
+          <div class="btn-row">
+            <button class="ctrl-btn on" data-mode-tab="4">⚙️ تلقائي</button>
+          </div>
+          <div class="hint">💡 تلقائي: المفتاح يتبدّل تلقائيًا بين الشحن والتفريغ. يدوي: اضغط على المفتاح داخل الرسم لتبديله بنفسك.</div>
+          <div class="hint">💡 كل مصباح على فرع مختلف، فيضيء <b>مصباح واحد فقط في كل مرة</b>: الوضع 1 يُغلق فرع الشحن (بطارية + مقاومة + <b>L1</b>)، والوضع 2 يُغلق فرع التفريغ (<b>L2</b> وحده بلا بطارية). المتسعة والجلفانومتر مشتركان بين الفرعين.</div>
+          <div class="control-row">
+            <label>المقاومة R <b id="val-r4">5.0</b></label>
+            <input type="range" min="1" max="15" step="0.5" value="5" data-target="t4State.R" data-label="val-r4">
+          </div>
+          <div class="control-row">
+            <label>المتسعة C <b id="val-c4">3.0</b></label>
+            <input type="range" min="1" max="10" step="0.5" value="3" data-target="t4State.Cval" data-label="val-c4">
+          </div>
+          <div class="control-row">
+            <label>جهد البطارية (V) <b id="val-vbat4">9.0</b></label>
+            <input type="range" min="3" max="20" step="1" value="9" data-target="t4State.Vbat" data-label="val-vbat4">
+          </div>
+        </div>
+
+        <!-- ===== Tab 5: Mixed Circuit ===== -->
+        <div class="control-panel" data-tab="5">
+          <div class="btn-row">
+            <button class="ctrl-btn on" data-mode-tab="5">⚙️ تلقائي</button>
+          </div>
+          <div class="hint">💡 تلقائي: يتم تظليل كل متسعة بالتناوب تلقائيًا. يدوي: اضغط على أي متسعة بالرسم لعرض تفاصيلها.</div>
+          <div class="control-row">
+            <label>C1 (µF) <b id="val-c1-5">2.0</b></label>
+            <input type="range" min="1" max="10" step="0.5" value="2" data-target="t5State.C1" data-label="val-c1-5">
+          </div>
+          <div class="control-row">
+            <label>C2 (µF) <b id="val-c2-5">3.0</b></label>
+            <input type="range" min="1" max="10" step="0.5" value="3" data-target="t5State.C2" data-label="val-c2-5">
+          </div>
+          <div class="control-row">
+            <label>C3 (µF) <b id="val-c3-5">4.0</b></label>
+            <input type="range" min="1" max="10" step="0.5" value="4" data-target="t5State.C3" data-label="val-c3-5">
+          </div>
+          <div class="control-row">
+            <label>جهد البطارية (V) <b id="val-vbat5">10.0</b></label>
+            <input type="range" min="3" max="20" step="1" value="10" data-target="t5State.Vbat" data-label="val-vbat5">
+          </div>
+        </div>
+
+        <!-- ===== Tab 6: Polar vs Non-polar dielectric molecules ===== -->
+        <div class="control-panel" data-tab="6">
+          <div class="btn-row">
+            <button class="ctrl-btn on" data-mode-tab="6">⚙️ تلقائي</button>
+          </div>
+          <div class="btn-row">
+            <button class="ctrl-btn cyan on" id="fieldToggleBtn6">⚡ المجال: يعمل</button>
+          </div>
+          <div class="hint">💡 تلقائي: المجال يُشحن ويُفرَّغ دوريًا. يدوي: تحكّم بالمجال بنفسك عبر الزر أعلاه.</div>
+          <div class="btn-row" id="dielInsert6">
+            <button class="ctrl-btn cyan on" data-ins="in">➡️ أدخِل العازل</button>
+            <button class="ctrl-btn" data-ins="out">⬅️ أخرِج العازل</button>
+          </div>
+          <div class="hint">💡 أدخِل العازل بين اللوحين أو أخرِجه. عند إخراجه: فجوة هواء (k=1). عند إدخاله: تظهر الجزيئات وتستقطب فترتفع السعة.</div>
+          <div class="control-row">
+            <label>نوع العازل</label>
+          </div>
+          <div class="btn-row" id="molTypeBtns">
+            <button class="ctrl-btn on" data-type="nonpolar">غير قطبي</button>
+            <button class="ctrl-btn" data-type="polar">قطبي</button>
+          </div>
+          <div class="hint">💡 غير قطبي: جزيئات متماثلة، المجال يزيح مركز الشحنة فيها فيستحثّ ثنائي قطب (تستطيل). قطبي: جزيئات هي أصلًا ثنائيات قطب دائمة، والمجال يُدوّرها لتصطف.</div>
+          <div class="control-row">
+            <label>ثابت العزل (k) <b id="val-k6">4.0</b></label>
+            <input type="range" min="2" max="8" step="0.5" value="4" data-target="t6State.k" data-label="val-k6">
+          </div>
+          <div class="control-row">
+            <label>سرعة الدورة التلقائية <b id="val-speed6">0.6</b></label>
+            <input type="range" min="0.2" max="1.5" step="0.05" value="0.6" data-target="t6State.speed" data-label="val-speed6">
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>مختبر تفاعلي تعليمي — القيم الفيزيائية تقريبية لأغراض التوضيح المفاهيمي فقط.</footer>
+
+<script>
+/* =========================================================================
+   CANVAS THEME PALETTE (shared)
+   The on-canvas drawings can't use CSS variables directly, so this mirrors
+   the light/dark palette in plain JS. CANVAS_THEMES holds both variants and
+   window.CANVAS is a LIVE object whose values are swapped in place when the
+   theme changes — every activity's COLORS is built as a getter over it, so a
+   single toggle re-themes all six simulations without touching their code.
+   ========================================================================= */
+const CANVAS_THEMES = {
+  dark: {
+    bg:'#111a2c', wire:'#e8edf7', capDefault:'#f2a83c', capActive:'#6ffbe0',
+    red:'#ef5b6b', blue:'#4d8dff', muted:'#8b98b4', border:'#243252',
+    panel:'rgba(17,26,44,.78)', dielectric:'#4d8dff',
+    ink:'#03060c', badge:'rgba(17,26,44,.85)'
+  },
+  light: {
+    // Paper-bright surface; wires/text go dark, accents deepened for contrast.
+    bg:'#f4f7fc', wire:'#20304e', capDefault:'#c9791a', capActive:'#0c8475',
+    red:'#d63a4c', blue:'#2f6fe0', muted:'#5a6a86', border:'#c7d3e6',
+    panel:'rgba(255,255,255,.82)', dielectric:'#2f6fe0',
+    ink:'#0b1424', badge:'rgba(255,255,255,.9)'
+  }
+};
+window.CANVAS = Object.assign({}, CANVAS_THEMES.dark);
+window.applyCanvasTheme = function(name){
+  const t = CANVAS_THEMES[name] || CANVAS_THEMES.dark;
+  Object.assign(window.CANVAS, t);   // mutate in place so live refs stay valid
+};
+/* Build a per-activity COLORS object whose properties always reflect the
+   current window.CANVAS. `extra` lets an activity add its own aliases. */
+function makeColors(extra){
+  const o = {};
+  Object.keys(CANVAS_THEMES.dark).forEach(k=>{
+    Object.defineProperty(o, k, { enumerable:true, get(){ return window.CANVAS[k]; } });
+  });
+  if (extra) Object.keys(extra).forEach(k=>{
+    Object.defineProperty(o, k, { enumerable:true, get(){ return (typeof extra[k]==='function') ? extra[k]() : window.CANVAS[extra[k]]; } });
+  });
+  return o;
+}
+
+/* Realistic battery drawing shared by every activity. Draws a proper cell
+   casing (two-tone body, raised + terminal, flat − terminal) with +/− marks
+   and the voltage label. `orient` = 'v' (terminals top/bottom) or 'h'
+   (terminals left/right). Returns the two terminal points for wiring. */
+function drawRealBattery(ctx, cx, cy, volts, orient){
+  const C = window.CANVAS || {};
+  const body = '#3c4763', bodyLo = '#2b3350', cap = '#d9a441', capHi = '#f0c368';
+  const txt = C.muted || '#8b98b4';
+  ctx.save();
+  if (orient === 'h'){
+    // horizontal cell: length along X
+    const w = 66, h = 34, x = cx - w/2, y = cy - h/2, tW = 7, tH = 16;
+    // body
+    const g = ctx.createLinearGradient(x, y, x, y+h);
+    g.addColorStop(0, body); g.addColorStop(1, bodyLo);
+    ctx.fillStyle = g; ctx.strokeStyle = '#0a1120'; ctx.lineWidth = 2;
+    roundRectPathG(ctx, x, y, w, h, 5); ctx.fill(); ctx.stroke();
+    // + terminal nub on the right
+    ctx.fillStyle = cap;
+    ctx.fillRect(x + w, cy - tH/2, tW, tH);
+    ctx.strokeRect(x + w, cy - tH/2, tW, tH);
+    // decorative band
+    ctx.fillStyle = capHi; ctx.fillRect(x + w - 12, y+3, 5, h-6);
+    // +/- marks
+    ctx.fillStyle = '#fff'; ctx.font = "bold 16px 'Cairo', sans-serif"; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('+', x + w - 20, cy);
+    ctx.fillText('−', x + 14, cy);
+    // label
+    ctx.fillStyle = txt; ctx.font = "bold 12px 'Tajawal', sans-serif"; ctx.textBaseline='alphabetic';
+    ctx.fillText(volts + ' V', cx, y + h + 16);
+    ctx.restore();
+    return { plus: {x: x + w + tW, y: cy}, minus: {x: x, y: cy} };
+  } else {
+    // vertical cell: length along Y, + terminal on top
+    const w = 34, h = 66, x = cx - w/2, y = cy - h/2, tW = 16, tH = 7;
+    const g = ctx.createLinearGradient(x, y, x+w, y);
+    g.addColorStop(0, bodyLo); g.addColorStop(0.5, body); g.addColorStop(1, bodyLo);
+    ctx.fillStyle = g; ctx.strokeStyle = '#0a1120'; ctx.lineWidth = 2;
+    roundRectPathG(ctx, x, y, w, h, 5); ctx.fill(); ctx.stroke();
+    // + terminal nub on top
+    ctx.fillStyle = cap;
+    ctx.fillRect(cx - tW/2, y - tH, tW, tH);
+    ctx.strokeRect(cx - tW/2, y - tH, tW, tH);
+    // decorative band near the top (+)
+    ctx.fillStyle = capHi; ctx.fillRect(x+3, y + 7, w-6, 5);
+    // +/- marks
+    ctx.fillStyle = '#fff'; ctx.font = "bold 16px 'Cairo', sans-serif"; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('+', cx, y + 20);
+    ctx.fillText('−', cx, y + h - 16);
+    // label
+    ctx.fillStyle = txt; ctx.font = "bold 12px 'Tajawal', sans-serif"; ctx.textBaseline='alphabetic'; ctx.textAlign='center';
+    ctx.fillText(volts + ' V', cx + w/2 + 20, cy + 4);
+    ctx.restore();
+    return { plus: {x: cx, y: y - tH}, minus: {x: cx, y: y + h} };
+  }
+}
+function roundRectPathG(ctx, x, y, w, h, r){
+  ctx.beginPath();
+  if (ctx.roundRect) { ctx.roundRect(x, y, w, h, r); return; }
+  ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
+}
+</script>
+
+<script>
+/* =========================================================================
+   ACTIVITY 1 — العوامل المؤثرة على سعة المتسعة المستوي (C = ε₀·A/d)
+   ========================================================================= */
+(function () {
+  const COLORS = makeColors();
+
+  const state = {
+    simMode:'auto', speed:0.6, t:0,
+    plateWidth: 230, plateThickness: 10,
+    bottomX: 350, bottomY: 320,
+    topX: 350, topY: 170,
+    dragging: false, dragOffsetX: 0, dragOffsetY: 0, _prevDown:false,
+    pxToM: 0.001, depth: 0.09, eps0: 8.85e-12,
+    A: 0, d: 0, C: 0,
+    // Battery can be connected (V clamped, Q varies) or disconnected
+    // (Q frozen, V varies) — the disconnected case is what makes the
+    // voltmeter needle actually move as A and d change.
+    connected: false, Vbat: 12, Q: 0, Vmeter: 0, Vscale: 40,
+    // Dielectric slab that can slide into the gap. `insertion` is 0..1 (how much
+    // of the overlap area it fills); `k` is the material's dielectric constant.
+    // Adding a dielectric is the third factor affecting C: C = k·ε₀·A/d.
+    dielK: 4, dielInsertion: 0, dielTarget: 0, dielDragging: false, dielDragOffset: 0,
+    // Tappable zone over the drawn battery switch, so the teacher can connect
+    // or disconnect the source by pressing the switch itself, not only the
+    // control-panel button. Updated each frame in t1Draw to track the switch.
+    switchZone: { x: 100, y: 0, w: 40, h: 0 }
+  };
+
+  /** Freeze the present charge when disconnecting; re-clamp V when reconnecting. */
+  function setConnected(c){
+    if (!c) { state.Q = state.C * state.Vbat; }  // snapshot Q at the moment of disconnect
+    state.connected = c;
+    // Keep the control-panel button in sync when the change came from tapping
+    // the drawn switch, so button label and circuit never disagree.
+    const btn = document.getElementById('sourceToggleBtn1');
+    if (btn) {
+      btn.classList.toggle('on', !c);
+      btn.textContent = c ? '🔌 الحالة: موصولة بالبطارية' : '🔌 الحالة: مفصولة عن البطارية';
+    }
+  }
+  window.t1SetConnected = setConnected;
+
+  // Seed the initial stored charge from the starting geometry so the default
+  // (disconnected) state begins already charged rather than at V = 0.
+  (function seedCharge(){
+    const s = state;
+    const overlapPx = s.plateWidth;                  // plates start fully aligned
+    const dPx = s.bottomY - (s.topY + s.plateThickness);
+    const d0 = Math.max(dPx, 4) * s.pxToM;
+    const A0 = (overlapPx * s.pxToM) * s.depth;
+    const C0 = (s.eps0 * A0) / d0;
+    s.Q = C0 * s.Vbat;
+  })();
+
+  function hitTestTopPlate(px, py) {
+    /* The plate itself is only ~10px thick — far too thin to hit with a
+       fingertip, especially on a wall-mounted whiteboard. Pad the grab area
+       generously (vertically most of all) so the plate can be caught anywhere
+       near it rather than exactly on it. */
+    return px >= state.topX - 24 && px <= state.topX + state.plateWidth + 24 &&
+           py >= state.topY - 30 && py <= state.topY + state.plateThickness + 30;
+  }
+
+  function hitTestDielectric(px, py) {
+    // The slab's drawn box is cached each frame as _slabX/_slabW/_gapTop/_gapBot.
+    const s = state;
+    if (s._slabX == null) return false;
+    return px >= s._slabX - 16 && px <= s._slabX + (s._slabW||0) + 16 &&
+           py >= (s._gapTop||0) - 16 && py <= (s._gapBot||0) + 16;
+  }
+
+  function t1Update(dt) {
+    const s = state;
+    s.t += dt;
+
+    /* Tap the drawn battery switch to connect/disconnect the source. This is
+       checked BEFORE the plate-grab so a press on the switch never starts a
+       drag by mistake. It answers the "I can't get the battery back" problem:
+       once disconnected, pressing the switch reconnects it (and vice-versa). */
+    if (pointer.justPressed && hitZone(s.switchZone, 10)) {
+      setConnected(!s.connected);
+    } else if (pointer.justPressed && s.dielK > 1 && hitTestDielectric(pointer.pressX, pointer.pressY)) {
+      // Grab the dielectric slab to drag it in/out of the gap by hand.
+      s.dielDragging = true;
+      s.dielDragOffset = pointer.pressX - (s._slabX ?? 0);
+    } else if (pointer.justPressed && hitTestTopPlate(pointer.pressX, pointer.pressY)) {
+      /* Grabbing the plate works in BOTH modes. Previously a touch while the
+         activity was still on "auto" was ignored entirely, so the plate felt
+         dead. A grab now takes control: it flips to manual and starts the drag. */
+      if (s.simMode === 'auto') {
+        s.simMode = 'manual';
+        const modeBtn = document.querySelector('[data-mode-tab="1"]');
+        if (modeBtn) { modeBtn.classList.remove('on'); modeBtn.textContent = '🖐️ يدوي'; }
+        if (typeof updateModeStatusPill === 'function') updateModeStatusPill();
+      }
+      s.dragging = true;
+      s.dragOffsetX = pointer.pressX - s.topX;
+      s.dragOffsetY = pointer.pressY - s.topY;
+    }
+
+    if (s.simMode === 'auto') {
+      const omega = 0.4 + s.speed*1.2;
+      s.topX = s.bottomX + Math.sin(s.t*omega) * 65;
+      s.topY = (s.bottomY - 140) + Math.sin(s.t*omega*0.7 + 1.3) * 70;
+      s.dragging = false;
+    } else {
+      if (!pointer.isDown) s.dragging = false;
+
+      if (s.dragging) {
+        s.topX = pointer.x - s.dragOffsetX;
+        s.topY = pointer.y - s.dragOffsetY;
+        s.topY = Math.max(s.bottomY - 240, Math.min(s.bottomY - 30, s.topY));
+        s.topX = Math.max(s.bottomX - s.plateWidth + 30, Math.min(Math.min(s.bottomX + s.plateWidth - 30, 636 - s.plateWidth), s.topX));
+      }
+    }
+    s._prevDown = pointer.isDown;
+
+    const overlapLeft  = Math.max(s.topX, s.bottomX);
+    const overlapRight = Math.min(s.topX + s.plateWidth, s.bottomX + s.plateWidth);
+    const overlapPx = Math.max(0, overlapRight - overlapLeft);
+
+    const dPx = s.bottomY - (s.topY + s.plateThickness);
+    s.d = Math.max(dPx, 4) * s.pxToM;
+    s.A = (overlapPx * s.pxToM) * s.depth;
+
+    // Dielectric: dragged by hand, or eased toward the button target.
+    if (s.dielDragging) {
+      if (!pointer.isDown) { s.dielDragging = false; s.dielTarget = s.dielInsertion > 0.5 ? 1 : 0; }
+      else {
+        // map the slab's left-edge position back to an insertion fraction
+        const oL = s._overlapLeft ?? s.bottomX;
+        const oR = s._overlapRight ?? (s.bottomX + s.plateWidth);
+        const insideX = oL;
+        const parkedX = oR + 24;
+        const wantX = (pointer.x - (s.dielDragOffset||0));
+        let frac = (wantX - parkedX) / (insideX - parkedX);
+        s.dielInsertion = Math.max(0, Math.min(1, frac));
+        s.dielTarget = s.dielInsertion;
+      }
+    } else {
+      s.dielInsertion += (s.dielTarget - s.dielInsertion) * Math.min(1, dt * 3);
+      if (Math.abs(s.dielTarget - s.dielInsertion) < 0.001) s.dielInsertion = s.dielTarget;
+    }
+
+    // effective dielectric constant scales with how much of the gap is filled:
+    // fully out -> 1 (vacuum), fully in -> k. Third factor in C = k·ε₀·A/d.
+    const kEff = 1 + (s.dielK - 1) * s.dielInsertion;
+    s.kEff = kEff;
+    s.C = s.A > 0 ? (kEff * s.eps0 * s.A) / s.d : 0;
+
+    // Battery stays connected -> V is clamped to the battery's EMF, and the
+    // stored charge Q = C·V is what actually varies as A and d change.
+    if (s.connected) {
+      // battery holds V fixed; the stored charge follows Q = C·V
+      s.Vmeter = s.Vbat;
+      s.Q = s.C * s.Vbat;
+    } else {
+      // isolated: Q is frozen, so V = Q/C swings as A and d change
+      s.Vmeter = s.C > 0 ? s.Q / s.C : 0;
+    }
+
+    s._overlapLeft = overlapLeft; s._overlapRight = overlapRight; s._overlapPx = overlapPx;
+  }
+
+  function drawPlate(x, y, w, h, glow) {
+    ctx.save();
+    ctx.fillStyle = glow ? COLORS.capActive : COLORS.capDefault;
+    ctx.fillRect(x, y, w, h);
+    ctx.strokeStyle = '#03060c'; ctx.lineWidth = 2;
+    ctx.strokeRect(x, y, w, h);
+    if (glow) {
+      ctx.shadowColor = COLORS.capActive; ctx.shadowBlur = 18;
+      ctx.strokeStyle = COLORS.capActive; ctx.lineWidth = 1;
+      ctx.strokeRect(x, y, w, h);
+    }
+    ctx.restore();
+  }
+  function drawHUD(x, y, w, lines) {
+    const h = 26 + lines.length * 22;
+    ctx.save();
+    ctx.fillStyle = COLORS.panel; ctx.strokeStyle = COLORS.border; ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(x, y, w, h, 10) : ctx.rect(x, y, w, h);
+    ctx.fill(); ctx.stroke();
+    ctx.textAlign = 'right';
+    lines.forEach((line, i) => {
+      ctx.fillStyle = line.color || COLORS.wire;
+      ctx.font = line.bold ? "bold 14px 'Cairo', sans-serif" : "13px 'Tajawal', sans-serif";
+      ctx.fillText(line.text, x + w - 14, y + 24 + i * 22);
+    });
+    ctx.restore();
+  }
+  function fmtC(farads) {
+    if (farads >= 1e-9) return (farads * 1e12).toFixed(2) + ' pF';
+    return (farads * 1e15).toFixed(1) + ' fF';
+  }
+  function fmtE(joules) {
+    if (joules >= 1e-6) return (joules * 1e6).toFixed(2) + ' µJ';
+    if (joules >= 1e-9) return (joules * 1e9).toFixed(2) + ' nJ';
+    return (joules * 1e12).toFixed(2) + ' pJ';
+  }
+  /** Analog voltmeter dial (0..maxValue) matching the lab-instrument styling. */
+  function drawVoltmeter(cx, cy, r, value, maxValue) {
+    const frac = Math.max(0, Math.min(1, value / maxValue));
+    ctx.save(); ctx.translate(cx, cy);
+    ctx.beginPath(); ctx.moveTo(-r, 4); ctx.arc(0, 0, r, Math.PI, 0, false); ctx.lineTo(r, 4); ctx.closePath();
+    ctx.fillStyle = '#0a1524'; ctx.fill();
+    ctx.lineWidth = 2.5; ctx.strokeStyle = COLORS.border; ctx.stroke();
+    ctx.strokeStyle = COLORS.muted; ctx.lineWidth = 1.5;
+    for (let i = 0; i <= 1.001; i += 0.25) {
+      const a = Math.PI - i * Math.PI;
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(a)*(r-6), -Math.sin(a)*(r-6));
+      ctx.lineTo(Math.cos(a)*(r-14), -Math.sin(a)*(r-14));
+      ctx.stroke();
+    }
+    ctx.fillStyle = COLORS.muted; ctx.font = "10px 'Tajawal', sans-serif"; ctx.textAlign = 'center';
+    ctx.fillText('0', -r+8, 17); ctx.fillText(String(maxValue), r-8, 17);
+    const angle = Math.PI - frac * Math.PI;
+    ctx.strokeStyle = COLORS.capActive; ctx.lineWidth = 3; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(Math.cos(angle)*(r-16), -Math.sin(angle)*(r-16)); ctx.stroke();
+    ctx.beginPath(); ctx.arc(0,0,4.5,0,Math.PI*2); ctx.fillStyle = COLORS.wire; ctx.fill();
+    ctx.fillStyle = COLORS.muted; ctx.font = "bold 11px 'Cairo', sans-serif";
+    ctx.fillText('V', 0, 22);
+    ctx.restore();
+  }
+
+  function t1Draw() {
+    const s = state;
+    ctx.save();
+    ctx.fillStyle = COLORS.bg; ctx.fillRect(0, 0, CW, CH);
+    ctx.textAlign = 'center';
+    ctx.fillStyle = COLORS.capDefault; ctx.font = "bold 15px 'Cairo', sans-serif";
+    ctx.fillText('العوامل المؤثرة على سعة المتسعة المستوي', CW/2, 34);
+
+    ctx.strokeStyle = COLORS.border; ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(s.bottomX - 20, s.bottomY + s.plateThickness); ctx.lineTo(s.bottomX - 20, s.bottomY + 90);
+    ctx.moveTo(s.bottomX + s.plateWidth + 20, s.bottomY + s.plateThickness); ctx.lineTo(s.bottomX + s.plateWidth + 20, s.bottomY + 90);
+    ctx.stroke();
+
+    drawPlate(s.bottomX, s.bottomY, s.plateWidth, s.plateThickness, false);
+
+    // ---- dielectric slab: constant width, SLIDES in/out and stays on screen ----
+    if (s.dielK > 1) {
+      const gapTop = s.topY + s.plateThickness;
+      const gapBot = s.bottomY;
+      const gapH = gapBot - gapTop;
+      const oL = s._overlapLeft ?? s.bottomX;
+      const oR = s._overlapRight ?? (s.bottomX + s.plateWidth);
+      const fullW = Math.max(30, oR - oL);
+      // slab keeps its full width; only its X position animates.
+      // insertion=1 -> fully inside the gap; insertion=0 -> parked just to the
+      // right of the capacitor (fully visible, out of the gap).
+      const insideX = oL;                       // left edge when fully inserted
+      const parkedX = oR + 24;                  // parked to the right of the plates
+      const slabX = parkedX + (insideX - parkedX) * s.dielInsertion;
+      // cache for hit-testing the drag
+      s._slabX = slabX; s._slabW = fullW; s._gapTop = gapTop; s._gapBot = gapBot;
+      if (gapH > 4) {
+        ctx.save();
+        const matColor = s.dielK >= 6 ? '#7c9cff' : s.dielK >= 4 ? '#63d2ff' : '#8ad6a0';
+        // dim a touch while outside the field (parked), brighter while inside
+        const inside = s.dielInsertion;
+        ctx.globalAlpha = 0.22 + 0.14*inside;
+        ctx.fillStyle = matColor;
+        ctx.fillRect(slabX, gapTop + 2, fullW, gapH - 4);
+        ctx.globalAlpha = 0.55 + 0.35*inside;
+        ctx.strokeStyle = s.dielDragging ? COLORS.capActive : matColor; ctx.lineWidth = s.dielDragging ? 3 : 2;
+        ctx.strokeRect(slabX, gapTop + 2, fullW, gapH - 4);
+        // hatch lines to read as a solid material
+        ctx.globalAlpha = 0.3 + 0.15*inside; ctx.lineWidth = 1;
+        for (let hx = slabX + 8; hx < slabX + fullW; hx += 12) {
+          ctx.beginPath(); ctx.moveTo(hx, gapTop + 3); ctx.lineTo(hx, gapBot - 3); ctx.stroke();
+        }
+        // label
+        ctx.globalAlpha = 1; ctx.fillStyle = matColor;
+        ctx.font = "bold 13px 'Cairo', sans-serif"; ctx.textAlign = 'center';
+        const matName = s.dielK >= 6 ? 'ميكا' : s.dielK >= 4 ? 'زجاج' : s.dielK >= 2 ? 'ورق' : 'عازل';
+        ctx.fillText(matName + ' (k=' + s.dielK + ')', slabX + fullW/2, (gapTop + gapBot)/2 + 4);
+        // "خارج المجال" tag when parked
+        if (inside < 0.15){
+          ctx.fillStyle = COLORS.muted; ctx.font = "11px 'Tajawal', sans-serif";
+          ctx.fillText('خارج المتسعة', slabX + fullW/2, gapBot + 16);
+        }
+        ctx.restore();
+      }
+    }
+    if (s._overlapPx > 4) {
+      ctx.save();
+      ctx.strokeStyle = COLORS.wire; ctx.globalAlpha = 0.55; ctx.lineWidth = 1.5;
+      const n = Math.max(2, Math.floor(s._overlapPx / 26));
+      for (let i = 1; i < n; i++) {
+        const x = s._overlapLeft + (s._overlapPx * i) / n;
+        ctx.beginPath(); ctx.moveTo(x, s.topY + s.plateThickness); ctx.lineTo(x, s.bottomY); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x, s.bottomY - 8); ctx.lineTo(x - 4, s.bottomY - 16); ctx.lineTo(x + 4, s.bottomY - 16);
+        ctx.closePath(); ctx.fillStyle = COLORS.wire; ctx.fill();
+      }
+      ctx.restore();
+    }
+    drawPlate(s.topX, s.topY, s.plateWidth, s.plateThickness, s.dragging);
+
+    // Grab affordance: nothing about a plain bar says "you can drag me", so
+    // draw an explicit handle on it. It highlights while actually dragging.
+    {
+      const hx = s.topX + s.plateWidth/2, hy = s.topY + s.plateThickness/2;
+      ctx.save();
+      ctx.globalAlpha = s.dragging ? 0.95 : 0.6;
+      ctx.strokeStyle = s.dragging ? COLORS.capActive : COLORS.muted;
+      ctx.lineWidth = 2; ctx.lineCap = 'round';
+      for (let i = -1; i <= 1; i++) {
+        ctx.beginPath();
+        ctx.moveTo(hx - 9, hy + i*5);
+        ctx.lineTo(hx + 9, hy + i*5);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = s.dragging ? 0.95 : 0.75;
+      ctx.fillStyle = s.dragging ? COLORS.capActive : COLORS.muted;
+      ctx.font = "bold 10.5px 'Cairo', sans-serif"; ctx.textAlign = 'center';
+      ctx.fillText('✋ اسحبني', hx, s.topY - 9);
+      ctx.restore();
+    }
+
+    ctx.save();
+    ctx.strokeStyle = COLORS.muted; ctx.setLineDash([4,4]); ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(s.bottomX + s.plateWidth + 44, s.topY + s.plateThickness);
+    ctx.lineTo(s.bottomX + s.plateWidth + 44, s.bottomY);
+    ctx.stroke(); ctx.setLineDash([]);
+    ctx.save(); ctx.translate(s.bottomX + s.plateWidth + 62, (s.topY + s.bottomY)/2 + s.plateThickness/2);
+    ctx.rotate(-Math.PI/2); ctx.fillStyle = COLORS.muted; ctx.font = "12px 'Tajawal', sans-serif"; ctx.textAlign='center';
+    ctx.fillText('d', 0, 0); ctx.restore();
+    ctx.restore();
+
+    ctx.fillStyle = COLORS.muted; ctx.font = "12px 'Tajawal', sans-serif"; ctx.textAlign = 'center';
+    ctx.fillText(s.simMode==='auto' ? 'الوضع التلقائي: حركة مستمرة توضح تأثير A و d' : 'اسحب اللوح العلوي: عموديًا لتغيير d، أفقيًا لتغيير A', CW/2, CH - 24);
+
+    // --- battery + switch + voltmeter wired across the plates ---
+    // Switch CLOSED  -> V clamped to the battery, Q = C·V varies.
+    // Switch OPEN    -> Q frozen, so V = Q/C swings as A and d change
+    //                   (this is the case where the meter actually moves).
+    const bx = 120, midY = (s.topY + s.bottomY) / 2 + s.plateThickness/2;
+    const vmX = 220, vmY = 120;
+    ctx.save();
+    ctx.strokeStyle = COLORS.wire; ctx.lineWidth = 2.5;
+    // top plate -> left -> down to the switch / battery +
+    ctx.beginPath();
+    ctx.moveTo(s.topX, s.topY + s.plateThickness/2);
+    ctx.lineTo(bx, s.topY + s.plateThickness/2);
+    ctx.lineTo(bx, midY - 46);
+    ctx.stroke();
+    // switch: closed = solid vertical link, open = lifted lever with a visible gap
+    // Keep the tap zone glued to the switch each frame.
+    s.switchZone.x = bx - 22; s.switchZone.y = midY - 62; s.switchZone.w = 44; s.switchZone.h = 46;
+    // dashed target + prompt so it's obvious the switch can be pressed
+    ctx.save();
+    ctx.strokeStyle = s.connected ? COLORS.capActive : COLORS.red;
+    ctx.globalAlpha = 0.5; ctx.lineWidth = 1.5; ctx.setLineDash([5,4]);
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(s.switchZone.x, s.switchZone.y, s.switchZone.w, s.switchZone.h, 8)
+                  : ctx.rect(s.switchZone.x, s.switchZone.y, s.switchZone.w, s.switchZone.h);
+    ctx.stroke();
+    ctx.setLineDash([]); ctx.globalAlpha = 0.9;
+    ctx.fillStyle = s.connected ? COLORS.capActive : COLORS.red;
+    ctx.font = "bold 9.5px 'Cairo', sans-serif"; ctx.textAlign = 'center';
+    ctx.fillText(s.connected ? '👆 افصل' : '👆 صِل', bx, s.switchZone.y - 5);
+    ctx.restore();
+    ctx.strokeStyle = s.connected ? COLORS.capActive : COLORS.red;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(bx, midY - 46);
+    if (s.connected) ctx.lineTo(bx, midY - 24);
+    else             ctx.lineTo(bx + 17, midY - 38);
+    ctx.stroke();
+    ctx.fillStyle = s.connected ? COLORS.capActive : COLORS.red;
+    ctx.beginPath(); ctx.arc(bx, midY - 46, 3.5, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(bx, midY - 24, 3.5, 0, Math.PI*2); ctx.fill();
+    // bottom plate -> left -> up to battery -
+    ctx.strokeStyle = COLORS.wire; ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(s.bottomX, s.bottomY + s.plateThickness/2);
+    ctx.lineTo(bx, s.bottomY + s.plateThickness/2);
+    ctx.lineTo(bx, midY + 26);
+    ctx.stroke();
+    // realistic battery (terminals wired at midY-24 top/+ and midY+26 bottom/−)
+    ctx.strokeStyle = COLORS.wire; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(bx, midY-24); ctx.lineTo(bx, midY-16); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(bx, midY+18); ctx.lineTo(bx, midY+26); ctx.stroke();
+    drawRealBattery(ctx, bx, midY + 1, s.Vbat, 'v');
+    ctx.fillStyle = s.connected ? COLORS.capActive : COLORS.red;
+    ctx.font = "10.5px 'Tajawal', sans-serif";
+    ctx.fillText(s.connected ? 'موصولة' : 'مفصولة', bx + 4, midY - 58);
+
+    // voltmeter tapped in parallel across the two plates
+    ctx.strokeStyle = COLORS.muted; ctx.lineWidth = 2; ctx.setLineDash([5,4]);
+    ctx.beginPath();
+    ctx.moveTo(s.topX, s.topY + s.plateThickness/2);
+    ctx.lineTo(vmX, s.topY + s.plateThickness/2);
+    ctx.lineTo(vmX, vmY + 30);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(s.bottomX, s.bottomY + s.plateThickness/2);
+    ctx.lineTo(vmX + 62, s.bottomY + s.plateThickness/2);
+    ctx.lineTo(vmX + 62, vmY + 30);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+    // fixed full-scale so the needle sweep is comparable across all geometries
+    drawVoltmeter(vmX + 31, vmY + 30, 42, s.Vmeter, s.Vscale);
+    ctx.fillStyle = COLORS.muted; ctx.font = "11px 'Tajawal', sans-serif"; ctx.textAlign = 'center';
+    ctx.fillText('فولتميتر', vmX + 31, vmY - 22);
+
+    drawHUD(CW - 250, 60, 230, [
+      { text: 'C = k·ε₀·A / d', bold: true, color: COLORS.capActive },
+      { text: 'الحالة: ' + (s.connected ? 'موصولة (V ثابت)' : 'مفصولة (Q ثابتة)'),
+        color: s.connected ? COLORS.blue : COLORS.capActive },
+      { text: 'A = ' + s.A.toExponential(2) + ' م²' },
+      { text: 'd = ' + (s.d*1000).toFixed(1) + ' مم' },
+      { text: 'العازل: ' + (s.dielInsertion > 0.02 ? ('k = ' + (s.kEff||1).toFixed(1) + (s.dielInsertion < 0.98 ? ' (جزئي)' : '')) : 'لا يوجد (k=1)'),
+        color: s.dielInsertion > 0.02 ? COLORS.cyanBright : COLORS.muted },
+      { text: 'C = ' + fmtC(s.C), color: COLORS.capActive },
+      { text: 'Q = ' + (s.Q*1e12).toFixed(1) + ' pC' + (s.connected ? '' : ' (ثابتة)') },
+      { text: 'V = ' + s.Vmeter.toFixed(1) + ' V' + (s.connected ? ' (ثابت)' : ''),
+        bold:true, color: COLORS.capActive },
+      { text: 'PE = ½QV = ' + fmtE(0.5*s.Q*s.Vmeter), bold:true, color: COLORS.capDefault }
+    ]);
+    ctx.restore();
+  }
+
+  window.t1State = state; window.t1Update = t1Update; window.t1Draw = t1Draw;
+  // A press is a "drag/interact" (claim gesture, block scroll) when it lands on
+  // the movable top plate or the battery switch; anywhere else the page scrolls.
+  window.t1DragHitTest = function(x, y){
+    return hitTestTopPlate(x, y) || hitZone(state.switchZone, 10);
+  };
+})();
+
+/* =========================================================================
+   ACTIVITY 2 — إدخال العازل بين لوحي متسعة مشحونة (C_k = k·C₀ , V_k = V₀/k)
+   ========================================================================= */
+(function () {
+  const COLORS = makeColors();  // dielectric alias comes from the shared palette
+  const plateX = 260, plateY = 200, plateW = 300, plateH = 12, gap = 110;
+  const topY = plateY, botY = plateY + gap + plateH;
+  const outsideX = plateX - 200, insideX = plateX + plateW - 140;
+
+  const state = {
+    simMode:'auto', speed:0.6, t:0,
+    k: 4, dielectricLabel: 'زجاج (k = 4)',
+    blockW: 140, blockH: gap - 14,
+    blockX: outsideX, blockY: topY + plateH + 7,
+    dragging: false, dragOffsetX: 0, _prevDown: false,
+    connected: false, Vbat: 40,
+    C0: 0, Q: 0, insertion: 0, prevInsertion: 0, direction: 'idle', Ceff: 0, Veff: 0, V0: 0,
+    // Tap zone over the drawn switch (positioned each frame in t2Draw).
+    switchZone: { x: 0, y: 0, w: 44, h: 46 }
+  };
+  const eps0 = 8.85e-12, pxToM = 0.001, depth = 0.09;
+  state.C0 = (eps0 * (plateW*pxToM*depth)) / (gap*pxToM);
+  state.V0 = 40;
+  state.Q = state.C0 * state.V0;
+
+  // Molecules embedded in the slab. Positions are relative to the slab's own
+  // box (0..blockW, 0..blockH). They sit at random angles when the slab is
+  // outside the field, and rotate to align vertically once it is inside a
+  // charged capacitor. `align` (0..1) eases between the two states.
+  state.align = 0;
+  state.mols = [];
+  (function seedMols(){
+    const cols = 5, rows = 3;
+    for (let r = 0; r < rows; r++){
+      for (let c = 0; c < cols; c++){
+        state.mols.push({
+          fx: (c + 0.5) / cols,             // fractional position in the slab
+          fy: (r + 0.5) / rows,
+          rest: Math.random() * Math.PI * 2, // random "scattered" angle
+          wob: Math.random() * Math.PI * 2   // wobble phase
+        });
+      }
+    }
+  })();
+
+  /** Toggling the source: capture the instantaneous charge as the new fixed
+   *  Q when disconnecting (so the "isolated & charged" demo is physically
+   *  correct), or let the battery immediately force V = Vbat when connecting. */
+  function setConnected(connected){
+    if(!connected){ state.Q = state.Ceff * state.Vbat; }
+    state.connected = connected;
+    const btn = document.getElementById('sourceToggleBtn2');
+    if (btn) {
+      btn.classList.toggle('on', !connected);
+      btn.textContent = connected ? '🔌 الحالة: متصلة بالبطارية' : '🔌 الحالة: مفصولة عن البطارية';
+    }
+  }
+  window.t2SetConnected = setConnected;
+
+  function hitTestBlock(px, py) {
+    // Padded for fingertips (see hitTestTopPlate) — the slab is easier to hit
+    // than the thin plate, but still gets a comfortable margin.
+    return px >= state.blockX - 18 && px <= state.blockX + state.blockW + 18 &&
+           py >= state.blockY - 18 && py <= state.blockY + state.blockH + 18;
+  }
+
+  function t2Update(dt) {
+    const s = state;
+    s.t += dt;
+
+    // Tap the drawn battery switch to connect/disconnect (checked before the
+    // block grab so a switch press never starts a drag).
+    if (pointer.justPressed && hitZone(s.switchZone, 10)) {
+      setConnected(!s.connected);
+    } else if (pointer.justPressed && hitTestBlock(pointer.pressX, pointer.pressY)) {
+      // Grab works in BOTH modes — see the note in t1Update.
+      if (s.simMode === 'auto') {
+        s.simMode = 'manual';
+        const modeBtn = document.querySelector('[data-mode-tab="2"]');
+        if (modeBtn) { modeBtn.classList.remove('on'); modeBtn.textContent = '🖐️ يدوي'; }
+        if (typeof updateModeStatusPill === 'function') updateModeStatusPill();
+      }
+      s.dragging = true; s.dragOffsetX = pointer.pressX - s.blockX;
+    }
+
+    if (s.simMode === 'auto') {
+      const omega = 0.35 + s.speed*0.9;
+      const cycle = (Math.sin(s.t*omega - Math.PI/2) + 1) / 2;
+      s.blockX = outsideX + (insideX - outsideX) * cycle;
+      s.dragging = false;
+    } else {
+      if (!pointer.isDown) s.dragging = false;
+      if (s.dragging) {
+        s.blockX = pointer.x - s.dragOffsetX;
+        s.blockX = Math.max(outsideX, Math.min(plateX + plateW + 40, s.blockX));
+      }
+    }
+    s._prevDown = pointer.isDown;
+
+    const left = Math.max(s.blockX, plateX);
+    const right = Math.min(s.blockX + s.blockW, plateX + plateW);
+    const overlapPx = Math.max(0, right - left);
+    s.prevInsertion = s.insertion;
+    s.insertion = Math.max(0, Math.min(1, overlapPx / plateW));
+    const delta = s.insertion - s.prevInsertion;
+    s.direction = Math.abs(delta) < 0.0006 ? 'idle' : (delta > 0 ? 'entering' : 'exiting');
+
+    s.Ceff = s.C0 * (1 + (s.k - 1) * s.insertion);
+    if (s.connected) {
+      s.Veff = s.Vbat;          // battery holds V fixed -> Q grows as C grows
+      s.Q = s.Ceff * s.Vbat;
+    } else {
+      s.Veff = s.Q / s.Ceff;    // battery disconnected -> Q fixed, V follows 1/C
+    }
+
+    // Molecules align only where the slab is actually inside the field of a
+    // charged capacitor. Otherwise (outside, or uncharged) they stay scattered.
+    const charged = Math.abs(s.Veff) > 0.5;
+    const alignTarget = (s.insertion > 0.35 && charged) ? 1 : 0;
+    s.align += (alignTarget - s.align) * Math.min(1, dt * 2.5);
+    s.mols.forEach((m, i) => { m.wob += dt * (1.3 + (i % 4) * 0.2); });
+  }
+
+  function drawPlate(x, y, w, h) {
+    ctx.fillStyle = COLORS.capDefault; ctx.fillRect(x, y, w, h);
+    ctx.strokeStyle = '#03060c'; ctx.lineWidth = 2; ctx.strokeRect(x, y, w, h);
+  }
+  function drawHUD(x, y, w, lines) {
+    const h = 26 + lines.length * 22;
+    ctx.save();
+    ctx.fillStyle = COLORS.panel; ctx.strokeStyle = COLORS.border; ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(x, y, w, h, 10) : ctx.rect(x, y, w, h);
+    ctx.fill(); ctx.stroke();
+    ctx.textAlign = 'right';
+    lines.forEach((line, i) => {
+      ctx.fillStyle = line.color || COLORS.wire;
+      ctx.font = line.bold ? "bold 14px 'Cairo', sans-serif" : "13px 'Tajawal', sans-serif";
+      ctx.fillText(line.text, x + w - 14, y + 24 + i * 22);
+    });
+    ctx.restore();
+  }
+  function drawVoltmeter(cx, cy, r, value, maxValue) {
+    const frac = Math.max(0, Math.min(1, value / maxValue));
+    ctx.save(); ctx.translate(cx, cy);
+    ctx.beginPath(); ctx.moveTo(-r, 4); ctx.arc(0, 0, r, Math.PI, 0, false); ctx.lineTo(r, 4); ctx.closePath();
+    ctx.fillStyle = '#0a1524'; ctx.fill(); ctx.lineWidth = 2.5; ctx.strokeStyle = COLORS.border; ctx.stroke();
+    ctx.strokeStyle = COLORS.muted; ctx.lineWidth = 1.5;
+    for (let i = 0; i <= 1.001; i += 0.25) {
+      const a = Math.PI - i * Math.PI;
+      const x1 = Math.cos(a)*(r-6), y1 = -Math.sin(a)*(r-6);
+      const x2 = Math.cos(a)*(r-14), y2 = -Math.sin(a)*(r-14);
+      ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+    }
+    ctx.fillStyle = COLORS.muted; ctx.font = "11px 'Tajawal', sans-serif"; ctx.textAlign = 'center';
+    ctx.fillText('0', -r+8, 18); ctx.fillText(maxValue.toFixed(0), r-8, 18);
+    const angle = Math.PI - frac * Math.PI;
+    ctx.strokeStyle = COLORS.capActive; ctx.lineWidth = 3; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(Math.cos(angle)*(r-16), -Math.sin(angle)*(r-16)); ctx.stroke();
+    ctx.beginPath(); ctx.arc(0,0,5,0,Math.PI*2); ctx.fillStyle = COLORS.wire; ctx.fill();
+    ctx.fillStyle = COLORS.muted; ctx.font = "bold 11px 'Cairo', sans-serif"; ctx.fillText('V', 0, 24);
+    ctx.restore();
+  }
+
+  function fmtE(joules) {
+    if (joules >= 1e-6) return (joules * 1e6).toFixed(2) + ' µJ';
+    if (joules >= 1e-9) return (joules * 1e9).toFixed(2) + ' nJ';
+    return (joules * 1e12).toFixed(2) + ' pJ';
+  }
+
+  function t2Draw() {
+    const s = state;
+    ctx.save();
+    ctx.fillStyle = COLORS.bg; ctx.fillRect(0, 0, CW, CH);
+    ctx.textAlign = 'center';
+    ctx.fillStyle = COLORS.capDefault; ctx.font = "bold 15px 'Cairo', sans-serif";
+    ctx.fillText('إدخال العازل بين لوحي متسعة مشحونة (مفصولة عن البطارية)', CW/2, 34);
+
+    drawPlate(plateX, topY, plateW, plateH);
+    drawPlate(plateX, botY, plateW, plateH);
+    ctx.fillStyle = COLORS.wire; ctx.font = "11px 'Tajawal', sans-serif"; ctx.textAlign='center';
+    ctx.fillText('+', plateX - 18, topY + plateH/2 + 4);
+    ctx.fillText('−', plateX - 18, botY + plateH/2 + 4);
+
+    ctx.save();
+    ctx.beginPath(); ctx.rect(plateX, topY+plateH, plateW, gap); ctx.clip();
+    ctx.fillStyle = s.insertion > 0.02 ? 'rgba(77,141,255,.35)' : 'rgba(77,141,255,.18)';
+    ctx.fillRect(s.blockX, s.blockY, s.blockW, s.blockH);
+    ctx.restore();
+    ctx.strokeStyle = s.dragging ? COLORS.capActive : COLORS.dielectric; ctx.lineWidth = 2.5;
+    ctx.strokeRect(s.blockX, s.blockY, s.blockW, s.blockH);
+    ctx.fillStyle = COLORS.wire; ctx.font = "12px 'Tajawal', sans-serif"; ctx.textAlign = 'center';
+    ctx.fillText(s.dielectricLabel, s.blockX + s.blockW/2, s.blockY + 16);
+
+    // molecules inside the slab: scattered when out/uncharged, aligned when in-field
+    (function drawMols(){
+      const a = s.align;
+      s.mols.forEach(m => {
+        const mx = s.blockX + m.fx * s.blockW;
+        const my = s.blockY + m.fy * s.blockH;
+        // angle: eases from its random rest angle toward vertical (π/2) as a→1
+        const jitter = (1 - a) * 0.3 * Math.sin(m.wob);
+        let ang = m.rest + (Math.PI/2 - m.rest) * a + jitter;
+        const len = 9;
+        const dx = Math.cos(ang) * len, dy = Math.sin(ang) * len;
+        ctx.save();
+        // dipole: red (+) head toward bottom plate, blue (−) tail toward top
+        ctx.lineWidth = 2.5; ctx.lineCap = 'round';
+        ctx.strokeStyle = 'rgba(150,170,210,.55)';
+        ctx.beginPath(); ctx.moveTo(mx - dx, my - dy); ctx.lineTo(mx + dx, my + dy); ctx.stroke();
+        ctx.fillStyle = COLORS.blue;
+        ctx.beginPath(); ctx.arc(mx - dx, my - dy, 3, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = COLORS.red;
+        ctx.beginPath(); ctx.arc(mx + dx, my + dy, 3, 0, Math.PI*2); ctx.fill();
+        ctx.restore();
+      });
+    })();
+
+    const vx = plateX + plateW + 140, vy = (topY+botY)/2 + plateH/2;
+    ctx.strokeStyle = COLORS.wire; ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(plateX+plateW, topY+plateH/2); ctx.lineTo(vx-40, topY+plateH/2); ctx.lineTo(vx-40, vy-30);
+    ctx.moveTo(plateX+plateW, botY+plateH/2); ctx.lineTo(vx-40, botY+plateH/2); ctx.lineTo(vx-40, vy+30);
+    ctx.stroke();
+    drawVoltmeter(vx, vy, 55, s.Veff, s.V0);
+    ctx.fillStyle = COLORS.muted; ctx.font = "12px 'Tajawal', sans-serif"; ctx.textAlign='center';
+    ctx.fillText('فولتميتر', vx, vy - 78);
+
+    // battery + switch: placed BELOW the capacitor so it never overlaps the
+    // dielectric slab (which parks to the left of the plates at the gap level).
+    const bx = plateX + 30, by = botY + 78;
+    ctx.strokeStyle = COLORS.wire; ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    // top plate lead down the right, across the bottom to the battery
+    ctx.moveTo(plateX, topY+plateH/2); ctx.lineTo(plateX-40, topY+plateH/2);
+    ctx.lineTo(plateX-40, by); ctx.lineTo(bx-40, by);
+    // bottom plate lead to the other terminal
+    ctx.moveTo(plateX, botY+plateH/2); ctx.lineTo(plateX-70, botY+plateH/2);
+    ctx.lineTo(plateX-70, by+34); ctx.lineTo(bx+40, by+34); ctx.lineTo(bx+40, by);
+    ctx.stroke();
+    ctx.save();
+    // realistic battery (horizontal) below the plates
+    drawRealBattery(ctx, bx, by, s.Vbat, 'h');
+    // switch tap zone near the battery
+    s.switchZone.x = bx - 60; s.switchZone.y = by - 20; s.switchZone.w = 44; s.switchZone.h = 44;
+    ctx.save();
+    ctx.strokeStyle = s.connected ? COLORS.capActive : COLORS.red;
+    ctx.globalAlpha = 0.5; ctx.lineWidth = 1.5; ctx.setLineDash([5,4]);
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(s.switchZone.x, s.switchZone.y, s.switchZone.w, s.switchZone.h, 8)
+                  : ctx.rect(s.switchZone.x, s.switchZone.y, s.switchZone.w, s.switchZone.h);
+    ctx.stroke();
+    ctx.setLineDash([]); ctx.globalAlpha = 0.9;
+    ctx.fillStyle = s.connected ? COLORS.capActive : COLORS.red;
+    ctx.font = "bold 9.5px 'Cairo', sans-serif"; ctx.textAlign = 'center';
+    ctx.fillText(s.connected ? '👆 افصل' : '👆 صِل', s.switchZone.x + s.switchZone.w/2, s.switchZone.y - 6);
+    ctx.restore();
+    ctx.fillStyle = COLORS.muted; ctx.font = "11px 'Tajawal', sans-serif"; ctx.textAlign='center';
+    ctx.fillText(s.connected ? 'متصلة' : 'مفصولة', bx, by + 40);
+    ctx.restore();
+
+    ctx.fillStyle = COLORS.muted; ctx.font = "12px 'Tajawal', sans-serif"; ctx.textAlign='center';
+    ctx.fillText(s.simMode==='auto' ? 'الوضع التلقائي: العازل يدخل ويخرج تلقائيًا' : 'اسحب كتلة العازل داخل الفجوة بين اللوحين', CW/2, CH - 24);
+
+    // live status badge: shows the instant the dielectric starts entering/exiting
+    if (s.direction !== 'idle') {
+      ctx.save();
+      const badgeText = s.direction === 'entering' ? '⬇ العازل يدخل — C ترتفع' : '⬆ العازل يخرج — C تنخفض';
+      const badgeColor = s.direction === 'entering' ? COLORS.capActive : COLORS.red;
+      ctx.font = "bold 13px 'Cairo', sans-serif"; ctx.textAlign = 'center';
+      const tw = ctx.measureText(badgeText).width + 28;
+      ctx.fillStyle = COLORS.badge; ctx.strokeStyle = badgeColor; ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.roundRect ? ctx.roundRect(CW/2-tw/2, 60, tw, 28, 14) : ctx.rect(CW/2-tw/2, 60, tw, 28);
+      ctx.fill(); ctx.stroke();
+      ctx.fillStyle = badgeColor;
+      ctx.fillText(badgeText, CW/2, 79);
+      ctx.restore();
+    }
+
+    const pulsing = s.direction !== 'idle';
+    drawHUD(24, 60, 228, [
+      { text: 'الحالة: ' + (s.connected ? 'متصلة بالبطارية (V ثابت)' : 'مفصولة (Q ثابتة)'), bold:true,
+        color: s.connected ? COLORS.blue : COLORS.capActive },
+      { text: 'Q = ' + (s.Q*1e9).toFixed(2) + ' نانوكولوم' + (s.connected?'':' (ثابتة)') },
+      { text: 'نسبة الإدخال = ' + (s.insertion*100).toFixed(0) + ' %', color: pulsing ? COLORS.capActive : undefined },
+      { text: 'C = ' + (s.Ceff*1e12).toFixed(2) + ' pF', color: pulsing ? COLORS.capActive : undefined, bold: pulsing },
+      { text: 'V = ' + s.Veff.toFixed(1) + ' V' + (s.connected?' (ثابت)':''), bold:true, color: COLORS.capActive },
+      { text: 'PE = ½QV = ' + fmtE(0.5*s.Q*s.Veff), bold:true, color: COLORS.capDefault }
+    ]);
+    ctx.restore();
+  }
+
+  window.t2State = state; window.t2Update = t2Update; window.t2Draw = t2Draw;
+  window.t2DragHitTest = function(x, y){
+    return hitTestBlock(x, y) || hitZone(state.switchZone, 10);
+  };
+})();
+
+/* =========================================================================
+   ACTIVITY 3 — ربط المتسعات على التوالي والتوازي
+   ========================================================================= */
+(function () {
+  const COLORS = makeColors();
+  const state = {
+    simMode:'auto', autoTimer:0,
+    C: [2, 4, 6], Vbattery: 12,
+    mode: 'series',
+    Ceq: 0, Q: [0,0,0], V: [0,0,0], Qtotal: 0,
+    toggleBtn: { x: 0, y: 0, w: 190, h: 42 }
+  };
+
+  function recompute() {
+    const s = state; const [C1,C2,C3] = s.C;
+    if (s.mode === 'series') {
+      s.Ceq = 1 / (1/C1 + 1/C2 + 1/C3);
+      const Qeach = s.Ceq * s.Vbattery;
+      s.Q = [Qeach, Qeach, Qeach];
+      s.V = [Qeach/C1, Qeach/C2, Qeach/C3];
+      s.Qtotal = Qeach;
+    } else {
+      s.Ceq = C1 + C2 + C3;
+      s.V = [s.Vbattery, s.Vbattery, s.Vbattery];
+      s.Q = [C1*s.Vbattery, C2*s.Vbattery, C3*s.Vbattery];
+      s.Qtotal = s.Q[0] + s.Q[1] + s.Q[2];
+    }
+    // U = ½QV per capacitor (Q in µC × V in V = µJ); total is just their sum.
+    s.U = [0.5*s.Q[0]*s.V[0], 0.5*s.Q[1]*s.V[1], 0.5*s.Q[2]*s.V[2]];
+    s.Utotal = s.U[0] + s.U[1] + s.U[2];
+  }
+
+  function toggleTopology(){ state.mode = (state.mode === 'series') ? 'parallel' : 'series'; }
+  window.t3ToggleTopology = toggleTopology;
+
+  function t3Update(dt) {
+    const s = state;
+    // Sit the button clear of the canvas bottom edge: at CH-62 it ended only
+    // 20px from the border, which is the hardest strip to hit on a phone or a
+    // scaled-down whiteboard view (edge gestures and browser chrome steal it).
+    s.toggleBtn.x = CW/2 - s.toggleBtn.w/2; s.toggleBtn.y = CH - 96;
+
+    if (pointer.isClicked && hitZone(s.toggleBtn, 14)) {
+      if (s.simMode === 'auto') {
+        s.simMode = 'manual';
+        const modeBtn = document.querySelector('[data-mode-tab="3"]');
+        if (modeBtn) { modeBtn.classList.remove('on'); modeBtn.textContent = '🖐️ يدوي'; }
+        if (typeof updateModeStatusPill === 'function') updateModeStatusPill();
+      }
+      toggleTopology();
+      s.autoTimer = 0;
+    } else if (s.simMode === 'auto') {
+      s.autoTimer += dt;
+      if (s.autoTimer > 2.6) { toggleTopology(); s.autoTimer = 0; }
+    }
+    recompute();
+  }
+
+  function drawCapacitor(cx, cy, vertical, chargeFrac, label) {
+    const gap = 16, plateLen = 46;
+    ctx.save(); ctx.translate(cx, cy); if (vertical) ctx.rotate(Math.PI/2);
+    ctx.strokeStyle = COLORS.capDefault; ctx.lineWidth = 5;
+    ctx.beginPath(); ctx.moveTo(-gap/2, -plateLen/2); ctx.lineTo(-gap/2, plateLen/2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(gap/2, -plateLen/2); ctx.lineTo(gap/2, plateLen/2); ctx.stroke();
+    const dots = Math.round(2 + chargeFrac*5);
+    ctx.fillStyle = COLORS.red; ctx.font = 'bold 10px sans-serif'; ctx.textAlign='center';
+    for(let i=0;i<dots;i++){ const y = -plateLen/2 + 6 + i*((plateLen-12)/Math.max(1,dots-1)); ctx.fillText('+', -gap/2-9, y+3); }
+    ctx.fillStyle = COLORS.blue;
+    for(let i=0;i<dots;i++){ const y = -plateLen/2 + 6 + i*((plateLen-12)/Math.max(1,dots-1)); ctx.fillText('−', gap/2+9, y+3); }
+    ctx.restore();
+    ctx.fillStyle = COLORS.wire; ctx.font = "12px 'Tajawal', sans-serif"; ctx.textAlign='center';
+    ctx.fillText(label, cx, cy + 46);
+  }
+  function drawWire(pts){
+    ctx.strokeStyle = COLORS.wire; ctx.lineWidth = 2.5; ctx.beginPath();
+    pts.forEach((p,i)=> i===0? ctx.moveTo(p[0],p[1]) : ctx.lineTo(p[0],p[1])); ctx.stroke();
+  }
+  function drawBattery(x,y){
+    drawRealBattery(ctx, x, y, state.Vbattery, 'v');
+  }
+  function drawHUD(x, y, w, lines) {
+    const h = 26 + lines.length * 20;
+    ctx.save();
+    ctx.fillStyle = COLORS.panel; ctx.strokeStyle = COLORS.border; ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(x, y, w, h, 10) : ctx.rect(x, y, w, h);
+    ctx.fill(); ctx.stroke();
+    ctx.textAlign = 'right';
+    lines.forEach((line, i) => {
+      ctx.fillStyle = line.color || COLORS.wire;
+      ctx.font = line.bold ? "bold 13px 'Cairo', sans-serif" : "12px 'Tajawal', sans-serif";
+      ctx.fillText(line.text, x + w - 12, y + 22 + i * 20);
+    });
+    ctx.restore();
+  }
+
+  function t3Draw() {
+    const s = state;
+    ctx.save();
+    ctx.fillStyle = COLORS.bg; ctx.fillRect(0,0,CW,CH);
+    ctx.textAlign = 'center';
+    ctx.fillStyle = COLORS.capDefault; ctx.font = "bold 15px 'Cairo', sans-serif";
+    ctx.fillText('ربط المتسعات على التوالي والتوازي', CW/2, 34);
+
+    const maxQ = Math.max(...s.Q, 0.001); const cy = 200;
+
+    if (s.mode === 'series') {
+      const startX = 190, spacing = 170;
+      drawBattery(90, cy);
+      drawWire([[90, cy-22],[90, 90],[820,90],[820, cy]]);
+      let prevX = 90;
+      for (let i=0;i<3;i++){
+        const cx = startX + i*spacing;
+        drawWire([[prevX, cy],[cx-24, cy]]);
+        drawCapacitor(cx, cy, true, s.Q[i]/maxQ, 'C'+(i+1)+' = '+s.C[i]+' µF');
+        prevX = cx+24;
+      }
+      drawWire([[prevX, cy],[820, cy]]);
+      ctx.fillStyle = COLORS.muted; ctx.font = "12px 'Tajawal', sans-serif"; ctx.textAlign='center';
+      ctx.fillText('التوالي: نفس الشحنة (Q) على كل متسعة، ويتوزع الجهد', CW/2, cy+110);
+    } else {
+      drawBattery(90, cy);
+      const railTopY = cy-70, railBotY = cy+70;
+      drawWire([[90,cy-22],[90,railTopY],[780,railTopY]]);
+      drawWire([[90,cy+8],[90,railBotY],[780,railBotY]]);
+      const xs = [280, 480, 680];
+      for (let i=0;i<3;i++){
+        drawWire([[xs[i],railTopY],[xs[i],cy-23]]);
+        drawWire([[xs[i],cy+23],[xs[i],railBotY]]);
+        drawCapacitor(xs[i], cy, true, s.Q[i]/maxQ, 'C'+(i+1)+' = '+s.C[i]+' µF');
+      }
+      ctx.fillStyle = COLORS.muted; ctx.font = "12px 'Tajawal', sans-serif"; ctx.textAlign='center';
+      ctx.fillText('التوازي: نفس الجهد (V) على كل متسعة، وتتوزع الشحنة', CW/2, cy+110);
+    }
+
+    // Drawn in BOTH modes now: the button is tappable in auto mode too (a tap
+    // switches the activity to manual), so hiding it would misrepresent that.
+    {
+      const b = s.toggleBtn;
+      ctx.save();
+      ctx.fillStyle = COLORS.capActive; ctx.strokeStyle = '#03060c'; ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect ? ctx.roundRect(b.x,b.y,b.w,b.h,10) : ctx.rect(b.x,b.y,b.w,b.h);
+      ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#06251f'; ctx.font = "bold 14px 'Cairo', sans-serif"; ctx.textAlign='center';
+      ctx.fillText(s.mode==='series' ? '🔁 تبديل إلى التوازي' : '🔁 تبديل إلى التوالي', b.x+b.w/2, b.y+27);
+      ctx.restore();
+    }
+
+    drawHUD(CW - 280, CH - 164, 260, [
+      { text: (s.mode==='series' ? '1/Ceq = 1/C1+1/C2+1/C3' : 'Ceq = C1+C2+C3'), bold:true },
+      { text: 'Ceq = ' + s.Ceq.toFixed(2) + ' µF', color: COLORS.capActive },
+      { text: 'Q₁=' + s.Q[0].toFixed(2) + ' µC، V₁=' + s.V[0].toFixed(2) + ' V، PE₁=' + s.U[0].toFixed(2) + ' µJ' },
+      { text: 'Q₂=' + s.Q[1].toFixed(2) + ' µC، V₂=' + s.V[1].toFixed(2) + ' V، PE₂=' + s.U[1].toFixed(2) + ' µJ' },
+      { text: 'Q₃=' + s.Q[2].toFixed(2) + ' µC، V₃=' + s.V[2].toFixed(2) + ' V، PE₃=' + s.U[2].toFixed(2) + ' µJ' },
+      { text: 'Qtotal=' + s.Qtotal.toFixed(2) + ' µC   PEtotal=' + s.Utotal.toFixed(2) + ' µJ', bold:true, color: COLORS.capDefault }
+    ]);
+    ctx.restore();
+  }
+
+  window.t3State = state; window.t3Update = t3Update; window.t3Draw = t3Draw;
+  window.t3DragHitTest = function(x, y){ return hitZone(state.toggleBtn, 14); };
+})();
+
+/* =========================================================================
+   ACTIVITY 4 — دائرة RC: شحن وتفريغ متسعة عبر مقاومة
+   ========================================================================= */
+(function () {
+  /* This activity refers to COLORS.active and COLORS.cap; provide them as
+     live aliases of capActive / capDefault so they track the theme too. */
+  const COLORS = makeColors({ active:'capActive', cap:'capDefault' });
+
+  const state = {
+    simMode:'auto', autoTimer:0,
+    R: 5, Cval: 3, Vbat: 9,
+    switchPos: 'charge', Vc: 0, current: 0,
+    /* Tap zone for the switch k. The switch itself spans the pivot (590,245)
+       up/down to its two contacts at (625,175) and (625,300). The zone hugs
+       that geometry with room for a fingertip, but deliberately stops before
+       x=680, where the info panel starts — the old 230px-wide zone ran under
+       that panel, so taps meant for the panel area toggled the switch and the
+       overlap made the whole thing feel unpredictable. */
+    switchZone: { x:552, y:150, w:118, h:180 },
+    // Each lamp lives on ONE branch, so only the selected branch's lamp can light:
+    //   L1 -> charge branch    (battery + R + L1)
+    //   L2 -> discharge branch (L2 only, no battery)
+    lampCharge: 0, lampDischarge: 0, dotPhase: 0
+  };
+
+  function t4Update(dt) {
+    const s = state;
+
+    /* Tapping the switch works in BOTH modes. Previously a tap while the
+       activity was still on "auto" was ignored, which is precisely what made
+       the switch feel broken: the teacher presses it, nothing happens, and
+       nothing on screen explains why. Now the tap takes control — it flips
+       the activity to manual and applies the toggle in one gesture. */
+    if (pointer.isClicked && hitZone(s.switchZone, 14)) {
+      if (s.simMode === 'auto') {
+        s.simMode = 'manual';
+        const modeBtn = document.querySelector('[data-mode-tab="4"]');
+        if (modeBtn) { modeBtn.classList.remove('on'); modeBtn.textContent = '🖐️ يدوي'; }
+        if (typeof updateModeStatusPill === 'function') updateModeStatusPill();
+      }
+      s.switchPos = (s.switchPos === 'charge') ? 'discharge' : 'charge';
+      s.autoTimer = 0;
+    } else if (s.simMode === 'auto') {
+      s.autoTimer += dt;
+      // Dwell longer on charging: that is the phase where the two lamps differ
+      // most (series goes out while parallel stays lit).
+      const limit = (s.switchPos === 'charge') ? 4.0 : 2.6;
+      if (s.autoTimer > limit) { s.switchPos = (s.switchPos==='charge') ? 'discharge' : 'charge'; s.autoTimer = 0; }
+    }
+
+    // Time constant, scaled so a full charge/discharge visibly completes within
+    // Charging goes through R (slower). Discharging goes through the L2 branch,
+    // which has only the lamp's own resistance (faster) — so L2 gives a short,
+    // bright flash while L1 fades more gradually.
+    const Rdis = Math.max(1, s.R * 0.6);
+    const tau = (s.switchPos === 'charge')
+      ? Math.max(0.12, s.R  * s.Cval * 0.035)
+      : Math.max(0.10, Rdis * s.Cval * 0.035);
+    const target = (s.switchPos === 'charge') ? s.Vbat : 0;
+    s.Vc += (target - s.Vc) * Math.min(1, dt / tau);
+    s.current = (s.switchPos === 'charge')
+      ? (s.Vbat - s.Vc) / s.R
+      : -(s.Vc) / Rdis;
+
+    // Both lamps carry the loop current, but ONLY on their own branch:
+    // if the switch is on 1, L2's branch is broken -> L2 is dark, and vice versa.
+    const iFrac = Math.max(0, Math.min(1, Math.abs(s.current) / (s.Vbat / s.R)));
+    const glow  = Math.pow(iFrac, 0.65);   // gamma curve so on/off reads clearly
+    s.lampCharge    = (s.switchPos === 'charge')    ? glow : 0;
+    s.lampDischarge = (s.switchPos === 'discharge') ? glow : 0;
+
+    // advance the animated current-direction dots (direction flips with the switch)
+    const dir = (s.switchPos === 'charge') ? 1 : -1;
+    s.dotPhase = (s.dotPhase + dir * iFrac * 0.9 * dt) % 1;
+  }
+
+  function drawHUD(x, y, w, lines) {
+    const h = 26 + lines.length * 20;
+    ctx.save();
+    ctx.fillStyle = COLORS.panel; ctx.strokeStyle = COLORS.border; ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(x, y, w, h, 10) : ctx.rect(x, y, w, h);
+    ctx.fill(); ctx.stroke();
+    ctx.textAlign = 'right';
+    lines.forEach((line, i) => {
+      ctx.fillStyle = line.color || COLORS.wire;
+      ctx.font = line.bold ? "bold 13px 'Cairo', sans-serif" : "12px 'Tajawal', sans-serif";
+      ctx.fillText(line.text, x + w - 12, y + 22 + i * 20);
+    });
+    ctx.restore();
+  }
+  function drawGalvanometer(cx, cy, r, value) {
+    value = Math.max(-1, Math.min(1, value));
+    ctx.save(); ctx.translate(cx, cy);
+    ctx.beginPath(); ctx.moveTo(-r, 4); ctx.arc(0, 0, r, Math.PI, 0, false); ctx.lineTo(r, 4); ctx.closePath();
+    ctx.fillStyle = '#0a1524'; ctx.fill(); ctx.lineWidth = 2.5; ctx.strokeStyle = COLORS.border; ctx.stroke();
+    ctx.strokeStyle = COLORS.muted; ctx.lineWidth = 1.5;
+    for (let i=-1;i<=1.001;i+=0.25) {
+      const a = Math.PI - (i+1)/2*Math.PI;
+      const x1=Math.cos(a)*(r-6), y1=-Math.sin(a)*(r-6);
+      const x2=Math.cos(a)*(r-14), y2=-Math.sin(a)*(r-14);
+      ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+    }
+    ctx.fillStyle = COLORS.muted; ctx.font = "11px 'Tajawal', sans-serif"; ctx.textAlign='center';
+    ctx.fillText('−', -r+10, 18); ctx.fillText('0', 0, -r-6); ctx.fillText('+', r-10, 18);
+    const angle = Math.PI - (value+1)/2*Math.PI;
+    const needleColor = Math.abs(value)<0.03 ? COLORS.muted : (value>0 ? COLORS.capActive : COLORS.red);
+    ctx.strokeStyle = needleColor; ctx.lineWidth = 3; ctx.lineCap='round';
+    ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(Math.cos(angle)*(r-16), -Math.sin(angle)*(r-16)); ctx.stroke();
+    ctx.beginPath(); ctx.arc(0,0,5,0,Math.PI*2); ctx.fillStyle=COLORS.wire; ctx.fill();
+    ctx.fillStyle = COLORS.muted; ctx.font = "bold 11px 'Cairo', sans-serif"; ctx.fillText('G', 0, 24);
+    ctx.restore();
+  }
+  function drawCapacitor(cx, cy, chargeFrac){
+    ctx.save(); ctx.translate(cx,cy);
+    ctx.strokeStyle = COLORS.capDefault; ctx.lineWidth = 6;
+    ctx.beginPath(); ctx.moveTo(-10,-40); ctx.lineTo(-10,40); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(10,-40); ctx.lineTo(10,40); ctx.stroke();
+    ctx.globalAlpha = 0.25 + chargeFrac*0.6; ctx.fillStyle = COLORS.capActive; ctx.fillRect(-10,-40,20,80);
+    ctx.restore();
+  }
+  function drawResistor(x1,y1,x2,y2){
+    ctx.save(); ctx.strokeStyle = COLORS.wire; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(x1,y1);
+    const n=6, dx=(x2-x1)/n;
+    for(let i=0;i<n;i++){ ctx.lineTo(x1+dx*(i+1), y1 + ((i%2===0)?-12:12)); }
+    ctx.lineTo(x2,y2); ctx.stroke(); ctx.restore();
+  }
+  /** Lamp with an unmistakable ON/OFF read: dark grey + cold filament when off,
+   *  bright bulb + hot filament + glow halo + rays when on. `label` names the
+   *  lamp and `note` reports its live state underneath. */
+  function drawLamp(cx, cy, brightness, label, note){
+    const b = Math.max(0, Math.min(1, brightness));
+    const lit = b > 0.06;
+    ctx.save();
+
+    // outer glow halo — grows and intensifies with brightness
+    if (lit && ctx.createRadialGradient) {
+      const R = 26 + b * 26;
+      const g = ctx.createRadialGradient(cx, cy, 3, cx, cy, R);
+      g.addColorStop(0,   `rgba(255,225,120,${0.55*b})`);
+      g.addColorStop(0.5, `rgba(255,190,70,${0.22*b})`);
+      g.addColorStop(1,   'rgba(255,180,60,0)');
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI*2); ctx.fill();
+    }
+
+    // emitted rays, so "it is ON" reads instantly even in a thumbnail
+    if (b > 0.25) {
+      ctx.save();
+      ctx.strokeStyle = `rgba(255,214,110,${0.5*b})`;
+      ctx.lineWidth = 2; ctx.lineCap = 'round';
+      for (let i = 0; i < 8; i++) {
+        const a = (i/8) * Math.PI*2 + Math.PI/8;
+        const r1 = 21, r2 = 21 + 7 + b*7;
+        ctx.beginPath();
+        ctx.moveTo(cx + Math.cos(a)*r1, cy + Math.sin(a)*r1);
+        ctx.lineTo(cx + Math.cos(a)*r2, cy + Math.sin(a)*r2);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    // glass envelope
+    ctx.beginPath(); ctx.arc(cx, cy, 17, 0, Math.PI*2);
+    ctx.fillStyle = lit
+      ? `rgb(${140+115*b}, ${115+110*b}, ${45+45*b})`
+      : '#2b3446';
+    ctx.fill();
+    ctx.strokeStyle = lit ? '#f2d17a' : COLORS.border;
+    ctx.lineWidth = 2; ctx.stroke();
+
+    // filament: dull grey when cold, white-hot and glowing when lit
+    ctx.save();
+    ctx.strokeStyle = lit ? '#fff6d8' : '#5c677d';
+    ctx.lineWidth = lit ? 2.2 : 1.6;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(cx - 8, cy + 7);
+    ctx.lineTo(cx - 5, cy - 2);
+    ctx.lineTo(cx - 2, cy + 4);
+    ctx.lineTo(cx + 2, cy - 4);
+    ctx.lineTo(cx + 5, cy + 2);
+    ctx.lineTo(cx + 8, cy + 7);
+    ctx.stroke();
+    ctx.restore();
+
+    // screw base
+    ctx.fillStyle = '#6b7689';
+    ctx.fillRect(cx - 7, cy + 16, 14, 6);
+    ctx.strokeStyle = '#03060c'; ctx.lineWidth = 1;
+    ctx.strokeRect(cx - 7, cy + 16, 14, 6);
+
+    // caption + live state
+    if (label) {
+      ctx.fillStyle = COLORS.muted;
+      ctx.font = "11px 'Tajawal', sans-serif"; ctx.textAlign = 'center';
+      ctx.fillText(label, cx, cy - 30);
+    }
+    if (note) {
+      ctx.fillStyle = lit ? '#f2c96b' : COLORS.muted;
+      ctx.font = "bold 10.5px 'Cairo', sans-serif"; ctx.textAlign = 'center';
+      ctx.fillText(note, cx, cy + 38);
+    }
+    ctx.restore();
+  }
+
+  function t4Draw() {
+    const s = state;
+    ctx.save();
+    ctx.fillStyle = COLORS.bg; ctx.fillRect(0,0,CW,CH);
+    ctx.textAlign='center';
+    ctx.fillStyle = COLORS.cap; ctx.font = "bold 15px 'Cairo', sans-serif";
+    ctx.fillText('دائرة شحن وتفريغ المتسعة (الشكل 27)', CW/2, 26);
+
+    /* Layout matches الشكل 27 exactly:
+
+         L2 ○────────────────────────────────●2  (top rail -> contact 2)
+         │                                    │
+         G ──── C ──────────────────k●        │   (middle: galvanometer, capacitor, switch)
+         │                            \       │
+         L1 ○──── R ──── |battery|──────●1─────●   (bottom rail -> contact 1)
+
+       Switch k on 1 (bottom) -> battery + R + L1 branch closed -> CHARGE
+       Switch k on 2 (top)    -> L2 branch closed              -> DISCHARGE
+       Galvanometer G and capacitor C sit on the shared middle rail.          */
+
+    const LEFT  = 120;                 // left column (the two lamps)
+    const RIGHT = 625;                 // right column (kept clear of the info panel on the right)
+    const TOPY  = 110;                 // top rail  (L2 branch)
+    const MIDY  = 245;                 // middle rail (G + C)
+    const BOTY  = 380;                 // bottom rail (L1 + R + battery)
+
+    const l2X = LEFT, l1X = LEFT;                 // lamps on the left column
+    const galvX = 300, capX = 470;                // middle-rail components
+    const swPivotX = 590, swPivotY = MIDY;        // switch pivot (k)
+    const c1x = RIGHT, c1y = 300;                 // contact 1 (lower) = charge
+    const c2x = RIGHT, c2y = 175;                 // contact 2 (upper) = discharge
+    const resX = 300, batX = 470;                 // bottom-rail components
+
+    const chargeOn    = s.switchPos === 'charge';
+    const dischargeOn = s.switchPos === 'discharge';
+    const liveCol     = chargeOn ? COLORS.active : COLORS.red;
+
+    ctx.lineCap = 'round';
+
+    // ============ TOP RAIL: left column -> L2 -> contact 2 ============
+    ctx.save();
+    ctx.strokeStyle = dischargeOn ? COLORS.red : COLORS.border;
+    ctx.lineWidth   = dischargeOn ? 3.5 : 2;
+    ctx.beginPath(); ctx.moveTo(LEFT, TOPY); ctx.lineTo(RIGHT, TOPY);
+    ctx.lineTo(RIGHT, c2y); ctx.stroke();          // down to contact 2
+    ctx.restore();
+    drawLamp(l2X, TOPY, s.lampDischarge, 'L2 — التفريغ',
+             s.lampDischarge > 0.06 ? 'مضيء' : 'مطفأ');
+
+    // ============ MIDDLE RAIL: left column -> G -> C -> switch pivot ============
+    ctx.save();
+    ctx.strokeStyle = COLORS.wire; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(LEFT, TOPY); ctx.lineTo(LEFT, BOTY); ctx.stroke();   // left column
+    ctx.beginPath(); ctx.moveTo(LEFT, MIDY); ctx.lineTo(galvX - 46, MIDY); ctx.stroke();
+    ctx.restore();
+
+    drawGalvanometer(galvX, MIDY, 44, Math.max(-1, Math.min(1, s.current / (s.Vbat / s.R))));
+    ctx.fillStyle = COLORS.muted; ctx.font = "11px 'Tajawal', sans-serif"; ctx.textAlign='center';
+    ctx.fillText('جلفانومتر', galvX, MIDY + 40);
+
+    ctx.strokeStyle = COLORS.wire; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(galvX + 46, MIDY); ctx.lineTo(capX - 14, MIDY); ctx.stroke();
+
+    // capacitor (vertical plates) on the middle rail
+    const sep=20, plH=54, plW=8;
+    ctx.save();
+    ctx.fillStyle = COLORS.cap;
+    ctx.fillRect(capX - sep/2 - plW, MIDY - plH/2, plW, plH);
+    ctx.fillRect(capX + sep/2,       MIDY - plH/2, plW, plH);
+    ctx.strokeStyle='#03060c'; ctx.lineWidth=1.5;
+    ctx.strokeRect(capX - sep/2 - plW, MIDY - plH/2, plW, plH);
+    ctx.strokeRect(capX + sep/2,       MIDY - plH/2, plW, plH);
+    const frac = Math.max(0, Math.min(1, s.Vc / s.Vbat));
+    if (frac > 0.02) {
+      ctx.globalAlpha = 0.14 + frac*0.5;
+      ctx.fillStyle = COLORS.active;
+      ctx.fillRect(capX - sep/2, MIDY - plH/2, sep, plH);
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = COLORS.red; ctx.font="bold 10px sans-serif"; ctx.textAlign='center';
+      ctx.fillText('A', capX - sep/2 - plW - 8, MIDY - plH/2 - 4);
+      ctx.fillStyle = COLORS.blue;
+      ctx.fillText('B', capX + sep/2 + plW + 8, MIDY - plH/2 - 4);
+    }
+    ctx.restore();
+    ctx.fillStyle = COLORS.muted; ctx.font="11px 'Tajawal', sans-serif"; ctx.textAlign='center';
+    ctx.fillText('المتسعة C = ' + s.Cval, capX, MIDY + plH/2 + 18);
+
+    ctx.strokeStyle = COLORS.wire; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(capX + sep/2 + plW, MIDY); ctx.lineTo(swPivotX, MIDY); ctx.stroke();
+
+    // ============ BOTTOM RAIL: left column -> L1 -> R -> battery -> contact 1 ============
+    ctx.save();
+    ctx.strokeStyle = chargeOn ? COLORS.active : COLORS.border;
+    ctx.lineWidth   = chargeOn ? 3.5 : 2;
+    ctx.beginPath(); ctx.moveTo(LEFT, BOTY); ctx.lineTo(resX - 40, BOTY); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(resX + 40, BOTY); ctx.lineTo(batX - 30, BOTY); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(batX + 30, BOTY); ctx.lineTo(RIGHT, BOTY);
+    ctx.lineTo(RIGHT, c1y); ctx.stroke();          // up to contact 1
+    ctx.restore();
+
+    drawLamp(l1X, BOTY, s.lampCharge, 'L1 — الشحن',
+             s.lampCharge > 0.06 ? 'مضيء' : 'مطفأ');
+
+    // resistor R on the bottom rail
+    drawResistor(resX - 40, BOTY, resX + 40, BOTY);
+    ctx.fillStyle = COLORS.muted; ctx.font="11px 'Tajawal', sans-serif"; ctx.textAlign='center';
+    ctx.fillText('R = ' + s.R, resX, BOTY + 22);
+
+    // battery on the bottom rail (realistic)
+    ctx.save();
+    ctx.strokeStyle = chargeOn ? COLORS.wire : COLORS.muted; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(batX-40, BOTY); ctx.lineTo(batX-33, BOTY); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(batX+33, BOTY); ctx.lineTo(batX+40, BOTY); ctx.stroke();
+    drawRealBattery(ctx, batX, BOTY, s.Vbat, 'h');
+    ctx.restore();
+
+    // ============ the two-way switch k ============
+    ctx.save();
+    // right column between the two contacts
+    ctx.strokeStyle = COLORS.wire; ctx.lineWidth = 2.5;
+    // In manual mode, show the teacher exactly where to tap: a dashed target
+    // around the switch plus a short prompt. Without it the switch looked like
+    // plain circuit art and there was no cue that it was tappable at all.
+    {
+      const z = s.switchZone;
+      ctx.save();
+      ctx.strokeStyle = COLORS.active; ctx.globalAlpha = 0.55;
+      ctx.lineWidth = 2; ctx.setLineDash([7,5]);
+      ctx.beginPath();
+      ctx.roundRect ? ctx.roundRect(z.x, z.y, z.w, z.h, 12) : ctx.rect(z.x, z.y, z.w, z.h);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.globalAlpha = 0.9;
+      ctx.fillStyle = COLORS.active;
+      ctx.font = "bold 11px 'Cairo', sans-serif"; ctx.textAlign = 'center';
+      ctx.fillText('👆 اضغط هنا', z.x + z.w/2, z.y - 8);
+      ctx.restore();
+    }
+
+    // contacts
+    [[c1x,c1y,'1',chargeOn,COLORS.active],[c2x,c2y,'2',dischargeOn,COLORS.red]].forEach(([x,y,lbl,on,col])=>{
+      ctx.beginPath(); ctx.arc(x,y,6,0,Math.PI*2);
+      ctx.fillStyle = on ? col : COLORS.muted; ctx.fill();
+      ctx.fillStyle = on ? col : COLORS.muted;
+      ctx.font = "bold 14px 'Cairo', sans-serif"; ctx.textAlign='left';
+      ctx.fillText(lbl, x + 14, y + 5);
+    });
+    // lever from pivot to the selected contact
+    const tx = chargeOn ? c1x : c2x, ty = chargeOn ? c1y : c2y;
+    ctx.strokeStyle = liveCol; ctx.lineWidth = 4.5;
+    ctx.beginPath(); ctx.moveTo(swPivotX, swPivotY); ctx.lineTo(tx, ty); ctx.stroke();
+    ctx.beginPath(); ctx.arc(swPivotX, swPivotY, 6.5, 0, Math.PI*2);
+    ctx.fillStyle = COLORS.wire; ctx.fill();
+    ctx.strokeStyle = COLORS.border; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.fillStyle = COLORS.muted; ctx.font = "bold 13px 'Cairo', sans-serif"; ctx.textAlign='center';
+    ctx.fillText('k', swPivotX + 18, swPivotY - 12);
+    ctx.restore();
+
+    // ============ animated current dots on the live loop ============
+    const iMag = Math.min(1, Math.abs(s.current) / (s.Vbat / s.R));
+    if (iMag > 0.05) {
+      const path = chargeOn
+        ? [[LEFT,BOTY],[resX-40,BOTY],[resX+40,BOTY],[batX-30,BOTY],[batX+30,BOTY],[RIGHT,BOTY],
+           [RIGHT,c1y],[swPivotX,swPivotY],[capX+sep/2+plW,MIDY],[capX-sep/2-plW,MIDY],
+           [galvX+46,MIDY],[galvX-46,MIDY],[LEFT,MIDY],[LEFT,BOTY]]
+        : [[LEFT,MIDY],[galvX-46,MIDY],[galvX+46,MIDY],[capX-sep/2-plW,MIDY],[capX+sep/2+plW,MIDY],
+           [swPivotX,swPivotY],[RIGHT,c2y],[RIGHT,TOPY],[LEFT,TOPY],[LEFT,MIDY]];
+      let total=0; const segs=[];
+      for(let i=0;i<path.length-1;i++){ const len=Math.hypot(path[i+1][0]-path[i][0],path[i+1][1]-path[i][1]); segs.push(len); total+=len; }
+      const phase=((s.dotPhase%1)+1)%1;
+      ctx.save(); ctx.fillStyle=liveCol;
+      for(let k=0;k<13;k++){
+        const d=(((k/13+phase)%1)+1)%1; let target=d*total, acc=0;
+        for(let i=0;i<segs.length;i++){
+          if(acc+segs[i]>=target){
+            const f=segs[i]===0?0:(target-acc)/segs[i];
+            const x=path[i][0]+(path[i+1][0]-path[i][0])*f, y=path[i][1]+(path[i+1][1]-path[i][1])*f;
+            ctx.globalAlpha=0.35+0.55*iMag; ctx.beginPath(); ctx.arc(x,y,3.4,0,Math.PI*2); ctx.fill();
+            break;
+          }
+          acc+=segs[i];
+        }
+      }
+      ctx.restore();
+    }
+
+    // ============ HUD ============
+    drawHUD(CW-215, 88, 205, [
+      { text:'الحالة: ' + (chargeOn ? 'شحن (الوضع 1)' : 'تفريغ (الوضع 2)'), bold:true, color: liveCol },
+      { text:'Vc = ' + s.Vc.toFixed(2) + ' V' },
+      { text:'I = ' + s.current.toFixed(2) + ' (وحدة تيار)' },
+      { text:'L1 (الشحن): ' + (s.lampCharge>0.06?'مضيء':'مطفأ'),
+        color: s.lampCharge>0.06 ? '#f2c96b' : COLORS.muted },
+      { text:'L2 (التفريغ): ' + (s.lampDischarge>0.06?'مضيء':'مطفأ'),
+        color: s.lampDischarge>0.06 ? '#f2c96b' : COLORS.muted },
+      { text:'PE = ½CVc² = ' + (0.5*s.Cval*s.Vc*s.Vc).toFixed(2) + ' µJ', bold:true, color: COLORS.capDefault }
+    ]);
+
+    ctx.fillStyle = COLORS.muted; ctx.font="11.5px 'Tajawal', sans-serif"; ctx.textAlign='center';
+    ctx.fillText(s.simMode==='auto'
+      ? 'الوضع التلقائي: المفتاح k ينتقل تلقائيًا بين 1 (شحن) و 2 (تفريغ)'
+      : 'اضغط على المفتاح k لنقله بين الوضع 1 (شحن) والوضع 2 (تفريغ)',
+      CW/2, CH - 10);
+
+    ctx.restore();
+  }
+
+  window.t4State = state; window.t4Update = t4Update; window.t4Draw = t4Draw;
+  window.t4DragHitTest = function(x, y){ return hitZone(state.switchZone, 14); };
+})();
+
+/* =========================================================================
+   ACTIVITY 5 — الربط المختلط: (C1 مع C2 على التوالي) بالتوازي مع C3
+   ========================================================================= */
+(function () {
+  const COLORS = makeColors();
+  const state = {
+    simMode:'auto', autoTimer:0, autoIndex:-1,
+    C1: 2, C2: 3, C3: 4, Vbat: 10,
+    selected: null,
+    Cseries: 0, Ceq: 0,
+    Q1:0, Q2:0, Q3:0, V1:0, V2:0, V3:0, Qtotal:0,
+    hitboxes: {}
+  };
+
+  function recompute() {
+    const s = state;
+    s.Cseries = (s.C1 * s.C2) / (s.C1 + s.C2);
+    s.Ceq = s.Cseries + s.C3;
+    const Qs = s.Cseries * s.Vbat;
+    s.Q1 = Qs; s.Q2 = Qs;
+    s.V1 = Qs / s.C1; s.V2 = Qs / s.C2;
+    s.Q3 = s.C3 * s.Vbat; s.V3 = s.Vbat;
+    s.Qtotal = Qs + s.Q3;
+    // U = ½QV per capacitor (Q in µC × V in V = µJ)
+    s.U1 = 0.5*s.Q1*s.V1; s.U2 = 0.5*s.Q2*s.V2; s.U3 = 0.5*s.Q3*s.V3;
+    s.Utotal = s.U1 + s.U2 + s.U3;
+  }
+
+  function t5Update(dt) {
+    const s = state;
+    recompute();
+
+    let tapped = null;
+    if (pointer.isClicked) {
+      for (const key in s.hitboxes) {
+        if (hitZone(s.hitboxes[key], 0)) { tapped = key; break; }
+      }
+    }
+    if (tapped) {
+      if (s.simMode === 'auto') {
+        s.simMode = 'manual';
+        const modeBtn = document.querySelector('[data-mode-tab="5"]');
+        if (modeBtn) { modeBtn.classList.remove('on'); modeBtn.textContent = '🖐️ يدوي'; }
+        if (typeof updateModeStatusPill === 'function') updateModeStatusPill();
+      }
+      s.selected = (tapped === s.selected) ? null : tapped;
+      s.autoTimer = 0;
+    } else if (s.simMode === 'auto') {
+      s.autoTimer += dt;
+      if (s.autoTimer > 1.5) {
+        s.autoIndex = (s.autoIndex + 2) % 4 - 1;
+        const keys = [null,'C1','C2','C3'];
+        s.selected = keys[s.autoIndex+1];
+        s.autoTimer = 0;
+      }
+    }
+  }
+
+  function drawCapacitorSymbol(cx, cy, vertical, key) {
+    const s = state;
+    const active = s.selected === key;
+    const gap = 16, plateLen = 50;
+    ctx.save(); ctx.translate(cx, cy); if (vertical) ctx.rotate(Math.PI/2);
+    ctx.strokeStyle = active ? COLORS.capActive : COLORS.capDefault; ctx.lineWidth = 6;
+    if (active) { ctx.shadowColor = COLORS.capActive; ctx.shadowBlur = 16; }
+    ctx.beginPath(); ctx.moveTo(-gap/2,-plateLen/2); ctx.lineTo(-gap/2,plateLen/2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(gap/2,-plateLen/2); ctx.lineTo(gap/2,plateLen/2); ctx.stroke();
+    ctx.restore();
+    // Generous hit target: the drawn symbol is small, but a fingertip needs
+    // roughly 44+ px to hit reliably on a touchscreen, so the tappable area is
+    // deliberately larger than the graphic.
+    state.hitboxes[key] = { x: cx-46, y: cy-50, w: 92, h: 100 };
+    // In manual mode outline each tappable capacitor, otherwise nothing on
+    // screen suggests these symbols can be pressed.
+    if (!active) {
+      const hb = state.hitboxes[key];
+      ctx.save();
+      ctx.strokeStyle = COLORS.capActive; ctx.globalAlpha = 0.3;
+      ctx.lineWidth = 1.5; ctx.setLineDash([5,4]);
+      ctx.beginPath();
+      ctx.roundRect ? ctx.roundRect(hb.x, hb.y, hb.w, hb.h, 10) : ctx.rect(hb.x, hb.y, hb.w, hb.h);
+      ctx.stroke();
+      ctx.restore();
+    }
+    ctx.fillStyle = COLORS.wire; ctx.font = "12px 'Tajawal', sans-serif"; ctx.textAlign='center';
+    ctx.fillText(key, cx, cy + 56);
+  }
+  function drawWire(pts){
+    ctx.strokeStyle = COLORS.wire; ctx.lineWidth = 2.5; ctx.beginPath();
+    pts.forEach((p,i)=> i===0? ctx.moveTo(p[0],p[1]) : ctx.lineTo(p[0],p[1])); ctx.stroke();
+  }
+  function drawBattery(x,y){
+    drawRealBattery(ctx, x, y + 4, state.Vbat, 'v');
+  }
+  function drawHUD(x, y, w, lines) {
+    const h = 26 + lines.length * 20;
+    ctx.save();
+    ctx.fillStyle = COLORS.panel; ctx.strokeStyle = COLORS.border; ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(x, y, w, h, 10) : ctx.rect(x, y, w, h);
+    ctx.fill(); ctx.stroke();
+    ctx.textAlign = 'right';
+    lines.forEach((line, i) => {
+      ctx.fillStyle = line.color || COLORS.wire;
+      ctx.font = line.bold ? "bold 13px 'Cairo', sans-serif" : "12px 'Tajawal', sans-serif";
+      ctx.fillText(line.text, x + w - 12, y + 22 + i * 20);
+    });
+    ctx.restore();
+  }
+
+  function t5Draw() {
+    const s = state;
+    ctx.save();
+    ctx.fillStyle = COLORS.bg; ctx.fillRect(0,0,CW,CH);
+    ctx.textAlign='center';
+    ctx.fillStyle = COLORS.capDefault; ctx.font = "bold 15px 'Cairo', sans-serif";
+    ctx.fillText('الربط المختلط: (C1 مع C2 على التوالي) بالتوازي مع C3', CW/2, 34);
+
+    const batX=110, midY=220, railTopY=130, railBotY=310;
+    drawBattery(batX, midY);
+    drawWire([[batX,midY-24],[batX,railTopY],[760,railTopY]]);
+    drawWire([[batX,midY+8],[batX,railBotY],[760,railBotY]]);
+
+    const seriesY = railTopY + 55;
+    const c1x = 320, c2x = 470;
+    drawWire([[c1x-70,railTopY],[c1x-70,seriesY],[c1x-25,seriesY]]);
+    drawWire([[c1x+25,seriesY],[c2x-25,seriesY]]);
+    drawWire([[c2x+25,seriesY],[c2x+70,seriesY],[c2x+70,railTopY]]);
+    drawWire([[c1x-70,seriesY],[c1x-70,railBotY]]);
+    drawWire([[c2x+70,seriesY],[c2x+70,railBotY]]);
+    drawCapacitorSymbol(c1x, seriesY, false, 'C1');
+    drawCapacitorSymbol(c2x, seriesY, false, 'C2');
+    ctx.fillStyle = COLORS.muted; ctx.font = "11px 'Tajawal', sans-serif"; ctx.textAlign='center';
+    ctx.fillText('فرع التوالي', (c1x+c2x)/2, seriesY-40);
+
+    const c3x = 660, c3y = (railTopY+railBotY)/2;
+    drawWire([[c3x,railTopY],[c3x,c3y-25]]);
+    drawWire([[c3x,c3y+25],[c3x,railBotY]]);
+    drawCapacitorSymbol(c3x, c3y, true, 'C3');
+
+    ctx.fillStyle = COLORS.muted; ctx.font = "12px 'Tajawal', sans-serif"; ctx.textAlign='center';
+    ctx.fillText(s.simMode==='auto' ? 'الوضع التلقائي: تظليل كل متسعة بالتناوب' : 'اضغط على أي متسعة لعرض تفاصيلها (C، V، Q)', CW/2, CH-24);
+
+    drawHUD(CW-260, 320, 250, [
+      { text: 'Ceq(توالي C1,C2) = ' + s.Cseries.toFixed(2) + ' µF' },
+      { text: 'Ceq الكلية = ' + s.Ceq.toFixed(2) + ' µF', bold:true, color: COLORS.capActive },
+      { text: 'Qtotal = ' + s.Qtotal.toFixed(2) + ' µC', bold:true, color: COLORS.capActive },
+      { text: 'PEtotal = ' + s.Utotal.toFixed(2) + ' µJ', bold:true, color: COLORS.capDefault }
+    ]);
+
+    if (s.selected) {
+      const map = { C1:{C:s.C1,V:s.V1,Q:s.Q1,U:s.U1}, C2:{C:s.C2,V:s.V2,Q:s.Q2,U:s.U2}, C3:{C:s.C3,V:s.V3,Q:s.Q3,U:s.U3} };
+      const d = map[s.selected];
+      drawHUD(24, 320, 220, [
+        { text: 'المتسعة المحددة: ' + s.selected, bold:true, color: COLORS.capActive },
+        { text: 'C = ' + d.C.toFixed(2) + ' µF' },
+        { text: 'V = ' + d.V.toFixed(2) + ' V' },
+        { text: 'Q = ' + d.Q.toFixed(2) + ' µC' },
+        { text: 'PE = ' + d.U.toFixed(2) + ' µJ', bold:true, color: COLORS.capDefault }
+      ]);
+    }
+    ctx.restore();
+  }
+
+  window.t5State = state; window.t5Update = t5Update; window.t5Draw = t5Draw;
+  window.t5DragHitTest = function(x, y){
+    for (const k in state.hitboxes){ if (hitZone(state.hitboxes[k], 0)) return true; }
+    return false;
+  };
+})();
+
+/* =========================================================================
+   ACTIVITY 6 — العوازل القطبية وغير القطبية داخل متسعة مشحونة ومفصولة
+
+   The capacitor is charged then DISCONNECTED, so Q stays fixed. Inserting a
+   dielectric raises C, which pulls V down (V = Q/C).
+
+   Molecular picture:
+   - non-polar (غير قطبي): molecules have no intrinsic dipole. The external
+     field pulls the electron cloud one way and the nucleus the other, so a
+     dipole is INDUCED (the molecule stretches / polarizes).
+   - polar (قطبي): molecules are already permanent dipoles, randomly oriented
+     by thermal motion. The field ROTATES them into alignment.
+
+   In both cases the aligned dipoles cancel internally but leave a net bound
+   surface charge at the faces, producing a field E' opposing E₀ — which is
+   exactly why the net field (and therefore V) drops.
+   ========================================================================= */
+(function () {
+  const COLORS = makeColors();
+
+  const plateX = 280, plateW = 340, plateH = 12, gap = 150;
+  const topY = 170, botY = topY + plateH + gap;
+
+  const MOLS = 24; // molecules in the slab
+
+  const state = {
+    simMode: 'auto', t: 0, speed: 0.6,
+    type: 'nonpolar',        // 'nonpolar' | 'polar'
+    fieldOn: true,           // whether the capacitor is charged (field present)
+    alignment: 1,             // 0 = fully random/unpolarized, 1 = fully aligned — starts aligned since fieldOn starts true
+    k: 4,
+    // The dielectric slab can slide IN and OUT of the gap. insertion 0..1.
+    insertion: 1, insTarget: 1, dragging: false, dragOffset: 0,
+    C0: 0, Ceff: 0, Q: 0, V0: 24, Veff: 0, E0: 1, Enet: 1,
+    switchZone: { x: 0, y: 0, w: 44, h: 40 },
+    mols: []
+  };
+
+  const eps0 = 8.85e-12, pxToM = 0.001, depth = 0.09;
+  state.C0 = (eps0 * (plateW*pxToM*depth)) / (gap*pxToM);
+  state.Q  = state.C0 * state.V0;   // fixed once charged & disconnected
+
+  // deterministic pseudo-random layout so molecules don't jitter between frames
+  (function seedMolecules(){
+    let seed = 7;
+    const rnd = () => (seed = (seed*1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
+    const cols = 6, rows = 4;
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        if (state.mols.length >= MOLS) break;
+        state.mols.push({
+          x: plateX + 34 + c * ((plateW - 60) / (cols - 1)),
+          y: topY + plateH + 26 + r * ((gap - 46) / (rows - 1)),
+          restAngle: rnd() * Math.PI * 2,   // random orientation when unpolarized
+          angle: 0,                          // starts aligned (vertical) — see state.alignment note above
+          wobble: rnd() * Math.PI * 2
+        });
+      }
+    }
+  })();
+
+  function setType(t){ state.type = t; }
+  function toggleField(){ state.fieldOn = !state.fieldOn; }
+  window.t6SetType = setType;
+  window.t6ToggleField = toggleField;
+
+  function hitTestSlab(px, py){
+    const s = state;
+    const parkDist = Math.min(300, CW - 12 - (plateX + plateW));
+    const slideX = (1 - s.insertion) * parkDist;
+    const x = plateX + slideX, y = topY + plateH;
+    return px >= x - 16 && px <= x + plateW + 16 && py >= y - 16 && py <= y + gap + 16;
+  }
+
+  function t6Update(dt) {
+    const s = state;
+    s.t += dt;
+
+    // In auto mode the field cycles on/off so students can watch the molecules
+    // align and then relax back to random orientation.
+    if (s.simMode === 'auto') {
+      const period = 4.5 / Math.max(0.2, s.speed);
+      s.fieldOn = (s.t % (period*2)) < period;
+    }
+
+    // The slab can be dragged by hand, or eased toward the button target.
+    const parkDist = Math.min(300, CW - 12 - (plateX + plateW));
+    // Clicking the drawn switch toggles the field (charged/uncharged) by hand.
+    if (pointer.justPressed && s.switchZone && hitZone(s.switchZone, 14)) {
+      s.fieldOn = !s.fieldOn;
+      if (s.simMode === 'auto') {
+        s.simMode = 'manual';
+        const b = document.querySelector('[data-mode-tab="6"]');
+        if (b) { b.classList.remove('on'); b.textContent = '🖐️ يدوي'; }
+      }
+      if (window.SoundFX) SoundFX.click();
+      return; // consume this press so it doesn't also grab the slab
+    }
+    if (pointer.justPressed && hitTestSlab(pointer.pressX, pointer.pressY)) {
+      s.dragging = true;
+      const slideX = (1 - s.insertion) * parkDist;
+      s.dragOffset = pointer.pressX - (plateX + slideX);
+      if (s.simMode === 'auto') {   // grabbing takes manual control
+        s.simMode = 'manual';
+        const b = document.querySelector('[data-mode-tab="6"]');
+        if (b) { b.classList.remove('on'); b.textContent = '🖐️ يدوي'; }
+      }
+    }
+    if (s.dragging) {
+      if (!pointer.isDown) { s.dragging = false; s.insTarget = s.insertion > 0.5 ? 1 : 0; }
+      else {
+        const wantSlide = (pointer.x - s.dragOffset) - plateX;   // 0..parkDist
+        let frac = 1 - (wantSlide / parkDist);
+        s.insertion = Math.max(0, Math.min(1, frac));
+        s.insTarget = s.insertion;
+      }
+    } else {
+      // ease the slab toward its in/out target
+      s.insertion += (s.insTarget - s.insertion) * Math.min(1, dt * 3);
+      if (Math.abs(s.insTarget - s.insertion) < 0.002) s.insertion = s.insTarget;
+    }
+
+    // alignment eases toward its target (thermal agitation resists alignment).
+    // Molecules only polarize where the slab is actually inside the field.
+    const target = (s.fieldOn && s.insertion > 0.5) ? 1 : 0;
+    s.alignment += (target - s.alignment) * Math.min(1, dt * 3.2);
+    // snap decisively so the two states (scattered / aligned) are crisp
+    if (Math.abs(target - s.alignment) < 0.02) s.alignment = target;
+
+    // Molecules: polar ones ROTATE from their fixed random rest angle toward
+    // the field direction as alignment rises. Non-polar ones don't rotate — they
+    // only become induced dipoles (drawn as a stretch) inside the field.
+    // No wobble/jitter: out of the field the molecules sit STILL but scattered.
+    s.mols.forEach((m) => {
+      if (s.type === 'polar') {
+        const aligned = 0;                       // vertical = aligned with field
+        let diff = aligned - m.restAngle;
+        while (diff >  Math.PI) diff -= Math.PI*2;
+        while (diff < -Math.PI) diff += Math.PI*2;
+        m.angle = m.restAngle + diff * s.alignment;   // scattered→aligned, no jitter
+      } else {
+        m.angle = 0;                             // induced dipoles point along field
+      }
+    });
+
+    // Physics: dielectric acts only where the slab is inserted AND polarized.
+    // With the slab out (insertion→0) the gap is air, so k→1.
+    const kFill = 1 + (s.k - 1) * s.insertion;      // geometric fill effect
+    const kEff = 1 + (kFill - 1) * s.alignment;      // polarization effect
+    s.Ceff = s.C0 * kEff;
+    s.Veff = s.fieldOn ? s.Q / s.Ceff : 0;
+    s.E0   = s.fieldOn ? 1 : 0;
+    s.Enet = s.fieldOn ? (1 / kEff) : 0;   // E = E₀/k after polarization
+  }
+
+  function drawPlate(x, y, w, h, charged, positive) {
+    ctx.fillStyle = COLORS.capDefault;
+    ctx.fillRect(x, y, w, h);
+    ctx.strokeStyle = '#03060c'; ctx.lineWidth = 2;
+    ctx.strokeRect(x, y, w, h);
+    if (charged) {
+      ctx.fillStyle = positive ? COLORS.red : COLORS.blue;
+      ctx.font = "bold 12px sans-serif"; ctx.textAlign = 'center';
+      const n = 9;
+      for (let i = 0; i < n; i++) {
+        const cx = x + 20 + i * ((w - 40) / (n - 1));
+        ctx.fillText(positive ? '+' : '−', cx, positive ? y - 5 : y + h + 13);
+      }
+    }
+  }
+
+  /** A single molecule: a circle (non-polar, stretches into an ellipse) or an
+   *  explicit +/− dumbbell (polar, rotates). */
+  function drawMolecule(m, type, alignment) {
+    ctx.save();
+    ctx.translate(m.x, m.y);
+    ctx.rotate(m.angle);
+
+    if (type === 'nonpolar') {
+      // Non-polar molecule: a SYMMETRIC neutral sphere. With no field the +/−
+      // charge centres coincide (no dipole). Inside the field it becomes an
+      // INDUCED dipole — the sphere stretches and the charge centres separate.
+      const stretch = 1 + alignment * 0.85;
+      const squash  = 1 - alignment * 0.25;
+      ctx.save();
+      ctx.scale(squash, stretch);
+      ctx.beginPath(); ctx.arc(0, 0, 9, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(109,160,255,.22)';
+      ctx.fill();
+      ctx.strokeStyle = COLORS.blue; ctx.lineWidth = 1.8; ctx.stroke();
+      ctx.restore();
+      if (alignment > 0.08) {
+        // separated charge centres appear only once polarized (induced dipole)
+        ctx.fillStyle = COLORS.blue; ctx.font = "bold 10px sans-serif"; ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText('−', 0, -6 - alignment*5);
+        ctx.fillStyle = COLORS.red;
+        ctx.fillText('+', 0,  6 + alignment*5);
+      } else {
+        // neutral: one symmetric centre → no polarity at all
+        ctx.fillStyle = 'rgba(230,237,247,.9)'; ctx.beginPath(); ctx.arc(0,0,2.6,0,Math.PI*2); ctx.fill();
+      }
+    } else {
+      // Polar molecule: a PERMANENT dipole (+/− dumbbell) that ALWAYS exists.
+      // Scattered at a random angle with no field; ROTATES to align with the
+      // field. Its size never changes — only its orientation.
+      const L = 9;
+      ctx.strokeStyle = COLORS.muted; ctx.lineWidth = 2.4;
+      ctx.beginPath(); ctx.moveTo(0,-L); ctx.lineTo(0,L); ctx.stroke();
+      ctx.beginPath(); ctx.arc(0,-L,6.2,0,Math.PI*2);
+      ctx.fillStyle = 'rgba(77,141,255,.9)'; ctx.fill();
+      ctx.beginPath(); ctx.arc(0, L,6.2,0,Math.PI*2);
+      ctx.fillStyle = 'rgba(239,91,107,.9)'; ctx.fill();
+      ctx.fillStyle = '#fff'; ctx.font = "bold 9px sans-serif"; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText('−', 0, -L); ctx.fillText('+', 0, L);
+    }
+    ctx.restore();
+  }
+
+  function drawHUD(x, y, w, lines) {
+    const h = 26 + lines.length * 21;
+    ctx.save();
+    ctx.fillStyle = COLORS.panel; ctx.strokeStyle = COLORS.border; ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(x, y, w, h, 10) : ctx.rect(x, y, w, h);
+    ctx.fill(); ctx.stroke();
+    ctx.textAlign = 'right';
+    lines.forEach((line, i) => {
+      ctx.fillStyle = line.color || COLORS.wire;
+      ctx.font = line.bold ? "bold 13px 'Cairo', sans-serif" : "12px 'Tajawal', sans-serif";
+      ctx.fillText(line.text, x + w - 12, y + 22 + i * 21);
+    });
+    ctx.restore();
+  }
+  function fmtE(joules) {
+    if (joules >= 1e-6) return (joules * 1e6).toFixed(2) + ' µJ';
+    if (joules >= 1e-9) return (joules * 1e9).toFixed(2) + ' nJ';
+    return (joules * 1e12).toFixed(2) + ' pJ';
+  }
+
+  function t6Draw() {
+    const s = state;
+    ctx.save();
+    ctx.fillStyle = COLORS.bg; ctx.fillRect(0,0,CW,CH);
+
+    ctx.textAlign = 'center';
+    ctx.fillStyle = COLORS.capDefault; ctx.font = "bold 15px 'Cairo', sans-serif";
+    ctx.fillText('العوازل القطبية وغير القطبية داخل متسعة مشحونة ومفصولة', CW/2, 32);
+
+    // plates with their fixed (free) charge
+    drawPlate(plateX, topY, plateW, plateH, true, true);
+    drawPlate(plateX, botY, plateW, plateH, true, false);
+
+    // ---- real battery + switch on the left, wired to the plates ----
+    (function drawSource(){
+      const bx = 90, by = (topY + botY)/2 + plateH/2;
+      // wires from battery terminals to the two plates
+      ctx.strokeStyle = COLORS.wire; ctx.lineWidth = 2.5;
+      const term = drawRealBattery(ctx, bx, by, s.V0, 'v');
+      // top wire (+ terminal -> top plate)
+      ctx.beginPath();
+      ctx.moveTo(term.plus.x, term.plus.y); ctx.lineTo(bx, topY - 18);
+      ctx.lineTo(plateX - 6, topY - 18); ctx.lineTo(plateX - 6, topY + plateH/2);
+      ctx.stroke();
+      // bottom wire (− terminal -> bottom plate), through the switch
+      const swx = bx, swy = by + 62;
+      const swEndX = swx + 34;
+      // register the tappable zone over the switch
+      s.switchZone.x = swx - 10; s.switchZone.y = swy - 22; s.switchZone.w = (swEndX - swx) + 22; s.switchZone.h = 44;
+      // dashed highlight so it clearly reads as pressable
+      ctx.save();
+      ctx.strokeStyle = s.fieldOn ? COLORS.capActive : COLORS.red;
+      ctx.globalAlpha = 0.4; ctx.lineWidth = 1.5; ctx.setLineDash([5,4]);
+      ctx.beginPath();
+      ctx.roundRect ? ctx.roundRect(s.switchZone.x, s.switchZone.y, s.switchZone.w, s.switchZone.h, 8)
+                    : ctx.rect(s.switchZone.x, s.switchZone.y, s.switchZone.w, s.switchZone.h);
+      ctx.stroke();
+      ctx.restore();
+      ctx.beginPath();
+      ctx.strokeStyle = COLORS.wire; ctx.lineWidth = 2.5;
+      ctx.moveTo(term.minus.x, term.minus.y); ctx.lineTo(swx, swy);
+      ctx.stroke();
+      // switch (closed when field on = charged)
+      ctx.save();
+      ctx.strokeStyle = COLORS.wire; ctx.lineWidth = 2.5;
+      ctx.beginPath(); ctx.arc(swx, swy, 3, 0, Math.PI*2); ctx.fillStyle = COLORS.wire; ctx.fill();
+      if (s.fieldOn){
+        ctx.beginPath(); ctx.moveTo(swx, swy); ctx.lineTo(swEndX, swy); ctx.stroke();
+      } else {
+        ctx.beginPath(); ctx.moveTo(swx, swy); ctx.lineTo(swx + 30, swy - 16); ctx.stroke();
+      }
+      ctx.beginPath(); ctx.arc(swEndX, swy, 3, 0, Math.PI*2); ctx.fillStyle = COLORS.wire; ctx.fill();
+      ctx.restore();
+      // continue bottom wire to the bottom plate
+      ctx.strokeStyle = COLORS.wire; ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(swEndX, swy); ctx.lineTo(swEndX, botY + plateH/2);
+      ctx.lineTo(plateX - 6, botY + plateH/2); ctx.lineTo(plateX - 6, botY + plateH/2);
+      ctx.stroke();
+      // switch label with a tap cue
+      ctx.fillStyle = s.fieldOn ? COLORS.capActive : COLORS.muted;
+      ctx.font = "bold 10px 'Cairo', sans-serif"; ctx.textAlign = 'center';
+      ctx.fillText('👆 ' + (s.fieldOn ? 'مفتاح مغلق (شحن)' : 'مفتاح مفتوح'), swx + 15, swy + 22);
+    })();
+
+    // Horizontal slide offset: slab is centred in the gap when fully inserted,
+    // and slides to the right to PARK beside the plates (still fully visible on
+    // screen) when withdrawn — it never leaves the canvas.
+    const parkDist = Math.min(300, CW - 12 - (plateX + plateW)); // keep on-screen
+    const slideX = (1 - s.insertion) * parkDist;
+
+    // dielectric slab boundary (slides in/out)
+    ctx.save();
+    ctx.fillStyle = 'rgba(77,141,255,.10)';
+    ctx.fillRect(plateX + slideX, topY + plateH, plateW, gap);
+    ctx.strokeStyle = s.dragging ? COLORS.capActive : 'rgba(77,141,255,.5)'; ctx.lineWidth = s.dragging ? 3 : 2; ctx.setLineDash([6,4]);
+    ctx.strokeRect(plateX + slideX, topY + plateH, plateW, gap);
+    ctx.setLineDash([]);
+    // slab label so it reads as a physical block being inserted
+    if (s.insertion < 0.9) {
+      ctx.fillStyle = COLORS.muted; ctx.font = "bold 12px 'Cairo', sans-serif"; ctx.textAlign = 'center';
+      ctx.fillText('العازل', plateX + slideX + plateW/2, topY + plateH + gap/2);
+    }
+    ctx.restore();
+
+    // external field lines E₀ (only while charged)
+    if (s.fieldOn) {
+      ctx.save();
+      ctx.strokeStyle = COLORS.wire; ctx.globalAlpha = 0.16; ctx.lineWidth = 1.2;
+      for (let i = 0; i < 7; i++) {
+        const x = plateX + 26 + i * ((plateW - 52) / 6);
+        ctx.beginPath(); ctx.moveTo(x, topY + plateH); ctx.lineTo(x, botY); ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    // bound surface charge that emerges as the molecules align
+    if (s.alignment > 0.1) {
+      ctx.save();
+      ctx.globalAlpha = Math.min(1, s.alignment);
+      ctx.font = "bold 11px sans-serif"; ctx.textAlign = 'center';
+      const n = 8;
+      for (let i = 0; i < n; i++) {
+        const cx = plateX + 28 + i * ((plateW - 56) / (n - 1));
+        ctx.fillStyle = COLORS.blue; ctx.fillText('−', cx, topY + plateH + 15);
+        ctx.fillStyle = COLORS.red;  ctx.fillText('+', cx, botY - 6);
+      }
+      ctx.restore();
+      // Label lives in the clear column to the right of the plates (never
+      // over the molecule grid, which spans roughly x=280..620 — see below).
+      ctx.save();
+      ctx.globalAlpha = Math.min(1, s.alignment);
+      ctx.fillStyle = COLORS.muted; ctx.font = "10px 'Tajawal', sans-serif"; ctx.textAlign = 'right';
+      ctx.fillText('شحنة سطحية مقيدة', CW - 24, topY + plateH + 34);
+      ctx.fillText('(تولّد مجالًا معاكسًا E′)', CW - 24, topY + plateH + 48);
+      ctx.restore();
+    }
+
+    // the molecules themselves — they ride WITH the slab as it slides in/out
+    ctx.save();
+    ctx.translate(slideX, 0);
+    s.mols.forEach(m => drawMolecule(m, s.type, s.alignment));
+    ctx.restore();
+
+    // status banner
+    ctx.textAlign = 'center';
+    const label = s.type === 'polar'
+      ? (s.alignment > 0.5 ? 'جزيئات قطبية: تدور لتصطف مع المجال ⟳' : 'جزيئات قطبية: اتجاهات عشوائية (بلا مجال)')
+      : (s.alignment > 0.5 ? 'جزيئات غير قطبية: تستقطب وتستطيل بفعل المجال ↕' : 'جزيئات غير قطبية: متماثلة وغير مستقطبة');
+    ctx.fillStyle = s.fieldOn ? COLORS.capActive : COLORS.muted;
+    ctx.font = "bold 13px 'Cairo', sans-serif";
+    ctx.fillText(label, CW/2, botY + 44);
+
+    ctx.fillStyle = COLORS.muted; ctx.font = "12px 'Tajawal', sans-serif";
+    ctx.fillText(s.simMode === 'auto'
+      ? 'الوضع التلقائي: المجال يُشحن ويُفرغ دوريًا — راقب ترتيب الجزيئات'
+      : 'اضغط زر المجال لشحن/تفريغ المتسعة، وبدّل نوع العازل من لوحة التحكم',
+      CW/2, CH - 22);
+
+    drawHUD(24, 44, 214, [
+      { text: 'الحالة: مشحونة ومفصولة (Q ثابتة)', bold:true, color: COLORS.capActive },
+      { text: 'العازل: ' + (s.insertion > 0.95 ? 'داخل المتسعة' : s.insertion < 0.05 ? 'خارج المتسعة (هواء)' : 'يدخل/يخرج (' + (s.insertion*100).toFixed(0) + '%)'),
+        color: s.insertion > 0.5 ? COLORS.cyanBright : COLORS.muted },
+      { text: 'نوع العازل: ' + (s.type==='polar' ? 'قطبي (دائم)' : 'غير قطبي (مُستحثّ)'),
+        color: COLORS.blue },
+      { text: 'المجال: ' + (s.fieldOn ? 'موجود' : 'منعدم') + '  ·  الاصطفاف ' + (s.alignment*100).toFixed(0) + '%',
+        color: s.alignment > 0.1 ? COLORS.capActive : undefined },
+      { text: 'Q = ' + (s.Q*1e9).toFixed(2) + ' nC (ثابتة)' },
+      { text: 'C = ' + (s.Ceff*1e12).toFixed(2) + ' pF  ·  V = ' + s.Veff.toFixed(1) + ' V',
+        bold:true, color: COLORS.capActive },
+      { text: 'PE = ½QV = ' + fmtE(0.5*s.Q*s.Veff), bold:true, color: COLORS.capDefault }
+    ]);
+
+    // E-field comparison bars: E₀ vs the reduced net field E = E₀/k
+    const gx = CW - 200, gy = 56;
+    ctx.save();
+    ctx.fillStyle = COLORS.panel; ctx.strokeStyle = COLORS.border; ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(gx, gy, 176, 122, 10) : ctx.rect(gx, gy, 176, 122);
+    ctx.fill(); ctx.stroke();
+    ctx.fillStyle = COLORS.muted; ctx.font = "11px 'Tajawal', sans-serif"; ctx.textAlign='right';
+    ctx.fillText('مقارنة المجال الكهربائي', gx + 164, gy + 20);
+    const barW = 110, barX = gx + 46;
+    ctx.fillStyle = 'rgba(232,237,247,.18)';
+    ctx.fillRect(barX, gy + 34, barW, 16);
+    ctx.fillStyle = COLORS.wire;
+    ctx.fillRect(barX, gy + 34, barW * s.E0, 16);
+    ctx.fillStyle = COLORS.muted; ctx.font = "11px 'Tajawal', sans-serif"; ctx.textAlign='right';
+    ctx.fillText('E₀', gx + 40, gy + 47);
+    ctx.fillStyle = 'rgba(111,251,224,.18)';
+    ctx.fillRect(barX, gy + 62, barW, 16);
+    ctx.fillStyle = COLORS.capActive;
+    ctx.fillRect(barX, gy + 62, barW * s.Enet, 16);
+    ctx.fillStyle = COLORS.muted; ctx.textAlign='right';
+    ctx.fillText('E', gx + 40, gy + 75);
+    ctx.fillStyle = COLORS.muted; ctx.font = "10.5px 'Tajawal', sans-serif"; ctx.textAlign='right';
+    ctx.fillText('المجال المحصّل ينقص بمقدار k', gx + 164, gy + 100);
+    ctx.fillStyle = COLORS.capActive; ctx.font = "bold 11px 'Cairo', sans-serif";
+    ctx.fillText('E = E₀ / k', gx + 164, gy + 115);
+    ctx.restore();
+
+    ctx.restore();
+  }
+
+  window.t6State = state; window.t6Update = t6Update; window.t6Draw = t6Draw;
+  window.t6DragHitTest = function(x, y){
+    return hitTestSlab(x, y) || (state.switchZone && hitZone(state.switchZone, 14));
+  };
+})();
+</script>
+
+<script>
+/* =========================================================================
+   APP SHELL — tabs, pointer tracking, sidebar wiring, main loop
+   ========================================================================= */
+const EXPERIMENTS = {
+  1: {
+    title:'العوامل المؤثرة على السعة',
+    subtitle:'غيّر المساحة (A) والمسافة (d) وأدخِل عازلًا (k) ولاحظ تغيّر السعة C = k·ε₀·A/d',
+    tools:['لوحان معدنيان متوازيان','مسطرة قياس المسافة','شريحة عازل (فراغ/ورق/زجاج/ميكا)','جهاز قياس السعة (تمثيلي)'],
+    steps:['لاحظ اللوحين المتوازيين على الشاشة.','بالوضع اليدوي: اسحب اللوح العلوي عموديًا لتغيير المسافة d.','اسحب اللوح العلوي أفقيًا لتغيير مساحة التراكب A.','أدخِل العازل بين اللوحين من لوحة التحكم ولاحظ ارتفاع السعة C.','جرّب أنواع العوازل المختلفة (ورق/زجاج/ميكا) وقارن تأثير معامل العزل k.','راقب: السعة تتناسب طرديًا مع A و k، وعكسيًا مع d.'],
+    help:{ law:'C = k·ε₀·A / d', body:'سعة المتسعة المستوية تعتمد على ثلاثة عوامل: مساحة تراكب اللوحين (A) والمسافة بينهما (d) ونوع العازل بينهما (معامل العزل k). كلما زادت المساحة أو معامل العزل زادت السعة، وكلما زادت المسافة قلّت السعة.', tip:'💡 جرّب: أدخِل عازل الميكا (k=6) ولاحظ كيف تتضاعف السعة عدة مرات مقارنةً بالفراغ.' }
+  },
+  2: {
+    title:'إدخال العازل بين لوحي متسعة مشحونة',
+    subtitle:'متسعة مشحونة ومفصولة عن البطارية — أدخل العازل وراقب هبوط الفولتميتر',
+    tools:['متسعة مشحونة (مفصولة عن البطارية)','كتلة عازلة (زجاج/ورق/ميكا)','فولتميتر'],
+    steps:['المتسعة مشحونة سلفًا وشحنتها Q ثابتة.','بالوضع اليدوي: اسحب كتلة العازل نحو الفجوة بين اللوحين.','لاحظ ارتفاع قيمة السعة C كلما زادت نسبة الإدخال.','لاحظ في المقابل هبوط قراءة الفولتميتر (V=Q/C).','جرّب مواد عازلة مختلفة من لوحة التحكم وقارن التأثير.'],
+    help:{ law:'V = Q / C   ،   C = k·C₀', body:'عند فصل المتسعة عن البطارية تبقى شحنتها (Q) ثابتة. إدخال العازل يرفع السعة (C)، وبما أن Q ثابتة فإن فرق الجهد (V) يهبط، وهذا ما يبيّنه الفولتميتر.', tip:'💡 لاحظ: كلما دخل العازل أكثر، ارتفعت C وهبط مؤشر الفولتميتر.' }
+  },
+  3: {
+    title:'ربط المتسعات على التوالي والتوازي',
+    subtitle:'بدّل بين التوالي والتوازي وقارن السعة المكافئة وتوزيع الشحنة',
+    tools:['ثلاث متسعات (C1, C2, C3)','بطارية','مفتاح تبديل'],
+    steps:['لاحظ الدائرة الحالية (توالي أو توازي).','اضغط زر التبديل للانتقال بين النمطين.','لاحظ في التوالي: نفس الشحنة على كل متسعة ويتوزع الجهد.','لاحظ في التوازي: نفس الجهد على كل متسعة وتتوزع الشحنة.','غيّر قيم C1, C2, C3 من لوحة التحكم وقارن Ceq.'],
+    help:{ law:'توالي: 1/Ceq = Σ(1/C)   ،   توازي: Ceq = ΣC', body:'في التوالي تكون الشحنة نفسها على كل متسعة ويتوزّع الجهد، والسعة المكافئة أصغر من أصغر متسعة. في التوازي يكون الجهد نفسه على الجميع وتتوزّع الشحنة، والسعة المكافئة هي مجموع السعات.', tip:'💡 قارن: نفس المتسعات تعطي سعة مكافئة أكبر في التوازي منها في التوالي.' }
+  },
+  4: {
+    title:'دائرة تيار مستمر RC — شحن وتفريغ',
+    subtitle:'مفتاح ثنائي الوضع: شحن أو تفريغ متسعة عبر مقاومة',
+    tools:['بطارية','مقاومة R','متسعة C','مصباحان L1 و L2','جلفانومتر','مفتاح مزدوج (ثنائي الوضع)'],
+    steps:['لاحظ أن الدائرة فيها فرعان يشتركان في المتسعة والجلفانومتر.','فرع الشحن (الوضع 1): بطارية + مقاومة + المصباح L1.','فرع التفريغ (الوضع 2): المصباح L2 فقط، بلا بطارية.','ضع المفتاح على الوضع 1: يضيء L1 وحده، وترتفع Vc، وتنحرف إبرة الجلفانومتر.','بدّل للوضع 2: ينطفئ L1 ويضيء L2 وحده، وتهبط Vc، وتنعكس إبرة الجلفانومتر.','استنتج: المتسعة تفرّغ شحنتها المخزونة في L2 حتى بعد فصل البطارية تمامًا.'],
+    help:{ law:'Q = Q₀(1 − e^(−t/RC))   ،   τ = R·C', body:'عند الشحن ترتفع شحنة المتسعة تدريجيًا نحو قيمتها القصوى، وعند التفريغ تهبط تدريجيًا. الثابت الزمني τ = R·C يحدّد سرعة الشحن والتفريغ: كلما كبر R أو C كان الشحن أبطأ.', tip:'💡 لاحظ: المصباح L1 يضيء أثناء الشحن، وL2 أثناء التفريغ.' }
+  },
+  5: {
+    title:'الربط المختلط',
+    subtitle:'C1 مع C2 على التوالي، والمجموعة على التوازي مع C3',
+    tools:['ثلاث متسعات (C1, C2, C3)','بطارية'],
+    steps:['لاحظ فرع التوالي (C1,C2) وفرع C3 المتوازي معه.','اضغط على أي متسعة لعرض C وV وQ الخاصة بها.','لاحظ أن جهد فرع التوالي مساوٍ لجهد البطارية (V1+V2=V).','لاحظ أن Q على C1 و C2 متساوية (خاصية التوالي).','راقب Ceq الكلية وQ الكلية في اللوحة العلوية الدائمة.'],
+    help:{ law:'Q = C·V   ،   PE = ½C·V²', body:'الطاقة المختزنة في المتسعة تتناسب مع سعتها ومربع الجهد المطبّق عليها. المتسعة تخزّن الطاقة في المجال الكهربائي بين لوحيها.', tip:'💡 جرّب: ضاعف الجهد ولاحظ أن الطاقة تصير أربعة أضعاف (تربيعية).' }
+  },
+  6: {
+    title:'العوازل القطبية وغير القطبية',
+    subtitle:'متسعة مشحونة ومفصولة — شاهد كيف تترتّب جزيئات العازل داخل المجال الكهربائي',
+    tools:['متسعة مشحونة ومفصولة عن المصدر','شريحة عازل قطبي (مثل الماء)','شريحة عازل غير قطبي (مثل البارافين)'],
+    steps:['المتسعة مشحونة ثم فُصلت عن المصدر، لذا الشحنة Q تبقى ثابتة.','اختر نوع العازل: قطبي أو غير قطبي من لوحة التحكم.','شغّل المجال ولاحظ سلوك الجزيئات: القطبية تدور لتصطف، وغير القطبية تستطيل وتستقطب.','لاحظ ظهور شحنة سطحية مقيدة على وجهي العازل تولّد مجالًا معاكسًا E′.','قارن E₀ مع المجال المحصّل E = E₀/k، ولاحظ هبوط الجهد V نتيجة ارتفاع C.'],
+    help:{ law:'C = k·C₀   ،   العازل القطبي وغير القطبي', body:'الجزيئات القطبية لها ثنائي قطب دائم فتدور لتصطف مع المجال. الجزيئات غير القطبية متعادلة، لكن المجال يستحثّ فيها ثنائي قطب مؤقت (تستقطب). كلاهما يرفع سعة المتسعة عند إدخاله.', tip:'💡 قارن: القطبي يدور ليصطف، وغير القطبي يستطيل ويستقطب داخل المجال فقط.' }
+  }
+};
+
+/* Display order of the tabs. The molecular-dielectric activity (module 6) is
+   shown in position 2; every other module keeps its original internals. */
+const TAB_ORDER = [1, 6, 2, 3, 4, 5];
+
+const canvas = document.getElementById('simCanvas');
+const ctx = canvas.getContext('2d');
+// Logical drawing space stays 900x480 — every activity keeps its coordinates.
+const CW = 900, CH = 480;
+
+/* Render at the device's real pixel density (and a little extra on small
+   screens). The drawing code still works in 900x480 logical units, but the
+   backing store is larger, so the text drawn inside the canvas stays sharp
+   and legible instead of turning to mush when the canvas is scaled down on a
+   phone. Re-run on resize/rotate. */
+function resizeCanvas(){
+  // measure the actual on-screen width of the canvas box
+  const rect = canvas.getBoundingClientRect();
+  const cssW = rect.width || canvas.clientWidth || CW;
+  const dpr  = window.devicePixelRatio || 1;
+  let scale = (cssW / CW) * dpr;
+  scale = Math.max(scale, dpr);          // never below native density
+  scale = Math.min(scale, 4);            // cap so we don't blow up memory
+  canvas.width  = Math.round(CW * scale);
+  canvas.height = Math.round(CH * scale);
+  ctx.setTransform(scale, 0, 0, scale, 0, 0);   // draw in logical 900x480 units
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+window.addEventListener('orientationchange', ()=> setTimeout(resizeCanvas, 200));
+window.addEventListener('load', ()=> setTimeout(resizeCanvas, 60));
+const pointer = { x: 0, y: 0, isDown: false, isClicked: false, justPressed: false,
+                  pressX: 0, pressY: 0 };
+let _clickPending = false;
+/* A fast tap can start AND finish in the gap between two animation frames.
+   The per-frame code polls pointer.isDown, so without latching, such a tap is
+   simply never seen and the interaction silently does nothing — this is what
+   made switches feel dead to touch. _pressPending latches "a press happened"
+   and is held until the next frame reads it, so no tap is ever dropped. */
+let _pressPending = false;
+let _pressPos = { x: 0, y: 0 };
+// exposed so the interaction state can be inspected while debugging on a real device
+window.pointer = pointer;
+
+function getCanvasPos(evt){
+  const rect = canvas.getBoundingClientRect();
+  const t = (evt.touches && evt.touches.length) ? evt.touches[0] : (evt.changedTouches && evt.changedTouches[0]);
+  const clientX = t ? t.clientX : evt.clientX;
+  const clientY = t ? t.clientY : evt.clientY;
+  return { x: (clientX-rect.left)*(CW/rect.width), y: (clientY-rect.top)*(CH/rect.height) };
+}
+/* Shared, touch-friendly hit test for canvas-drawn controls.
+   Clicks now register on PRESS, so pressX/pressY is the authoritative point;
+   the current x/y is also accepted so a slow drag-then-release still counts.
+   `pad` widens the rectangle: a fingertip covers far more area than a mouse
+   cursor, and on a wall-mounted whiteboard the touch frame is less precise
+   still, so every control gets a target comfortably bigger than its graphic. */
+function hitZone(zone, pad){
+  const m = (pad === undefined) ? 18 : pad;
+  const x0 = zone.x - m, y0 = zone.y - m;
+  const x1 = zone.x + zone.w + m, y1 = zone.y + zone.h + m;
+  const inPress   = pointer.pressX >= x0 && pointer.pressX <= x1 &&
+                    pointer.pressY >= y0 && pointer.pressY <= y1;
+  const inCurrent = pointer.x >= x0 && pointer.x <= x1 &&
+                    pointer.y >= y0 && pointer.y <= y1;
+  return inPress || inCurrent;
+}
+window.hitZone = hitZone;
+
+/* Pointer Events (not separate mouse + touch listeners): this is the one
+   event family every modern browser maps ALL input hardware to — a finger,
+   a mouse, a pen, or an interactive-whiteboard touch frame. Mixing legacy
+   mousedown/mouseup with touchstart/touchend used to cause a real bug on
+   some touchscreens: the browser fires a *second*, delayed "compatibility"
+   mouseup a moment after a real touchend, so a switch could get toggled
+   twice in a row (once by touch, once by the ghost mouse click) and net out
+   to "nothing happened." Listening to pointer events only avoids that. */
+/* Each activity registers a predicate that answers "is this canvas point on
+   something draggable?" (a plate, a slab, a switch). Only when the press lands
+   on such a target do we take over the gesture and stop the page scrolling;
+   a press on empty canvas stays a scroll, so the controls below remain
+   reachable in fullscreen. */
+window._dragHitTest = null;
+function onPointerDown(evt){
+  const p = getCanvasPos(evt); pointer.x=p.x; pointer.y=p.y; pointer.isDown=true;
+  // latch the press so a tap that ends before the next frame still registers
+  _pressPending = true; _pressPos.x = p.x; _pressPos.y = p.y;
+  /* Register the CLICK here, on press — not on release. On real touchscreens
+     (interactive whiteboards especially) the matching pointerup can be lost:
+     the panel may retarget it after pointer capture, fire it outside the
+     element, or drop it entirely on a quick stab. Waiting for release meant a
+     lost pointerup = a dead switch, which is exactly what the teacher saw.
+     Acting on press always fires, and matches how a physical switch feels. */
+  _clickPending = true;
+  /* If the press is on a draggable target, claim the gesture: preventDefault
+     stops the browser from scrolling the page for this touch, and .dragging
+     flips touch-action to none. On empty canvas we do NEITHER, so a vertical
+     swipe scrolls normally — the whole reason the teacher couldn't reach the
+     controls in fullscreen. */
+  const onDraggable = (typeof window._dragHitTest === 'function') && window._dragHitTest(p.x, p.y);
+  if (onDraggable) {
+    if (evt.cancelable) evt.preventDefault();
+    canvas.classList.add('dragging');
+    if (canvas.setPointerCapture && evt.pointerId != null) {
+      try { canvas.setPointerCapture(evt.pointerId); } catch(e){}
+    }
+  }
+}
+function onPointerMove(evt){
+  if(!pointer.isDown) return;
+  // Only swallow the move (blocking scroll) while we've actually claimed a
+  // drag; otherwise let the browser scroll the page.
+  if (canvas.classList.contains('dragging') && evt.cancelable) evt.preventDefault();
+  const p = getCanvasPos(evt); pointer.x=p.x; pointer.y=p.y;
+}
+function onPointerUp(evt){
+  const wasDown = pointer.isDown;
+  if(pointer.isDown && evt){
+    const p = getCanvasPos(evt); pointer.x=p.x; pointer.y=p.y;
+  }
+  pointer.isDown=false;
+  canvas.classList.remove('dragging');
+  if (wasDown && window.SoundFX) SoundFX.tick();
+}
+/* Safety net: if a device ever drops the pointerup (which is exactly the
+   failure this rewrite defends against), isDown would otherwise stay true
+   forever and the NEXT drag would start already "held down".
+   NOTE: pointerleave is deliberately NOT used here. A finger dragging the
+   plate or the dielectric slab routinely crosses the canvas edge, and
+   releasing on leave would abort the drag mid-gesture — the drag must only
+   end on a real release, or when the page itself loses the interaction. */
+function forceRelease(){
+  if (pointer.isDown){
+    pointer.isDown = false;
+    canvas.classList.remove('dragging');
+  }
+}
+window.addEventListener('blur', forceRelease);
+document.addEventListener('visibilitychange', ()=>{ if(document.hidden) forceRelease(); });
+/* Bind on BOTH the canvas and the window. Pointer capture, an overlay, or a
+   stray stopPropagation can each starve one of these paths; between the two,
+   at least one always sees the event. Duplicate handling is harmless because
+   the flags are idempotent latches, cleared once per frame by the loop. */
+canvas.addEventListener('pointerdown', onPointerDown);
+canvas.addEventListener('pointerup', onPointerUp);
+window.addEventListener('pointermove', onPointerMove, {passive:false});
+window.addEventListener('pointerup', onPointerUp);
+window.addEventListener('pointercancel', onPointerUp);
+
+/* ===== Manual scroll forwarding on the canvas =====
+   The canvas is touch-action:none so drags work anywhere on it, but that also
+   kills native scrolling on the canvas. To still let the teacher scroll to the
+   controls, we watch raw touches: if a touch does NOT begin on a draggable
+   part, we treat it as a scroll and move the nearest scroll container
+   ourselves by the finger's vertical delta. A touch that begins on a plate /
+   slab / switch is left alone so the drag logic handles it. */
+(function(){
+  let scrollForwarding = false;
+  let lastTouchY = 0;
+  let scrollTarget = null;
+
+  function nearestScrollable(el){
+    for (let n = el; n && n !== document.body; n = n.parentElement){
+      const oy = getComputedStyle(n).overflowY;
+      if ((oy === 'auto' || oy === 'scroll') && n.scrollHeight > n.clientHeight) return n;
+    }
+    // fullscreen fallbacks
+    const area = document.getElementById('canvasArea');
+    if (area && area.scrollHeight > area.clientHeight) return area;
+    return document.scrollingElement || document.documentElement;
+  }
+
+  canvas.addEventListener('touchstart', function(e){
+    if (e.touches.length !== 1) { scrollForwarding = false; return; }
+    const p = getCanvasPos(e);
+    const onDraggable = (typeof window._dragHitTest === 'function') && window._dragHitTest(p.x, p.y);
+    if (onDraggable) { scrollForwarding = false; return; }  // let the drag happen
+    // empty canvas → this gesture scrolls; forward it manually
+    scrollForwarding = true;
+    lastTouchY = e.touches[0].clientY;
+    scrollTarget = nearestScrollable(canvas);
+  }, {passive:true});
+
+  canvas.addEventListener('touchmove', function(e){
+    if (!scrollForwarding || e.touches.length !== 1 || !scrollTarget) return;
+    const y = e.touches[0].clientY;
+    const dy = lastTouchY - y;             // finger up → positive → scroll down
+    lastTouchY = y;
+    scrollTarget.scrollTop += dy;
+    if (e.cancelable) e.preventDefault();  // we've taken over this gesture
+  }, {passive:false});
+
+  function endForward(){ scrollForwarding = false; scrollTarget = null; }
+  canvas.addEventListener('touchend', endForward);
+  canvas.addEventListener('touchcancel', endForward);
+})();
+
+/* Legacy touch fallback: a few older Android/whiteboard browsers ship broken
+   or absent Pointer Events. If this browser has no pointer support at all,
+   wire the classic touch events instead so those devices still work. */
+if (!('onpointerdown' in window)) {
+  canvas.addEventListener('touchstart', onPointerDown, {passive:true});
+  window.addEventListener('touchmove', onPointerMove, {passive:false});
+  window.addEventListener('touchend', onPointerUp);
+  window.addEventListener('touchcancel', onPointerUp);
+  canvas.addEventListener('mousedown', onPointerDown);
+  window.addEventListener('mouseup', onPointerUp);
+}
+
+/* =========================================================================
+   SOUND — small synthesized effects (no audio files needed), plus mute.
+   ========================================================================= */
+const SoundFX = (function(){
+  let actx = null, enabled = true;
+  function ensure(){
+    if(!actx){
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if(!AC) return null;
+      actx = new AC();
+    }
+    if(actx.state === 'suspended') actx.resume();
+    return actx;
+  }
+  function tone(freq, dur, type, peak){
+    if(!enabled) return;
+    const c = ensure();
+    if(!c) return;
+    const osc = c.createOscillator(), gain = c.createGain();
+    osc.type = type || 'sine';
+    osc.frequency.setValueAtTime(freq, c.currentTime);
+    gain.gain.setValueAtTime(0.0001, c.currentTime);
+    gain.gain.linearRampToValueAtTime(peak || 0.07, c.currentTime + 0.008);
+    gain.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + dur);
+    osc.connect(gain); gain.connect(c.destination);
+    osc.start(); osc.stop(c.currentTime + dur + 0.03);
+  }
+  return {
+    click(){ tone(680, 0.09, 'sine', 0.06); },
+    tick(){ tone(560, 0.05, 'square', 0.035); },
+    toggleOn(){ tone(880, 0.12, 'triangle', 0.07); },
+    toggleOff(){ tone(420, 0.12, 'triangle', 0.07); },
+    setEnabled(v){ enabled = v; },
+    isEnabled(){ return enabled; }
+  };
+})();
+window.SoundFX = SoundFX;
+
+// A soft click for every button in the app (tabs, mode toggles, control
+// buttons, toolbar buttons) via one delegated listener — new buttons work
+// automatically without extra wiring.
+document.addEventListener('click', (e)=>{
+  const el = e.target.closest('.ctrl-btn, .tab-btn, .toolbar-btn, .welcome-start-btn');
+  if(el) SoundFX.click();
+});
+
+// (the release "tick" sound is now emitted directly inside onPointerUp above)
+
+// Mute / unmute button in the header.
+const soundToggleBtn = document.getElementById('soundToggleBtn');
+if (soundToggleBtn) {
+  soundToggleBtn.addEventListener('click', ()=>{
+    const next = !SoundFX.isEnabled();
+    SoundFX.setEnabled(next);
+    soundToggleBtn.textContent = next ? '🔊' : '🔇';
+    soundToggleBtn.classList.toggle('muted', !next);
+    soundToggleBtn.setAttribute('aria-label', next ? 'كتم الصوت' : 'تشغيل الصوت');
+    if (next) SoundFX.click();
+  });
+}
+
+/* ===== Light / dark theme toggle ===== */
+const themeToggleBtn = document.getElementById('themeToggleBtn');
+if (themeToggleBtn) {
+  const meta = document.querySelector('meta[name="theme-color"]');
+  function setTheme(name){
+    const light = (name === 'light');
+    document.documentElement.setAttribute('data-theme', light ? 'light' : 'dark');
+    // repaint the canvases to match (shared palette mutated in place)
+    if (window.applyCanvasTheme) window.applyCanvasTheme(light ? 'light' : 'dark');
+    // button shows the mode you'd switch TO
+    themeToggleBtn.textContent = light ? '☀️' : '🌙';
+    themeToggleBtn.title = light ? 'التحويل إلى المظهر الداكن' : 'التحويل إلى المظهر الفاتح';
+    if (meta) meta.setAttribute('content', light ? '#e9eef6' : '#0a0f1c');
+  }
+  let current = 'dark';
+  themeToggleBtn.addEventListener('click', ()=>{
+    current = (current === 'dark') ? 'light' : 'dark';
+    setTheme(current);
+    if (window.SoundFX) SoundFX.click();
+  });
+}
+
+/* =========================================================================
+   SIDEBAR SHOW/HIDE — tools & steps keep their spot but can collapse so the
+   experiment (canvas + controls) gets the full width.
+   ========================================================================= */
+const appMain = document.getElementById('appMain');
+const sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
+if (sidebarToggleBtn && appMain) {
+  sidebarToggleBtn.addEventListener('click', ()=>{
+    const hidden = appMain.classList.toggle('sidebar-hidden');
+    sidebarToggleBtn.classList.toggle('active', !hidden);
+    sidebarToggleBtn.textContent = hidden ? '☰ إظهار الأدوات والخطوات' : '☰ الأدوات والخطوات';
+    setTimeout(resizeCanvas, 50); // canvas width changed -> re-render crisp
+  });
+}
+
+/* =========================================================================
+   FULLSCREEN — expand the experiment (canvas + controls) to fill the screen.
+   ========================================================================= */
+const canvasArea = document.getElementById('canvasArea');
+const fullscreenBtn = document.getElementById('fullscreenBtn');
+function realFsElement(){
+  return document.fullscreenElement || document.webkitFullscreenElement || null;
+}
+function isPseudoFs(){
+  return canvasArea && canvasArea.classList.contains('pseudo-fs');
+}
+function isFullscreen(){
+  return !!realFsElement() || isPseudoFs();
+}
+function updateFullscreenBtn(){
+  if (!fullscreenBtn) return;
+  fullscreenBtn.textContent = isFullscreen() ? '✕ إغلاق ملء الشاشة' : '⛶ ملء الشاشة';
+  setTimeout(resizeCanvas, 80);
+  setTimeout(resizeCanvas, 300);
+}
+function enterPseudoFs(){
+  canvasArea.classList.add('pseudo-fs');
+  document.body.classList.add('fs-lock');
+  canvasArea.scrollTop = 0;
+  updateFullscreenBtn();
+}
+function exitPseudoFs(){
+  canvasArea.classList.remove('pseudo-fs');
+  document.body.classList.remove('fs-lock');
+  updateFullscreenBtn();
+}
+if (fullscreenBtn && canvasArea) {
+  fullscreenBtn.addEventListener('click', ()=>{
+    if (window.SoundFX) SoundFX.click();
+    if (isFullscreen()) {
+      // close whichever mode is active
+      if (realFsElement()) {
+        const exit = document.exitFullscreen || document.webkitExitFullscreen;
+        if (exit) exit.call(document);
+      }
+      if (isPseudoFs()) exitPseudoFs();
+      return;
+    }
+    // try the REAL fullscreen API first (desktop, Android Chrome)…
+    const req = canvasArea.requestFullscreen || canvasArea.webkitRequestFullscreen;
+    if (req) {
+      let p;
+      try { p = req.call(canvasArea); } catch(e){ p = null; }
+      // …and fall back to the CSS overlay if it rejects or isn't honoured
+      // (iPhone Safari resolves nothing useful here).
+      if (p && typeof p.then === 'function') {
+        p.then(()=> updateFullscreenBtn())
+         .catch(()=> enterPseudoFs());
+      } else {
+        // no promise returned: after a tick, if we're not really fullscreen,
+        // use the fallback.
+        setTimeout(()=>{ if (!realFsElement()) enterPseudoFs(); else updateFullscreenBtn(); }, 120);
+      }
+    } else {
+      enterPseudoFs();
+    }
+  });
+  document.addEventListener('fullscreenchange', updateFullscreenBtn);
+  document.addEventListener('webkitfullscreenchange', updateFullscreenBtn);
+  // Esc / back gesture closes the CSS overlay too
+  document.addEventListener('keydown', e=>{
+    if (e.key === 'Escape' && isPseudoFs()) exitPseudoFs();
+  });
+}
+
+/* ---- help / explanation modal ---- */
+(function initHelp(){
+  const modal = document.getElementById('helpModal');
+  const btn = document.getElementById('helpBtn');
+  const closeBtn = document.getElementById('helpClose');
+  if (!modal || !btn) return;
+  function open(){
+    const exp = EXPERIMENTS[activeTab];
+    if (!exp || !exp.help) return;
+    document.getElementById('helpTitle').textContent = exp.title;
+    document.getElementById('helpLaw').textContent = exp.help.law;
+    document.getElementById('helpBody').textContent = exp.help.body;
+    document.getElementById('helpTip').textContent = exp.help.tip;
+    modal.classList.add('open'); modal.setAttribute('aria-hidden','false');
+    if (window.SoundFX) SoundFX.click();
+  }
+  function close(){ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); }
+  btn.addEventListener('click', open);
+  if (closeBtn) closeBtn.addEventListener('click', close);
+  modal.addEventListener('click', e=>{ if (e.target === modal) close(); });
+  document.addEventListener('keydown', e=>{ if (e.key === 'Escape') close(); });
+})();
+
+let activeTab = 1;
+const tabsNav = document.getElementById('tabsNav');
+TAB_ORDER.forEach((id, idx)=>{
+  const displayNum = idx + 1; // position in the tab strip, not the module's internal id
+  const btn = document.createElement('button');
+  btn.className = 'tab-btn' + (id===TAB_ORDER[0] ? ' active' : '');
+  btn.dataset.tab = id;
+  btn.innerHTML = `<span class="num">${displayNum}</span><span>${EXPERIMENTS[id].title}</span>`;
+  btn.addEventListener('click', ()=> switchTab(id));
+  tabsNav.appendChild(btn);
+});
+
+function stateByTab(){ return {1:t1State,2:t2State,3:t3State,4:t4State,5:t5State,6:t6State}; }
+
+function switchTab(id){
+  activeTab = id;
+  document.querySelectorAll('.tab-btn').forEach(b=> b.classList.toggle('active', Number(b.dataset.tab)===id));
+  document.querySelectorAll('.control-panel').forEach(p=> p.classList.toggle('active', Number(p.dataset.tab)===id));
+
+  const exp = EXPERIMENTS[id];
+  const displayNum = TAB_ORDER.indexOf(id) + 1;
+  document.getElementById('sidebarTitle').textContent = `النشاط ${displayNum}: ${exp.title}`;
+  document.getElementById('mainTitle').textContent = exp.title;
+  document.getElementById('mainSubtitle').textContent = exp.subtitle;
+  document.getElementById('toolsList').innerHTML = exp.tools.map(t=>`<li>${t}</li>`).join('');
+  document.getElementById('stepsList').innerHTML = exp.steps.map(s=>`<li>${s}</li>`).join('');
+
+  updateModeStatusPill();
+
+  /* Tell the pointer layer what counts as "draggable" on THIS activity's
+     canvas, so a press there claims the gesture (and blocks page scroll) while
+     a press on empty canvas still scrolls. Activities without draggables get
+     null, meaning every swipe on their canvas scrolls freely. */
+  window._dragHitTest = (typeof window['t'+id+'DragHitTest'] === 'function')
+    ? window['t'+id+'DragHitTest'] : null;
+}
+
+function updateModeStatusPill(){
+  const s = stateByTab()[activeTab];
+  document.getElementById('modeStatus').textContent = (s && s.simMode==='manual') ? 'يدوي' : 'تلقائي';
+}
+
+document.querySelectorAll('[data-mode-tab]').forEach(btn=>{
+  btn.addEventListener('click', e=>{
+    const tab = Number(e.currentTarget.dataset.modeTab);
+    const s = stateByTab()[tab];
+    s.simMode = (s.simMode === 'auto') ? 'manual' : 'auto';
+    e.currentTarget.classList.toggle('on', s.simMode==='auto');
+    e.currentTarget.textContent = s.simMode==='auto' ? '⚙️ تلقائي' : '🖐️ يدوي';
+    if(tab===activeTab) updateModeStatusPill();
+  });
+});
+
+document.getElementById('toggleBtn3').addEventListener('click', ()=>{
+  /* Previously this silently did nothing while the activity was in auto mode,
+     which read as a broken button. Take control instead, like the field button
+     in activity 6 does. */
+  if (t3State.simMode === 'auto') {
+    t3State.simMode = 'manual';
+    const modeBtn = document.querySelector('[data-mode-tab="3"]');
+    if (modeBtn) {
+      modeBtn.classList.remove('on');
+      modeBtn.textContent = '🖐️ يدوي';
+    }
+    updateModeStatusPill();
+  }
+  t3ToggleTopology();
+});
+
+document.querySelectorAll('#dielectricMaterials button').forEach(btn=>{
+  btn.addEventListener('click', e=>{
+    document.querySelectorAll('#dielectricMaterials button').forEach(b=>b.classList.remove('on'));
+    e.currentTarget.classList.add('on');
+    const k = Number(e.currentTarget.dataset.k);
+    t2State.k = k;
+    t2State.dielectricLabel = e.currentTarget.textContent;
+  });
+});
+
+document.getElementById('sourceToggleBtn2').addEventListener('click', e=>{
+  const nowConnected = !t2State.connected;
+  t2SetConnected(nowConnected);
+  e.currentTarget.classList.toggle('on', !nowConnected); // "on" (amber) styling used for the default disconnected state
+  e.currentTarget.textContent = nowConnected ? '🔌 الحالة: متصلة بالبطارية' : '🔌 الحالة: مفصولة عن البطارية';
+});
+
+/* ---- Tab 1: connect/disconnect the source ---- */
+document.getElementById('sourceToggleBtn1').addEventListener('click', e=>{
+  const nowConnected = !t1State.connected;
+  t1SetConnected(nowConnected);
+  e.currentTarget.classList.toggle('on', !nowConnected);
+  e.currentTarget.textContent = nowConnected ? '🔌 الحالة: موصولة بالبطارية' : '🔌 الحالة: مفصولة عن البطارية';
+});
+
+/* ---- Tab 1: dielectric insert / eject ---- */
+document.querySelectorAll('#dielectricInsert1 button').forEach(btn=>{
+  btn.addEventListener('click', e=>{
+    document.querySelectorAll('#dielectricInsert1 button').forEach(b=>b.classList.remove('on'));
+    e.currentTarget.classList.add('on');
+    t1State.dielTarget = e.currentTarget.dataset.insert === 'in' ? 1 : 0;
+  });
+});
+/* ---- Tab 1: dielectric material (k) ---- */
+document.querySelectorAll('#dielectricMaterials1 button').forEach(btn=>{
+  btn.addEventListener('click', e=>{
+    document.querySelectorAll('#dielectricMaterials1 button').forEach(b=>b.classList.remove('on'));
+    e.currentTarget.classList.add('on');
+    t1State.dielK = Number(e.currentTarget.dataset.k);
+  });
+});
+
+/* ---- Tab 6: molecular dielectric ---- */
+document.getElementById('fieldToggleBtn6').addEventListener('click', e=>{
+  /* In auto mode the field is recomputed from a timer every frame, so a manual
+     toggle used to be overwritten before it could ever be seen — the button
+     looked dead. Pressing it now hands control to the teacher: switch the
+     activity to manual mode first, then apply the toggle. */
+  if (t6State.simMode === 'auto') {
+    t6State.simMode = 'manual';
+    const modeBtn = document.querySelector('[data-mode-tab="6"]');
+    if (modeBtn) {
+      modeBtn.classList.remove('on');
+      modeBtn.textContent = '🖐️ يدوي';
+    }
+    updateModeStatusPill();
+  }
+  t6ToggleField();
+  e.currentTarget.classList.toggle('on', t6State.fieldOn);
+  e.currentTarget.textContent = t6State.fieldOn ? '⚡ المجال: يعمل' : '⚡ المجال: متوقف';
+});
+document.querySelectorAll('#molTypeBtns button').forEach(btn=>{
+  btn.addEventListener('click', e=>{
+    document.querySelectorAll('#molTypeBtns button').forEach(b=>b.classList.remove('on'));
+    e.currentTarget.classList.add('on');
+    t6SetType(e.currentTarget.dataset.type);
+  });
+});
+
+document.querySelectorAll('#dielInsert6 button').forEach(btn=>{
+  btn.addEventListener('click', e=>{
+    document.querySelectorAll('#dielInsert6 button').forEach(b=>b.classList.remove('on'));
+    e.currentTarget.classList.add('on');
+    t6State.insTarget = e.currentTarget.dataset.ins === 'in' ? 1 : 0;
+  });
+});
+
+document.querySelectorAll('input[type=range][data-target]').forEach(inp=>{
+  inp.addEventListener('input', e=>{
+    const path = e.target.dataset.target.split('.');
+    const value = Number(e.target.value);
+    let obj = window[path[0]];
+    for(let i=1;i<path.length-1;i++) obj = obj[isNaN(path[i]) ? path[i] : Number(path[i])];
+    const lastKey = path[path.length-1];
+    obj[isNaN(lastKey) ? lastKey : Number(lastKey)] = value;
+    const labelEl = document.getElementById(e.target.dataset.label);
+    if(labelEl) labelEl.textContent = value.toFixed(1);
+  });
+});
+
+let lastTime = null;
+function loop(ts){
+  if(lastTime===null) lastTime = ts;
+  let dt = (ts - lastTime) / 1000;
+  dt = Math.min(dt, 0.05);
+  lastTime = ts;
+
+  pointer.isClicked = _clickPending;
+  _clickPending = false;
+
+  /* Surface any press that was latched since the last frame. justPressed is
+     true for exactly one frame per press, and pressX/pressY hold where the
+     finger actually landed — so a tap that started and ended inside the same
+     frame gap is still handled at the right coordinates. */
+  pointer.justPressed = _pressPending;
+  if (_pressPending) { pointer.pressX = _pressPos.x; pointer.pressY = _pressPos.y; }
+  _pressPending = false;
+
+  switch(activeTab){
+    case 1: t1Update(dt); t1Draw(); break;
+    case 2: t2Update(dt); t2Draw(); break;
+    case 3: t3Update(dt); t3Draw(); break;
+    case 4: t4Update(dt); t4Draw(); break;
+    case 5: t5Update(dt); t5Draw(); break;
+    case 6: t6Update(dt); t6Draw(); break;
+  }
+  requestAnimationFrame(loop);
+}
+
+switchTab(1);
+requestAnimationFrame(loop);
+
+/* Welcome overlay */
+(function initWelcome(){
+  const overlay = document.getElementById('welcomeOverlay');
+  const btn = document.getElementById('startBtn');
+  function dismiss(){
+    document.body.classList.add('started');
+    if (overlay) {
+      overlay.classList.add('hidden');
+      setTimeout(()=>{ overlay.style.display = 'none'; }, 550);
+    }
+  }
+  if (btn) btn.addEventListener('click', dismiss);
+  // tapping anywhere on the overlay also works (helps if the button is offscreen)
+  if (overlay) overlay.addEventListener('click', dismiss);
+  // fail-safe: never leave the app permanently hidden
+  if (!overlay || !btn) document.body.classList.add('started');
+
+  /* ---- Welcome visual FX: charge particles, field lines, cursor glow ---- */
+  (function welcomeFx(){
+    const cv = document.getElementById('welcomeFx');
+    const glow = overlay ? overlay.querySelector('.welcome-cursor-glow') : null;
+    if (!cv || !overlay) return;
+    const cx = cv.getContext('2d');
+    let W = 0, H = 0, raf = 0, running = true;
+    const DPR = Math.min(2, window.devicePixelRatio || 1);
+
+    function resize(){
+      W = overlay.clientWidth; H = overlay.clientHeight;
+      cv.width = W * DPR; cv.height = H * DPR;
+      cv.style.width = W + 'px'; cv.style.height = H + 'px';
+      cx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    // floating charge particles (+ and −)
+    const N = Math.min(28, Math.round(W * H / 46000));
+    const parts = [];
+    for (let i = 0; i < N; i++){
+      parts.push({
+        x: Math.random()*W, y: Math.random()*H,
+        vx: (Math.random()-.5)*0.35, vy: (Math.random()-.5)*0.35,
+        r: 8 + Math.random()*7,
+        sign: Math.random() < 0.5 ? 1 : -1,
+        a: 0.10 + Math.random()*0.16
+      });
+    }
+    // drifting field-line phases
+    let t = 0;
+
+    function draw(){
+      if (!running) return;
+      cx.clearRect(0,0,W,H);
+
+      // curved field lines drifting across the top and bottom
+      t += 0.006;
+      cx.lineWidth = 1.2;
+      for (let k = 0; k < 5; k++){
+        const yBase = (H*0.16) + k*(H*0.16);
+        const amp = 16 + k*4;
+        cx.beginPath();
+        for (let x = -20; x <= W+20; x += 14){
+          const y = yBase + Math.sin(x*0.012 + t*1.6 + k)*amp;
+          x === -20 ? cx.moveTo(x,y) : cx.lineTo(x,y);
+        }
+        const cyan = k % 2 === 0;
+        cx.strokeStyle = cyan ? 'rgba(56,225,198,0.05)' : 'rgba(242,168,60,0.045)';
+        cx.stroke();
+      }
+
+      // faint attraction/repulsion lines between nearby charges
+      for (let i = 0; i < parts.length; i++){
+        for (let j = i+1; j < parts.length; j++){
+          const a = parts[i], b = parts[j];
+          const dx = a.x-b.x, dy = a.y-b.y;
+          const d2 = dx*dx + dy*dy;
+          if (d2 < 12000){
+            const op = (1 - d2/12000) * 0.12;
+            // opposite charges attract (cyan bond), like charges repel (amber)
+            cx.strokeStyle = (a.sign !== b.sign)
+              ? `rgba(56,225,198,${op})` : `rgba(242,168,60,${op*0.7})`;
+            cx.lineWidth = 1;
+            cx.beginPath(); cx.moveTo(a.x,a.y); cx.lineTo(b.x,b.y); cx.stroke();
+          }
+        }
+      }
+
+      // particles
+      parts.forEach(p => {
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < -20) p.x = W+20; if (p.x > W+20) p.x = -20;
+        if (p.y < -20) p.y = H+20; if (p.y > H+20) p.y = -20;
+        // glow dot
+        cx.beginPath(); cx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+        cx.fillStyle = p.sign > 0 ? `rgba(239,91,107,${p.a})` : `rgba(77,141,255,${p.a})`;
+        cx.fill();
+        // +/- sign
+        cx.fillStyle = p.sign > 0 ? `rgba(255,180,190,${p.a+0.25})` : `rgba(150,190,255,${p.a+0.25})`;
+        cx.font = `${p.r*1.3}px sans-serif`; cx.textAlign='center'; cx.textBaseline='middle';
+        cx.fillText(p.sign > 0 ? '+' : '−', p.x, p.y);
+      });
+
+      raf = requestAnimationFrame(draw);
+    }
+    draw();
+
+    // cursor-following glow
+    function moveGlow(x, y){
+      if (!glow) return;
+      const r = overlay.getBoundingClientRect();
+      glow.style.left = (x - r.left) + 'px';
+      glow.style.top  = (y - r.top)  + 'px';
+      glow.style.opacity = '1';
+    }
+    // subtle 3D parallax tilt of the card following the pointer
+    const card = overlay.querySelector('.welcome-card');
+    let tiltRAF = 0;
+    function tiltCard(x, y){
+      if (!card) return;
+      if (tiltRAF) return;
+      tiltRAF = requestAnimationFrame(()=>{
+        tiltRAF = 0;
+        const r = overlay.getBoundingClientRect();
+        const px = (x - r.left) / r.width  - 0.5;   // -0.5..0.5
+        const py = (y - r.top)  / r.height - 0.5;
+        const max = 6;                               // degrees
+        card.style.transform = `perspective(1000px) rotateY(${px*max}deg) rotateX(${-py*max}deg)`;
+      });
+    }
+    function resetTilt(){ if (card) card.style.transform = 'perspective(1000px) rotateY(0) rotateX(0)'; }
+    overlay.addEventListener('pointermove', e => { moveGlow(e.clientX, e.clientY); tiltCard(e.clientX, e.clientY); });
+    overlay.addEventListener('pointerleave', ()=>{ if (glow) glow.style.opacity='0'; resetTilt(); });
+
+    // stop the animation once the overlay is dismissed (perf)
+    const stop = ()=>{ running = false; cancelAnimationFrame(raf); };
+    if (btn) btn.addEventListener('click', stop);
+    overlay.addEventListener('click', stop);
+  })();
+})();
+</script>
+
+
+<!-- ===== وضع التضمين داخل واجهة التطبيق الموحّد =====
+     الملف يبقى صالحاً للفتح بمفرده؛ وعند تحميله داخل إطار (iframe) من
+     الصفحة الرئيسية نتخطى شاشة الترحيب الخاصة به لأن الترحيب صار موحّداً. -->
+<script>
+(function(){
+  var embedded = false;
+  try { embedded = window.self !== window.top; } catch(e){ embedded = true; }
+  if (!embedded && location.search.indexOf('embed=1') === -1) return;
+  document.documentElement.classList.add('is-embedded');
+  function start(){
+    document.body.classList.add('started');
+    var btn = document.getElementById('startBtn');
+    if (btn) btn.click();
+    var ov = document.getElementById('welcomeOverlay');
+    if (ov){ ov.classList.add('hidden'); ov.style.display = 'none'; }
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+  else start();
+})();
+</script>
+</body>
+</html>

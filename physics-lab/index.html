@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a0f1c">
+<title>مختبر الفيزياء الافتراضي | الأستاذ أحمد نعمة العبودي</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&family=Cairo:wght@600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-deep:#0a0f1c;
+    --bg-panel:#111a2c;
+    --bg-panel-alt:#16213a;
+    --border:#243252;
+    --text:#e8edf7;
+    --text-muted:#8b98b4;
+    --gold:#f2c14e;
+    --gold-soft:#ffd97a;
+    --cyan:#38e1c6;
+    --shadow:0 8px 24px rgba(0,0,0,.4);
+  }
+  *{ box-sizing:border-box; }
+  html,body{ height:100%; }
+  body{
+    margin:0;
+    background:var(--bg-deep);
+    color:var(--text);
+    font-family:'Tajawal',system-ui,-apple-system,'Segoe UI',sans-serif;
+    overflow:hidden;
+  }
+  .sr-only{
+    position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+    overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0;
+  }
+
+  /* =====================================================================
+     شاشة الترحيب — الصورة نفسها هي الواجهة، وزرّها هو زر التشغيل الحقيقي
+     ===================================================================== */
+  #splash{
+    position:fixed; inset:0; z-index:50;
+    display:flex; align-items:center; justify-content:center;
+    background:var(--bg-deep);
+    transition:opacity .55s ease, visibility .55s ease;
+  }
+  #splash.hidden{ opacity:0; visibility:hidden; pointer-events:none; }
+
+  /* نسخة مموّهة من الصورة تملأ الفراغ حول الواجهة بدل الأشرطة السوداء */
+  .splash-backdrop{
+    position:absolute; inset:-6%;
+    background:url('assets/welcome.jpg') center/cover no-repeat;
+    filter:blur(52px) brightness(.55) saturate(1.05);
+    transform:scale(1.1);
+  }
+  .splash-backdrop::after{
+    content:''; position:absolute; inset:0;
+    background:radial-gradient(ellipse at center, transparent 35%, rgba(6,10,20,.75) 100%);
+  }
+
+  /* الإطار يحافظ على نسبة الصورة تماماً حتى تبقى مواضع الأزرار مطابقة لها */
+  .splash-frame{
+    position:relative;
+    aspect-ratio:1052 / 1008;
+    width:min(100%, calc(100dvh * 1052 / 1008));
+    max-height:100dvh;
+    border-radius:4px;
+    box-shadow:0 0 0 1px rgba(255,214,120,.22),
+               0 30px 80px rgba(0,0,0,.6);
+    overflow:hidden;
+  }
+  .splash-art{
+    display:block; width:100%; height:100%;
+    object-fit:contain;
+    user-select:none; -webkit-user-drag:none;
+  }
+
+  /* زر «ابدأ المحاكاة» — شفاف، مرسوم فوق الزر الموجود داخل الصورة */
+  .splash-start{
+    position:absolute;
+    left:35.2%; top:80.6%;
+    width:32.6%; height:15.4%;
+    padding:0; border:0; background:transparent;
+    border-radius:50%;
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .splash-start::before{
+    content:''; position:absolute; inset:0;
+    border-radius:50%;
+    background:radial-gradient(ellipse at 50% 45%, rgba(255,224,150,.34), rgba(255,200,90,.10) 55%, transparent 72%);
+    opacity:0; transition:opacity .28s ease;
+  }
+  .splash-start::after{
+    content:''; position:absolute; inset:0;
+    border-radius:50%;
+    box-shadow:0 0 0 0 rgba(255,213,120,.55);
+    animation:beacon 2.8s cubic-bezier(.22,.9,.3,1) infinite;
+  }
+  @keyframes beacon{
+    0%   { box-shadow:0 0 0 0 rgba(255,213,120,.5); }
+    70%  { box-shadow:0 0 0 22px rgba(255,213,120,0); }
+    100% { box-shadow:0 0 0 0 rgba(255,213,120,0); }
+  }
+  .splash-start:hover::before,
+  .splash-start:focus-visible::before{ opacity:1; }
+  .splash-start:focus-visible{ outline:3px solid var(--gold-soft); outline-offset:4px; }
+  .splash-start:active{ transform:translateY(2px) scale(.985); }
+  @media (prefers-reduced-motion:reduce){
+    .splash-start::after{ animation:none; box-shadow:0 0 0 2px rgba(255,213,120,.45); }
+  }
+
+  /* تلميح يظهر بعد لحظات إن لم يضغط أحد */
+  .splash-hint{
+    position:absolute; left:50%; bottom:2.2%;
+    transform:translateX(-50%);
+    font-size:13px; font-weight:700; letter-spacing:.2px;
+    color:#f6e3b4;
+    background:rgba(10,16,30,.62);
+    border:1px solid rgba(255,214,120,.35);
+    padding:6px 16px; border-radius:999px;
+    backdrop-filter:blur(6px);
+    opacity:0; transition:opacity .5s ease;
+    pointer-events:none; white-space:nowrap;
+  }
+  .splash-hint.show{ opacity:1; }
+
+  /* =====================================================================
+     التطبيق — تبويب لكل فصل، ومحتوى كل فصل يُحمَّل داخل إطاره
+     ===================================================================== */
+  #app{
+    position:fixed; inset:0;
+    display:flex; flex-direction:column;
+    opacity:0; visibility:hidden;
+    transition:opacity .5s ease .1s, visibility .5s ease .1s;
+  }
+  #app.visible{ opacity:1; visibility:visible; }
+
+  /* شريط واحد يجمع الهوية وتبويبي الفصلين، حتى لا تزدحم الشاشة بأكثر من
+     شريط فوق محتوى التجربة نفسها. */
+  .app-bar{
+    display:flex; align-items:center; gap:14px;
+    padding:8px 16px;
+    background:linear-gradient(180deg, var(--bg-panel-alt), var(--bg-panel));
+    border-bottom:1px solid var(--border);
+    box-shadow:var(--shadow);
+    flex:none;
+  }
+  .brand{ display:flex; align-items:center; gap:11px; min-width:0; }
+  .brand-mark{
+    width:40px; height:40px; flex:none;
+    border-radius:50%;
+    background:radial-gradient(circle at 32% 28%, #33405c, #141c2e 70%);
+    border:1px solid rgba(255,214,120,.45);
+    display:grid; place-items:center;
+    font-family:'Cairo',sans-serif; font-weight:800; font-size:17px;
+    color:var(--gold-soft);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.12), 0 3px 10px rgba(0,0,0,.35);
+  }
+  .brand h1{
+    margin:0; font-family:'Cairo',sans-serif;
+    font-size:16px; font-weight:800; line-height:1.3;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .brand span{
+    display:block; font-size:11.5px; color:var(--text-muted);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+
+  .app-bar-actions{ margin-inline-start:auto; display:flex; align-items:center; gap:10px; }
+  .teacher-chip{
+    font-size:12px; color:var(--text-muted);
+    background:var(--bg-panel-alt);
+    border:1px solid var(--border);
+    padding:7px 13px; border-radius:999px;
+    white-space:nowrap;
+  }
+  .teacher-chip b{ color:var(--gold-soft); font-size:13.5px; }
+  .home-btn{
+    font-family:inherit; font-size:13px; font-weight:700;
+    color:var(--text);
+    background:var(--bg-panel-alt);
+    border:1px solid var(--border);
+    padding:8px 14px; border-radius:10px;
+    cursor:pointer; white-space:nowrap;
+    transition:border-color .2s ease, color .2s ease, transform .15s ease;
+  }
+  .home-btn:hover{ border-color:var(--gold); color:var(--gold-soft); }
+  .home-btn:active{ transform:translateY(1px); }
+
+  /* تبويبات الفصلين */
+  .chapter-tabs{
+    display:flex; gap:8px;
+    min-width:0;
+    overflow-x:auto;
+    scrollbar-width:none;
+    padding:2px;
+  }
+  .chapter-tabs::-webkit-scrollbar{ display:none; }
+  .chapter-tab{
+    font-family:'Cairo',sans-serif; font-size:13.5px; font-weight:700;
+    color:var(--text-muted);
+    background:var(--bg-panel-alt);
+    border:1px solid var(--border);
+    padding:8px 16px; border-radius:11px;
+    cursor:pointer; white-space:nowrap;
+    display:flex; align-items:center; gap:9px;
+    transition:color .2s ease, border-color .2s ease, background .2s ease, transform .15s ease;
+  }
+  .chapter-tab .num{
+    width:22px; height:22px; flex:none;
+    display:grid; place-items:center;
+    border-radius:50%;
+    background:rgba(255,255,255,.06);
+    font-size:12.5px;
+  }
+  .chapter-tab small{ display:block; font-size:10.5px; font-weight:500; opacity:.75; }
+  .chapter-tab:hover{ color:var(--text); border-color:#31456b; }
+  .chapter-tab[aria-selected="true"]{
+    color:#12192a;
+    background:linear-gradient(180deg, var(--gold-soft), var(--gold));
+    border-color:var(--gold-soft);
+    box-shadow:0 6px 18px rgba(242,193,78,.22);
+  }
+  .chapter-tab[aria-selected="true"] .num{ background:rgba(0,0,0,.16); }
+  .chapter-tab:focus-visible{ outline:2px solid var(--cyan); outline-offset:2px; }
+
+  .panes{ position:relative; flex:1; min-height:0; background:var(--bg-deep); }
+  .pane{ position:absolute; inset:0; display:none; }
+  .pane.active{ display:block; }
+  .pane iframe{
+    width:100%; height:100%;
+    border:0; display:block;
+    background:var(--bg-deep);
+  }
+  .pane-loading{
+    position:absolute; inset:0;
+    display:grid; place-items:center; gap:14px;
+    align-content:center;
+    color:var(--text-muted); font-size:13.5px;
+    background:var(--bg-deep);
+    transition:opacity .4s ease;
+  }
+  .pane-loading.done{ opacity:0; pointer-events:none; }
+  .spinner{
+    width:38px; height:38px; border-radius:50%;
+    border:3px solid var(--border);
+    border-top-color:var(--gold);
+    animation:spin .9s linear infinite;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+
+  /* العناوين الفرعية للتبويبين تحتاج شاشة عريضة؛ دونها يُقتطع اسم الفصل */
+  @media (max-width:1499px){ .chapter-tab small{ display:none; } }
+  @media (max-width:1180px){ .teacher-chip{ display:none; } }
+  @media (max-width:860px){
+    /* الشريط ينقسم سطرين: الهوية فوق، وتبويبا الفصلين تحتها */
+    .app-bar{ flex-wrap:wrap; gap:9px; padding:8px 12px; }
+    .brand span{ display:none; }
+    .brand h1{ font-size:14px; }
+    .chapter-tabs{ order:3; width:100%; }
+    .app-bar-actions{ margin-inline-start:auto; }
+  }
+  @media (max-width:520px){
+    .brand-mark{ width:32px; height:32px; font-size:14px; }
+    .brand h1{ font-size:13px; }
+    .home-btn{ padding:7px 11px; font-size:12px; }
+    .chapter-tab{ padding:8px 13px; font-size:12.5px; }
+    .splash-hint{ font-size:11.5px; padding:5px 12px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===================== شاشة الترحيب ===================== -->
+<div id="splash">
+  <div class="splash-backdrop" aria-hidden="true"></div>
+  <div class="splash-frame">
+    <img class="splash-art" src="assets/welcome.jpg"
+         alt="مرحباً بكم في محاكي الفيزياء — إعداد الأستاذ أحمد نعمة العبودي">
+    <button class="splash-start" id="beginBtn" type="button" title="ابدأ المحاكاة">
+      <span class="sr-only">ابدأ المحاكاة — الدخول إلى التجارب</span>
+    </button>
+    <div class="splash-hint" id="splashHint" aria-hidden="true">اضغط «ابدأ المحاكاة» للدخول إلى التجارب</div>
+  </div>
+</div>
+
+<!-- ===================== التطبيق ===================== -->
+<div id="app">
+  <header class="app-bar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">أ‌م</div>
+      <div>
+        <h1>مختبر الفيزياء الافتراضي</h1>
+        <span>الفيزياء — الصف السادس الإعدادي (الثاني عشر)</span>
+      </div>
+    </div>
+    <nav class="chapter-tabs" role="tablist" aria-label="فصول المنهج">
+      <button class="chapter-tab" role="tab" id="tab-1" type="button"
+              aria-selected="true" aria-controls="pane-1" data-chapter="1">
+        <span class="num" aria-hidden="true">١</span>
+        <span>الفصل الأول — المتسعات<small>السعة، العوازل، الشحن والتفريغ، التوالي والتوازي</small></span>
+      </button>
+      <button class="chapter-tab" role="tab" id="tab-2" type="button"
+              aria-selected="false" aria-controls="pane-2" data-chapter="2" tabindex="-1">
+        <span class="num" aria-hidden="true">٢</span>
+        <span>الفصل الثاني — الحث الكهرومغناطيسي<small>الفيض، قانون فارادي ولنز، المحوّلات</small></span>
+      </button>
+    </nav>
+
+    <div class="app-bar-actions">
+      <div class="teacher-chip">إعداد: <b>الأستاذ أحمد نعمة العبودي</b></div>
+      <button class="home-btn" id="homeBtn" type="button">⌂ الواجهة الرئيسية</button>
+    </div>
+  </header>
+
+  <div class="panes">
+    <section class="pane active" id="pane-1" role="tabpanel" aria-labelledby="tab-1" data-chapter="1">
+      <iframe title="الفصل الأول — المتسعات"
+              data-src="chapters/chapter-1-capacitors.html"
+              allow="fullscreen; autoplay"
+              allowfullscreen></iframe>
+      <div class="pane-loading"><div class="spinner"></div><div>جارٍ تحميل تجارب الفصل الأول…</div></div>
+    </section>
+    <section class="pane" id="pane-2" role="tabpanel" aria-labelledby="tab-2" data-chapter="2">
+      <iframe title="الفصل الثاني — الحث الكهرومغناطيسي"
+              data-src="chapters/chapter-2-induction.html"
+              allow="fullscreen; autoplay"
+              allowfullscreen></iframe>
+      <div class="pane-loading"><div class="spinner"></div><div>جارٍ تحميل تجارب الفصل الثاني…</div></div>
+    </section>
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  var splash   = document.getElementById('splash');
+  var app      = document.getElementById('app');
+  var beginBtn = document.getElementById('beginBtn');
+  var homeBtn  = document.getElementById('homeBtn');
+  var hint     = document.getElementById('splashHint');
+  var tabs     = Array.prototype.slice.call(document.querySelectorAll('.chapter-tab'));
+  var panes    = Array.prototype.slice.call(document.querySelectorAll('.pane'));
+  var started  = false;
+
+  /* كل فصل يُحمَّل مرة واحدة فقط، عند أول زيارة لتبويبه، ويبقى محمَّلاً بعدها
+     حتى لا تضيع حالة التجربة عند التنقل بين الفصلين. */
+  function loadPane(pane){
+    var frame = pane.querySelector('iframe');
+    if(!frame || frame.src) return;
+    var loading = pane.querySelector('.pane-loading');
+    frame.addEventListener('load', function(){
+      if(loading) loading.classList.add('done');
+    });
+    frame.src = frame.getAttribute('data-src');
+  }
+
+  function selectChapter(n){
+    tabs.forEach(function(tab){
+      var on = tab.dataset.chapter === n;
+      tab.setAttribute('aria-selected', on ? 'true' : 'false');
+      tab.tabIndex = on ? 0 : -1;
+    });
+    panes.forEach(function(pane){
+      var on = pane.dataset.chapter === n;
+      pane.classList.toggle('active', on);
+      if(on) loadPane(pane);
+    });
+  }
+
+  function begin(){
+    if(started) return;
+    started = true;
+    if(hint) hint.classList.remove('show');
+    splash.classList.add('hidden');
+    app.classList.add('visible');
+    selectChapter('1');
+    // بعد انتهاء انتقال الشاشة، انقل التركيز إلى التبويب النشط
+    setTimeout(function(){
+      var active = document.querySelector('.chapter-tab[aria-selected="true"]');
+      if(active) active.focus();
+    }, 600);
+  }
+
+  function goHome(){
+    started = false;
+    app.classList.remove('visible');
+    splash.classList.remove('hidden');
+    if(beginBtn) beginBtn.focus();
+  }
+
+  beginBtn.addEventListener('click', begin);
+  homeBtn.addEventListener('click', goHome);
+
+  tabs.forEach(function(tab){
+    tab.addEventListener('click', function(){ selectChapter(tab.dataset.chapter); });
+  });
+
+  /* تنقّل التبويبات بالأسهم — في الاتجاه من اليمين لليسار يمين = السابق */
+  document.querySelector('.chapter-tabs').addEventListener('keydown', function(e){
+    if(e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+    var i = tabs.findIndex(function(t){ return t.getAttribute('aria-selected') === 'true'; });
+    var next = e.key === 'ArrowLeft' ? i + 1 : i - 1;
+    if(next < 0 || next >= tabs.length) return;
+    e.preventDefault();
+    selectChapter(tabs[next].dataset.chapter);
+    tabs[next].focus();
+  });
+
+  /* Esc من داخل التطبيق يعيدك إلى الواجهة */
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape' && started) goHome();
+  });
+
+  /* التلميح يظهر فقط إن تأخّر المستخدم عن الضغط */
+  setTimeout(function(){ if(!started && hint) hint.classList.add('show'); }, 4000);
+
+  beginBtn.focus({ preventScroll:true });
+})();
+</script>
+</body>
+</html>
