@@ -1,0 +1,4 @@
+# مخرجات البناء: يعاد توليدها بـ build-launcher.py
+dist/
+.*.rc
+.*.res
