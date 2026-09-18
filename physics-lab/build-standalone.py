@@ -23,6 +23,8 @@ LOGO = os.path.join(HERE, 'assets', 'logo.png')
 CHAPTERS = [
     ('ch1', os.path.join(HERE, 'chapters', 'chapter-1-capacitors.html')),
     ('ch2', os.path.join(HERE, 'chapters', 'chapter-2-induction.html')),
+    ('ch3', os.path.join(HERE, 'chapters', 'chapter-3-ac.html')),
+    ('ch4', os.path.join(HERE, 'chapters', 'chapter-4-emwaves.html')),
 ]
 
 

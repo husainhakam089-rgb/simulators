@@ -1,0 +1,2088 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a0f1c">
+<title>مختبر الفيزياء الافتراضي | الفصل الثالث - التيار المتناوب</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&family=Cairo:wght@600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-deep:#0a0f1c;
+    --bg-panel:#111a2c;
+    --bg-panel-alt:#16213a;
+    --bg-canvas:#0d1526;
+    --border:#243252;
+    --border-soft:#1c2942;
+    --text:#e8edf7;
+    --text-muted:#8b98b4;
+    --accent-amber:#f2a83c;
+    --accent-cyan:#38e1c6;
+    --accent-cyan-bright:#6ffbe0;
+    --accent-red:#ef5b6b;
+    --accent-blue:#4d8dff;
+    --radius:14px;
+    --shadow:0 8px 24px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box;}
+  html{
+    margin:0; padding:0;
+    min-height:100%;
+    background:var(--bg-deep);          /* paints the safe-area strip */
+    -webkit-text-size-adjust:100%;
+  }
+  /* app stays hidden until the welcome screen is dismissed */
+  body:not(.started) header.app-header,
+  body:not(.started) nav.tabs,
+  body:not(.started) main.app-main,
+  body:not(.started) footer{ visibility:hidden; }
+  body{
+    background:
+      radial-gradient(circle at 15% 0%, rgba(56,225,198,.06), transparent 40%),
+      radial-gradient(circle at 90% 90%, rgba(242,168,60,.06), transparent 45%),
+      var(--bg-deep);
+    color:var(--text);
+    font-family:'Tajawal', sans-serif;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+  }
+  h1,h2,h3,h4{font-family:'Cairo', sans-serif; margin:0;}
+
+  header.app-header{
+    /* pad down past the notch/status bar, and pull the header's own background
+       up into that strip so it never reads as a black bar */
+    padding:calc(14px + env(safe-area-inset-top, 0px)) 22px 14px;
+    padding-inline-start:calc(22px + env(safe-area-inset-left, 0px));
+    padding-inline-end:calc(22px + env(safe-area-inset-right, 0px));
+    background:linear-gradient(180deg, var(--bg-panel), rgba(17,26,44,.6));
+    border-bottom:1px solid var(--border);
+    display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
+    flex-shrink:0;
+  }
+  .brand{ display:flex; align-items:center; gap:10px; }
+  .brand .logo{
+    width:38px;height:38px;border-radius:10px;
+    background:conic-gradient(from 200deg, var(--accent-amber), var(--accent-cyan), var(--accent-amber));
+    display:flex;align-items:center;justify-content:center;
+    font-size:18px; font-weight:900; color:#081018;
+  }
+  .brand h1{font-size:17px;}
+  .brand span{display:block;font-size:11px;color:var(--text-muted);font-weight:400;margin-top:2px;}
+
+  .header-teacher{
+    font-family:'Tajawal', sans-serif; font-size:13.5px; color:var(--text-muted);
+    background:var(--bg-panel-alt); border:1px solid var(--border-soft);
+    border-radius:10px; padding:9px 18px; white-space:nowrap;
+  }
+  .header-teacher b{
+    font-family:'Cairo', sans-serif; font-weight:800; font-size:18px;
+    color:var(--accent-amber); margin-inline-start:4px;
+  }
+  @media (max-width:600px){
+    .header-teacher{ font-size:12px; padding:7px 12px; }
+    .header-teacher b{ font-size:15px; }
+  }
+
+  nav.tabs{
+    display:flex; gap:8px; overflow-x:auto; padding:10px 18px;
+    background:var(--bg-panel-alt);
+    border-bottom:1px solid var(--border);
+    scrollbar-width:thin;
+    flex-shrink:0; min-height:56px;
+  }
+  nav.tabs::-webkit-scrollbar{height:6px;}
+  nav.tabs::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
+  .tab-btn{
+    flex:0 0 auto; display:flex; align-items:center; gap:8px;
+    background:var(--bg-panel); border:1px solid var(--border-soft); color:var(--text-muted);
+    padding:9px 14px; border-radius:10px; cursor:pointer;
+    font-family:'Tajawal'; font-size:13.5px; font-weight:500; white-space:nowrap; transition:.15s ease;
+  }
+  .tab-btn .num{
+    width:20px;height:20px;border-radius:50%; background:var(--border-soft);
+    display:flex;align-items:center;justify-content:center;
+    font-size:11px; font-weight:700; color:var(--text-muted); flex:0 0 auto;
+  }
+  .tab-btn:hover{border-color:var(--accent-amber); color:var(--text);}
+  .tab-btn.active{
+    background:linear-gradient(135deg, rgba(242,168,60,.16), rgba(56,225,198,.10));
+    border-color:var(--accent-amber); color:var(--text);
+    box-shadow:0 0 0 1px rgba(242,168,60,.25) inset;
+  }
+  .tab-btn.active .num{background:var(--accent-amber); color:#301b02;}
+
+  main.app-main{
+    flex:1; display:grid; grid-template-columns:340px 1fr; gap:18px; padding:18px; align-items:start;
+  }
+  @media (max-width:900px){
+    main.app-main{grid-template-columns:1fr; padding:12px; gap:12px;}
+    aside.sidebar{order:2; max-height:none;}
+    section.canvas-area{order:1; padding:12px;}
+  }
+  /* Landscape phones/tablets: give the canvas nearly the whole viewport. */
+  @media (max-width:900px) and (orientation:landscape){
+    header.app-header{
+      padding:calc(8px + env(safe-area-inset-top, 0px)) 14px 8px;
+      padding-inline-start:calc(14px + env(safe-area-inset-left, 0px));
+      padding-inline-end:calc(14px + env(safe-area-inset-right, 0px));
+    }
+    .brand .logo{width:30px;height:30px;font-size:15px;}
+    .brand h1{font-size:14px;}
+    .brand span{display:none;}
+    nav.tabs{padding:6px 12px; min-height:46px;}
+    .tab-btn{padding:7px 11px; font-size:12.5px;}
+    main.app-main{padding:8px; gap:8px;}
+    section.canvas-area{padding:8px;}
+    footer{display:none;}
+  }
+  /* Portrait phones: stack everything, keep every reading legible. */
+  @media (max-width:600px){
+    header.app-header{
+      padding:calc(10px + env(safe-area-inset-top, 0px)) 14px 10px;
+      padding-inline-start:calc(14px + env(safe-area-inset-left, 0px));
+      padding-inline-end:calc(14px + env(safe-area-inset-right, 0px));
+    }
+    .brand h1{font-size:14px;}
+    .brand span{font-size:9.5px;}
+    nav.tabs{padding:8px 10px; gap:6px;}
+    .tab-btn{padding:8px 10px; font-size:12px;}
+    .tab-btn .num{width:18px;height:18px;font-size:10px;}
+    .canvas-header{flex-direction:column; align-items:flex-start; gap:6px;}
+    .canvas-header h2{font-size:15px;}
+    .canvas-header .sub{font-size:11px;}
+    .status-pill{align-self:flex-start; font-size:11px; padding:5px 12px;}
+    .sidebar-section li{font-size:12.5px;}
+    .ctrl-btn{padding:11px 8px; font-size:12.5px;}
+    input[type=range]{height:8px;}
+    input[type=range]::-webkit-slider-thumb{width:20px;height:20px;}
+    footer{font-size:10.5px; padding:10px;}
+  }
+
+  aside.sidebar{
+    background:var(--bg-panel); border:1px solid var(--border); border-radius:var(--radius);
+    padding:16px; max-height:calc(100vh - 150px); overflow-y:auto; box-shadow:var(--shadow);
+  }
+  aside.sidebar::-webkit-scrollbar{width:6px;}
+  aside.sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
+  .sidebar-title{
+    font-size:15px; margin-bottom:14px; padding-bottom:10px;
+    border-bottom:1px dashed var(--border); color:var(--accent-amber);
+  }
+  .sidebar-section{margin-bottom:20px;}
+  .sidebar-section h3{
+    font-size:13.5px; display:flex; align-items:center; gap:6px; color:var(--text); margin-bottom:10px; font-weight:700;
+  }
+  .sidebar-section ul, .sidebar-section ol{
+    margin:0; padding-inline-start:20px; display:flex; flex-direction:column; gap:6px;
+  }
+  .sidebar-section li{ font-size:13px; color:var(--text-muted); line-height:1.6; }
+  .sidebar-section ol li::marker{color:var(--accent-cyan-bright); font-weight:700;}
+  .sidebar-section ul li::marker{color:var(--accent-amber);}
+
+  .control-panel{display:none; flex-direction:column; gap:14px;}
+  .control-panel.active{display:flex;}
+  .control-row{display:flex; flex-direction:column; gap:6px;}
+  .control-row label{ font-size:12.5px; color:var(--text-muted); display:flex; justify-content:space-between; }
+  .control-row label b{color:var(--accent-amber); font-weight:700;}
+  input[type=range]{
+    -webkit-appearance:none; width:100%; height:6px; border-radius:4px; background:var(--border-soft); outline:none;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none; width:16px;height:16px;border-radius:50%;
+    background:var(--accent-amber); cursor:pointer; border:2px solid #301b02;
+    box-shadow:0 0 0 3px rgba(242,168,60,.2);
+  }
+  .btn-row{display:flex; gap:8px; flex-wrap:wrap;}
+  .ctrl-btn{
+    flex:1; background:var(--bg-panel-alt); border:1px solid var(--border-soft); color:var(--text);
+    padding:10px 8px; border-radius:9px; cursor:pointer;
+    font-family:'Tajawal'; font-size:12.5px; font-weight:700; transition:.15s;
+    display:flex; align-items:center; justify-content:center; gap:6px;
+  }
+  .ctrl-btn:hover{border-color:var(--accent-amber);}
+  .ctrl-btn.on{background:linear-gradient(135deg, var(--accent-amber), #b9791f); color:#301b02; border-color:transparent;}
+  .ctrl-btn.cyan.on{background:linear-gradient(135deg, var(--accent-cyan-bright), #1fae95); color:#06251f;}
+  .hint{
+    font-size:11.5px; color:var(--text-muted); background:var(--bg-panel-alt);
+    border:1px dashed var(--border-soft); border-radius:8px; padding:8px 10px; line-height:1.6;
+  }
+
+  section.canvas-area{
+    background:var(--bg-panel); border:1px solid var(--border); border-radius:var(--radius);
+    padding:16px; box-shadow:var(--shadow);
+  }
+  .canvas-header{ display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px; }
+  .canvas-header h2{font-size:18px;}
+  .canvas-header .sub{font-size:12px; color:var(--text-muted); margin-top:3px;}
+  .canvas-scroll{ width:100%; border-radius:10px; }
+  .canvas-wrap{
+    position:relative;
+    width:100%;
+    padding-top:53.333%;           /* 480/900 — reserves correct height everywhere */
+    background:
+      linear-gradient(rgba(242,168,60,.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(242,168,60,.035) 1px, transparent 1px),
+      var(--bg-canvas);
+    background-size:30px 30px, 30px 30px, 100% 100%;
+    border-radius:10px; border:1px solid var(--border-soft); overflow:hidden;
+  }
+  canvas#simCanvas{
+    position:absolute; top:0; left:0;
+    display:block; width:100%; height:100%;
+    touch-action:none; cursor:pointer;
+  }
+  canvas#simCanvas.dragging{cursor:grabbing;}
+  /* Status pill now lives in the header row (flows with the page, never
+     overlaps canvas-drawn content regardless of how much the canvas shrinks). */
+  .status-pill{
+    flex:0 0 auto;
+    background:rgba(10,15,28,.72); border:1px solid var(--border-soft);
+    border-radius:20px; padding:6px 14px; font-size:12px; color:var(--text-muted);
+    white-space:nowrap;
+  }
+  .status-pill b{color:var(--accent-amber);}
+
+  footer{ text-align:center; font-size:11.5px; color:var(--text-muted);
+    padding:14px 14px calc(14px + env(safe-area-inset-bottom, 0px));
+    border-top:1px solid var(--border); }
+
+  /* ===== Welcome / Landing Overlay ===== */
+  #welcomeOverlay{
+    position:fixed;
+    top:0; left:0; right:0; bottom:0;
+    width:100%;
+    height:100vh;
+    height:100dvh;              /* dynamic vh: correct even with the URL bar up */
+    z-index:9999;
+    padding:env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px)
+            env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+    display:flex; align-items:center; justify-content:center;
+    overflow-y:auto;
+    /* OPAQUE base colour first, so the app never shows through — some mobile
+       browsers ignore backdrop-filter, which used to leave this see-through. */
+    background-color:#0a0f1c;
+    background-image:
+      radial-gradient(circle at 20% 15%, rgba(242,168,60,.16), transparent 45%),
+      radial-gradient(circle at 85% 85%, rgba(56,225,198,.14), transparent 50%),
+      linear-gradient(160deg, #060a14, #0d1526 55%, #0a1220);
+    transition: opacity .5s ease, visibility .5s ease;
+  }
+  #welcomeOverlay.hidden{ opacity:0; visibility:hidden; pointer-events:none; }
+  #welcomeOverlay::before{
+    content:''; position:absolute; inset:0;
+    background-image:
+      linear-gradient(rgba(242,168,60,.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(242,168,60,.05) 1px, transparent 1px);
+    background-size:42px 42px;
+    -webkit-mask-image: radial-gradient(circle at 50% 40%, black, transparent 75%);
+            mask-image: radial-gradient(circle at 50% 40%, black, transparent 75%);
+  }
+  .welcome-card{
+    position:relative; z-index:1;
+    display:flex; flex-direction:column; align-items:center; text-align:center;
+    gap:18px; padding:56px 60px; max-width:640px; width:92%;
+    margin:auto;                       /* true centring inside the flex box */
+    background:#141e33;                /* solid — never shows the app behind */
+    border:1px solid var(--border);
+    border-radius:22px;
+    box-shadow:0 20px 60px rgba(0,0,0,.45);
+    animation: welcomeRise .8s ease;
+  }
+  @keyframes welcomeRise{
+    from{ opacity:0; transform:translateY(22px) scale(.97); }
+    to{ opacity:1; transform:translateY(0) scale(1); }
+  }
+  .welcome-logo{
+    width:78px; height:78px; border-radius:20px;
+    background:conic-gradient(from 200deg, var(--accent-amber), var(--accent-cyan), var(--accent-amber));
+    display:flex; align-items:center; justify-content:center;
+    font-size:38px; font-weight:900; color:#081018;
+    box-shadow:0 10px 30px rgba(242,168,60,.25);
+  }
+  .welcome-title{
+    font-family:'Cairo', sans-serif; font-weight:800; font-size:30px;
+    background:linear-gradient(90deg, var(--accent-amber), var(--accent-cyan-bright));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    line-height:1.4;
+  }
+  .welcome-subtitle{ font-size:16px; color:var(--text); opacity:.9; font-weight:500; }
+  .welcome-divider{
+    width:70px; height:3px; border-radius:2px;
+    background:linear-gradient(90deg, var(--accent-amber), var(--accent-cyan));
+  }
+  .welcome-author{
+    width:100%; max-width:420px;
+    font-size:15px; color:var(--text-muted);
+    background:var(--bg-panel-alt);
+    border:1px dashed var(--border-soft);
+    border-radius:10px; padding:14px 20px;
+  }
+  .welcome-author b{
+    font-family:'Cairo', sans-serif; font-weight:800; font-size:21px;
+    color:var(--accent-amber); margin-inline-start:6px;
+  }
+  .welcome-start-btn{
+    margin-top:10px;
+    display:flex; align-items:center; gap:10px;
+    font-family:'Cairo', sans-serif; font-weight:800; font-size:17px;
+    color:#301b02;
+    background:linear-gradient(135deg, var(--accent-amber), #f2c375);
+    border:none; border-radius:14px;
+    padding:15px 42px;
+    cursor:pointer;
+    box-shadow:0 12px 30px rgba(242,168,60,.3);
+    transition:.2s ease;
+  }
+  .welcome-start-btn:hover{ transform:translateY(-2px); box-shadow:0 16px 38px rgba(242,168,60,.42); }
+  .welcome-start-btn:active{ transform:translateY(0); }
+  .welcome-hint{ font-size:11.5px; color:var(--text-muted); opacity:.75; }
+
+  @media (max-width:480px){
+    .welcome-card{ padding:36px 24px; gap:14px; }
+    .welcome-title{ font-size:24px; }
+    .welcome-start-btn{ padding:13px 30px; font-size:15px; }
+    .welcome-author{ font-size:13px; padding:11px 16px; }
+    .welcome-author b{ font-size:18px; }
+    .brand h1{ font-size:14px; }
+    .brand span{ font-size:10px; }
+    .canvas-header h2{ font-size:16px; }
+    .header-teacher{ order:3; width:100%; text-align:center; }
+  }
+
+
+  /* On a narrow phone the 900x480 diagram cannot shrink to fit and stay
+     readable — at 360px wide its labels would render around 4px. So instead of
+     squeezing it, we give the canvas a real minimum size and let the user pan
+     horizontally. Nothing is cut off; it is all reachable by scrolling, and
+     rotating to landscape removes the need to scroll at all. */
+  .rotate-hint{
+    display:none;
+    align-items:center; gap:10px;
+    margin-bottom:10px; padding:9px 12px;
+    background:linear-gradient(135deg, rgba(242,168,60,.14), rgba(56,225,198,.08));
+    border:1px solid rgba(242,168,60,.35);
+    border-radius:10px;
+    font-size:12px; color:var(--text); line-height:1.5;
+  }
+  .rotate-hint span.ico{ font-size:16px; flex:0 0 auto; }
+
+  @media (max-width:760px){
+    .rotate-hint{ display:flex; }
+  }
+  @media (max-width:900px) and (orientation:landscape){
+    .rotate-hint{ display:none; }
+  }
+</style>
+<!-- ===== توحيد الشعار مع شعار صورة الواجهة ===== -->
+<style>
+  .brand .logo, .welcome-logo{
+    background:url('data:image/png;base64,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') center/contain no-repeat !important;
+    border:0 !important;
+    border-radius:50% !important;   /* الشعار قرص، فالحافة تتبع دائرته */
+    box-shadow:0 0 0 1px rgba(255,214,120,.45),
+               0 0 14px rgba(242,193,78,.14),
+               0 6px 18px rgba(0,0,0,.45) !important;
+    animation:none !important;
+    color:transparent !important;
+    font-size:0 !important;
+  }
+  .welcome-logo > span, .welcome-logo > .logo-ring{ display:none !important; }
+  .welcome-logo::before, .welcome-logo::after,
+  .brand .logo::before, .brand .logo::after{ display:none !important; }
+</style>
+</head>
+<body>
+
+<div id="welcomeOverlay">
+  <div class="welcome-card">
+    <div class="welcome-logo">~</div>
+    <div class="welcome-title">مختبر الفيزياء الافتراضي<br>التيار المتناوب</div>
+    <div class="welcome-subtitle">محاكي تجارب الفصل الثالث — الصف السادس الإعدادي</div>
+    <div class="welcome-divider"></div>
+    <div class="welcome-author">إعداد: <b>أحمد نعمة العبودي</b></div>
+    <button class="welcome-start-btn" id="startBtn">🚀 ابدأ التجربة</button>
+    <div class="welcome-hint">5 تجارب تفاعلية عن الرادة الحثية والسعوية والرنين</div>
+  </div>
+</div>
+
+<header class="app-header">
+  <div class="brand">
+    <div class="logo">~</div>
+    <div>
+      <h1>مختبر الفيزياء الافتراضي — التيار المتناوب</h1>
+      <span>الفيزياء — الصف السادس الإعدادي — الفصل الثالث</span>
+    </div>
+  </div>
+  <div class="header-teacher">إعداد: <b>أحمد نعمة العبودي</b></div>
+</header>
+
+<nav class="tabs" id="tabsNav"></nav>
+
+<main class="app-main">
+  <aside class="sidebar">
+    <div class="sidebar-title" id="sidebarTitle">النشاط الحالي</div>
+
+    <div class="sidebar-section">
+      <h3>🧰 أدوات النشاط</h3>
+      <ul id="toolsList"></ul>
+    </div>
+
+    <div class="sidebar-section">
+      <h3>📋 خطوات النشاط</h3>
+      <ol id="stepsList"></ol>
+    </div>
+
+    <div class="sidebar-section">
+      <h3>🎛️ لوحة التحكم</h3>
+      <div id="controlPanels">
+
+        <!-- Tab 1: XL vs f -->
+        <div class="control-panel" data-tab="1">
+          <div class="btn-row">
+            <button class="ctrl-btn on" data-mode-tab="1">⚙️ تلقائي</button>
+          </div>
+          <div class="hint">💡 تلقائي: التردد يتزايد وينقص تلقائيًا. يدوي: حرّك منزلق التردد بنفسك.</div>
+          <div class="hint">💡 الفولتية تبقى ثابتة، فكلما زاد التردد زادت الرادة X<sub>L</sub> ونقص التيار.</div>
+          <div class="control-row">
+            <label>تردد المذبذب f (Hz) <b id="v-f1">50</b></label>
+            <input type="range" min="10" max="200" step="1" value="50" data-target="t1State.f" data-label="v-f1" data-dec="0">
+          </div>
+          <div class="control-row">
+            <label>معامل الحث L (H) <b id="v-L1">0.50</b></label>
+            <input type="range" min="0.1" max="1.5" step="0.05" value="0.5" data-target="t1State.L" data-label="v-L1" data-dec="2">
+          </div>
+          <div class="control-row">
+            <label>فولتية المصدر V (ثابتة) <b id="v-V1">12</b></label>
+            <input type="range" min="4" max="24" step="1" value="12" data-target="t1State.V" data-label="v-V1" data-dec="0">
+          </div>
+        </div>
+
+        <!-- Tab 2: XL vs L -->
+        <div class="control-panel" data-tab="2">
+          <div class="btn-row">
+            <button class="ctrl-btn on" data-mode-tab="2">⚙️ تلقائي</button>
+          </div>
+          <div class="hint">💡 تلقائي: القلب الحديدي يدخل ويخرج تلقائيًا. يدوي: اسحب القلب بالماوس داخل الملف.</div>
+          <div class="hint">💡 التردد ثابت. إدخال القلب يرفع L، فترتفع X<sub>L</sub> وينقص التيار.</div>
+          <div class="control-row">
+            <label>تردد المصدر f (ثابت) <b id="v-f2">50</b></label>
+            <input type="range" min="10" max="150" step="1" value="50" data-target="t2State.f" data-label="v-f2" data-dec="0">
+          </div>
+          <div class="control-row">
+            <label>معامل الحث بلا قلب L₀ (H) <b id="v-L2">0.30</b></label>
+            <input type="range" min="0.1" max="0.8" step="0.05" value="0.3" data-target="t2State.L0" data-label="v-L2" data-dec="2">
+          </div>
+          <div class="control-row">
+            <label>نفاذية القلب (μ<sub>r</sub>) <b id="v-mu2">5.0</b></label>
+            <input type="range" min="2" max="10" step="0.5" value="5" data-target="t2State.mur" data-label="v-mu2" data-dec="1">
+          </div>
+        </div>
+
+        <!-- Tab 3: XC vs f -->
+        <div class="control-panel" data-tab="3">
+          <div class="btn-row">
+            <button class="ctrl-btn on" data-mode-tab="3">⚙️ تلقائي</button>
+          </div>
+          <div class="hint">💡 تلقائي: التردد يتغيّر تلقائيًا. يدوي: حرّك منزلق التردد بنفسك.</div>
+          <div class="hint">💡 عكس المحث تمامًا: كلما زاد التردد <b>نقصت</b> الرادة X<sub>C</sub> و<b>زاد</b> التيار.</div>
+          <div class="control-row">
+            <label>تردد المذبذب f (Hz) <b id="v-f3">50</b></label>
+            <input type="range" min="10" max="200" step="1" value="50" data-target="t3State.f" data-label="v-f3" data-dec="0">
+          </div>
+          <div class="control-row">
+            <label>سعة المتسعة C (µF) <b id="v-C3">20</b></label>
+            <input type="range" min="5" max="60" step="1" value="20" data-target="t3State.C" data-label="v-C3" data-dec="0">
+          </div>
+          <div class="control-row">
+            <label>فولتية المصدر V (ثابتة) <b id="v-V3">12</b></label>
+            <input type="range" min="4" max="24" step="1" value="12" data-target="t3State.V" data-label="v-V3" data-dec="0">
+          </div>
+        </div>
+
+        <!-- Tab 4: XC vs C -->
+        <div class="control-panel" data-tab="4">
+          <div class="btn-row">
+            <button class="ctrl-btn on" data-mode-tab="4">⚙️ تلقائي</button>
+          </div>
+          <div class="hint">💡 تلقائي: اللوح العازل يدخل ويخرج تلقائيًا. يدوي: اسحب اللوح بين صفيحتي المتسعة.</div>
+          <div class="hint">💡 التردد ثابت. إدخال العازل يرفع C، فتنقص X<sub>C</sub> ويزداد التيار.</div>
+          <div class="control-row">
+            <label>تردد المصدر f (ثابت) <b id="v-f4">50</b></label>
+            <input type="range" min="10" max="150" step="1" value="50" data-target="t4State.f" data-label="v-f4" data-dec="0">
+          </div>
+          <div class="control-row">
+            <label>سعة المتسعة بلا عازل C₀ (µF) <b id="v-C4">12</b></label>
+            <input type="range" min="5" max="30" step="1" value="12" data-target="t4State.C0" data-label="v-C4" data-dec="0">
+          </div>
+          <div class="control-row">
+            <label>نوع المادة العازلة</label>
+          </div>
+          <div class="btn-row" id="dielBtns">
+            <button class="ctrl-btn" data-k="2.5">ورق (k=2.5)</button>
+            <button class="ctrl-btn on" data-k="4">زجاج (k=4)</button>
+            <button class="ctrl-btn" data-k="6">ميكا (k=6)</button>
+          </div>
+        </div>
+
+        <!-- Tab 5: Resonance -->
+        <div class="control-panel" data-tab="5">
+          <div class="btn-row">
+            <button class="ctrl-btn on" data-mode-tab="5">⚙️ تلقائي</button>
+          </div>
+          <div class="btn-row">
+            <button class="ctrl-btn cyan" id="tuneBtn5">🎯 اضبط على الرنين</button>
+          </div>
+          <div class="hint">💡 تلقائي: التردد يمسح المدى كاملًا فتظهر قمة الرنين. يدوي: حرّك التردد بنفسك وابحث عن القمة.</div>
+          <div class="hint">💡 عند الرنين: X<sub>L</sub> = X<sub>C</sub>، فتُلغى الرادتان وتصبح Z = R (أصغر ما يمكن)، فيبلغ التيار <b>أقصى قيمة</b>.</div>
+          <div class="control-row">
+            <label>تردد المصدر f (Hz) <b id="v-f5">30</b></label>
+            <input type="range" min="10" max="120" step="0.5" value="30" data-target="t5State.f" data-label="v-f5" data-dec="1">
+          </div>
+          <div class="control-row">
+            <label>معامل الحث L (H) <b id="v-L5">0.50</b></label>
+            <input type="range" min="0.2" max="1.2" step="0.05" value="0.5" data-target="t5State.L" data-label="v-L5" data-dec="2">
+          </div>
+          <div class="control-row">
+            <label>سعة المتسعة C (µF) <b id="v-C5">20</b></label>
+            <input type="range" min="8" max="60" step="1" value="20" data-target="t5State.C" data-label="v-C5" data-dec="0">
+          </div>
+          <div class="control-row">
+            <label>المقاومة R (Ω) <b id="v-R5">10</b></label>
+            <input type="range" min="4" max="40" step="1" value="10" data-target="t5State.R" data-label="v-R5" data-dec="0">
+          </div>
+        </div>
+
+        <!-- Tab 6: Power factor -->
+        <div class="control-panel" data-tab="6">
+          <div class="btn-row">
+            <button class="ctrl-btn on" data-mode-tab="6">⚙️ تلقائي</button>
+          </div>
+          <div class="hint">💡 اختر العنصر ولاحظ فرق الطور φ وعامل القدرة pf والقدرة المستهلكة.</div>
+          <div class="control-row"><label>العنصر</label></div>
+          <div class="btn-row" id="elemBtns">
+            <button class="ctrl-btn on" data-el="R">مقاومة</button>
+            <button class="ctrl-btn" data-el="L">محث</button>
+            <button class="ctrl-btn" data-el="C">متسعة</button>
+            <button class="ctrl-btn" data-el="RLC">RLC</button>
+          </div>
+          <div class="control-row">
+            <label>التردد f (Hz) <b id="v-f6">50</b></label>
+            <input type="range" min="20" max="120" step="1" value="50" data-target="t6State.f" data-label="v-f6" data-dec="0">
+          </div>
+          <div class="control-row">
+            <label>المقاومة R (Ω) <b id="v-R6">10</b></label>
+            <input type="range" min="4" max="40" step="1" value="10" data-target="t6State.R" data-label="v-R6" data-dec="0">
+          </div>
+        </div>
+
+        <!-- Tab 7: Series RLC -->
+        <div class="control-panel" data-tab="7">
+          <div class="btn-row">
+            <button class="ctrl-btn on" data-mode-tab="7">⚙️ تلقائي</button>
+          </div>
+          <div class="hint">💡 التوالي: نفس التيار في الكل. الفولتيات VR وVL وVC تُجمع اتجاهيًا (مخطط الأطوار).</div>
+          <div class="control-row">
+            <label>التردد f (Hz) <b id="v-f7">40</b></label>
+            <input type="range" min="15" max="100" step="1" value="40" data-target="t7State.f" data-label="v-f7" data-dec="0">
+          </div>
+          <div class="control-row">
+            <label>R (Ω) <b id="v-R7">10</b></label>
+            <input type="range" min="4" max="40" step="1" value="10" data-target="t7State.R" data-label="v-R7" data-dec="0">
+          </div>
+          <div class="control-row">
+            <label>L (H) <b id="v-L7">0.50</b></label>
+            <input type="range" min="0.2" max="1.2" step="0.05" value="0.5" data-target="t7State.L" data-label="v-L7" data-dec="2">
+          </div>
+          <div class="control-row">
+            <label>C (µF) <b id="v-C7">20</b></label>
+            <input type="range" min="8" max="60" step="1" value="20" data-target="t7State.C" data-label="v-C7" data-dec="0">
+          </div>
+        </div>
+
+        <!-- Tab 8: Parallel RLC -->
+        <div class="control-panel" data-tab="8">
+          <div class="btn-row">
+            <button class="ctrl-btn on" data-mode-tab="8">⚙️ تلقائي</button>
+          </div>
+          <div class="hint">💡 التوازي: نفس الجهد على كل فرع. التيارات IR وIL وIC تُجمع اتجاهيًا.</div>
+          <div class="control-row">
+            <label>التردد f (Hz) <b id="v-f8">40</b></label>
+            <input type="range" min="15" max="100" step="1" value="40" data-target="t8State.f" data-label="v-f8" data-dec="0">
+          </div>
+          <div class="control-row">
+            <label>R (Ω) <b id="v-R8">10</b></label>
+            <input type="range" min="4" max="40" step="1" value="10" data-target="t8State.R" data-label="v-R8" data-dec="0">
+          </div>
+          <div class="control-row">
+            <label>L (H) <b id="v-L8">0.50</b></label>
+            <input type="range" min="0.2" max="1.2" step="0.05" value="0.5" data-target="t8State.L" data-label="v-L8" data-dec="2">
+          </div>
+          <div class="control-row">
+            <label>C (µF) <b id="v-C8">20</b></label>
+            <input type="range" min="8" max="60" step="1" value="20" data-target="t8State.C" data-label="v-C8" data-dec="0">
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </aside>
+
+  <section class="canvas-area">
+    <div class="canvas-header">
+      <div>
+        <h2 id="mainTitle">تأثير التردد في الرادة الحثية</h2>
+        <div class="sub" id="mainSubtitle">غيّر تردد المذبذب ولاحظ تغيّر رادة الحث والتيار</div>
+      </div>
+      <div class="status-pill">الوضع: <b id="modeStatus">تلقائي</b></div>
+    </div>
+    <div class="rotate-hint">
+      <span class="ico">🔄</span>
+      <span>أدِر جهازك أفقيًا لعرض الرسم كاملًا — أو اسحب الرسم يمينًا ويسارًا.</span>
+    </div>
+    <div class="canvas-scroll">
+      <div class="canvas-wrap">
+        <canvas id="simCanvas" width="900" height="480"></canvas>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>مختبر تفاعلي تعليمي — القيم الفيزيائية تقريبية لأغراض التوضيح المفاهيمي فقط.</footer>
+
+<script>
+
+/* ---- canvas + pointer must exist before the activity modules run ---- */
+const canvas = document.getElementById('simCanvas');
+const ctx = canvas.getContext('2d');
+// Logical drawing space stays 900x480 — every activity keeps its coordinates.
+const CW = 900, CH = 480;
+
+/* Render at the device's real pixel density (and a little extra on small
+   screens). The drawing code still works in 900x480 logical units, but the
+   backing store is larger, so the text drawn inside the canvas stays sharp
+   and legible instead of turning to mush when the canvas is scaled down on a
+   phone. Re-run on resize/rotate. */
+function resizeCanvas(){
+  // measure the actual on-screen width of the canvas box
+  const rect = canvas.getBoundingClientRect();
+  const cssW = rect.width || canvas.clientWidth || CW;
+  const dpr  = window.devicePixelRatio || 1;
+  let scale = (cssW / CW) * dpr;
+  scale = Math.max(scale, dpr);          // never below native density
+  scale = Math.min(scale, 4);            // cap so we don't blow up memory
+  canvas.width  = Math.round(CW * scale);
+  canvas.height = Math.round(CH * scale);
+  ctx.setTransform(scale, 0, 0, scale, 0, 0);   // draw in logical 900x480 units
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+window.addEventListener('orientationchange', ()=> setTimeout(resizeCanvas, 200));
+window.addEventListener('load', ()=> setTimeout(resizeCanvas, 60));
+const pointer = { x:0, y:0, isDown:false, isClicked:false };
+let _clickPending = false;
+
+/* =========================================================================
+   SHARED HELPERS — used by all five activities
+   ========================================================================= */
+const COLORS = {
+  bg:'#111a2c', wire:'#e8edf7', cap:'#f2a83c', active:'#6ffbe0',
+  red:'#ef5b6b', blue:'#4d8dff', muted:'#8b98b4', border:'#243252',
+  panel:'rgba(17,26,44,.80)', coil:'#f2a83c'
+};
+
+function drawHUD(x, y, w, lines) {
+  const h = 26 + lines.length * 21;
+  ctx.save();
+  ctx.fillStyle = COLORS.panel; ctx.strokeStyle = COLORS.border; ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.roundRect ? ctx.roundRect(x, y, w, h, 10) : ctx.rect(x, y, w, h);
+  ctx.fill(); ctx.stroke();
+  ctx.textAlign = 'right';
+  lines.forEach((L, i) => {
+    ctx.fillStyle = L.color || COLORS.wire;
+    ctx.font = L.bold ? "bold 13px 'Cairo', sans-serif" : "12px 'Tajawal', sans-serif";
+    ctx.fillText(L.text, x + w - 12, y + 22 + i * 21);
+  });
+  ctx.restore();
+}
+
+/** Analog meter with a sweeping needle (used for both ammeter and voltmeter). */
+function drawMeter(cx, cy, r, value, maxValue, symbol, label) {
+  const frac = Math.max(0, Math.min(1, maxValue > 0 ? value / maxValue : 0));
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.beginPath(); ctx.moveTo(-r, 4); ctx.arc(0,0,r,Math.PI,0,false); ctx.lineTo(r,4); ctx.closePath();
+  ctx.fillStyle = '#0a1524'; ctx.fill();
+  ctx.lineWidth = 2.5; ctx.strokeStyle = COLORS.border; ctx.stroke();
+  ctx.strokeStyle = COLORS.muted; ctx.lineWidth = 1.4;
+  for (let i = 0; i <= 1.001; i += 0.25) {
+    const a = Math.PI - i * Math.PI;
+    ctx.beginPath();
+    ctx.moveTo(Math.cos(a)*(r-5), -Math.sin(a)*(r-5));
+    ctx.lineTo(Math.cos(a)*(r-12), -Math.sin(a)*(r-12));
+    ctx.stroke();
+  }
+  const a = Math.PI - frac * Math.PI;
+  ctx.strokeStyle = COLORS.active; ctx.lineWidth = 2.8; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(Math.cos(a)*(r-14), -Math.sin(a)*(r-14)); ctx.stroke();
+  ctx.beginPath(); ctx.arc(0,0,4,0,Math.PI*2); ctx.fillStyle = COLORS.wire; ctx.fill();
+  ctx.fillStyle = COLORS.muted; ctx.font = "bold 11px 'Cairo', sans-serif"; ctx.textAlign = 'center';
+  ctx.fillText(symbol, 0, 20);
+  ctx.restore();
+  if (label) {
+    ctx.fillStyle = COLORS.muted; ctx.font = "10.5px 'Tajawal', sans-serif"; ctx.textAlign = 'center';
+    ctx.fillText(label, cx, cy - r - 8);
+  }
+}
+
+/** AC source symbol: a circle with a sine wave inside. */
+function drawACSource(cx, cy, r, phase, label) {
+  ctx.save();
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2);
+  ctx.fillStyle = '#0a1524'; ctx.fill();
+  ctx.strokeStyle = COLORS.wire; ctx.lineWidth = 2.5; ctx.stroke();
+  ctx.beginPath();
+  for (let i = -r+6; i <= r-6; i++) {
+    const y = cy - Math.sin((i/(r-6))*Math.PI + phase) * (r*0.42);
+    i === -r+6 ? ctx.moveTo(cx+i, y) : ctx.lineTo(cx+i, y);
+  }
+  ctx.strokeStyle = COLORS.active; ctx.lineWidth = 2; ctx.stroke();
+  ctx.restore();
+  if (label) {
+    ctx.fillStyle = COLORS.muted; ctx.font = "11px 'Tajawal', sans-serif"; ctx.textAlign = 'center';
+    ctx.fillText(label, cx, cy + r + 18);
+  }
+}
+
+/** Inductor coil drawn as a row of arches. `fill` 0..1 tints it as L rises. */
+function drawCoil(x1, y, x2, turns, fill) {
+  const w = x2 - x1, step = w / turns, rr = step/2;
+  ctx.save();
+  ctx.strokeStyle = COLORS.coil; ctx.lineWidth = 3.5; ctx.lineCap = 'round';
+  for (let i = 0; i < turns; i++) {
+    const cx = x1 + step*i + rr;
+    ctx.beginPath(); ctx.arc(cx, y, rr, Math.PI, 0, false); ctx.stroke();
+  }
+  if (fill > 0.02) {
+    ctx.globalAlpha = 0.25 + fill*0.5;
+    ctx.strokeStyle = COLORS.active; ctx.lineWidth = 2;
+    for (let i = 0; i < turns; i++) {
+      const cx = x1 + step*i + rr;
+      ctx.beginPath(); ctx.arc(cx, y, rr, Math.PI, 0, false); ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+
+/** Capacitor symbol: two vertical plates with an optional charge glow. */
+function drawCapSymbol(cx, cy, glow) {
+  ctx.save();
+  ctx.strokeStyle = COLORS.cap; ctx.lineWidth = 5;
+  ctx.beginPath(); ctx.moveTo(cx-8, cy-24); ctx.lineTo(cx-8, cy+24); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx+8, cy-24); ctx.lineTo(cx+8, cy+24); ctx.stroke();
+  if (glow > 0.02) {
+    ctx.globalAlpha = 0.2 + glow*0.5;
+    ctx.fillStyle = COLORS.active;
+    ctx.fillRect(cx-8, cy-24, 16, 48);
+  }
+  ctx.restore();
+}
+
+function drawResistorH(x1, y, x2) {
+  ctx.save();
+  ctx.strokeStyle = COLORS.wire; ctx.lineWidth = 3; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(x1, y);
+  const n = 6, dx = (x2-x1)/n;
+  for (let i = 0; i < n; i++) ctx.lineTo(x1 + dx*(i+1), y + (i%2===0 ? -11 : 11));
+  ctx.lineTo(x2, y); ctx.stroke();
+  ctx.restore();
+}
+
+function wire(pts, col, lw) {
+  ctx.save();
+  ctx.strokeStyle = col || COLORS.wire; ctx.lineWidth = lw || 2.5; ctx.lineCap = 'round';
+  ctx.beginPath();
+  pts.forEach((p,i) => i===0 ? ctx.moveTo(p[0],p[1]) : ctx.lineTo(p[0],p[1]));
+  ctx.stroke();
+  ctx.restore();
+}
+
+/** Moving dots showing AC current: they oscillate back and forth, since the
+ *  current in an AC circuit reverses every half cycle. */
+function drawACDots(pts, amp, phase) {
+  if (amp < 0.04) return;
+  let total = 0; const segs = [];
+  for (let i=0;i<pts.length-1;i++){
+    const len = Math.hypot(pts[i+1][0]-pts[i][0], pts[i+1][1]-pts[i][1]);
+    segs.push(len); total += len;
+  }
+  const swing = Math.sin(phase) * 0.06;   // dots sway to show alternation
+  ctx.save();
+  ctx.fillStyle = COLORS.active;
+  for (let k = 0; k < 14; k++) {
+    let d = (k/14 + swing) % 1;
+    if (d < 0) d += 1;
+    let target = d*total, acc = 0;
+    for (let i=0;i<segs.length;i++){
+      if (acc + segs[i] >= target) {
+        const f = segs[i]===0 ? 0 : (target-acc)/segs[i];
+        const x = pts[i][0] + (pts[i+1][0]-pts[i][0])*f;
+        const y = pts[i][1] + (pts[i+1][1]-pts[i][1])*f;
+        ctx.globalAlpha = 0.3 + 0.6*amp;
+        ctx.beginPath(); ctx.arc(x,y,3.2,0,Math.PI*2); ctx.fill();
+        break;
+      }
+      acc += segs[i];
+    }
+  }
+  ctx.restore();
+}
+
+/** Live graph panel plotting y=f(x) with a marker at the current value. */
+function drawGraph(x, y, w, h, opts) {
+  const { title, xLabel, yLabel, points, curX, curY, xMin, xMax, yMin, yMax, color } = opts;
+  ctx.save();
+  ctx.fillStyle = COLORS.panel; ctx.strokeStyle = COLORS.border; ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.roundRect ? ctx.roundRect(x, y, w, h, 10) : ctx.rect(x, y, w, h);
+  ctx.fill(); ctx.stroke();
+
+  const pad = 30;
+  const gx = x + pad, gy = y + 26, gw = w - pad - 14, gh = h - 26 - 26;
+
+  ctx.strokeStyle = COLORS.border; ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(gx, gy); ctx.lineTo(gx, gy+gh); ctx.lineTo(gx+gw, gy+gh);
+  ctx.stroke();
+
+  ctx.fillStyle = COLORS.muted; ctx.font = "10.5px 'Tajawal', sans-serif";
+  ctx.textAlign = 'center';
+  ctx.fillText(title, x + w/2, y + 16);
+  ctx.fillText(xLabel, gx + gw/2, y + h - 8);
+  ctx.save();
+  ctx.translate(x + 12, gy + gh/2); ctx.rotate(-Math.PI/2);
+  ctx.fillText(yLabel, 0, 0);
+  ctx.restore();
+
+  const sx = v => gx + ((v - xMin)/(xMax - xMin)) * gw;
+  const sy = v => gy + gh - ((v - yMin)/(yMax - yMin)) * gh;
+
+  if (points && points.length > 1) {
+    ctx.strokeStyle = color || COLORS.active; ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    points.forEach((p,i) => {
+      const px = sx(p[0]), py = Math.max(gy, Math.min(gy+gh, sy(p[1])));
+      i===0 ? ctx.moveTo(px,py) : ctx.lineTo(px,py);
+    });
+    ctx.stroke();
+  }
+  if (curX !== undefined && curY !== undefined) {
+    const px = sx(curX), py = Math.max(gy, Math.min(gy+gh, sy(curY)));
+    ctx.fillStyle = COLORS.cap;
+    ctx.beginPath(); ctx.arc(px, py, 5, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = '#03060c'; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.strokeStyle = 'rgba(242,168,60,.35)'; ctx.lineWidth = 1; ctx.setLineDash([3,3]);
+    ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px, gy+gh); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  ctx.restore();
+}
+
+/* =========================================================================
+   ACTIVITY 1 — تأثير تردد المصدر (f) في رادة الحث (XL)
+   XL = 2·π·f·L      ,      I = V / XL
+   ========================================================================= */
+(function () {
+  const state = {
+    simMode:'auto', t:0, phase:0,
+    f: 50, L: 0.5, V: 12,
+    XL: 0, I: 0, sweepDir: 1
+  };
+
+  function t1Update(dt) {
+    const s = state;
+    s.t += dt;
+    s.phase += dt * 6;
+
+    if (s.simMode === 'auto') {
+      s.f += s.sweepDir * dt * 22;
+      if (s.f >= 200) { s.f = 200; s.sweepDir = -1; }
+      if (s.f <= 10)  { s.f = 10;  s.sweepDir =  1; }
+    }
+
+    s.XL = 2 * Math.PI * s.f * s.L;          // ohms
+    s.I  = s.XL > 0 ? s.V / s.XL : 0;         // amps
+  }
+
+  function t1Draw() {
+    const s = state;
+    ctx.save();
+    ctx.fillStyle = COLORS.bg; ctx.fillRect(0,0,CW,CH);
+    ctx.textAlign = 'center';
+    ctx.fillStyle = COLORS.cap; ctx.font = "bold 15px 'Cairo', sans-serif";
+    ctx.fillText('تأثير تردد المصدر (f) في مقدار رادة الحث (XL)', CW/2, 26);
+
+    const L=110, R=560, TOP=110, BOT=330;
+    const srcX = L, srcY = (TOP+BOT)/2;
+    const ammX = 300, coilX1 = 400, coilX2 = 520;
+
+    // series loop: source -> ammeter -> coil -> back
+    const loop = [[L,srcY-38],[L,TOP],[ammX-30,TOP],[ammX+30,TOP],[coilX1,TOP],
+                  [coilX2,TOP],[R,TOP],[R,BOT],[L,BOT],[L,srcY+38]];
+    wire([[L,srcY-38],[L,TOP],[ammX-30,TOP]]);
+    wire([[ammX+30,TOP],[coilX1,TOP]]);
+    wire([[coilX2,TOP],[R,TOP],[R,BOT],[L,BOT],[L,srcY+38]]);
+
+    drawACSource(srcX, srcY, 34, s.phase, 'مذبذب');
+    ctx.fillStyle = COLORS.muted; ctx.font = "11px 'Tajawal', sans-serif";
+    ctx.fillText('f = ' + s.f.toFixed(0) + ' Hz', srcX, srcY + 52);
+
+    // ammeter in series — its needle falls as XL grows
+    drawMeter(ammX, TOP, 30, s.I, 0.6, 'A', 'أميتر');
+
+    // the inductor
+    drawCoil(coilX1, TOP, coilX2, 5, Math.min(1, s.XL/400));
+    ctx.fillStyle = COLORS.muted; ctx.font = "11px 'Tajawal', sans-serif";
+    ctx.fillText('محث L = ' + s.L.toFixed(2) + ' H', (coilX1+coilX2)/2, TOP - 34);
+
+    // voltmeter across the coil — held constant by the source
+    const vmY = TOP + 90;
+    wire([[coilX1, TOP],[coilX1, vmY],[coilX1+22, vmY]], COLORS.muted, 2);
+    wire([[coilX2, TOP],[coilX2, vmY],[coilX2-22, vmY]], COLORS.muted, 2);
+    drawMeter((coilX1+coilX2)/2, vmY, 28, s.V, 24, 'V', null);
+    ctx.fillStyle = COLORS.muted; ctx.font = "10.5px 'Tajawal', sans-serif";
+    ctx.fillText('فولتميتر (ثابت)', (coilX1+coilX2)/2, vmY + 40);
+
+    drawACDots(loop, Math.min(1, s.I/0.4), s.phase);
+
+    // XL vs f curve — a straight line through the origin
+    const pts = [];
+    for (let f = 10; f <= 200; f += 5) pts.push([f, 2*Math.PI*f*s.L]);
+    drawGraph(620, 60, 260, 170, {
+      title:'العلاقة بين XL و f', xLabel:'f (Hz)', yLabel:'XL (Ω)',
+      points: pts, curX: s.f, curY: s.XL,
+      xMin:10, xMax:200, yMin:0, yMax:2*Math.PI*200*s.L,
+      color: COLORS.active
+    });
+
+    drawHUD(620, 248, 260, [
+      { text:'XL = 2·π·f·L', bold:true, color:COLORS.active },
+      { text:'f  = ' + s.f.toFixed(0) + ' Hz' },
+      { text:'L  = ' + s.L.toFixed(2) + ' H' },
+      { text:'XL = ' + s.XL.toFixed(1) + ' Ω', bold:true, color:COLORS.active },
+      { text:'I = V/XL = ' + s.I.toFixed(3) + ' A', color:COLORS.cap }
+    ]);
+
+    ctx.fillStyle = COLORS.muted; ctx.font = "11.5px 'Tajawal', sans-serif"; ctx.textAlign='center';
+    ctx.fillText('كلما زاد التردد f زادت الرادة XL (علاقة طردية) ونقص التيار I', 360, 420);
+    ctx.restore();
+  }
+
+  window.t1State = state; window.t1Update = t1Update; window.t1Draw = t1Draw;
+})();
+
+/* =========================================================================
+   ACTIVITY 2 — تأثير معامل الحث الذاتي (L) في رادة الحث (XL)
+   إدخال قلب من الحديد المطاوع يرفع L، فترتفع XL
+   ========================================================================= */
+(function () {
+  const coilX1 = 380, coilX2 = 540, coilY = 130;
+  const coreOut = coilX1 - 190, coreIn = coilX1 + 4;
+
+  const state = {
+    simMode:'auto', t:0, phase:0, sweepDir:1,
+    f: 50, L0: 0.3, mur: 5, V: 12,
+    coreX: coreOut, coreW: 150,
+    dragging:false, offX:0, prevDown:false,
+    insertion: 0, L: 0, XL: 0, I: 0
+  };
+
+  function hitCore(px, py) {
+    return px >= state.coreX - 8 && px <= state.coreX + state.coreW + 8 &&
+           py >= coilY - 26 && py <= coilY + 26;
+  }
+
+  function t2Update(dt) {
+    const s = state;
+    s.t += dt; s.phase += dt * 6;
+
+    if (s.simMode === 'auto') {
+      s.coreX += s.sweepDir * dt * 70;
+      if (s.coreX >= coreIn)  { s.coreX = coreIn;  s.sweepDir = -1; }
+      if (s.coreX <= coreOut) { s.coreX = coreOut; s.sweepDir =  1; }
+      s.dragging = false;
+    } else {
+      if (pointer.isDown && !s.prevDown && hitCore(pointer.x, pointer.y)) {
+        s.dragging = true; s.offX = pointer.x - s.coreX;
+      }
+      if (!pointer.isDown) s.dragging = false;
+      if (s.dragging) s.coreX = Math.max(coreOut, Math.min(coreIn, pointer.x - s.offX));
+    }
+    s.prevDown = pointer.isDown;
+
+    // how far the core has entered the coil, 0..1
+    s.insertion = Math.max(0, Math.min(1, (s.coreX - coreOut) / (coreIn - coreOut)));
+    // effective L rises toward mur*L0 as the core goes in
+    s.L  = s.L0 * (1 + (s.mur - 1) * s.insertion);
+    s.XL = 2 * Math.PI * s.f * s.L;
+    s.I  = s.XL > 0 ? s.V / s.XL : 0;
+  }
+
+  function t2Draw() {
+    const s = state;
+    ctx.save();
+    ctx.fillStyle = COLORS.bg; ctx.fillRect(0,0,CW,CH);
+    ctx.textAlign='center';
+    ctx.fillStyle = COLORS.cap; ctx.font = "bold 15px 'Cairo', sans-serif";
+    ctx.fillText('تأثير معامل الحث الذاتي (L) في مقدار رادة الحث (XL)', CW/2, 26);
+
+    const Lx=110, Rx=600, TOP=coilY, BOT=330;
+    const srcY = (TOP+BOT)/2, ammX = 280;
+
+    const loop = [[Lx,srcY-38],[Lx,TOP],[ammX-30,TOP],[ammX+30,TOP],[coilX1,TOP],
+                  [coilX2,TOP],[Rx,TOP],[Rx,BOT],[Lx,BOT],[Lx,srcY+38]];
+    wire([[Lx,srcY-38],[Lx,TOP],[ammX-30,TOP]]);
+    wire([[ammX+30,TOP],[coilX1,TOP]]);
+    wire([[coilX2,TOP],[Rx,TOP],[Rx,BOT],[Lx,BOT],[Lx,srcY+38]]);
+
+    drawACSource(Lx, srcY, 34, s.phase, 'مصدر متناوب');
+    ctx.fillStyle = COLORS.muted; ctx.font="11px 'Tajawal', sans-serif";
+    ctx.fillText('f = ' + s.f.toFixed(0) + ' Hz (ثابت)', Lx, srcY + 52);
+
+    drawMeter(ammX, TOP, 30, s.I, 0.6, 'A', 'أميتر');
+
+    // soft-iron core — a realistic brushed-silver metal bar, drawn BEHIND the
+    // coil so the coil visibly wraps around it
+    ctx.save();
+    const cx0 = s.coreX, cy0 = coilY - 22, cw = s.coreW, ch = 44;
+    // metallic vertical gradient: dark edges -> bright centre -> dark, like a
+    // rounded steel rod catching light
+    let grad = ctx.createLinearGradient ? ctx.createLinearGradient(0, cy0, 0, cy0+ch) : null;
+    if (grad) {
+      grad.addColorStop(0.00, '#6b7280');
+      grad.addColorStop(0.18, '#aeb6c2');
+      grad.addColorStop(0.42, '#eef1f5');   // highlight
+      grad.addColorStop(0.60, '#c3cad4');
+      grad.addColorStop(0.82, '#8a929e');
+      grad.addColorStop(1.00, '#5c636e');
+      ctx.fillStyle = grad;
+    } else {
+      ctx.fillStyle = '#bfc6d0';
+    }
+    const r = 8;
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(cx0, cy0, cw, ch, r);
+    else ctx.rect(cx0, cy0, cw, ch);
+    ctx.fill();
+    // subtle lengthwise brushed-metal streaks
+    ctx.save();
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(cx0, cy0, cw, ch, r); else ctx.rect(cx0, cy0, cw, ch);
+    ctx.clip();
+    ctx.strokeStyle = 'rgba(255,255,255,.18)'; ctx.lineWidth = 1;
+    for (let yy = cy0 + 6; yy < cy0 + ch; yy += 7) {
+      ctx.beginPath(); ctx.moveTo(cx0, yy); ctx.lineTo(cx0 + cw, yy); ctx.stroke();
+    }
+    // bright specular line near the top
+    ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(cx0 + 6, cy0 + 9); ctx.lineTo(cx0 + cw - 6, cy0 + 9); ctx.stroke();
+    ctx.restore();
+    // outline — highlights cyan while being dragged
+    ctx.strokeStyle = s.dragging ? COLORS.active : '#41485400';
+    ctx.lineWidth = 2.5;
+    if (s.dragging) {
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(cx0, cy0, cw, ch, r); else ctx.rect(cx0, cy0, cw, ch);
+      ctx.stroke();
+    }
+    // label on the bar
+    ctx.fillStyle = '#2a2f38'; ctx.font = "bold 10.5px 'Tajawal', sans-serif"; ctx.textAlign='center';
+    ctx.fillText('قلب حديد مطاوع', cx0 + cw/2, coilY + 4);
+    ctx.restore();
+
+    drawCoil(coilX1, coilY, coilX2, 6, s.insertion);
+    ctx.fillStyle = COLORS.muted; ctx.font = "11px 'Tajawal', sans-serif"; ctx.textAlign='center';
+    ctx.fillText('محث', (coilX1+coilX2)/2, coilY - 36);
+
+    // voltmeter across the coil
+    const vmY = TOP + 95;
+    wire([[coilX1, TOP],[coilX1, vmY],[coilX1+22, vmY]], COLORS.muted, 2);
+    wire([[coilX2, TOP],[coilX2, vmY],[coilX2-22, vmY]], COLORS.muted, 2);
+    drawMeter((coilX1+coilX2)/2, vmY, 28, s.V, 24, 'V', null);
+    ctx.fillStyle = COLORS.muted; ctx.font = "10.5px 'Tajawal', sans-serif";
+    ctx.fillText('فولتميتر (ثابت)', (coilX1+coilX2)/2, vmY + 40);
+
+    drawACDots(loop, Math.min(1, s.I/0.4), s.phase);
+
+    // insertion progress bar
+    ctx.save();
+    ctx.fillStyle = 'rgba(232,237,247,.12)';
+    ctx.fillRect(150, 385, 300, 14);
+    ctx.fillStyle = COLORS.active;
+    ctx.fillRect(150, 385, 300 * s.insertion, 14);
+    ctx.strokeStyle = COLORS.border; ctx.lineWidth = 1;
+    ctx.strokeRect(150, 385, 300, 14);
+    ctx.fillStyle = COLORS.muted; ctx.font = "11px 'Tajawal', sans-serif"; ctx.textAlign='right';
+    ctx.fillText('نسبة إدخال القلب: ' + (s.insertion*100).toFixed(0) + '%', 460, 396);
+    ctx.restore();
+
+    // XL vs L line
+    const pts = [];
+    const Lmax = s.L0 * s.mur;
+    for (let Lv = s.L0; Lv <= Lmax; Lv += (Lmax-s.L0)/40 || 0.01) pts.push([Lv, 2*Math.PI*s.f*Lv]);
+    drawGraph(650, 60, 230, 170, {
+      title:'العلاقة بين XL و L', xLabel:'L (H)', yLabel:'XL (Ω)',
+      points: pts, curX: s.L, curY: s.XL,
+      xMin: s.L0, xMax: Lmax, yMin: 0, yMax: 2*Math.PI*s.f*Lmax,
+      color: COLORS.active
+    });
+
+    drawHUD(650, 248, 230, [
+      { text:'XL = 2·π·f·L', bold:true, color:COLORS.active },
+      { text:'L = ' + s.L.toFixed(2) + ' H' },
+      { text:'XL = ' + s.XL.toFixed(1) + ' Ω', bold:true, color:COLORS.active },
+      { text:'I = ' + s.I.toFixed(3) + ' A', color:COLORS.cap }
+    ]);
+
+    ctx.fillStyle = COLORS.muted; ctx.font = "11.5px 'Tajawal', sans-serif"; ctx.textAlign='center';
+    ctx.fillText(s.simMode==='auto'
+      ? 'الوضع التلقائي: القلب يدخل ويخرج — لاحظ ارتفاع XL وانخفاض التيار عند دخوله'
+      : 'اسحب القلب الحديدي داخل الملف بالماوس', 360, 430);
+    ctx.restore();
+  }
+
+  window.t2State = state; window.t2Update = t2Update; window.t2Draw = t2Draw;
+})();
+
+/* =========================================================================
+   ACTIVITY 3 — تأثير تردد المصدر (f) في رادة السعة (XC)
+   XC = 1 / (2·π·f·C)      ,      I = V / XC
+   ========================================================================= */
+(function () {
+  const state = {
+    simMode:'auto', t:0, phase:0, sweepDir:1,
+    f: 50, C: 20, V: 12,      // C in microfarads
+    XC: 0, I: 0
+  };
+
+  function t3Update(dt) {
+    const s = state;
+    s.t += dt; s.phase += dt * 6;
+
+    if (s.simMode === 'auto') {
+      s.f += s.sweepDir * dt * 22;
+      if (s.f >= 200) { s.f = 200; s.sweepDir = -1; }
+      if (s.f <= 10)  { s.f = 10;  s.sweepDir =  1; }
+    }
+
+    const Cf = s.C * 1e-6;
+    s.XC = (s.f > 0 && Cf > 0) ? 1 / (2*Math.PI*s.f*Cf) : Infinity;
+    s.I  = isFinite(s.XC) && s.XC > 0 ? s.V / s.XC : 0;
+  }
+
+  function t3Draw() {
+    const s = state;
+    ctx.save();
+    ctx.fillStyle = COLORS.bg; ctx.fillRect(0,0,CW,CH);
+    ctx.textAlign='center';
+    ctx.fillStyle = COLORS.cap; ctx.font = "bold 15px 'Cairo', sans-serif";
+    ctx.fillText('تأثير تردد فولتية المصدر (f) في مقدار رادة السعة (XC)', CW/2, 26);
+
+    const Lx=110, Rx=560, TOP=110, BOT=330;
+    const srcY=(TOP+BOT)/2, ammX=300, capX=470;
+
+    const loop = [[Lx,srcY-38],[Lx,TOP],[ammX-30,TOP],[ammX+30,TOP],[capX,TOP],
+                  [Rx,TOP],[Rx,BOT],[Lx,BOT],[Lx,srcY+38]];
+    wire([[Lx,srcY-38],[Lx,TOP],[ammX-30,TOP]]);
+    wire([[ammX+30,TOP],[capX-8,TOP]]);
+    wire([[capX+8,TOP],[Rx,TOP],[Rx,BOT],[Lx,BOT],[Lx,srcY+38]]);
+
+    drawACSource(Lx, srcY, 34, s.phase, 'مذبذب');
+    ctx.fillStyle = COLORS.muted; ctx.font="11px 'Tajawal', sans-serif";
+    ctx.fillText('f = ' + s.f.toFixed(0) + ' Hz', Lx, srcY + 52);
+
+    drawMeter(ammX, TOP, 30, s.I, 0.35, 'A', 'أميتر');
+
+    // capacitor sits in series on the top rail
+    ctx.save(); ctx.translate(0, 0);
+    drawCapSymbol(capX, TOP, Math.min(1, s.I/0.2));
+    ctx.restore();
+    ctx.fillStyle = COLORS.muted; ctx.font="11px 'Tajawal', sans-serif"; ctx.textAlign='center';
+    ctx.fillText('متسعة C = ' + s.C.toFixed(0) + ' µF', capX, TOP - 38);
+
+    // voltmeter across the capacitor
+    const vmY = TOP + 95;
+    wire([[capX-8, TOP],[capX-60, TOP],[capX-60, vmY],[capX-30, vmY]], COLORS.muted, 2);
+    wire([[capX+8, TOP],[capX+60, TOP],[capX+60, vmY],[capX+30, vmY]], COLORS.muted, 2);
+    drawMeter(capX, vmY, 28, s.V, 24, 'V', null);
+    ctx.fillStyle = COLORS.muted; ctx.font="10.5px 'Tajawal', sans-serif";
+    ctx.fillText('فولتميتر (ثابت)', capX, vmY + 40);
+
+    drawACDots(loop, Math.min(1, s.I/0.25), s.phase);
+
+    // XC vs f — a hyperbola (inverse relationship)
+    const Cf = s.C*1e-6;
+    const pts = [];
+    for (let f = 10; f <= 200; f += 3) pts.push([f, 1/(2*Math.PI*f*Cf)]);
+    const yTop = 1/(2*Math.PI*10*Cf);
+    drawGraph(620, 60, 260, 170, {
+      title:'العلاقة بين XC و f (عكسية)', xLabel:'f (Hz)', yLabel:'XC (Ω)',
+      points: pts, curX: s.f, curY: s.XC,
+      xMin:10, xMax:200, yMin:0, yMax:yTop,
+      color: COLORS.blue
+    });
+
+    drawHUD(620, 248, 260, [
+      { text:'XC = 1 / (2·π·f·C)', bold:true, color:COLORS.blue },
+      { text:'f  = ' + s.f.toFixed(0) + ' Hz' },
+      { text:'C  = ' + s.C.toFixed(0) + ' µF' },
+      { text:'XC = ' + s.XC.toFixed(1) + ' Ω', bold:true, color:COLORS.blue },
+      { text:'I = V/XC = ' + s.I.toFixed(3) + ' A', color:COLORS.cap }
+    ]);
+
+    ctx.fillStyle = COLORS.muted; ctx.font="11.5px 'Tajawal', sans-serif"; ctx.textAlign='center';
+    ctx.fillText('كلما زاد التردد f نقصت الرادة XC (علاقة عكسية) وزاد التيار I', 340, 420);
+    ctx.restore();
+  }
+
+  window.t3State = state; window.t3Update = t3Update; window.t3Draw = t3Draw;
+})();
+
+/* =========================================================================
+   ACTIVITY 4 — تأثير سعة المتسعة (C) في رادة السعة (XC)
+   إدخال لوح عازل يرفع C، فتنقص XC ويزداد التيار
+   ========================================================================= */
+(function () {
+  const plateX = 430, plateGap = 70, plateH = 90, plateW = 10;
+  const slabOut = plateX - 210, slabIn = plateX + 6;
+
+  const state = {
+    simMode:'auto', t:0, phase:0, sweepDir:1,
+    f: 50, C0: 12, k: 4, V: 12,
+    slabX: slabOut, slabW: plateGap - 8,
+    dragging:false, offX:0, prevDown:false,
+    insertion:0, C:0, XC:0, I:0,
+    dielLabel:'زجاج (k = 4)'
+  };
+
+  function hitSlab(px, py) {
+    return px >= state.slabX - 10 && px <= state.slabX + state.slabW + 10 &&
+           py >= 175 && py <= 175 + plateH;
+  }
+
+  function t4Update(dt) {
+    const s = state;
+    s.t += dt; s.phase += dt * 6;
+
+    if (s.simMode === 'auto') {
+      s.slabX += s.sweepDir * dt * 80;
+      if (s.slabX >= slabIn)  { s.slabX = slabIn;  s.sweepDir = -1; }
+      if (s.slabX <= slabOut) { s.slabX = slabOut; s.sweepDir =  1; }
+      s.dragging = false;
+    } else {
+      if (pointer.isDown && !s.prevDown && hitSlab(pointer.x, pointer.y)) {
+        s.dragging = true; s.offX = pointer.x - s.slabX;
+      }
+      if (!pointer.isDown) s.dragging = false;
+      if (s.dragging) s.slabX = Math.max(slabOut, Math.min(slabIn, pointer.x - s.offX));
+    }
+    s.prevDown = pointer.isDown;
+
+    s.insertion = Math.max(0, Math.min(1, (s.slabX - slabOut) / (slabIn - slabOut)));
+    s.C  = s.C0 * (1 + (s.k - 1) * s.insertion);   // µF
+    const Cf = s.C * 1e-6;
+    s.XC = 1 / (2*Math.PI*s.f*Cf);
+    s.I  = s.V / s.XC;
+  }
+
+  function t4Draw() {
+    const s = state;
+    ctx.save();
+    ctx.fillStyle = COLORS.bg; ctx.fillRect(0,0,CW,CH);
+    ctx.textAlign='center';
+    ctx.fillStyle = COLORS.cap; ctx.font = "bold 15px 'Cairo', sans-serif";
+    ctx.fillText('تأثير سعة المتسعة (C) في مقدار رادة السعة (XC)', CW/2, 26);
+
+    const Lx=100, Rx=600, TOP=120, BOT=350;
+    const srcY=(TOP+BOT)/2, ammX=250;
+    const pTopY = 175;
+
+    // circuit: source -> ammeter -> capacitor (drawn as real plates) -> back
+    wire([[Lx,srcY-38],[Lx,TOP],[ammX-30,TOP]]);
+    wire([[ammX+30,TOP],[plateX,TOP],[plateX,pTopY]]);
+    wire([[plateX+plateGap,pTopY],[plateX+plateGap,TOP],[Rx,TOP],[Rx,BOT],[Lx,BOT],[Lx,srcY+38]]);
+
+    const loop = [[Lx,srcY-38],[Lx,TOP],[ammX-30,TOP],[ammX+30,TOP],[plateX,TOP],
+                  [plateX+plateGap,TOP],[Rx,TOP],[Rx,BOT],[Lx,BOT],[Lx,srcY+38]];
+
+    drawACSource(Lx, srcY, 34, s.phase, 'مصدر متناوب');
+    ctx.fillStyle = COLORS.muted; ctx.font="11px 'Tajawal', sans-serif";
+    ctx.fillText('f = ' + s.f.toFixed(0) + ' Hz (ثابت)', Lx, srcY + 52);
+
+    drawMeter(ammX, TOP, 30, s.I, 0.5, 'A', 'أميتر');
+
+    // dielectric slab (behind the plates so it slides between them)
+    ctx.save();
+    ctx.fillStyle = s.dragging ? 'rgba(111,251,224,.28)' : 'rgba(77,141,255,.28)';
+    ctx.fillRect(s.slabX, pTopY, s.slabW, plateH);
+    ctx.strokeStyle = s.dragging ? COLORS.active : COLORS.blue; ctx.lineWidth = 2.5;
+    ctx.strokeRect(s.slabX, pTopY, s.slabW, plateH);
+    ctx.fillStyle = COLORS.wire; ctx.font="10px 'Tajawal', sans-serif"; ctx.textAlign='center';
+    ctx.fillText(s.dielLabel, s.slabX + s.slabW/2, pTopY + plateH/2 + 4);
+    ctx.restore();
+
+    // the two capacitor plates
+    ctx.save();
+    ctx.fillStyle = COLORS.cap;
+    ctx.fillRect(plateX - plateW, pTopY, plateW, plateH);
+    ctx.fillRect(plateX + plateGap, pTopY, plateW, plateH);
+    ctx.strokeStyle = '#03060c'; ctx.lineWidth = 1.5;
+    ctx.strokeRect(plateX - plateW, pTopY, plateW, plateH);
+    ctx.strokeRect(plateX + plateGap, pTopY, plateW, plateH);
+    ctx.restore();
+    ctx.fillStyle = COLORS.muted; ctx.font="11px 'Tajawal', sans-serif"; ctx.textAlign='center';
+    ctx.fillText('متسعة C = ' + s.C.toFixed(1) + ' µF', plateX + plateGap/2, pTopY + plateH + 22);
+
+    // voltmeter across the plates
+    const vmY = pTopY + plateH + 60;
+    wire([[plateX-plateW, pTopY+plateH],[plateX-70, pTopY+plateH],[plateX-70, vmY],[plateX-16, vmY]], COLORS.muted, 2);
+    wire([[plateX+plateGap+plateW, pTopY+plateH],[plateX+plateGap+70, pTopY+plateH],
+          [plateX+plateGap+70, vmY],[plateX+plateGap+16, vmY]], COLORS.muted, 2);
+    drawMeter(plateX + plateGap/2, vmY, 28, s.V, 24, 'V', null);
+    ctx.fillStyle = COLORS.muted; ctx.font="10.5px 'Tajawal', sans-serif";
+    ctx.fillText('فولتميتر (ثابت)', plateX + plateGap/2, vmY + 40);
+
+    drawACDots(loop, Math.min(1, s.I/0.35), s.phase);
+
+    // XC vs C — inverse
+    const Cmax = s.C0 * s.k;
+    const pts = [];
+    for (let Cv = s.C0; Cv <= Cmax; Cv += (Cmax-s.C0)/40 || 0.5)
+      pts.push([Cv, 1/(2*Math.PI*s.f*Cv*1e-6)]);
+    drawGraph(650, 60, 230, 170, {
+      title:'العلاقة بين XC و C (عكسية)', xLabel:'C (µF)', yLabel:'XC (Ω)',
+      points: pts, curX: s.C, curY: s.XC,
+      xMin: s.C0, xMax: Cmax, yMin: 0, yMax: 1/(2*Math.PI*s.f*s.C0*1e-6),
+      color: COLORS.blue
+    });
+
+    drawHUD(650, 248, 230, [
+      { text:'XC = 1/(2·π·f·C)', bold:true, color:COLORS.blue },
+      { text:'C  = ' + s.C.toFixed(1) + ' µF' },
+      { text:'XC = ' + s.XC.toFixed(1) + ' Ω', bold:true, color:COLORS.blue },
+      { text:'I  = ' + s.I.toFixed(3) + ' A', color:COLORS.cap },
+      { text:'نسبة الإدخال: ' + (s.insertion*100).toFixed(0) + '%' }
+    ]);
+
+    ctx.fillStyle = COLORS.muted; ctx.font="11.5px 'Tajawal', sans-serif"; ctx.textAlign='center';
+    ctx.fillText(s.simMode==='auto'
+      ? 'الوضع التلقائي: العازل يدخل ويخرج — لاحظ ارتفاع C وانخفاض XC وزيادة التيار'
+      : 'اسحب اللوح العازل بين صفيحتي المتسعة', 340, 440);
+    ctx.restore();
+  }
+
+  window.t4State = state; window.t4Update = t4Update; window.t4Draw = t4Draw;
+  window.t4SetK = function(k, label){ state.k = k; state.dielLabel = label; };
+})();
+
+/* =========================================================================
+   ACTIVITY 5 — حالة الرنين في دائرة RLC على التوالي
+   XL = XC  ->  f₀ = 1 / (2π√(LC))  ->  Z = R (أصغر ما يمكن)  ->  I أقصى
+   ========================================================================= */
+(function () {
+  const state = {
+    simMode:'auto', t:0, phase:0, sweepDir:1,
+    f: 30, L: 0.5, C: 20, R: 10, V: 12,
+    XL:0, XC:0, Z:0, I:0, f0:0, atResonance:false
+  };
+
+  function tune(){ state.f = state.f0; }
+  window.t5Tune = tune;
+
+  function t5Update(dt) {
+    const s = state;
+    s.t += dt; s.phase += dt * 6;
+
+    const Cf = s.C * 1e-6;
+    s.f0 = 1 / (2*Math.PI*Math.sqrt(s.L * Cf));
+
+    if (s.simMode === 'auto') {
+      s.f += s.sweepDir * dt * 14;
+      if (s.f >= 120) { s.f = 120; s.sweepDir = -1; }
+      if (s.f <= 10)  { s.f = 10;  s.sweepDir =  1; }
+    }
+
+    s.XL = 2*Math.PI*s.f*s.L;
+    s.XC = 1/(2*Math.PI*s.f*Cf);
+    s.Z  = Math.sqrt(s.R*s.R + (s.XL - s.XC)*(s.XL - s.XC));
+    s.I  = s.V / s.Z;
+    s.atResonance = Math.abs(s.XL - s.XC) < 0.05 * s.R;
+  }
+
+  function t5Draw() {
+    const s = state;
+    ctx.save();
+    ctx.fillStyle = COLORS.bg; ctx.fillRect(0,0,CW,CH);
+    ctx.textAlign='center';
+    ctx.fillStyle = COLORS.cap; ctx.font = "bold 15px 'Cairo', sans-serif";
+    ctx.fillText('حالة الرنين في دائرة RLC على التوالي', CW/2, 26);
+
+    const Lx=90, Rx=560, TOP=105, BOT=300;
+    const srcY=(TOP+BOT)/2;
+    const ammX=190, resX1=250, resX2=330, coilX1=380, coilX2=470, capX=530;
+
+    wire([[Lx,srcY-34],[Lx,TOP],[ammX-28,TOP]]);
+    wire([[ammX+28,TOP],[resX1,TOP]]);
+    wire([[resX2,TOP],[coilX1,TOP]]);
+    wire([[coilX2,TOP],[capX-8,TOP]]);
+    wire([[capX+8,TOP],[Rx,TOP],[Rx,BOT],[Lx,BOT],[Lx,srcY+34]]);
+
+    const loop=[[Lx,srcY-34],[Lx,TOP],[ammX-28,TOP],[ammX+28,TOP],[resX1,TOP],[resX2,TOP],
+                [coilX1,TOP],[coilX2,TOP],[capX,TOP],[Rx,TOP],[Rx,BOT],[Lx,BOT],[Lx,srcY+34]];
+
+    drawACSource(Lx, srcY, 30, s.phase, null);
+    ctx.fillStyle = COLORS.muted; ctx.font="10.5px 'Tajawal', sans-serif";
+    ctx.fillText('f = ' + s.f.toFixed(1) + ' Hz', Lx, srcY + 46);
+
+    drawMeter(ammX, TOP, 27, s.I, s.V/s.R, 'A', 'أميتر');
+
+    drawResistorH(resX1, TOP, resX2);
+    ctx.fillStyle = COLORS.muted; ctx.font="10.5px 'Tajawal', sans-serif"; ctx.textAlign='center';
+    ctx.fillText('R = ' + s.R + ' Ω', (resX1+resX2)/2, TOP - 26);
+
+    drawCoil(coilX1, TOP, coilX2, 4, s.atResonance ? 1 : 0.3);
+    ctx.fillStyle = COLORS.muted;
+    ctx.fillText('L = ' + s.L.toFixed(2) + ' H', (coilX1+coilX2)/2, TOP - 26);
+
+    drawCapSymbol(capX, TOP, s.atResonance ? 1 : 0.3);
+    ctx.fillStyle = COLORS.muted;
+    ctx.fillText('C = ' + s.C.toFixed(0) + ' µF', capX, TOP - 34);
+
+    drawACDots(loop, Math.min(1, s.I/(s.V/s.R)), s.phase);
+
+    // resonance banner
+    if (s.atResonance) {
+      ctx.save();
+      const txt = '⚡ حالة الرنين: XL = XC ، Z = R ، التيار أقصى ما يمكن';
+      ctx.font = "bold 13px 'Cairo', sans-serif"; ctx.textAlign='center';
+      const w = ctx.measureText(txt).width + 30;
+      ctx.fillStyle = 'rgba(17,26,44,.9)';
+      ctx.strokeStyle = COLORS.active; ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect ? ctx.roundRect(320 - w/2, 336, w, 30, 15) : ctx.rect(320-w/2, 336, w, 30);
+      ctx.fill(); ctx.stroke();
+      ctx.fillStyle = COLORS.active;
+      ctx.fillText(txt, 320, 356);
+      ctx.restore();
+    }
+
+    // reactance bars: XL vs XC, so equality at resonance is obvious
+    const bx=60, by=380, bw=230;
+    const bmax = Math.max(s.XL, s.XC, 1);
+    ctx.save();
+    ctx.fillStyle = COLORS.panel; ctx.strokeStyle = COLORS.border; ctx.lineWidth=1.5;
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(bx-14, by-16, bw+40, 72, 10) : ctx.rect(bx-14, by-16, bw+40, 72);
+    ctx.fill(); ctx.stroke();
+    ctx.fillStyle='rgba(111,251,224,.18)'; ctx.fillRect(bx+34, by, bw, 14);
+    ctx.fillStyle=COLORS.active;           ctx.fillRect(bx+34, by, bw*(s.XL/bmax), 14);
+    ctx.fillStyle='rgba(77,141,255,.18)';  ctx.fillRect(bx+34, by+26, bw, 14);
+    ctx.fillStyle=COLORS.blue;             ctx.fillRect(bx+34, by+26, bw*(s.XC/bmax), 14);
+    ctx.fillStyle=COLORS.muted; ctx.font="11px 'Tajawal', sans-serif"; ctx.textAlign='right';
+    ctx.fillText('XL', bx+28, by+12);
+    ctx.fillText('XC', bx+28, by+38);
+    ctx.restore();
+
+    // resonance curve: I vs f, peaking at f0
+    const pts=[];
+    const Cf=s.C*1e-6;
+    let iMax=0;
+    for (let f=10; f<=120; f+=0.5){
+      const xl=2*Math.PI*f*s.L, xc=1/(2*Math.PI*f*Cf);
+      const z=Math.sqrt(s.R*s.R+(xl-xc)*(xl-xc));
+      const i=s.V/z;
+      pts.push([f,i]); if(i>iMax) iMax=i;
+    }
+    drawGraph(620, 52, 262, 190, {
+      title:'منحني الرنين: I بدلالة f', xLabel:'f (Hz)', yLabel:'I (A)',
+      points: pts, curX: s.f, curY: s.I,
+      xMin:10, xMax:120, yMin:0, yMax:iMax*1.1,
+      color: COLORS.active
+    });
+
+    drawHUD(620, 254, 262, [
+      { text:'f₀ = 1/(2π√(LC)) = ' + s.f0.toFixed(1) + ' Hz', bold:true, color:COLORS.cap },
+      { text:'f  = ' + s.f.toFixed(1) + ' Hz' },
+      { text:'XL = ' + s.XL.toFixed(1) + ' Ω', color:COLORS.active },
+      { text:'XC = ' + s.XC.toFixed(1) + ' Ω', color:COLORS.blue },
+      { text:'Z = √(R²+(XL−XC)²) = ' + s.Z.toFixed(1) + ' Ω' },
+      { text:'I = V/Z = ' + s.I.toFixed(3) + ' A',
+        bold:true, color: s.atResonance ? COLORS.active : COLORS.wire }
+    ]);
+    ctx.restore();
+  }
+
+  window.t5State = state; window.t5Update = t5Update; window.t5Draw = t5Draw;
+})();
+
+/* =========================================================================
+   ACTIVITY 6 — عامل القدرة والفرق بين القدرة الحقيقية والظاهرية
+   pf = cos(φ) = R/Z  ,  P = V·I·cosφ (حقيقية)  ,  S = V·I (ظاهرية)
+   المحث الصافي والمتسعة الصافية: φ = 90° -> P = 0 (لا تستهلك قدرة)
+   ========================================================================= */
+(function () {
+  const state = {
+    simMode:'auto', t:0, phase:0,
+    element:'R',          // 'R' | 'L' | 'C' | 'RLC'
+    R: 10, L: 0.5, C: 20, V: 12, f: 50,
+    XL:0, XC:0, Z:0, I:0, phi:0, pf:0, P:0, S:0
+  };
+
+  function setElement(e){ state.element = e; }
+  window.t6SetElement = setElement;
+
+  function t6Update(dt) {
+    const s = state;
+    s.t += dt; s.phase += dt * 4;
+
+    const w = 2*Math.PI*s.f;
+    s.XL = w * s.L;
+    s.XC = 1 / (w * s.C * 1e-6);
+
+    let Rseen, Xseen;
+    if (s.element === 'R')      { Rseen = s.R; Xseen = 0; }
+    else if (s.element === 'L') { Rseen = 0;   Xseen = s.XL; }
+    else if (s.element === 'C') { Rseen = 0;   Xseen = -s.XC; }
+    else                        { Rseen = s.R; Xseen = s.XL - s.XC; }
+
+    s.Z   = Math.sqrt(Rseen*Rseen + Xseen*Xseen);
+    s.I   = s.Z > 0 ? s.V / s.Z : 0;
+    s.phi = Math.atan2(Xseen, Rseen);
+    s.pf  = Math.cos(s.phi);
+    s.S   = s.V * s.I;
+    s.P   = s.S * s.pf;
+  }
+
+  function drawWave(x, y, w, h, amp, phase, color, label) {
+    ctx.save();
+    ctx.strokeStyle = color; ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let i = 0; i <= w; i++) {
+      const yy = y - Math.sin((i/w)*Math.PI*4 + phase) * amp * h;
+      i===0 ? ctx.moveTo(x+i, yy) : ctx.lineTo(x+i, yy);
+    }
+    ctx.stroke();
+    ctx.fillStyle = color; ctx.font = "11px 'Tajawal', sans-serif"; ctx.textAlign='right';
+    ctx.fillText(label, x + w, y - amp*h - 6);
+    ctx.restore();
+  }
+
+  function t6Draw() {
+    const s = state;
+    ctx.save();
+    ctx.fillStyle = COLORS.bg; ctx.fillRect(0,0,CW,CH);
+    ctx.textAlign='center';
+    ctx.fillStyle = COLORS.cap; ctx.font = "bold 15px 'Cairo', sans-serif";
+    ctx.fillText('عامل القدرة والفرق بين القدرة الحقيقية والظاهرية', CW/2, 26);
+
+    const phiDeg = s.phi * 180/Math.PI;
+    const elemName = {R:'مقاومة صافية', L:'محث صافٍ', C:'متسعة صافية', RLC:'دائرة RLC توالي'}[s.element];
+
+    const wx=60, wy=150, ww=380, wh=48;
+    ctx.strokeStyle = COLORS.border; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(wx, wy); ctx.lineTo(wx+ww, wy); ctx.stroke();
+    drawWave(wx, wy, ww, wh, 0.9, s.phase, COLORS.cap, 'الجهد V');
+    drawWave(wx, wy, ww, wh, 0.9, s.phase - s.phi, COLORS.active, 'التيار I');
+    ctx.fillStyle = COLORS.muted; ctx.font="11px 'Tajawal', sans-serif"; ctx.textAlign='center';
+    ctx.fillText('فرق الطور φ = ' + phiDeg.toFixed(0) + '°', wx+ww/2, wy+wh+24);
+
+    const tx=170, ty=380, scale=Math.min(150/Math.max(s.S,1), 12);
+    const Ppx = s.P*scale, Qpx = s.S*Math.sin(s.phi)*scale;
+    ctx.save();
+    ctx.strokeStyle = COLORS.cap; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(tx + Ppx, ty); ctx.stroke();
+    ctx.strokeStyle = COLORS.blue; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(tx + Ppx, ty); ctx.lineTo(tx + Ppx, ty - Qpx); ctx.stroke();
+    ctx.strokeStyle = COLORS.active; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(tx + Ppx, ty - Qpx); ctx.stroke();
+    ctx.fillStyle = COLORS.cap; ctx.font="11px 'Cairo', sans-serif"; ctx.textAlign='center';
+    ctx.fillText('P', tx + Ppx/2, ty + 16);
+    ctx.fillStyle = COLORS.blue; ctx.fillText('Q', tx + Ppx + 14, ty - Qpx/2);
+    ctx.fillStyle = COLORS.active; ctx.fillText('S', tx + Ppx/2 - 14, ty - Qpx/2 - 4);
+    ctx.restore();
+    ctx.fillStyle = COLORS.muted; ctx.font="10.5px 'Tajawal', sans-serif"; ctx.textAlign='center';
+    ctx.fillText('مثلث القدرة', tx + Ppx/2, ty + 34);
+
+    const consumes = s.P > 0.05;
+    ctx.save();
+    const vtxt = consumes
+      ? '✓ تستهلك قدرة حقيقية (تتبدد في المقاومة حرارةً)'
+      : '✗ لا تستهلك قدرة حقيقية — متوسط القدرة = صفر';
+    ctx.fillStyle = consumes ? COLORS.active : COLORS.red;
+    ctx.font = "bold 12.5px 'Cairo', sans-serif"; ctx.textAlign='center';
+    ctx.fillText(vtxt, 250, 445);
+    ctx.restore();
+
+    drawHUD(CW-262, 52, 246, [
+      { text:'العنصر: ' + elemName, bold:true, color:COLORS.cap },
+      { text:'φ = ' + phiDeg.toFixed(1) + '°   pf = cos φ = ' + s.pf.toFixed(3), color:COLORS.active },
+      { text:'S (ظاهرية) = V·I = ' + s.S.toFixed(2) + ' VA', color:COLORS.active },
+      { text:'P (حقيقية) = V·I·cosφ = ' + s.P.toFixed(2) + ' W', bold:true, color:COLORS.cap },
+      { text:'Q (ردّية) = V·I·sinφ = ' + (s.S*Math.sin(s.phi)).toFixed(2), color:COLORS.blue },
+      { text:'I = ' + s.I.toFixed(3) + ' A' }
+    ]);
+
+    drawHUD(CW-262, 250, 246, [
+      { text:'ملاحظة مفاهيمية:', bold:true, color:COLORS.cap },
+      { text:'• المقاومة: φ=0، pf=1 → تستهلك كل القدرة' },
+      { text:'• المحث الصافي: φ=+90°، pf=0 → P=0' },
+      { text:'• المتسعة الصافية: φ=−90°، pf=0 → P=0' }
+    ]);
+
+    ctx.fillStyle = COLORS.muted; ctx.font="11.5px 'Tajawal', sans-serif"; ctx.textAlign='center';
+    ctx.fillText('اختر العنصر من لوحة التحكم ولاحظ عامل القدرة والقدرة المستهلكة', 250, 470);
+    ctx.restore();
+  }
+
+  window.t6State = state; window.t6Update = t6Update; window.t6Draw = t6Draw;
+})();
+
+/* =========================================================================
+   ACTIVITY 7 — ربط RLC على التوالي
+   ========================================================================= */
+(function () {
+  const state = {
+    simMode:'auto', t:0, phase:0, sweepDir:1,
+    R: 10, L: 0.5, C: 20, V: 12, f: 40,
+    XL:0, XC:0, Z:0, I:0, VR:0, VL:0, VC:0, phi:0
+  };
+
+  function t7Update(dt) {
+    const s = state;
+    s.t += dt; s.phase += dt * 5;
+    if (s.simMode === 'auto') {
+      s.f += s.sweepDir * dt * 12;
+      if (s.f >= 100) { s.f = 100; s.sweepDir = -1; }
+      if (s.f <= 15)  { s.f = 15;  s.sweepDir =  1; }
+    }
+    const w = 2*Math.PI*s.f;
+    s.XL = w*s.L; s.XC = 1/(w*s.C*1e-6);
+    s.Z  = Math.sqrt(s.R*s.R + (s.XL-s.XC)*(s.XL-s.XC));
+    s.I  = s.V/s.Z;
+    s.VR = s.I*s.R; s.VL = s.I*s.XL; s.VC = s.I*s.XC;
+    s.phi = Math.atan2(s.XL-s.XC, s.R);
+  }
+
+  function t7Draw() {
+    const s = state;
+    ctx.save();
+    ctx.fillStyle = COLORS.bg; ctx.fillRect(0,0,CW,CH);
+    ctx.textAlign='center';
+    ctx.fillStyle = COLORS.cap; ctx.font = "bold 15px 'Cairo', sans-serif";
+    ctx.fillText('ربط R و L و C على التوالي', CW/2, 26);
+
+    const Lx=90, Rx=560, TOP=110, BOT=290, srcY=(TOP+110+BOT)/2;
+    const r1=210, r2=290, coil1=340, coil2=430, capX=490;
+
+    wire([[Lx,srcY-30],[Lx,TOP],[r1-20,TOP]]);
+    drawResistorH(r1, TOP, r2);
+    wire([[r2,TOP],[coil1,TOP]]);
+    drawCoil(coil1, TOP, coil2, 4, s.XL>s.XC?0.6:0.2);
+    wire([[coil2,TOP],[capX-8,TOP]]);
+    drawCapSymbol(capX, TOP, s.XC>s.XL?0.6:0.2);
+    wire([[capX+8,TOP],[Rx,TOP],[Rx,BOT],[Lx,BOT],[Lx,srcY+30]]);
+
+    const loop=[[Lx,srcY-30],[Lx,TOP],[r1,TOP],[r2,TOP],[coil1,TOP],[coil2,TOP],[capX,TOP],
+                [Rx,TOP],[Rx,BOT],[Lx,BOT],[Lx,srcY+30]];
+    drawACSource(Lx, srcY, 28, s.phase, null);
+    ctx.fillStyle=COLORS.muted; ctx.font="10.5px 'Tajawal', sans-serif"; ctx.textAlign='center';
+    ctx.fillText('f = '+s.f.toFixed(0)+' Hz', Lx, srcY+42);
+    ctx.fillText('R='+s.R, (r1+r2)/2, TOP-14);
+    ctx.fillText('L='+s.L.toFixed(2), (coil1+coil2)/2, TOP-22);
+    ctx.fillText('C='+s.C.toFixed(0), capX, TOP-30);
+    drawACDots(loop, Math.min(1,s.I/(s.V/s.R)), s.phase);
+
+    const px=200, py=400, sc=Math.min(120/Math.max(s.V,s.VL,s.VC,1), 2.4);
+    ctx.save();
+    ctx.strokeStyle=COLORS.muted; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+    ctx.beginPath(); ctx.moveTo(px-140,py); ctx.lineTo(px+140,py); ctx.moveTo(px,py-90); ctx.lineTo(px,py+90); ctx.stroke();
+    ctx.setLineDash([]);
+    const arrow=(dx,dy,col,lbl)=>{
+      ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=2.5;
+      ctx.beginPath(); ctx.moveTo(px,py); ctx.lineTo(px+dx,py-dy); ctx.stroke();
+      ctx.font="10.5px 'Cairo', sans-serif"; ctx.textAlign='center';
+      ctx.fillText(lbl, px+dx*1.12, py-dy*1.12);
+    };
+    arrow(s.VR*sc, 0, COLORS.cap, 'VR');
+    arrow(0, s.VL*sc, COLORS.active, 'VL');
+    arrow(0, -s.VC*sc, COLORS.blue, 'VC');
+    arrow(s.VR*sc, (s.VL-s.VC)*sc, COLORS.wire, 'V');
+    ctx.restore();
+    ctx.fillStyle=COLORS.muted; ctx.font="10.5px 'Tajawal', sans-serif"; ctx.textAlign='center';
+    ctx.fillText('مخطط الأطوار (Phasor)', px, py+80);
+
+    drawHUD(CW-250, 52, 234, [
+      { text:'التوالي: التيار I ثابت في الكل', bold:true, color:COLORS.cap },
+      { text:'Z = √(R²+(XL−XC)²) = '+s.Z.toFixed(1)+' Ω', color:COLORS.active },
+      { text:'I = V/Z = '+s.I.toFixed(3)+' A', bold:true },
+      { text:'VR = '+s.VR.toFixed(2)+' V', color:COLORS.cap },
+      { text:'VL = '+s.VL.toFixed(2)+' V', color:COLORS.active },
+      { text:'VC = '+s.VC.toFixed(2)+' V', color:COLORS.blue },
+      { text:'φ = '+(s.phi*180/Math.PI).toFixed(1)+'°' }
+    ]);
+    ctx.restore();
+  }
+
+  window.t7State = state; window.t7Update = t7Update; window.t7Draw = t7Draw;
+})();
+
+/* =========================================================================
+   ACTIVITY 8 — ربط RLC على التوازي
+   ========================================================================= */
+(function () {
+  const state = {
+    simMode:'auto', t:0, phase:0, sweepDir:1,
+    R: 10, L: 0.5, C: 20, V: 12, f: 40,
+    XL:0, XC:0, IR:0, IL:0, IC:0, Itot:0, Z:0, phi:0
+  };
+
+  function t8Update(dt) {
+    const s = state;
+    s.t += dt; s.phase += dt * 5;
+    if (s.simMode === 'auto') {
+      s.f += s.sweepDir * dt * 12;
+      if (s.f >= 100) { s.f = 100; s.sweepDir = -1; }
+      if (s.f <= 15)  { s.f = 15;  s.sweepDir =  1; }
+    }
+    const w = 2*Math.PI*s.f;
+    s.XL = w*s.L; s.XC = 1/(w*s.C*1e-6);
+    s.IR = s.V/s.R; s.IL = s.V/s.XL; s.IC = s.V/s.XC;
+    s.Itot = Math.sqrt(s.IR*s.IR + (s.IC-s.IL)*(s.IC-s.IL));
+    s.Z = s.Itot>0 ? s.V/s.Itot : 0;
+    s.phi = Math.atan2(s.IC-s.IL, s.IR);
+  }
+
+  function drawResistorV(x, y1, y2){
+    ctx.save(); ctx.strokeStyle=COLORS.wire; ctx.lineWidth=3; ctx.lineCap='round';
+    ctx.beginPath(); ctx.moveTo(x,y1);
+    const n=6, dy=(y2-y1)/n;
+    for(let i=0;i<n;i++) ctx.lineTo(x+(i%2===0?-10:10), y1+dy*(i+1));
+    ctx.lineTo(x,y2); ctx.stroke(); ctx.restore();
+  }
+  function drawCoilV(x, y1, y2, fill){
+    const turns=4, step=(y2-y1)/turns, rr=step/2;
+    ctx.save(); ctx.strokeStyle=COLORS.coil; ctx.lineWidth=3; ctx.lineCap='round';
+    for(let i=0;i<turns;i++){ const cy=y1+step*i+rr; ctx.beginPath(); ctx.arc(x,cy,rr,-Math.PI/2,Math.PI/2,false); ctx.stroke(); }
+    if(fill>0.02){ ctx.globalAlpha=0.25+fill*0.5; ctx.strokeStyle=COLORS.active; ctx.lineWidth=2;
+      for(let i=0;i<turns;i++){ const cy=y1+step*i+rr; ctx.beginPath(); ctx.arc(x,cy,rr,-Math.PI/2,Math.PI/2,false); ctx.stroke(); } }
+    ctx.restore();
+  }
+  function drawCapV(x, cy, glow){
+    ctx.save(); ctx.strokeStyle=COLORS.cap; ctx.lineWidth=5;
+    ctx.beginPath(); ctx.moveTo(x-22,cy-4); ctx.lineTo(x+22,cy-4); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x-22,cy+4); ctx.lineTo(x+22,cy+4); ctx.stroke();
+    if(glow>0.02){ ctx.globalAlpha=0.2+glow*0.5; ctx.fillStyle=COLORS.active; ctx.fillRect(x-22,cy-4,44,8); }
+    ctx.restore();
+  }
+
+  function t8Draw() {
+    const s = state;
+    ctx.save();
+    ctx.fillStyle = COLORS.bg; ctx.fillRect(0,0,CW,CH);
+    ctx.textAlign='center';
+    ctx.fillStyle = COLORS.cap; ctx.font = "bold 15px 'Cairo', sans-serif";
+    ctx.fillText('ربط R و L و C على التوازي', CW/2, 26);
+
+    const Lx=90, TOP=95, BOT=320, railR=470;
+    const srcY=(TOP+BOT)/2;
+    const bR=200, bL=300, bC=400;
+
+    drawACSource(Lx, srcY, 28, s.phase, null);
+    ctx.fillStyle=COLORS.muted; ctx.font="10.5px 'Tajawal', sans-serif"; ctx.textAlign='center';
+    ctx.fillText('f = '+s.f.toFixed(0)+' Hz', Lx, srcY+42);
+    wire([[Lx,srcY-28],[Lx,TOP],[railR,TOP]]);
+    wire([[Lx,srcY+28],[Lx,BOT],[railR,BOT]]);
+
+    wire([[bR,TOP],[bR,TOP+30]]); drawResistorV(bR, TOP+30, TOP+70); wire([[bR,TOP+70],[bR,BOT]]);
+    wire([[bL,TOP],[bL,TOP+20]]); drawCoilV(bL, TOP+20, TOP+80, s.XL<s.XC?0.6:0.2); wire([[bL,TOP+80],[bL,BOT]]);
+    wire([[bC,TOP],[bC,TOP+34]]); drawCapV(bC, TOP+42, s.XC<s.XL?0.6:0.2); wire([[bC,TOP+50],[bC,BOT]]);
+
+    ctx.fillStyle=COLORS.muted; ctx.font="10.5px 'Tajawal', sans-serif"; ctx.textAlign='center';
+    ctx.fillText('R='+s.R, bR+22, (TOP+BOT)/2);
+    ctx.fillText('L='+s.L.toFixed(2), bL+26, (TOP+BOT)/2);
+    ctx.fillText('C='+s.C.toFixed(0), bC+24, (TOP+BOT)/2);
+
+    const px=650, py=250, sc=Math.min(90/Math.max(s.Itot,s.IL,s.IC,0.5), 240);
+    ctx.save();
+    ctx.strokeStyle=COLORS.muted; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+    ctx.beginPath(); ctx.moveTo(px-120,py); ctx.lineTo(px+120,py); ctx.moveTo(px,py-100); ctx.lineTo(px,py+100); ctx.stroke();
+    ctx.setLineDash([]);
+    const arrow=(dx,dy,col,lbl)=>{
+      ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=2.5;
+      ctx.beginPath(); ctx.moveTo(px,py); ctx.lineTo(px+dx,py-dy); ctx.stroke();
+      ctx.font="10px 'Cairo', sans-serif"; ctx.textAlign='center';
+      ctx.fillText(lbl, px+dx*1.15, py-dy*1.15);
+    };
+    arrow(s.IR*sc,0,COLORS.cap,'IR');
+    arrow(0,-s.IL*sc,COLORS.active,'IL');
+    arrow(0,s.IC*sc,COLORS.blue,'IC');
+    arrow(s.IR*sc,(s.IC-s.IL)*sc,COLORS.wire,'I');
+    ctx.restore();
+    ctx.fillStyle=COLORS.muted; ctx.font="10.5px 'Tajawal', sans-serif"; ctx.textAlign='center';
+    ctx.fillText('مخطط أطوار التيارات', px, py+92);
+
+    drawHUD(60, 360, 300, [
+      { text:'التوازي: الجهد V ثابت على كل فرع', bold:true, color:COLORS.cap },
+      { text:'IR='+s.IR.toFixed(3)+'، IL='+s.IL.toFixed(3)+'، IC='+s.IC.toFixed(3)+' A' },
+      { text:'I = √(IR²+(IC−IL)²) = '+s.Itot.toFixed(3)+' A', bold:true, color:COLORS.active }
+    ]);
+
+    drawHUD(CW-232, 52, 216, [
+      { text:'XL = '+s.XL.toFixed(1)+' Ω', color:COLORS.active },
+      { text:'XC = '+s.XC.toFixed(1)+' Ω', color:COLORS.blue },
+      { text:'Z الكلية = V/I = '+s.Z.toFixed(1)+' Ω' },
+      { text:'φ = '+(s.phi*180/Math.PI).toFixed(1)+'°' }
+    ]);
+    ctx.restore();
+  }
+
+  window.t8State = state; window.t8Update = t8Update; window.t8Draw = t8Draw;
+})();
+
+</script>
+
+<script>
+/* =========================================================================
+   APP SHELL — tabs, pointer tracking, sidebar wiring, main loop
+   ========================================================================= */
+const EXPERIMENTS = {
+  1: {
+    title:'تأثير التردد في رادة الحث',
+    subtitle:'غيّر تردد المذبذب ولاحظ تغيّر رادة الحث XL والتيار',
+    tools:['مذبذب كهربائي (تردد متغير)','أميتر','فولتميتر','ملف مهمل المقاومة (محث)','مفتاح كهربائي','أسلاك توصيل'],
+    steps:['اربط الأميتر والمحث والمذبذب على التوالي، والفولتميتر على التوازي مع المحث.','حافظ على بقاء قراءة الفولتميتر ثابتة.','زد تردد المذبذب تدريجيًا ولاحظ قراءة الأميتر.','لاحظ نقصان التيار كلما زاد التردد.','استنتج: XL تتناسب طرديًا مع التردد f بثبوت L.']
+  },
+  2: {
+    title:'تأثير معامل الحث في رادة الحث',
+    subtitle:'أدخل قلب الحديد المطاوع في الملف ولاحظ ارتفاع XL',
+    tools:['مصدر فولتية متناوبة (تردد ثابت)','قلب من الحديد المطاوع','أميتر','فولتميتر','ملف مهمل المقاومة','مفتاح كهربائي','أسلاك توصيل'],
+    steps:['اربط الدائرة كما في النشاط السابق مع تثبيت التردد.','حافظ على بقاء الفولتية ثابتة.','أدخل قلب الحديد المطاوع تدريجيًا في جوف الملف.','لاحظ ارتفاع معامل الحث L ونقصان قراءة الأميتر.','استنتج: XL تتناسب طرديًا مع L بثبوت التردد f.']
+  },
+  3: {
+    title:'تأثير التردد في رادة السعة',
+    subtitle:'غيّر تردد المذبذب ولاحظ العلاقة العكسية مع XC',
+    tools:['مذبذب كهربائي','أميتر','فولتميتر','متسعة ذات صفيحتين متوازيتين','مفتاح كهربائي','أسلاك توصيل'],
+    steps:['اربط الأميتر والمتسعة والمذبذب على التوالي، والفولتميتر على التوازي مع المتسعة.','حافظ على بقاء الفولتية ثابتة.','زد تردد المذبذب تدريجيًا ولاحظ قراءة الأميتر.','لاحظ ازدياد التيار كلما زاد التردد (عكس المحث تمامًا).','استنتج: XC تتناسب عكسيًا مع التردد f بثبوت C.']
+  },
+  4: {
+    title:'تأثير السعة في رادة السعة',
+    subtitle:'أدخل اللوح العازل بين الصفيحتين ولاحظ نقصان XC',
+    tools:['مصدر فولتية متناوبة (تردد ثابت)','أميتر','فولتميتر','متسعة ذات صفيحتين متوازيتين','لوح من مادة عازلة','مفتاح كهربائي','أسلاك توصيل'],
+    steps:['اربط الدائرة مع تثبيت التردد والفولتية.','أدخل اللوح العازل تدريجيًا بين صفيحتي المتسعة.','لاحظ ارتفاع سعة المتسعة C.','لاحظ نقصان XC وازدياد قراءة الأميتر.','استنتج: XC تتناسب عكسيًا مع السعة C بثبوت التردد f.']
+  },
+  5: {
+    title:'حالة الرنين (RLC توالي)',
+    subtitle:'ابحث عن التردد الذي تتساوى عنده XL و XC فيبلغ التيار أقصاه',
+    tools:['مصدر فولتية متناوبة متغير التردد','مقاومة R','محث L','متسعة C','أميتر','أسلاك توصيل'],
+    steps:['اربط R و L و C على التوالي مع المصدر والأميتر.','غيّر تردد المصدر تدريجيًا وراقب قراءة الأميتر.','لاحظ أن XL تزداد مع التردد بينما XC تنقص.','عند تردد معيّن f₀ تتساوى XL = XC فتُلغى الرادتان.','عندها تصبح Z = R (أصغر ما يمكن) فيبلغ التيار أقصى قيمة — هذه حالة الرنين.','استنتج: f₀ = 1/(2π√(LC)).']
+  },
+  6: {
+    title:'عامل القدرة والقدرة الحقيقية والظاهرية',
+    subtitle:'لماذا لا يستهلك المحث الصافي والمتسعة الصافية أي قدرة؟',
+    tools:['مصدر فولتية متناوبة','مقاومة','محث','متسعة','أميتر','فولتميتر'],
+    steps:['اختر العنصر: مقاومة صافية، محث صافٍ، متسعة صافية، أو RLC.','لاحظ فرق الطور φ بين موجتي الجهد والتيار.','المقاومة: φ=0 فيكون pf=cosφ=1 وتستهلك كل القدرة (تتبدد حرارة).','المحث/المتسعة الصافية: φ=90° فيكون pf=0 والقدرة الحقيقية P=0.','قارن القدرة الظاهرية S=V·I مع القدرة الحقيقية P=V·I·cosφ في مثلث القدرة.']
+  },
+  7: {
+    title:'ربط RLC على التوالي',
+    subtitle:'نفس التيار في الكل، والفولتيات تُجمع اتجاهيًا',
+    tools:['مصدر فولتية متناوبة','مقاومة R','محث L','متسعة C','أسلاك توصيل'],
+    steps:['اربط R و L و C على التوالي (يمر نفس التيار I في الجميع).','لاحظ أن الفولتيات لا تُجمع جبريًا بل اتجاهيًا (مخطط الأطوار).','VL يتقدّم التيار بـ90°، وVC يتأخر بـ90°، وVR بنفس طور التيار.','الفولتية الكلية V = √(VR² + (VL−VC)²).','الممانعة Z = √(R² + (XL−XC)²) و I = V/Z.']
+  },
+  8: {
+    title:'ربط RLC على التوازي',
+    subtitle:'نفس الجهد على الكل، والتيارات تُجمع اتجاهيًا',
+    tools:['مصدر فولتية متناوبة','مقاومة R','محث L','متسعة C','أسلاك توصيل'],
+    steps:['اربط R و L و C على التوازي (نفس الجهد V على كل فرع).','احسب تيار كل فرع: IR=V/R، IL=V/XL، IC=V/XC.','لاحظ أن التيارات تُجمع اتجاهيًا (مخطط أطوار التيارات).','التيار الكلي I = √(IR² + (IC−IL)²).','الممانعة الكلية Z = V/I.']
+  }
+};
+
+
+function getPos(evt){
+  const r = canvas.getBoundingClientRect();
+  const t = (evt.touches && evt.touches.length) ? evt.touches[0]
+          : (evt.changedTouches && evt.changedTouches[0]);
+  const cx = t ? t.clientX : evt.clientX;
+  const cy = t ? t.clientY : evt.clientY;
+  return { x:(cx-r.left)*(CW/r.width), y:(cy-r.top)*(CH/r.height) };
+}
+function onDown(e){ const p=getPos(e); pointer.x=p.x; pointer.y=p.y; pointer.isDown=true; canvas.classList.add('dragging'); }
+function onMove(e){ if(!pointer.isDown) return; e.preventDefault(); const p=getPos(e); pointer.x=p.x; pointer.y=p.y; }
+function onUp(e){ if(pointer.isDown){ const p=getPos(e); pointer.x=p.x; pointer.y=p.y; _clickPending=true; }
+                  pointer.isDown=false; canvas.classList.remove('dragging'); }
+canvas.addEventListener('mousedown', onDown);
+window.addEventListener('mousemove', onMove);
+window.addEventListener('mouseup', onUp);
+canvas.addEventListener('touchstart', onDown, {passive:true});
+window.addEventListener('touchmove', onMove, {passive:false});
+window.addEventListener('touchend', onUp);
+window.addEventListener('touchcancel', onUp);
+
+let activeTab = 1;
+const tabsNav = document.getElementById('tabsNav');
+Object.keys(EXPERIMENTS).forEach(id=>{
+  const btn = document.createElement('button');
+  btn.className = 'tab-btn' + (Number(id)===1 ? ' active' : '');
+  btn.dataset.tab = id;
+  btn.innerHTML = '<span class="num">'+id+'</span><span>'+EXPERIMENTS[id].title+'</span>';
+  btn.addEventListener('click', ()=> switchTab(Number(id)));
+  tabsNav.appendChild(btn);
+});
+
+function stateByTab(){ return {1:t1State,2:t2State,3:t3State,4:t4State,5:t5State,6:t6State,7:t7State,8:t8State}; }
+
+function switchTab(id){
+  activeTab = id;
+  document.querySelectorAll('.tab-btn').forEach(b=> b.classList.toggle('active', Number(b.dataset.tab)===id));
+  document.querySelectorAll('.control-panel').forEach(p=> p.classList.toggle('active', Number(p.dataset.tab)===id));
+  const exp = EXPERIMENTS[id];
+  document.getElementById('sidebarTitle').textContent = 'النشاط ' + id + ': ' + exp.title;
+  document.getElementById('mainTitle').textContent = exp.title;
+  document.getElementById('mainSubtitle').textContent = exp.subtitle;
+  document.getElementById('toolsList').innerHTML = exp.tools.map(t=>'<li>'+t+'</li>').join('');
+  document.getElementById('stepsList').innerHTML = exp.steps.map(t=>'<li>'+t+'</li>').join('');
+  updatePill();
+}
+function updatePill(){
+  const s = stateByTab()[activeTab];
+  document.getElementById('modeStatus').textContent = (s && s.simMode==='manual') ? 'يدوي' : 'تلقائي';
+}
+
+document.querySelectorAll('[data-mode-tab]').forEach(btn=>{
+  btn.addEventListener('click', e=>{
+    const tab = Number(e.currentTarget.dataset.modeTab);
+    const s = stateByTab()[tab];
+    s.simMode = (s.simMode === 'auto') ? 'manual' : 'auto';
+    e.currentTarget.classList.toggle('on', s.simMode==='auto');
+    e.currentTarget.textContent = s.simMode==='auto' ? '⚙️ تلقائي' : '🖐️ يدوي';
+    if (tab === activeTab) updatePill();
+  });
+});
+
+/* sliders: data-target="t1State.f" */
+document.querySelectorAll('input[type=range][data-target]').forEach(inp=>{
+  inp.addEventListener('input', e=>{
+    const path = e.target.dataset.target.split('.');
+    const val = Number(e.target.value);
+    const obj = window[path[0]];
+    obj[path[1]] = val;
+    const lbl = document.getElementById(e.target.dataset.label);
+    const dec = Number(e.target.dataset.dec || 0);
+    if (lbl) lbl.textContent = val.toFixed(dec);
+    // moving a slider by hand implies manual control
+    const tabNum = Number(path[0].replace(/\D/g,''));
+    const st = stateByTab()[tabNum];
+    if (st && st.simMode === 'auto' && (path[1]==='f' || path[1]==='coreX')) {
+      // leave mode alone; auto sweep will simply resume from the new value
+    }
+  });
+});
+
+/* dielectric material buttons (tab 4) */
+document.querySelectorAll('#dielBtns button').forEach(btn=>{
+  btn.addEventListener('click', e=>{
+    document.querySelectorAll('#dielBtns button').forEach(b=>b.classList.remove('on'));
+    e.currentTarget.classList.add('on');
+    t4SetK(Number(e.currentTarget.dataset.k), e.currentTarget.textContent);
+  });
+});
+
+/* tune-to-resonance button (tab 5) */
+document.getElementById('tuneBtn5').addEventListener('click', ()=>{
+  t5Tune();
+  const sl = document.querySelector('input[data-target="t5State.f"]');
+  if (sl) { sl.value = t5State.f; document.getElementById('v-f5').textContent = t5State.f.toFixed(1); }
+});
+
+/* element selector (tab 6) */
+document.querySelectorAll('#elemBtns button').forEach(btn=>{
+  btn.addEventListener('click', e=>{
+    document.querySelectorAll('#elemBtns button').forEach(b=>b.classList.remove('on'));
+    e.currentTarget.classList.add('on');
+    t6SetElement(e.currentTarget.dataset.el);
+  });
+});
+
+/* welcome overlay */
+(function initWelcome(){
+  const ov = document.getElementById('welcomeOverlay');
+  const btn = document.getElementById('startBtn');
+  // keep the header teacher name in step with the welcome-screen name, so the
+  // teacher only edits the placeholder in one spot
+  const wa = document.querySelector('.welcome-author b');
+  const ht = document.querySelector('.header-teacher b');
+  if (wa && ht) ht.textContent = wa.textContent;
+  function dismiss(){
+    document.body.classList.add('started');
+    if (ov) {
+      ov.classList.add('hidden');
+      setTimeout(()=>{ ov.style.display='none'; }, 550);
+    }
+  }
+  if (btn) btn.addEventListener('click', dismiss);
+  if (ov) ov.addEventListener('click', dismiss);
+  if (!ov || !btn) document.body.classList.add('started');
+})();
+
+let lastTime = null;
+function loop(ts){
+  if (lastTime === null) lastTime = ts;
+  let dt = (ts - lastTime)/1000;
+  dt = Math.min(dt, 0.05);
+  lastTime = ts;
+
+  pointer.isClicked = _clickPending;
+  _clickPending = false;
+
+  switch(activeTab){
+    case 1: t1Update(dt); t1Draw(); break;
+    case 2: t2Update(dt); t2Draw(); break;
+    case 3: t3Update(dt); t3Draw(); break;
+    case 4: t4Update(dt); t4Draw(); break;
+    case 5: t5Update(dt); t5Draw(); break;
+    case 6: t6Update(dt); t6Draw(); break;
+    case 7: t7Update(dt); t7Draw(); break;
+    case 8: t8Update(dt); t8Draw(); break;
+  }
+  requestAnimationFrame(loop);
+}
+
+switchTab(1);
+requestAnimationFrame(loop);
+
+</script>
+
+
+<!-- ===== وضع التضمين داخل واجهة التطبيق الموحّد =====
+     الملف يبقى صالحاً للفتح بمفرده؛ وعند تحميله داخل إطار (iframe) من
+     الصفحة الرئيسية نتخطى شاشة الترحيب الخاصة به لأن الترحيب صار موحّداً. -->
+<script>
+(function(){
+  var embedded = false;
+  try { embedded = window.self !== window.top; } catch(e){ embedded = true; }
+  if (!embedded && location.search.indexOf('embed=1') === -1) return;
+  document.documentElement.classList.add('is-embedded');
+  function start(){
+    document.body.classList.add('started');
+    var btn = document.getElementById('startBtn');
+    if (btn) btn.click();
+    var ov = document.getElementById('welcomeOverlay');
+    if (ov){ ov.classList.add('hidden'); ov.style.display = 'none'; }
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+  else start();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,3151 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a0f1c">
+<title>مختبر الفيزياء الافتراضي — الموجات الكهرومغناطيسية</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&family=Cairo:wght@600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-deep:#0a0f1c;
+    --bg-panel:#111a2c;
+    --bg-panel-alt:#16213a;
+    --bg-canvas:#0d1526;
+    --border:#243252;
+    --border-soft:#1c2942;
+    --text:#e8edf7;
+    --text-muted:#8b98b4;
+    --accent-amber:#f2a83c;
+    --accent-cyan:#38e1c6;
+    --accent-cyan-bright:#6ffbe0;
+    --accent-red:#ef5b6b;
+    --accent-blue:#4d8dff;
+    --radius:14px;
+    --shadow:0 8px 24px rgba(0,0,0,.35);
+    /* glow tints used in the body background — themed so they don't wash out */
+    --glow-cyan:rgba(56,225,198,.06);
+    --glow-amber:rgba(242,168,60,.06);
+  }
+  /* Light theme: same accents (kept vivid for contrast on white), but the
+     structural greys/blues are inverted to a bright paper-like palette. */
+  :root[data-theme="light"]{
+    --bg-deep:#e9eef6;
+    --bg-panel:#ffffff;
+    --bg-panel-alt:#f1f5fb;
+    --bg-canvas:#f4f7fc;
+    --border:#c7d3e6;
+    --border-soft:#d8e1ef;
+    --text:#1a2438;
+    --text-muted:#5a6a86;
+    --accent-amber:#c9791a;
+    --accent-cyan:#0f9d8a;
+    --accent-cyan-bright:#0c8475;
+    --accent-red:#d63a4c;
+    --accent-blue:#2f6fe0;
+    --shadow:0 8px 24px rgba(40,60,100,.14);
+    --glow-cyan:rgba(15,157,138,.05);
+    --glow-amber:rgba(201,121,26,.05);
+  }
+  *{box-sizing:border-box;}
+  html{
+    margin:0; padding:0;
+    min-height:100%;
+    background:var(--bg-deep);          /* paints the safe-area strip */
+    -webkit-text-size-adjust:100%;
+  }
+  /* app stays hidden until the welcome screen is dismissed */
+  body:not(.started) header.app-header,
+  body:not(.started) nav.tabs,
+  body:not(.started) main.app-main,
+  body:not(.started) footer{ visibility:hidden; }
+  body{
+    background:
+      radial-gradient(circle at 15% 0%, var(--glow-cyan), transparent 40%),
+      radial-gradient(circle at 90% 90%, var(--glow-amber), transparent 45%),
+      var(--bg-deep);
+    color:var(--text);
+    font-family:'Tajawal', sans-serif;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+  }
+  h1,h2,h3,h4{font-family:'Cairo', sans-serif; margin:0;}
+
+  header.app-header{
+    /* pad down past the notch/status bar, and pull the header's own background
+       up into that strip so it never reads as a black bar */
+    padding:calc(14px + env(safe-area-inset-top, 0px)) 22px 14px;
+    padding-inline-start:calc(22px + env(safe-area-inset-left, 0px));
+    padding-inline-end:calc(22px + env(safe-area-inset-right, 0px));
+    background:linear-gradient(180deg, var(--bg-panel), rgba(17,26,44,.6));
+    border-bottom:1px solid var(--border);
+    display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
+    flex-shrink:0;
+  }
+  .brand{ display:flex; align-items:center; gap:10px; }
+  .brand .logo{
+    width:38px;height:38px;border-radius:10px;
+    background:conic-gradient(from 200deg, var(--accent-amber), var(--accent-cyan), var(--accent-amber));
+    display:flex;align-items:center;justify-content:center;
+    font-size:18px; font-weight:900; color:#081018;
+  }
+  .brand h1{font-size:17px;}
+  .brand span{display:block;font-size:11px;color:var(--text-muted);font-weight:400;margin-top:2px;}
+
+  .header-teacher{
+    font-family:'Tajawal', sans-serif; font-size:13.5px; color:var(--text-muted);
+    background:var(--bg-panel-alt); border:1px solid var(--border-soft);
+    border-radius:10px; padding:9px 18px; white-space:nowrap;
+  }
+  .header-teacher b{
+    font-family:'Cairo', sans-serif; font-weight:800; font-size:18px;
+    color:var(--accent-amber); margin-inline-start:4px;
+  }
+  @media (max-width:600px){
+    .header-teacher{ font-size:12px; padding:7px 12px; }
+    .header-teacher b{ font-size:15px; }
+  }
+
+  nav.tabs{
+    display:flex; gap:8px; overflow-x:auto; padding:10px 18px;
+    background:var(--bg-panel-alt);
+    border-bottom:1px solid var(--border);
+    scrollbar-width:thin;
+    flex-shrink:0; min-height:56px;
+  }
+  nav.tabs::-webkit-scrollbar{height:6px;}
+  nav.tabs::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
+  .tab-btn{
+    flex:0 0 auto; display:flex; align-items:center; gap:8px;
+    background:var(--bg-panel); border:1px solid var(--border-soft); color:var(--text-muted);
+    padding:9px 14px; border-radius:10px; cursor:pointer;
+    font-family:'Tajawal'; font-size:13.5px; font-weight:500; white-space:nowrap; transition:.15s ease;
+  }
+  .tab-btn .num{
+    width:20px;height:20px;border-radius:50%; background:var(--border-soft);
+    display:flex;align-items:center;justify-content:center;
+    font-size:11px; font-weight:700; color:var(--text-muted); flex:0 0 auto;
+  }
+  .tab-btn:hover{border-color:var(--accent-amber); color:var(--text);}
+  .tab-btn.active{
+    background:linear-gradient(135deg, rgba(242,168,60,.16), rgba(56,225,198,.10));
+    border-color:var(--accent-amber); color:var(--text);
+    box-shadow:0 0 0 1px rgba(242,168,60,.25) inset;
+  }
+  .tab-btn.active .num{background:var(--accent-amber); color:#301b02;}
+
+  main.app-main{
+    flex:1; display:grid; grid-template-columns:340px 1fr; gap:18px; padding:18px; align-items:start;
+  }
+  @media (max-width:900px){
+    main.app-main{grid-template-columns:1fr; padding:12px; gap:12px;}
+    aside.sidebar{order:2; max-height:none;}
+    section.canvas-area{order:1; padding:12px;}
+  }
+  /* Landscape phones/tablets: give the canvas nearly the whole viewport. */
+  @media (max-width:900px) and (orientation:landscape){
+    header.app-header{
+      padding:calc(8px + env(safe-area-inset-top, 0px)) 14px 8px;
+      padding-inline-start:calc(14px + env(safe-area-inset-left, 0px));
+      padding-inline-end:calc(14px + env(safe-area-inset-right, 0px));
+    }
+    .brand .logo{width:30px;height:30px;font-size:15px;}
+    .brand h1{font-size:14px;}
+    .brand span{display:none;}
+    nav.tabs{padding:6px 12px; min-height:46px;}
+    .tab-btn{padding:7px 11px; font-size:12.5px;}
+    main.app-main{padding:8px; gap:8px;}
+    section.canvas-area{padding:8px;}
+    footer{display:none;}
+  }
+  /* Portrait phones: stack everything, keep every reading legible. */
+  @media (max-width:600px){
+    header.app-header{
+      padding:calc(10px + env(safe-area-inset-top, 0px)) 14px 10px;
+      padding-inline-start:calc(14px + env(safe-area-inset-left, 0px));
+      padding-inline-end:calc(14px + env(safe-area-inset-right, 0px));
+    }
+    .brand h1{font-size:14px;}
+    .brand span{font-size:9.5px;}
+    nav.tabs{padding:8px 10px; gap:6px;}
+    .tab-btn{padding:8px 10px; font-size:12px;}
+    .tab-btn .num{width:18px;height:18px;font-size:10px;}
+    .canvas-header{flex-direction:column; align-items:flex-start; gap:6px;}
+    .canvas-header h2{font-size:15px;}
+    .canvas-header .sub{font-size:11px;}
+    .status-pill{align-self:flex-start; font-size:11px; padding:5px 12px;}
+    .sidebar-section li{font-size:12.5px;}
+    .ctrl-btn{padding:11px 8px; font-size:12.5px;}
+    input[type=range]{height:8px;}
+    input[type=range]::-webkit-slider-thumb{width:20px;height:20px;}
+    footer{font-size:10.5px; padding:10px;}
+    .toolbar-btn{padding:7px 10px; font-size:11.5px;}
+    .icon-btn{width:34px; height:34px; font-size:15px;}
+    .exp-controls .control-panel .control-row{flex:1 1 100%;}
+  }
+
+  aside.sidebar{
+    background:var(--bg-panel); border:1px solid var(--border); border-radius:var(--radius);
+    padding:16px; max-height:calc(100vh - 150px); overflow-y:auto; box-shadow:var(--shadow);
+  }
+  aside.sidebar::-webkit-scrollbar{width:6px;}
+  aside.sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
+  .sidebar-title{
+    font-size:15px; margin-bottom:14px; padding-bottom:10px;
+    border-bottom:1px dashed var(--border); color:var(--accent-amber);
+  }
+  .sidebar-section{margin-bottom:20px;}
+  .sidebar-section h3{
+    font-size:13.5px; display:flex; align-items:center; gap:6px; color:var(--text); margin-bottom:10px; font-weight:700;
+  }
+  .sidebar-section ul, .sidebar-section ol{
+    margin:0; padding-inline-start:20px; display:flex; flex-direction:column; gap:6px;
+  }
+  .sidebar-section li{ font-size:13px; color:var(--text-muted); line-height:1.6; }
+  .sidebar-section ol li::marker{color:var(--accent-cyan-bright); font-weight:700;}
+  .sidebar-section ul li::marker{color:var(--accent-amber);}
+
+  .control-panel{display:none; flex-direction:column; gap:14px;}
+  .control-panel.active{display:flex;}
+  .control-row{display:flex; flex-direction:column; gap:6px;}
+  .control-row label{ font-size:12.5px; color:var(--text-muted); display:flex; justify-content:space-between; }
+  .control-row label b{color:var(--accent-amber); font-weight:700;}
+  input[type=range]{
+    -webkit-appearance:none; width:100%; height:6px; border-radius:4px; background:var(--border-soft); outline:none;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none; width:16px;height:16px;border-radius:50%;
+    background:var(--accent-amber); cursor:pointer; border:2px solid #301b02;
+    box-shadow:0 0 0 3px rgba(242,168,60,.2);
+  }
+  .btn-row{display:flex; gap:8px; flex-wrap:wrap;}
+  .ctrl-btn{
+    flex:1; background:var(--bg-panel-alt); border:1px solid var(--border-soft); color:var(--text);
+    padding:10px 8px; border-radius:9px; cursor:pointer;
+    font-family:'Tajawal'; font-size:12.5px; font-weight:700; transition:.15s;
+    display:flex; align-items:center; justify-content:center; gap:6px;
+  }
+  .ctrl-btn:hover{border-color:var(--accent-amber);}
+  .ctrl-btn.on{background:linear-gradient(135deg, var(--accent-amber), #b9791f); color:#301b02; border-color:transparent;}
+  .ctrl-btn.cyan.on{background:linear-gradient(135deg, var(--accent-cyan-bright), #1fae95); color:#06251f;}
+  .hint{
+    font-size:11.5px; color:var(--text-muted); background:var(--bg-panel-alt);
+    border:1px dashed var(--border-soft); border-radius:8px; padding:8px 10px; line-height:1.6;
+  }
+
+  section.canvas-area{
+    background:var(--bg-panel); border:1px solid var(--border); border-radius:var(--radius);
+    padding:16px; box-shadow:var(--shadow);
+  }
+  .canvas-header{ display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px; }
+  .canvas-header h2{font-size:18px;}
+  .canvas-header .sub{font-size:12px; color:var(--text-muted); margin-top:3px;}
+  .canvas-scroll{ width:100%; border-radius:10px; }
+  .canvas-wrap{
+    position:relative;
+    width:100%;
+    padding-top:53.333%;           /* 480/900 — reserves correct height everywhere */
+    background:
+      linear-gradient(rgba(242,168,60,.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(242,168,60,.035) 1px, transparent 1px),
+      var(--bg-canvas);
+    background-size:30px 30px, 30px 30px, 100% 100%;
+    border-radius:10px; border:1px solid var(--border-soft); overflow:hidden;
+  }
+  canvas#simCanvas{
+    position:absolute; top:0; left:0;
+    display:block; width:100%; height:100%;
+    /* Always none: this keeps every touchmove on the canvas cancellable, so JS
+       can decide per-gesture — a finger on a draggable part moves that part
+       (no scroll), a finger on empty canvas is forwarded to the scroll
+       container manually (see the touch handlers). A static CSS value can't be
+       "scroll here but not there", so the choice has to live in JS. */
+    touch-action:none; cursor:pointer;
+  }
+  canvas#simCanvas.dragging{cursor:grabbing;}
+  /* Status pill now lives in the header row (flows with the page, never
+     overlaps canvas-drawn content regardless of how much the canvas shrinks). */
+  .status-pill{
+    flex:0 0 auto;
+    background:rgba(10,15,28,.72); border:1px solid var(--border-soft);
+    border-radius:20px; padding:6px 14px; font-size:12px; color:var(--text-muted);
+    white-space:nowrap;
+  }
+  .status-pill b{color:var(--accent-amber);}
+
+  /* ===== Header sound toggle ===== */
+  .header-actions{ display:flex; align-items:center; gap:10px; }
+  .icon-btn{
+    flex:0 0 auto; display:flex; align-items:center; justify-content:center;
+    width:38px; height:38px; border-radius:10px;
+    background:var(--bg-panel-alt); border:1px solid var(--border-soft); color:var(--text);
+    cursor:pointer; font-size:17px; transition:.15s ease; padding:0;
+  }
+  .icon-btn:hover{ border-color:var(--accent-amber); }
+  .icon-btn.muted{ color:var(--text-muted); background:rgba(239,91,107,.08); border-color:rgba(239,91,107,.3); }
+
+  /* ===== Canvas-header toolbar buttons (sidebar show/hide + fullscreen) ===== */
+  .toolbar-btn{
+    flex:0 0 auto; display:flex; align-items:center; gap:6px;
+    background:var(--bg-panel-alt); border:1px solid var(--border-soft); color:var(--text-muted);
+    padding:8px 12px; border-radius:9px; cursor:pointer;
+    font-family:'Tajawal'; font-size:12.5px; font-weight:700; white-space:nowrap; transition:.15s ease;
+  }
+  .toolbar-btn:hover{ border-color:var(--accent-amber); color:var(--text); }
+  .toolbar-btn.active{
+    background:linear-gradient(135deg, rgba(242,168,60,.16), rgba(56,225,198,.10));
+    border-color:var(--accent-amber); color:var(--text);
+  }
+
+  /* ===== Sidebar show/hide: tools & steps keep their spot, but can collapse ===== */
+  main.app-main.sidebar-hidden{ grid-template-columns:1fr; }
+  main.app-main.sidebar-hidden aside.sidebar{ display:none; }
+  @media (max-width:900px){
+    main.app-main.sidebar-hidden{ grid-template-columns:1fr; }
+  }
+
+  /* ===== In-experiment control panel (moved out of the sidebar) ===== */
+  .exp-controls{
+    margin-top:14px; padding-top:14px; border-top:1px dashed var(--border);
+  }
+  .exp-controls > h3{
+    font-size:13.5px; display:flex; align-items:center; gap:6px; color:var(--text); margin-bottom:12px; font-weight:700;
+  }
+  .exp-controls .control-panel.active{
+    display:flex; flex-direction:row; flex-wrap:wrap; align-items:flex-end; gap:14px 22px;
+  }
+  .exp-controls .control-panel .control-row{ flex:1 1 200px; min-width:170px; }
+  .exp-controls .control-panel .btn-row{ flex:1 1 100%; }
+  .exp-controls .control-panel .hint{ flex:1 1 260px; }
+
+  /* ===== Fullscreen mode for the experiment (canvas + controls, no sidebar) ===== */
+  section.canvas-area:fullscreen,
+  section.canvas-area:-webkit-full-screen{
+    width:100vw; height:100vh; height:100dvh; max-width:none; max-height:none;
+    display:flex; flex-direction:column; overflow-y:auto;
+    -webkit-overflow-scrolling:touch; touch-action:pan-y; overscroll-behavior:contain;
+    padding:calc(14px + env(safe-area-inset-top,0px)) 18px
+            calc(24px + env(safe-area-inset-bottom,0px)); border-radius:0;
+    background:var(--bg-panel);
+  }
+  section.canvas-area:fullscreen .canvas-scroll,
+  section.canvas-area:-webkit-full-screen .canvas-scroll{ flex:0 0 auto; }
+  section.canvas-area:fullscreen .exp-controls,
+  section.canvas-area:-webkit-full-screen .exp-controls{ max-width:1100px; margin-inline:auto; width:100%; }
+
+  /* CSS-only fullscreen fallback. iPhone Safari does NOT support
+     requestFullscreen() on ordinary elements (only <video>), so the real
+     :fullscreen path above never fires there and the teacher was left with a
+     view they couldn't scroll. This class fills the visual viewport with plain
+     CSS instead — it works on every browser, and being a normal scroll
+     container, the controls below the canvas are reachable by touch. */
+  section.canvas-area.pseudo-fs{
+    position:fixed; inset:0; z-index:4000;
+    width:100vw; height:100vh; height:100dvh;   /* dvh tracks the iOS URL bar */
+    max-width:none; max-height:none; margin:0; border-radius:0;
+    display:flex; flex-direction:column;
+    overflow-y:auto; -webkit-overflow-scrolling:touch;
+    overscroll-behavior:contain; touch-action:pan-y;
+    padding:calc(12px + env(safe-area-inset-top,0px)) 16px
+            calc(16px + env(safe-area-inset-bottom,0px)); 
+    background:var(--bg-panel);
+  }
+  section.canvas-area.pseudo-fs .canvas-scroll{ flex:0 0 auto; }
+  section.canvas-area.pseudo-fs .exp-controls{ max-width:1100px; margin-inline:auto; width:100%; }
+  /* lock the page behind the overlay so only the experiment scrolls */
+  body.fs-lock{ overflow:hidden; }
+
+  footer{ text-align:center; font-size:11.5px; color:var(--text-muted);
+    padding:14px 14px calc(14px + env(safe-area-inset-bottom, 0px));
+    border-top:1px solid var(--border); }
+
+  /* ===== Welcome / Landing Overlay ===== */
+  #welcomeOverlay{
+    position:fixed;
+    top:0; left:0; right:0; bottom:0;
+    width:100%;
+    height:100vh;
+    height:100dvh;              /* dynamic vh: correct even with the URL bar up */
+    z-index:9999;
+    padding:env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px)
+            env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+    display:flex; align-items:center; justify-content:center;
+    overflow-y:auto;
+    /* OPAQUE base colour first, so the app never shows through — some mobile
+       browsers ignore backdrop-filter, which used to leave this see-through. */
+    background-color:#0a0f1c;
+    background-image:
+      radial-gradient(circle at 20% 15%, rgba(242,168,60,.16), transparent 45%),
+      radial-gradient(circle at 85% 85%, rgba(56,225,198,.14), transparent 50%),
+      linear-gradient(160deg, #060a14, #0d1526 55%, #0a1220);
+    transition: opacity .5s ease, visibility .5s ease;
+  }
+  #welcomeOverlay.hidden{ opacity:0; visibility:hidden; pointer-events:none; }
+  #welcomeOverlay::before{
+    content:''; position:absolute; inset:0;
+    background-image:
+      linear-gradient(rgba(242,168,60,.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(242,168,60,.05) 1px, transparent 1px);
+    background-size:42px 42px;
+    -webkit-mask-image: radial-gradient(circle at 50% 40%, black, transparent 75%);
+            mask-image: radial-gradient(circle at 50% 40%, black, transparent 75%);
+  }
+  .welcome-card{
+    position:relative; z-index:1;
+    display:flex; flex-direction:column; align-items:center; text-align:center;
+    gap:18px; padding:56px 60px; max-width:640px; width:92%;
+    margin:auto;                       /* true centring inside the flex box */
+    background:#141e33;                /* solid — never shows the app behind */
+    border:1px solid var(--border);
+    border-radius:22px;
+    box-shadow:0 20px 60px rgba(0,0,0,.45);
+    animation: welcomeRise .8s ease;
+  }
+  @keyframes welcomeRise{
+    from{ opacity:0; transform:translateY(22px) scale(.97); }
+    to{ opacity:1; transform:translateY(0) scale(1); }
+  }
+  .welcome-logo{
+    width:78px; height:78px; border-radius:20px;
+    background:conic-gradient(from 200deg, var(--accent-amber), var(--accent-cyan), var(--accent-amber));
+    display:flex; align-items:center; justify-content:center;
+    font-size:38px; font-weight:900; color:#081018;
+    box-shadow:0 10px 30px rgba(242,168,60,.25);
+  }
+  .welcome-title{
+    font-family:'Cairo', sans-serif; font-weight:800; font-size:30px;
+    background:linear-gradient(90deg, var(--accent-amber), var(--accent-cyan-bright));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    line-height:1.4;
+  }
+  .welcome-subtitle{ font-size:16px; color:var(--text); opacity:.9; font-weight:500; }
+  .welcome-divider{
+    width:70px; height:3px; border-radius:2px;
+    background:linear-gradient(90deg, var(--accent-amber), var(--accent-cyan));
+  }
+  .welcome-author{
+    width:100%; max-width:420px;
+    font-size:15px; color:var(--text-muted);
+    background:var(--bg-panel-alt);
+    border:1px dashed var(--border-soft);
+    border-radius:10px; padding:14px 20px;
+  }
+  .welcome-author b{
+    font-family:'Cairo', sans-serif; font-weight:800; font-size:21px;
+    color:var(--accent-amber); margin-inline-start:6px;
+  }
+  .welcome-start-btn{
+    margin-top:10px;
+    display:flex; align-items:center; gap:10px;
+    font-family:'Cairo', sans-serif; font-weight:800; font-size:17px;
+    color:#301b02;
+    background:linear-gradient(135deg, var(--accent-amber), #f2c375);
+    border:none; border-radius:14px;
+    padding:15px 42px;
+    cursor:pointer;
+    box-shadow:0 12px 30px rgba(242,168,60,.3);
+    transition:.2s ease;
+  }
+  .welcome-start-btn:hover{ transform:translateY(-2px); box-shadow:0 16px 38px rgba(242,168,60,.42); }
+  .welcome-start-btn:active{ transform:translateY(0); }
+  .welcome-hint{ font-size:11.5px; color:var(--text-muted); opacity:.75; }
+
+  @media (max-width:480px){
+    .welcome-card{ padding:36px 24px; gap:14px; }
+    .welcome-title{ font-size:24px; }
+    .welcome-start-btn{ padding:13px 30px; font-size:15px; }
+    .welcome-author{ font-size:13px; padding:11px 16px; }
+    .welcome-author b{ font-size:18px; }
+    .brand h1{ font-size:14px; }
+    .brand span{ font-size:10px; }
+    .canvas-header h2{ font-size:16px; }
+    .header-teacher{ order:3; width:100%; text-align:center; }
+  }
+
+
+  /* On a narrow phone the 900x480 diagram cannot shrink to fit and stay
+     readable — at 360px wide its labels would render around 4px. So instead of
+     squeezing it, we give the canvas a real minimum size and let the user pan
+     horizontally. Nothing is cut off; it is all reachable by scrolling, and
+     rotating to landscape removes the need to scroll at all. */
+  .rotate-hint{
+    display:none;
+    align-items:center; gap:10px;
+    margin-bottom:10px; padding:9px 12px;
+    background:linear-gradient(135deg, rgba(242,168,60,.14), rgba(56,225,198,.08));
+    border:1px solid rgba(242,168,60,.35);
+    border-radius:10px;
+    font-size:12px; color:var(--text); line-height:1.5;
+  }
+  .rotate-hint span.ico{ font-size:16px; flex:0 0 auto; }
+
+  @media (max-width:760px){
+    .rotate-hint{ display:flex; }
+  }
+  @media (max-width:900px) and (orientation:landscape){
+    .rotate-hint{ display:none; }
+  }
+</style>
+<!-- ===== توحيد الشعار مع شعار صورة الواجهة ===== -->
+<style>
+  .brand .logo, .welcome-logo{
+    background:url('data:image/png;base64,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') center/contain no-repeat !important;
+    border:0 !important;
+    border-radius:50% !important;   /* الشعار قرص، فالحافة تتبع دائرته */
+    box-shadow:0 0 0 1px rgba(255,214,120,.45),
+               0 0 14px rgba(242,193,78,.14),
+               0 6px 18px rgba(0,0,0,.45) !important;
+    animation:none !important;
+    color:transparent !important;
+    font-size:0 !important;
+  }
+  .welcome-logo > span, .welcome-logo > .logo-ring{ display:none !important; }
+  .welcome-logo::before, .welcome-logo::after,
+  .brand .logo::before, .brand .logo::after{ display:none !important; }
+</style>
+</head>
+<body>
+
+<div id="welcomeOverlay">
+  <div class="welcome-card">
+    <div class="welcome-logo">EM</div>
+    <div class="welcome-title">مختبر الفيزياء الافتراضي<br>الموجات الكهرومغناطيسية</div>
+    <div class="welcome-subtitle">محاكي تجارب الموجات الكهرومغناطيسية — الصف السادس الإعدادي</div>
+    <div class="welcome-divider"></div>
+    <div class="welcome-author">إعداد: <b>الاستاذ أحمد نعمة العبودي</b></div>
+    <button class="welcome-start-btn" id="startBtn">🚀 ابدأ التجربة</button>
+    <div class="welcome-hint">11 تجربة تفاعلية عن الموجات الكهرومغناطيسية وتوليدها وكشفها وتضمينها ومداها وتطبيقاتها</div>
+  </div>
+</div>
+
+<header class="app-header">
+  <div class="brand">
+    <div class="logo">EM</div>
+    <div>
+      <h1>مختبر الفيزياء الافتراضي — الموجات الكهرومغناطيسية</h1>
+      <span>الفيزياء — الصف السادس الإعدادي (الثاني عشر)</span>
+    </div>
+  </div>
+  <div class="header-actions">
+    <button class="icon-btn" id="soundToggleBtn" type="button" title="كتم/تشغيل صوت التجربة" aria-label="كتم/تشغيل الصوت">🔊</button>
+    <button class="icon-btn" id="themeToggleBtn" type="button" title="تبديل المظهر الفاتح/الداكن" aria-label="تبديل المظهر">🌙</button>
+    <div class="header-teacher">إعداد: <b>الاستاذ أحمد نعمة العبودي</b></div>
+  </div>
+</header>
+
+<nav class="tabs" id="tabsNav"></nav>
+
+<main class="app-main" id="appMain">
+  <aside class="sidebar" id="sidebarPanel">
+    <div class="sidebar-title" id="sidebarTitle">النشاط الحالي</div>
+
+    <div class="sidebar-section">
+      <h3>🧰 أدوات النشاط</h3>
+      <ul id="toolsList"></ul>
+    </div>
+
+    <div class="sidebar-section">
+      <h3>📋 خطوات النشاط</h3>
+      <ol id="stepsList"></ol>
+    </div>
+  </aside>
+
+  <section class="canvas-area" id="canvasArea">
+    <div class="canvas-header">
+      <div>
+        <h2 id="mainTitle">انتشار الموجة الكهرومغناطيسية</h2>
+        <div class="sub" id="mainSubtitle">مجالان E و B متعامدان ومتساويان في الطور ينتشران في الفضاء</div>
+      </div>
+      <div class="header-actions">
+        <button class="toolbar-btn active" id="sidebarToggleBtn" type="button">☰ الأدوات والخطوات</button>
+        <div class="status-pill">الوضع: <b id="modeStatus">تلقائي</b></div>
+        <button class="toolbar-btn" id="fullscreenBtn" type="button">⛶ ملء الشاشة</button>
+      </div>
+    </div>
+    <div class="rotate-hint">
+      <span class="ico">🔄</span>
+      <span>أدِر جهازك أفقيًا لعرض الرسم كاملًا — أو اسحب الرسم يمينًا ويسارًا.</span>
+    </div>
+    <div class="canvas-scroll">
+      <div class="canvas-wrap">
+        <canvas id="simCanvas" width="900" height="480"></canvas>
+      </div>
+    </div>
+
+    <div class="exp-controls">
+      <h3>🎛️ لوحة التحكم</h3>
+      <div id="controlPanels">
+
+        <!-- ===== Tab 1: EM wave propagation ===== -->
+        <div class="control-panel" data-tab="1">
+          <div class="btn-row">
+            <button class="ctrl-btn on" data-mode-tab="1">⚙️ تلقائي</button>
+          </div>
+          <div class="hint">💡 تلقائي: الموجة تتحرك في الفضاء. يدوي: أوقف الحركة لتفحص التعامد بين E و B وتساوي طورهما.</div>
+          <div class="btn-row" id="polarizationBtns1">
+            <button class="ctrl-btn cyan on" data-pol="vertical">استقطاب رأسي (E عمودي)</button>
+            <button class="ctrl-btn" data-pol="horizontal">استقطاب أفقي (E أفقي)</button>
+          </div>
+          <div class="control-row">
+            <label>التردد f (وحدة نسبية) <b id="val-freq1">1.0</b></label>
+            <input type="range" min="0.5" max="3" step="0.1" value="1" data-target="t1State.freq" data-label="val-freq1">
+          </div>
+          <div class="control-row">
+            <label>سرعة الحركة <b id="val-speed1">1.0</b></label>
+            <input type="range" min="0.1" max="2" step="0.1" value="1" data-target="t1State.speed" data-label="val-speed1">
+          </div>
+        </div>
+
+        <!-- ===== Tab 2: Hertz experiment ===== -->
+        <div class="control-panel" data-tab="2">
+          <div class="btn-row">
+            <button class="ctrl-btn on" data-mode-tab="2">⚙️ تلقائي</button>
+          </div>
+          <div class="hint">💡 غيّر المسافة بين دائرتي الإرسال والاستقبال، وأدِر زاوية حلقة الاستقبال. تتولّد الشرارة أقوى عندما تكون الحلقة موازية لدائرة الإرسال (استقطاب متوافق).</div>
+          <div class="control-row">
+            <label>المسافة بين الدائرتين <b id="val-dist2">1.0</b></label>
+            <input type="range" min="0.4" max="2.5" step="0.1" value="1" data-target="t2State.distance" data-label="val-dist2">
+          </div>
+          <div class="control-row">
+            <label>زاوية حلقة الاستقبال (°) <b id="val-angle2">0</b></label>
+            <input type="range" min="0" max="90" step="5" value="0" data-target="t2State.angle" data-label="val-angle2">
+          </div>
+        </div>
+
+        <!-- ===== Tab 3: LC resonant circuit ===== -->
+        <div class="control-panel" data-tab="3">
+          <div class="btn-row">
+            <button class="ctrl-btn on" data-mode-tab="3">⚙️ تلقائي</button>
+          </div>
+          <div class="btn-row">
+            <button class="ctrl-btn cyan" id="tuneBtn3">🎯 اضبط على الرنين</button>
+          </div>
+          <div class="hint">💡 غيّر سعة المكثف C أو معامل الحث L حتى يتطابق تردد الدائرة مع تردد الموجة القادمة، فيبلغ التيار I ذروته (حالة الرنين).</div>
+          <div class="control-row">
+            <label>سعة المكثف C (نسبي) <b id="val-c3">5.0</b></label>
+            <input type="range" min="1" max="10" step="0.2" value="5" data-target="t3State.C" data-label="val-c3">
+          </div>
+          <div class="control-row">
+            <label>معامل الحث L (نسبي) <b id="val-l3">5.0</b></label>
+            <input type="range" min="1" max="10" step="0.2" value="5" data-target="t3State.L" data-label="val-l3">
+          </div>
+          <div class="control-row">
+            <label>تردد الموجة القادمة <b id="val-fin3">3.2</b></label>
+            <input type="range" min="1" max="6" step="0.1" value="3.2" data-target="t3State.fIncoming" data-label="val-fin3">
+          </div>
+        </div>
+
+        <!-- ===== Tab 4: Antenna radiation ===== -->
+        <div class="control-panel" data-tab="4">
+          <div class="btn-row">
+            <button class="ctrl-btn on" data-mode-tab="4">⚙️ تلقائي</button>
+          </div>
+          <div class="hint">💡 اضبط طول الهوائي بالنسبة للطول الموجي (λ/2 هو الأكفأ). أدِر هوائي الاستقبال ولاحظ قوة الإشارة المستلمة تقلّ كلما ابتعد عن التوازي.</div>
+          <div class="btn-row" id="antennaLenBtns4">
+            <button class="ctrl-btn" data-len="0.25">λ/4</button>
+            <button class="ctrl-btn on" data-len="0.5">λ/2 (الأكفأ)</button>
+            <button class="ctrl-btn" data-len="1">λ كامل</button>
+          </div>
+          <div class="control-row">
+            <label>زاوية هوائي الاستقبال (°) <b id="val-rxangle4">0</b></label>
+            <input type="range" min="0" max="90" step="5" value="0" data-target="t4State.rxAngle" data-label="val-rxangle4">
+          </div>
+          <div class="control-row">
+            <label>تردد الإرسال f <b id="val-freq4">1.0</b></label>
+            <input type="range" min="0.5" max="2.5" step="0.1" value="1" data-target="t4State.freq" data-label="val-freq4">
+          </div>
+        </div>
+
+        <!-- ===== Tab 5: EM spectrum ===== -->
+        <div class="control-panel" data-tab="5">
+          <div class="hint">💡 اسحب المؤشر على الشريط (أو استخدم المنزلق) لتنقّل بين أجزاء الطيف الكهرومغناطيسي، ولاحظ تغيّر التردد والطول الموجي والتطبيقات العلمية لكل نوع.</div>
+          <div class="control-row">
+            <label>الموضع على الطيف <b id="val-pos5">30</b>%</label>
+            <input type="range" min="0" max="100" step="0.5" value="30" data-target="t5State.pos" data-label="val-pos5">
+          </div>
+        </div>
+
+        <!-- ===== Tab 6: Detection via electric field (dipole rod antenna) ===== -->
+        <div class="control-panel" data-tab="6">
+          <div class="btn-row">
+            <button class="ctrl-btn on" data-mode-tab="6">⚙️ تلقائي</button>
+          </div>
+          <div class="hint">💡 المجال الكهربائي E للموجة يهزّ الإلكترونات صعودًا ونزولًا داخل هوائي قضيبي مستقيم فيتولّد تيار. أدِر الهوائي: الكشف أقوى عندما يكون القضيب موازيًا لاتجاه E.</div>
+          <div class="control-row">
+            <label>زاوية الهوائي القضيبي (°) <b id="val-rodangle6">0</b></label>
+            <input type="range" min="0" max="90" step="5" value="0" data-target="t6State.rodAngle" data-label="val-rodangle6">
+          </div>
+          <div class="control-row">
+            <label>تردد الموجة f <b id="val-freq6">1.0</b></label>
+            <input type="range" min="0.5" max="2.5" step="0.1" value="1" data-target="t6State.freq" data-label="val-freq6">
+          </div>
+        </div>
+
+        <!-- ===== Tab 7: Detection via magnetic field (loop antenna) ===== -->
+        <div class="control-panel" data-tab="7">
+          <div class="btn-row">
+            <button class="ctrl-btn on" data-mode-tab="7">⚙️ تلقائي</button>
+          </div>
+          <div class="hint">💡 المجال المغناطيسي B للموجة يخترق حلقة سلكية فيولّد قوة دافعة كهربائية بالحث (قانون فارادي). أدِر الحلقة: الكشف أقوى عندما يمرّ أكبر فيض من B خلالها (مستوى الحلقة يواجه اتجاه B).</div>
+          <div class="control-row">
+            <label>زاوية الحلقة (°) <b id="val-loopangle7">0</b></label>
+            <input type="range" min="0" max="90" step="5" value="0" data-target="t7State.loopAngle" data-label="val-loopangle7">
+          </div>
+          <div class="control-row">
+            <label>تردد الموجة f <b id="val-freq7">1.0</b></label>
+            <input type="range" min="0.5" max="2.5" step="0.1" value="1" data-target="t7State.freq" data-label="val-freq7">
+          </div>
+        </div>
+
+        <!-- ===== Tab 8: Modulation (AM / FM / PM) ===== -->
+        <div class="control-panel" data-tab="8">
+          <div class="btn-row">
+            <button class="ctrl-btn on" data-mode-tab="8">⚙️ تلقائي</button>
+          </div>
+          <div class="hint">💡 اختر نوع التضمين وشاهد كيف تُحمَّل إشارة المعلومات (المُضمِّنة) على الموجة الحاملة عالية التردد: التضمين السعوي يغيّر السعة، الترددي يغيّر التردد، والطوري يغيّر الطور.</div>
+          <div class="btn-row" id="modTypeBtns8">
+            <button class="ctrl-btn cyan on" data-mod="am">تضمين سعوي AM</button>
+            <button class="ctrl-btn cyan" data-mod="fm">تضمين ترددي FM</button>
+            <button class="ctrl-btn cyan" data-mod="pm">تضمين طوري PM</button>
+          </div>
+          <div class="control-row">
+            <label>تردد الإشارة المُضمِّنة <b id="val-msg8">1.0</b></label>
+            <input type="range" min="0.5" max="2.5" step="0.1" value="1" data-target="t8State.msgFreq" data-label="val-msg8">
+          </div>
+          <div class="control-row">
+            <label>تردد الموجة الحاملة <b id="val-carrier8">8.0</b></label>
+            <input type="range" min="5" max="14" step="0.5" value="8" data-target="t8State.carrierFreq" data-label="val-carrier8">
+          </div>
+          <div class="control-row">
+            <label>عمق/دليل التضمين <b id="val-depth8">0.7</b></label>
+            <input type="range" min="0.1" max="1" step="0.05" value="0.7" data-target="t8State.depth" data-label="val-depth8">
+          </div>
+        </div>
+
+        <!-- ===== Tab 9: EM wave generation by electric oscillator + two metal rods ===== -->
+        <div class="control-panel" data-tab="9">
+          <div class="btn-row">
+            <button class="ctrl-btn on" data-mode-tab="9">⚙️ تلقائي</button>
+          </div>
+          <div class="hint">💡 مذبذب كهربائي (دائرة LC) يولّد تيارًا متردّدًا يتدفّق في ساقين معدنيين، فتتذبذب الشحنات بينهما وتُشِع موجات كهرومغناطيسية في الفضاء. غيّر تردد المذبذب ولاحظ الطول الموجي، وأوقف الحركة لتتبّع الشحنة.</div>
+          <div class="control-row">
+            <label>تردد المذبذب f <b id="val-oscf9">1.0</b></label>
+            <input type="range" min="0.4" max="2.5" step="0.1" value="1" data-target="t9State.oscFreq" data-label="val-oscf9">
+          </div>
+          <div class="control-row">
+            <label>سعة الشحن (شدّة التذبذب) <b id="val-amp9">1.0</b></label>
+            <input type="range" min="0.3" max="1.5" step="0.1" value="1" data-target="t9State.amp" data-label="val-amp9">
+          </div>
+        </div>
+
+        <!-- ===== Tab 10: Radio wave range (ground / sky / space wave) ===== -->
+        <div class="control-panel" data-tab="10">
+          <div class="btn-row">
+            <button class="ctrl-btn on" data-mode-tab="10">⚙️ تلقائي</button>
+          </div>
+          <div class="hint">💡 اختر نوع الانتشار، وغيّر نطاق التردد وبُعد المستقبل لترى متى تصل الموجة ومتى تُحجب أو تخترق الأيونوسفير. استخدم زر «قارن الأنواع الثلاثة» لمشاهدتها معًا وتحديد الأكفأ لكل غرض.</div>
+          <div class="btn-row" id="radioModeBtns10">
+            <button class="ctrl-btn cyan on" data-radiomode="ground">موجة أرضية</button>
+            <button class="ctrl-btn cyan" data-radiomode="sky">موجة سماوية</button>
+            <button class="ctrl-btn cyan" data-radiomode="space">موجة فضائية</button>
+            <button class="ctrl-btn cyan" data-radiomode="compare">🔍 قارن الأنواع الثلاثة</button>
+          </div>
+          <div class="control-row">
+            <label>نطاق التردد <b id="val-band10">1.0</b></label>
+            <input type="range" min="0.3" max="5" step="0.1" value="1" data-target="t10State.band" data-label="val-band10">
+          </div>
+          <div class="control-row">
+            <label>بُعد المستقبل (%) <b id="val-rxpos10">55</b></label>
+            <input type="range" min="10" max="95" step="1" value="55" data-target="t10State.rxPos" data-label="val-rxpos10">
+          </div>
+        </div>
+
+        <!-- ===== Tab 11: Applications (radar / remote sensing / mobile phone) ===== -->
+        <div class="control-panel" data-tab="11">
+          <div class="btn-row">
+            <button class="ctrl-btn on" data-mode-tab="11">⚙️ تلقائي</button>
+          </div>
+          <div class="hint">💡 اختر التطبيق: الرادار يقيس المسافة من زمن ذهاب وعودة النبضة، التحسس النائي يمسح سطح الأرض من قمر صناعي، والهاتف الجوّال ينتقل بين خلايا الأبراج.</div>
+          <div class="btn-row" id="appBtns11">
+            <button class="ctrl-btn cyan on" data-app="radar">📡 الرادار</button>
+            <button class="ctrl-btn cyan" data-app="remote">🛰️ التحسس النائي</button>
+            <button class="ctrl-btn cyan" data-app="mobile">📱 الهاتف الجوّال</button>
+          </div>
+          <div class="control-row">
+            <label>(الرادار) بُعد الهدف <b id="val-target11">55</b>%</label>
+            <input type="range" min="15" max="90" step="1" value="55" data-target="t11State.targetDist" data-label="val-target11">
+          </div>
+          <div class="control-row">
+            <label>(التحسس النائي) ارتفاع القمر <b id="val-alt11">45</b>%</label>
+            <input type="range" min="15" max="90" step="1" value="45" data-target="t11State.satAlt" data-label="val-alt11">
+          </div>
+          <div class="control-row">
+            <label>(الهاتف الجوّال) موضع الهاتف <b id="val-phone11">50</b>%</label>
+            <input type="range" min="0" max="100" step="1" value="50" data-target="t11State.phonePos" data-label="val-phone11">
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>مختبر تفاعلي تعليمي — القيم الفيزيائية تقريبية لأغراض التوضيح المفاهيمي فقط.</footer>
+
+<script>
+/* =========================================================================
+   CANVAS THEME PALETTE (shared)
+   The on-canvas drawings can't use CSS variables directly, so this mirrors
+   the light/dark palette in plain JS. CANVAS_THEMES holds both variants and
+   window.CANVAS is a LIVE object whose values are swapped in place when the
+   theme changes — every activity's COLORS is built as a getter over it, so a
+   single toggle re-themes all six simulations without touching their code.
+   ========================================================================= */
+const CANVAS_THEMES = {
+  dark: {
+    bg:'#111a2c', wire:'#e8edf7', capDefault:'#f2a83c', capActive:'#6ffbe0',
+    red:'#ef5b6b', blue:'#4d8dff', muted:'#8b98b4', border:'#243252',
+    panel:'rgba(17,26,44,.78)', dielectric:'#4d8dff',
+    ink:'#03060c', badge:'rgba(17,26,44,.85)'
+  },
+  light: {
+    // Paper-bright surface; wires/text go dark, accents deepened for contrast.
+    bg:'#f4f7fc', wire:'#20304e', capDefault:'#c9791a', capActive:'#0c8475',
+    red:'#d63a4c', blue:'#2f6fe0', muted:'#5a6a86', border:'#c7d3e6',
+    panel:'rgba(255,255,255,.82)', dielectric:'#2f6fe0',
+    ink:'#0b1424', badge:'rgba(255,255,255,.9)'
+  }
+};
+window.CANVAS = Object.assign({}, CANVAS_THEMES.dark);
+window.applyCanvasTheme = function(name){
+  const t = CANVAS_THEMES[name] || CANVAS_THEMES.dark;
+  Object.assign(window.CANVAS, t);   // mutate in place so live refs stay valid
+};
+/* Build a per-activity COLORS object whose properties always reflect the
+   current window.CANVAS. `extra` lets an activity add its own aliases. */
+function makeColors(extra){
+  const o = {};
+  Object.keys(CANVAS_THEMES.dark).forEach(k=>{
+    Object.defineProperty(o, k, { enumerable:true, get(){ return window.CANVAS[k]; } });
+  });
+  if (extra) Object.keys(extra).forEach(k=>{
+    Object.defineProperty(o, k, { enumerable:true, get(){ return (typeof extra[k]==='function') ? extra[k]() : window.CANVAS[extra[k]]; } });
+  });
+  return o;
+}
+</script>
+
+<script>
+/* =========================================================================
+   ACTIVITY 1 — انتشار الموجة الكهرومغناطيسية في الفضاء
+   E and B fields: mutually perpendicular, in phase, transverse to propagation.
+   ========================================================================= */
+(function(){
+  const COLORS = makeColors();
+  const state = {
+    simMode:'auto', t:0, freq:1.0, speed:1.0,
+    polarization:'vertical'   // 'vertical' => E vertical/B horizontal, or swapped
+  };
+
+  function t1Update(dt){
+    if(state.simMode==='auto') state.t += dt * state.speed;
+  }
+
+  // draw a 3D-ish axis arrow
+  function arrow(x1,y1,x2,y2,color,width){
+    ctx.strokeStyle=color; ctx.fillStyle=color; ctx.lineWidth=width||2;
+    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+    const a=Math.atan2(y2-y1,x2-x1), h=8;
+    ctx.beginPath();
+    ctx.moveTo(x2,y2);
+    ctx.lineTo(x2-h*Math.cos(a-0.4), y2-h*Math.sin(a-0.4));
+    ctx.lineTo(x2-h*Math.cos(a+0.4), y2-h*Math.sin(a+0.4));
+    ctx.closePath(); ctx.fill();
+  }
+
+  function t1Draw(){
+    ctx.clearRect(0,0,CW,CH);
+    ctx.fillStyle=COLORS.bg; ctx.fillRect(0,0,CW,CH);
+
+    // title
+    ctx.fillStyle=COLORS.capActive; ctx.font="bold 17px 'Cairo', sans-serif"; ctx.textAlign='center';
+    ctx.fillText('انتشار الموجة الكهرومغناطيسية في الفضاء', CW/2, 30);
+
+    // propagation axis (z) runs left->right along the middle
+    const axisY = CH/2 + 20, x0 = 90, x1 = CW-120;
+    // faint z-axis
+    ctx.strokeStyle=COLORS.border; ctx.lineWidth=1.5;
+    ctx.setLineDash([4,4]); ctx.beginPath(); ctx.moveTo(x0,axisY); ctx.lineTo(x1,axisY); ctx.stroke();
+    ctx.setLineDash([]);
+    arrow(x1-2,axisY,x1+24,axisY,COLORS.muted,2);
+    ctx.fillStyle=COLORS.muted; ctx.font="italic 13px serif"; ctx.textAlign='left';
+    ctx.fillText('اتجاه الانتشار z (سرعة الضوء c)', x1+2, axisY+22);
+
+    const k = state.freq * 0.045;   // spatial frequency
+    const amp = 92;                 // field amplitude in px
+    const phase = state.t * 3.2;
+
+    const vertical = state.polarization==='vertical';
+    const step = 5;
+    /* Two drawing planes for a transverse wave:
+       - "plane" component: drawn straight up/down in the screen (vertical bars)
+       - "depth" component: drawn skewed to suggest it points into/out of the page
+       Vertical polarization: E is in-plane (vertical), B is in depth (horizontal).
+       Horizontal polarization: they SWAP — E goes into depth, B becomes the
+       vertical in-plane field. This makes the two modes look clearly different. */
+    function drawPlaneField(color, ampScale, withHeads){
+      ctx.strokeStyle=color; ctx.lineWidth=2.5; ctx.beginPath();
+      for(let x=x0;x<=x1;x+=step){
+        const mag = amp*ampScale*Math.sin(k*(x-x0)-phase);
+        const px=x, py=axisY-mag;
+        if(x===x0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+      }
+      ctx.stroke();
+      ctx.globalAlpha=0.7; ctx.lineWidth=1.5;
+      for(let x=x0;x<=x1;x+=28){
+        const mag=amp*ampScale*Math.sin(k*(x-x0)-phase);
+        ctx.strokeStyle=color; ctx.beginPath(); ctx.moveTo(x,axisY); ctx.lineTo(x,axisY-mag); ctx.stroke();
+        if(withHeads && Math.abs(mag)>8){
+          const dir=mag>0?-1:1; ctx.fillStyle=color;
+          ctx.beginPath(); ctx.moveTo(x,axisY-mag);
+          ctx.lineTo(x-4,axisY-mag-dir*7); ctx.lineTo(x+4,axisY-mag-dir*7);
+          ctx.closePath(); ctx.fill();
+        }
+      }
+      ctx.globalAlpha=1;
+    }
+    function drawDepthField(color, ampScale){
+      ctx.strokeStyle=color; ctx.lineWidth=2; ctx.globalAlpha=0.9; ctx.beginPath();
+      for(let x=x0;x<=x1;x+=step){
+        const mag = amp*ampScale*Math.sin(k*(x-x0)-phase);
+        const px=x+mag*0.55, py=axisY-mag*0.32;
+        if(x===x0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+      }
+      ctx.stroke();
+      ctx.globalAlpha=0.5; ctx.lineWidth=1.5;
+      for(let x=x0;x<=x1;x+=28){
+        const mag=amp*ampScale*Math.sin(k*(x-x0)-phase);
+        ctx.strokeStyle=color; ctx.beginPath(); ctx.moveTo(x,axisY); ctx.lineTo(x+mag*0.55, axisY-mag*0.32); ctx.stroke();
+      }
+      ctx.globalAlpha=1;
+    }
+
+    if(vertical){
+      // B into depth (behind), then E in-plane on top
+      drawDepthField(COLORS.blue, 0.62);
+      drawPlaneField(COLORS.capActive, 1.0, true);
+    } else {
+      // Swap: E into depth, B in-plane vertical
+      drawDepthField(COLORS.capActive, 1.0);
+      drawPlaneField(COLORS.blue, 0.62, false);
+    }
+
+    // labels for E and B
+    ctx.font="bold 15px 'Cairo', sans-serif"; ctx.textAlign='left';
+    ctx.fillStyle=COLORS.capActive;
+    ctx.fillText('E ⟶ المجال الكهربائي '+(vertical?'(رأسي)':'(أفقي)'), 20, 70);
+    ctx.fillStyle=COLORS.blue;
+    ctx.fillText('B ⟶ المجال المغناطيسي '+(vertical?'(أفقي)':'(رأسي)'), 20, 92);
+
+    // perpendicularity note
+    ctx.fillStyle=COLORS.muted; ctx.font="13px 'Tajawal', sans-serif"; ctx.textAlign='center';
+    ctx.fillText('E ⊥ B ⊥ z  —  المجالان متعامدان ومتساويان في الطور (يبلغان القمة معًا ويصفران معًا)', CW/2, CH-24);
+
+    // wavelength marker (one full wave = 2π/k)
+    const lambdaPx = (2*Math.PI)/k;
+    if(lambdaPx < x1-x0){
+      const mx0 = x0+20, mx1 = mx0+lambdaPx;
+      ctx.strokeStyle=COLORS.capDefault; ctx.lineWidth=1.5; ctx.setLineDash([3,3]);
+      ctx.beginPath(); ctx.moveTo(mx0,axisY+amp+16); ctx.lineTo(mx1,axisY+amp+16); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle=COLORS.capDefault; ctx.font="italic 13px serif"; ctx.textAlign='center';
+      ctx.fillText('λ', (mx0+mx1)/2, axisY+amp+32);
+    }
+
+    // HUD
+    drawHUD(CW-250, 60, 232, [
+      { text:'العلاقة: c = f · λ', bold:true },
+      { text:'f = '+state.freq.toFixed(1)+' (وحدة نسبية)' },
+      { text:'λ ∝ 1/f  (يقلّ الطول الموجي بزيادة التردد)' },
+      { text:state.simMode==='auto' ? 'الحركة: تعمل ▶' : 'الحركة: متوقفة ⏸', color: state.simMode==='auto'?COLORS.capActive:COLORS.capDefault }
+    ]);
+  }
+
+  function drawHUD(x,y,w,lines){
+    const pad=12, lh=24, h=pad*2+lines.length*lh;
+    ctx.fillStyle=COLORS.panel; ctx.strokeStyle=COLORS.border; ctx.lineWidth=1;
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(x,y,w,h,10) : ctx.rect(x,y,w,h);
+    ctx.fill(); ctx.stroke();
+    ctx.textAlign='right'; ctx.direction='rtl';
+    lines.forEach((ln,i)=>{
+      ctx.fillStyle=ln.color||COLORS.wire;
+      ctx.font=(ln.bold?"bold ":"")+"13px 'Tajawal', sans-serif";
+      ctx.fillText(ln.text, x+w-pad, y+pad+18+i*lh);
+    });
+    ctx.direction='ltr';
+  }
+
+  window.t1State=state; window.t1Update=t1Update; window.t1Draw=t1Draw;
+  window.t1SetPolarization=function(p){ state.polarization=p; };
+})();
+</script>
+<script>
+/* =========================================================================
+   ACTIVITY 2 — تجربة هرتز: توليد واستقبال الموجات الكهرومغناطيسية
+   Transmitter (LC + spark gap) radiates; receiver loop sparks when aligned.
+   ========================================================================= */
+(function(){
+  const COLORS = makeColors();
+  const state = {
+    simMode:'auto', t:0,
+    distance:1.0,   // 0.4..2.5 relative spacing
+    angle:0,        // receiver loop angle 0..90 deg
+    sparkPhase:0
+  };
+
+  function t2Update(dt){
+    state.t += dt;
+    state.sparkPhase += dt*12;
+  }
+
+  function drawSparkGap(x,y,active){
+    ctx.strokeStyle=COLORS.wire; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.moveTo(x-14,y); ctx.lineTo(x-4,y); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x+4,y); ctx.lineTo(x+14,y); ctx.stroke();
+    // knobs
+    ctx.fillStyle=COLORS.muted;
+    ctx.beginPath(); ctx.arc(x-4,y,3.5,0,7); ctx.fill();
+    ctx.beginPath(); ctx.arc(x+4,y,3.5,0,7); ctx.fill();
+    if(active){
+      ctx.strokeStyle=COLORS.capActive; ctx.lineWidth=1.6; ctx.globalAlpha=0.9;
+      for(let i=0;i<3;i++){
+        ctx.beginPath();
+        let px=-4;
+        ctx.moveTo(x-4,y);
+        for(let s=-4;s<=4;s+=2){ ctx.lineTo(x+s, y+(Math.random()-0.5)*7); }
+        ctx.lineTo(x+4,y);
+        ctx.stroke();
+      }
+      ctx.globalAlpha=1;
+    }
+  }
+
+  function t2Draw(){
+    ctx.clearRect(0,0,CW,CH);
+    ctx.fillStyle=COLORS.bg; ctx.fillRect(0,0,CW,CH);
+    ctx.fillStyle=COLORS.capActive; ctx.font="bold 17px 'Cairo', sans-serif"; ctx.textAlign='center';
+    ctx.fillText('تجربة هرتز — إثبات وجود الموجات الكهرومغناطيسية', CW/2, 30);
+
+    // Transmitter on the left
+    const txX=140, txY=CH/2;
+    // induction coil + capacitor plates
+    ctx.strokeStyle=COLORS.wire; ctx.lineWidth=2.5;
+    // two plates (capacitor of the transmitter)
+    ctx.fillStyle=COLORS.capDefault;
+    ctx.fillRect(txX-46, txY-60, 10, 40);
+    ctx.fillRect(txX+36, txY-60, 10, 40);
+    // wires down to spark gap
+    ctx.beginPath(); ctx.moveTo(txX-41,txY-20); ctx.lineTo(txX-41,txY); ctx.lineTo(txX-14,txY); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(txX+41,txY-20); ctx.lineTo(txX+41,txY); ctx.lineTo(txX+14,txY); ctx.stroke();
+    const txActive = Math.sin(state.sparkPhase)>0.3;
+    drawSparkGap(txX,txY,txActive);
+    ctx.fillStyle=COLORS.muted; ctx.font="13px 'Tajawal', sans-serif"; ctx.textAlign='center';
+    ctx.fillText('دائرة الإرسال', txX, txY+52);
+    ctx.fillText('(محث + مكثف + فتحة شرارة)', txX, txY+70);
+
+    // radiating waves (concentric arcs) — strength depends on distance
+    const reach = 1 - (state.distance-0.4)/(2.5-0.4); // closer => stronger
+    ctx.strokeStyle=COLORS.capActive;
+    for(let r=40;r<560;r+=46){
+      const ph = (state.t*90 - r) % 46;
+      const alpha = Math.max(0, 0.5 - r/900) * (txActive?1:0.55);
+      ctx.globalAlpha=alpha;
+      ctx.lineWidth=2;
+      ctx.beginPath();
+      ctx.arc(txX, txY, r, -0.9, 0.9);
+      ctx.stroke();
+    }
+    ctx.globalAlpha=1;
+
+    // Receiver on the right — position depends on distance
+    const rxX = 300 + state.distance*230;   // 0.4->392 ... 2.5->875
+    const rxXc = Math.min(rxX, CW-70);
+    const rxY = CH/2;
+    // signal strength: distance attenuation * alignment (cos of angle)
+    const distFactor = Math.max(0, 1 - (state.distance-0.4)/2.3);
+    const align = Math.cos(state.angle*Math.PI/180);   // 0deg parallel => 1
+    const strength = Math.max(0, distFactor*align);
+    const rxSpark = strength>0.28 && Math.sin(state.sparkPhase*1.1)>0.4;
+
+    // draw receiver loop as an ellipse whose "openness" reflects angle (rotation)
+    ctx.save();
+    ctx.translate(rxXc,rxY);
+    const sq = Math.cos(state.angle*Math.PI/180); // squash to depict rotation about vertical axis
+    ctx.strokeStyle= rxSpark?COLORS.capActive:COLORS.wire; ctx.lineWidth=3;
+    ctx.beginPath();
+    ctx.ellipse(0,0, Math.max(6,42*sq), 42, 0, 0.35, Math.PI*2-0.35);
+    ctx.stroke();
+    // spark gap at the top opening of the loop
+    drawSparkGap(0, -42, rxSpark);
+    ctx.restore();
+    ctx.fillStyle=COLORS.muted; ctx.font="13px 'Tajawal', sans-serif"; ctx.textAlign='center';
+    ctx.fillText('دائرة الاستقبال', rxXc, rxY+62);
+    ctx.fillText('(حلقة مفتوحة فيها فتحة شرارة)', rxXc, rxY+80);
+
+    // strength meter bar
+    const barX=CW-250, barY=70, barW=210;
+    ctx.fillStyle=COLORS.muted; ctx.font="12px 'Tajawal', sans-serif"; ctx.textAlign='right'; ctx.direction='rtl';
+    ctx.fillText('قوة الإشارة المستلمة', barX+barW, barY-6);
+    ctx.direction='ltr';
+    ctx.strokeStyle=COLORS.border; ctx.lineWidth=1; ctx.strokeRect(barX,barY,barW,16);
+    ctx.fillStyle = strength>0.5?COLORS.capActive:(strength>0.25?COLORS.capDefault:COLORS.red);
+    ctx.fillRect(barX+1,barY+1, (barW-2)*strength, 14);
+
+    drawHUD(barX-4, barY+34, barW+4, [
+      { text:'المسافة: '+state.distance.toFixed(1)+' (نسبي)' },
+      { text:'زاوية الحلقة: '+state.angle+'°' },
+      { text: state.angle<20 ? 'الحلقة موازية → استقبال أقوى' : (state.angle>70?'الحلقة عمودية → لا شرارة':'ميل جزئي → إشارة أضعف'),
+        color: state.angle<20?COLORS.capActive:(state.angle>70?COLORS.red:COLORS.capDefault) },
+      { text: rxSpark ? '⚡ تتولّد شرارة في المستقبِل' : 'لا شرارة',
+        color: rxSpark?COLORS.capActive:COLORS.muted, bold:true }
+    ]);
+
+    ctx.fillStyle=COLORS.muted; ctx.font="13px 'Tajawal', sans-serif"; ctx.textAlign='center';
+    ctx.fillText('انتقلت الطاقة عبر الفضاء بدون أسلاك بواسطة الموجات الكهرومغناطيسية', CW/2, CH-16);
+  }
+
+  function drawHUD(x,y,w,lines){
+    const pad=12, lh=24, h=pad*2+lines.length*lh;
+    ctx.fillStyle=COLORS.panel; ctx.strokeStyle=COLORS.border; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x,y,w,h,10) : ctx.rect(x,y,w,h); ctx.fill(); ctx.stroke();
+    ctx.textAlign='right'; ctx.direction='rtl';
+    lines.forEach((ln,i)=>{
+      ctx.fillStyle=ln.color||COLORS.wire;
+      ctx.font=(ln.bold?"bold ":"")+"13px 'Tajawal', sans-serif";
+      ctx.fillText(ln.text, x+w-pad, y+pad+18+i*lh);
+    });
+    ctx.direction='ltr';
+  }
+
+  window.t2State=state; window.t2Update=t2Update; window.t2Draw=t2Draw;
+})();
+</script>
+<script>
+/* =========================================================================
+   ACTIVITY 3 — دائرة الرنين LC واستقبال المحطات
+   Current peaks when circuit's natural freq f0 = 1/(2π√(LC)) matches incoming.
+   ========================================================================= */
+(function(){
+  const COLORS = makeColors();
+  const state = {
+    simMode:'auto', t:0,
+    C:5.0, L:5.0, fIncoming:3.2,
+    _autoT:0
+  };
+  // natural frequency (relative): f0 = K / sqrt(L*C)
+  const K = 25;
+  function f0(){ return K / Math.sqrt(state.L*state.C); }
+  // resonance response (Lorentzian) 0..1
+  function response(){
+    const d = state.fIncoming - f0();
+    const width = 0.5;
+    return 1/(1 + (d/width)*(d/width));
+  }
+  function tune(){ // set L so that f0 == fIncoming (keep C)
+    // K/sqrt(L*C)=f => L = (K/f)^2 / C
+    state.L = Math.min(10, Math.max(1, (K/state.fIncoming)**2 / state.C));
+    const lab=document.getElementById('val-l3'); if(lab) lab.textContent=state.L.toFixed(1);
+    const sl=document.querySelector('input[data-target="t3State.L"]'); if(sl) sl.value=state.L;
+  }
+
+  function t3Update(dt){
+    state.t += dt;
+    if(state.simMode==='auto'){
+      state._autoT += dt;
+      // slowly sweep C to show the current meter rising/falling through resonance
+      state.C = 5.5 + 4*Math.sin(state._autoT*0.5);
+      const lab=document.getElementById('val-c3'); if(lab) lab.textContent=state.C.toFixed(1);
+      const sl=document.querySelector('input[data-target="t3State.C"]'); if(sl) sl.value=state.C;
+    }
+  }
+
+  function t3Draw(){
+    ctx.clearRect(0,0,CW,CH);
+    ctx.fillStyle=COLORS.bg; ctx.fillRect(0,0,CW,CH);
+    ctx.fillStyle=COLORS.capActive; ctx.font="bold 17px 'Cairo', sans-serif"; ctx.textAlign='center';
+    ctx.fillText('دائرة الرنين LC — اختيار المحطة (التردد) المطلوب', CW/2, 30);
+
+    const r = response();
+
+    // ---- circuit on the left: antenna -> L parallel C -> current meter ----
+    const cx=120, cy=CH/2;
+    ctx.strokeStyle=COLORS.wire; ctx.lineWidth=2.5;
+    // antenna receiving symbol
+    ctx.beginPath(); ctx.moveTo(cx, 90); ctx.lineTo(cx, cy-70); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx-18,78); ctx.lineTo(cx,90); ctx.lineTo(cx+18,78); ctx.stroke();
+    ctx.fillStyle=COLORS.muted; ctx.font="12px 'Tajawal',sans-serif"; ctx.textAlign='center';
+    ctx.fillText('هوائي', cx, 70);
+    // loop rectangle
+    const bx=cx, by=cy-70, bw=150, bh=150;
+    ctx.strokeRect(bx, by, bw, bh);
+    // inductor (left side) - coil
+    ctx.strokeStyle=COLORS.capActive; ctx.lineWidth=3;
+    ctx.beginPath();
+    for(let i=0;i<5;i++){ const yy=by+30+i*18; ctx.arc(bx, yy, 7, -Math.PI/2, Math.PI/2, false); }
+    ctx.stroke();
+    ctx.fillStyle=COLORS.capActive; ctx.font="bold 13px serif"; ctx.textAlign='right';
+    ctx.fillText('L', bx-12, by+bh/2);
+    // capacitor (right side)
+    ctx.strokeStyle=COLORS.capDefault; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.moveTo(bx+bw-16, by+bh/2-14); ctx.lineTo(bx+bw+16, by+bh/2-14); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(bx+bw-16, by+bh/2+14); ctx.lineTo(bx+bw+16, by+bh/2+14); ctx.stroke();
+    ctx.fillStyle=COLORS.capDefault; ctx.font="bold 13px serif"; ctx.textAlign='left';
+    ctx.fillText('C', bx+bw+20, by+bh/2);
+
+    // current dots animating around the loop, brightness ~ response
+    ctx.globalAlpha = 0.4 + 0.6*r;
+    ctx.fillStyle=COLORS.capActive;
+    const peri=2*(bw+bh);
+    for(let i=0;i<16;i++){
+      let d=(state.t*260*(0.5+r) + i*peri/16) % peri;
+      let px,py;
+      if(d<bw){ px=bx+d; py=by; }
+      else if(d<bw+bh){ px=bx+bw; py=by+(d-bw); }
+      else if(d<2*bw+bh){ px=bx+bw-(d-bw-bh); py=by+bh; }
+      else { px=bx; py=by+bh-(d-2*bw-bh); }
+      ctx.beginPath(); ctx.arc(px,py,3,0,7); ctx.fill();
+    }
+    ctx.globalAlpha=1;
+
+    // ---- current meter (big analog gauge) ----
+    const gx=560, gy=170, R=78;
+    ctx.fillStyle=COLORS.panel; ctx.strokeStyle=COLORS.border; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.arc(gx,gy,R+10,0,7); ctx.fill(); ctx.stroke();
+    ctx.strokeStyle=COLORS.muted; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.arc(gx,gy,R, Math.PI*0.8, Math.PI*2.2); ctx.stroke();
+    // ticks
+    for(let i=0;i<=10;i++){
+      const a=Math.PI*0.8 + (Math.PI*1.4)*i/10;
+      ctx.beginPath();
+      ctx.moveTo(gx+Math.cos(a)*(R-2), gy+Math.sin(a)*(R-2));
+      ctx.lineTo(gx+Math.cos(a)*(R-10), gy+Math.sin(a)*(R-10));
+      ctx.stroke();
+    }
+    // needle
+    const na = Math.PI*0.8 + Math.PI*1.4*r;
+    ctx.strokeStyle=r>0.85?COLORS.capActive:COLORS.capDefault; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.moveTo(gx,gy); ctx.lineTo(gx+Math.cos(na)*(R-14), gy+Math.sin(na)*(R-14)); ctx.stroke();
+    ctx.fillStyle=COLORS.wire; ctx.beginPath(); ctx.arc(gx,gy,5,0,7); ctx.fill();
+    ctx.fillStyle=COLORS.muted; ctx.font="13px 'Tajawal',sans-serif"; ctx.textAlign='center';
+    ctx.fillText('مؤشر التيار I', gx, gy+R+30);
+    if(r>0.9){ ctx.fillStyle=COLORS.capActive; ctx.font="bold 15px 'Cairo',sans-serif"; ctx.fillText('⚡ رنين!', gx, gy-R-16); }
+
+    // ---- resonance curve ----
+    const px0=430, py0=CH-40, pw=380, ph=110;
+    ctx.strokeStyle=COLORS.border; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(px0,py0); ctx.lineTo(px0+pw,py0); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(px0,py0); ctx.lineTo(px0,py0-ph); ctx.stroke();
+    ctx.fillStyle=COLORS.muted; ctx.font="11px 'Tajawal',sans-serif"; ctx.textAlign='center';
+    ctx.fillText('التردد', px0+pw/2, py0+16);
+    // curve peaks at f0 mapped to x
+    const fmin=1, fmax=6;
+    function fx(f){ return px0 + pw*(f-fmin)/(fmax-fmin); }
+    ctx.strokeStyle=COLORS.capActive; ctx.lineWidth=2; ctx.beginPath();
+    for(let f=fmin;f<=fmax;f+=0.05){
+      const d=f-f0(), w=0.5, val=1/(1+(d/w)*(d/w));
+      const X=fx(f), Y=py0-ph*val;
+      if(f===fmin) ctx.moveTo(X,Y); else ctx.lineTo(X,Y);
+    }
+    ctx.stroke();
+    // incoming freq marker
+    ctx.strokeStyle=COLORS.red; ctx.setLineDash([4,3]); ctx.beginPath();
+    ctx.moveTo(fx(state.fIncoming),py0); ctx.lineTo(fx(state.fIncoming),py0-ph); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle=COLORS.red; ctx.font="11px 'Tajawal',sans-serif";
+    ctx.fillText('تردد الموجة', fx(state.fIncoming), py0-ph-4);
+
+    drawHUD(CW-250, 60, 232, [
+      { text:'f₀ = 1/(2π√(LC))', bold:true },
+      { text:'تردد الدائرة f₀ = '+f0().toFixed(2) },
+      { text:'تردد الموجة = '+state.fIncoming.toFixed(1) },
+      { text: r>0.9?'مطابقة → رنين وذروة تيار':'غير مطابق → تيار ضعيف',
+        color: r>0.9?COLORS.capActive:COLORS.capDefault }
+    ]);
+  }
+
+  function drawHUD(x,y,w,lines){
+    const pad=12, lh=24, h=pad*2+lines.length*lh;
+    ctx.fillStyle=COLORS.panel; ctx.strokeStyle=COLORS.border; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x,y,w,h,10) : ctx.rect(x,y,w,h); ctx.fill(); ctx.stroke();
+    ctx.textAlign='right'; ctx.direction='rtl';
+    lines.forEach((ln,i)=>{
+      ctx.fillStyle=ln.color||COLORS.wire;
+      ctx.font=(ln.bold?"bold ":"")+"13px 'Tajawal', sans-serif";
+      ctx.fillText(ln.text, x+w-pad, y+pad+18+i*lh);
+    });
+    ctx.direction='ltr';
+  }
+
+  window.t3State=state; window.t3Update=t3Update; window.t3Draw=t3Draw;
+  window.t3Tune=tune;
+})();
+</script>
+<script>
+/* =========================================================================
+   ACTIVITY 4 — هوائي إرسال واستقبال الموجات
+   Oscillating charges in TX antenna radiate; RX efficiency depends on length
+   (λ/2 best) and orientation (parallel best).
+   ========================================================================= */
+(function(){
+  const COLORS = makeColors();
+  const state = {
+    simMode:'auto', t:0,
+    antLen:0.5,   // fraction of wavelength: 0.25, 0.5, 1
+    rxAngle:0,    // 0..90 deg
+    freq:1.0
+  };
+  function t4Update(dt){ state.t += dt; }
+
+  function t4Draw(){
+    ctx.clearRect(0,0,CW,CH);
+    ctx.fillStyle=COLORS.bg; ctx.fillRect(0,0,CW,CH);
+    ctx.fillStyle=COLORS.capActive; ctx.font="bold 17px 'Cairo', sans-serif"; ctx.textAlign='center';
+    ctx.fillText('هوائي إرسال واستقبال الموجات الكهرومغناطيسية', CW/2, 30);
+
+    const phase = state.t*4*state.freq;
+
+    // ---- TX antenna (left): vertical rod with oscillating charges ----
+    const txX=130, midY=CH/2, rodH=150*(state.antLen/0.5); // length scales with λ fraction
+    const half=Math.min(rodH,190)/2;
+    ctx.strokeStyle=COLORS.wire; ctx.lineWidth=4;
+    ctx.beginPath(); ctx.moveTo(txX, midY-half); ctx.lineTo(txX, midY+half); ctx.stroke();
+    // feed point
+    ctx.fillStyle=COLORS.capDefault; ctx.beginPath(); ctx.arc(txX,midY,5,0,7); ctx.fill();
+    // oscillating charges (electrons) moving up/down
+    const q=Math.sin(phase);
+    for(let i=-3;i<=3;i++){
+      const baseY = midY + i*half/3.5;
+      const off = q*12*(i===0?0:1);
+      ctx.fillStyle = (i*q>0)?COLORS.blue:COLORS.red;
+      ctx.beginPath(); ctx.arc(txX, baseY - off, 4, 0,7); ctx.fill();
+    }
+    ctx.fillStyle=COLORS.muted; ctx.font="13px 'Tajawal',sans-serif"; ctx.textAlign='center';
+    ctx.fillText('هوائي الإرسال', txX, midY+half+24);
+    ctx.fillText('الشحنات تتذبذب فتُشِع', txX, midY+half+42);
+
+    // ---- radiated wave traveling right ----
+    const x0=txX+30, x1=CW-140;
+    ctx.strokeStyle=COLORS.capActive; ctx.lineWidth=2; ctx.globalAlpha=0.85;
+    ctx.beginPath();
+    for(let x=x0;x<=x1;x+=4){
+      const s=Math.sin((x-x0)*0.05*state.freq - phase);
+      const y=midY - s*46;
+      if(x===x0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.stroke(); ctx.globalAlpha=1;
+
+    // ---- RX antenna (right): rotated by rxAngle ----
+    const rxX=CW-110;
+    ctx.save(); ctx.translate(rxX,midY); ctx.rotate(state.rxAngle*Math.PI/180);
+    ctx.strokeStyle=COLORS.wire; ctx.lineWidth=4;
+    ctx.beginPath(); ctx.moveTo(0,-70); ctx.lineTo(0,70); ctx.stroke();
+    ctx.fillStyle=COLORS.capDefault; ctx.beginPath(); ctx.arc(0,0,4,0,7); ctx.fill();
+    ctx.restore();
+    ctx.fillStyle=COLORS.muted; ctx.textAlign='center'; ctx.font="13px 'Tajawal',sans-serif";
+    ctx.fillText('هوائي الاستقبال', rxX, midY+96);
+
+    // efficiency: length match (best at 0.5) * orientation (cos)
+    const lenEff = 1 - Math.min(1, Math.abs(state.antLen-0.5)/0.5*0.8);
+    const oriEff = Math.cos(state.rxAngle*Math.PI/180);
+    const signal = Math.max(0, lenEff*oriEff);
+
+    // received signal indicator: a glow around the RX feed point
+    ctx.fillStyle = signal>0.6?COLORS.capActive:(signal>0.3?COLORS.capDefault:COLORS.red);
+    ctx.globalAlpha=0.25+0.6*signal;
+    ctx.beginPath(); ctx.arc(rxX, midY, 14+10*signal, 0,7); ctx.fill();
+    ctx.globalAlpha=1;
+
+    // strength bar
+    const barX=CW-250, barY=64, barW=210;
+    ctx.fillStyle=COLORS.muted; ctx.font="12px 'Tajawal',sans-serif"; ctx.textAlign='right'; ctx.direction='rtl';
+    ctx.fillText('قوة الإشارة المستلمة', barX+barW, barY-6); ctx.direction='ltr';
+    ctx.strokeStyle=COLORS.border; ctx.strokeRect(barX,barY,barW,16);
+    ctx.fillStyle=signal>0.6?COLORS.capActive:(signal>0.3?COLORS.capDefault:COLORS.red);
+    ctx.fillRect(barX+1,barY+1,(barW-2)*signal,14);
+
+    drawHUD(barX-4, barY+34, barW+4, [
+      { text:'طول الهوائي: '+(state.antLen===0.5?'λ/2 (الأكفأ)':state.antLen===0.25?'λ/4':'λ كامل'),
+        color: state.antLen===0.5?COLORS.capActive:COLORS.capDefault },
+      { text:'زاوية الاستقبال: '+state.rxAngle+'°' },
+      { text: state.rxAngle<15?'موازٍ للإرسال → أقوى إشارة':(state.rxAngle>75?'عمودي → لا إشارة':'مائل → إشارة أضعف'),
+        color: state.rxAngle<15?COLORS.capActive:(state.rxAngle>75?COLORS.red:COLORS.capDefault) }
+    ]);
+
+    ctx.fillStyle=COLORS.muted; ctx.font="13px 'Tajawal',sans-serif"; ctx.textAlign='center';
+    ctx.fillText('أعلى كفاءة عندما يكون طول الهوائي = λ/2 وهوائي الاستقبال موازٍ لهوائي الإرسال', CW/2, CH-16);
+  }
+
+  function drawHUD(x,y,w,lines){
+    const pad=12, lh=24, h=pad*2+lines.length*lh;
+    ctx.fillStyle=COLORS.panel; ctx.strokeStyle=COLORS.border; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x,y,w,h,10) : ctx.rect(x,y,w,h); ctx.fill(); ctx.stroke();
+    ctx.textAlign='right'; ctx.direction='rtl';
+    lines.forEach((ln,i)=>{
+      ctx.fillStyle=ln.color||COLORS.wire;
+      ctx.font=(ln.bold?"bold ":"")+"13px 'Tajawal', sans-serif";
+      ctx.fillText(ln.text, x+w-pad, y+pad+18+i*lh);
+    });
+    ctx.direction='ltr';
+  }
+
+  window.t4State=state; window.t4Update=t4Update; window.t4Draw=t4Draw;
+  window.t4SetLength=function(l){ state.antLen=l; };
+})();
+</script>
+<script>
+/* =========================================================================
+   ACTIVITY 5 — الطيف الكهرومغناطيسي
+   Draggable marker across the spectrum; shows wave type, freq, λ, uses.
+   ========================================================================= */
+(function(){
+  const COLORS = makeColors();
+  const state = {
+    simMode:'manual', t:0, pos:30, // 0..100 along the spectrum
+    barZone:{x:60,y:150,w:780,h:70}
+  };
+  // spectrum bands (left=radio/long λ, right=gamma/short λ)
+  const BANDS = [
+    { name:'موجات الراديو', color:'#6a4bd0', f:'10⁴–10⁹ Hz', lam:'> 0.3 m', use:'الإذاعة والاتصالات والتلفاز' },
+    { name:'المايكروويف', color:'#4d6fe0', f:'10⁹–10¹² Hz', lam:'1 mm–30 cm', use:'الرادار، أفران المايكروويف، الأقمار الصناعية' },
+    { name:'الأشعة تحت الحمراء', color:'#e0574d', f:'10¹²–10¹⁴ Hz', lam:'700 nm–1 mm', use:'أجهزة الرؤية الليلية والتحكم عن بُعد' },
+    { name:'الضوء المرئي', color:'#37d67a', f:'≈10¹⁴ Hz', lam:'400–700 nm', use:'الرؤية والإضاءة والتصوير' },
+    { name:'فوق البنفسجية', color:'#9b59e0', f:'10¹⁵–10¹⁷ Hz', lam:'10–400 nm', use:'التعقيم وفيتامين D والتفلور' },
+    { name:'أشعة X', color:'#3aa8d6', f:'10¹⁷–10¹⁹ Hz', lam:'0.01–10 nm', use:'التصوير الطبي وفحص العظام' },
+    { name:'أشعة جاما', color:'#d63a8a', f:'> 10¹⁹ Hz', lam:'< 0.01 nm', use:'علاج الأورام والتعقيم الطبي' }
+  ];
+
+  function bandAt(pos){ return BANDS[Math.min(BANDS.length-1, Math.floor(pos/100*BANDS.length))]; }
+
+  function t5Update(dt){
+    state.t += dt;
+    // allow dragging the marker on the bar
+    const z=state.barZone;
+    if(pointer.isDown && pointer.x>=z.x-20 && pointer.x<=z.x+z.w+20 && pointer.y>=z.y-30 && pointer.y<=z.y+z.h+30){
+      state.pos = Math.max(0, Math.min(100, (pointer.x - z.x)/z.w*100));
+      const lab=document.getElementById('val-pos5'); if(lab) lab.textContent=Math.round(state.pos);
+      const sl=document.querySelector('input[data-target="t5State.pos"]'); if(sl) sl.value=state.pos;
+    }
+  }
+
+  function t5Draw(){
+    ctx.clearRect(0,0,CW,CH);
+    ctx.fillStyle=COLORS.bg; ctx.fillRect(0,0,CW,CH);
+    ctx.fillStyle=COLORS.capActive; ctx.font="bold 17px 'Cairo', sans-serif"; ctx.textAlign='center';
+    ctx.fillText('الطيف الكهرومغناطيسي', CW/2, 30);
+
+    // gradient spectrum bar
+    const z=state.barZone;
+    const grd=ctx.createLinearGradient(z.x,0,z.x+z.w,0);
+    BANDS.forEach((b,i)=> grd.addColorStop(i/(BANDS.length-1), b.color));
+    ctx.fillStyle=grd; ctx.strokeStyle=COLORS.border; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(z.x,z.y,z.w,z.h,8) : ctx.rect(z.x,z.y,z.w,z.h); ctx.fill(); ctx.stroke();
+    // band dividers + labels
+    ctx.textAlign='center'; ctx.font="11px 'Tajawal',sans-serif";
+    BANDS.forEach((b,i)=>{
+      const bx=z.x + z.w*i/BANDS.length;
+      if(i>0){ ctx.strokeStyle='rgba(255,255,255,.25)'; ctx.beginPath(); ctx.moveTo(bx,z.y); ctx.lineTo(bx,z.y+z.h); ctx.stroke(); }
+      ctx.save();
+      ctx.fillStyle='#fff'; ctx.globalAlpha=0.92;
+      const cx=z.x+z.w*(i+0.5)/BANDS.length;
+      ctx.translate(cx, z.y+z.h/2);
+      ctx.font="bold 10.5px 'Tajawal',sans-serif";
+      ctx.fillText(b.name, 0, 4);
+      ctx.restore();
+    });
+
+    // ends labels: wavelength & frequency direction
+    ctx.fillStyle=COLORS.muted; ctx.font="12px 'Tajawal',sans-serif";
+    ctx.textAlign='right'; ctx.fillText('طول موجي أطول ← ', z.x+90, z.y-12);
+    ctx.textAlign='left';  ctx.fillText(' → تردد أعلى / طول موجي أقصر', z.x+z.w-190, z.y-12);
+
+    // draggable marker
+    const mx = z.x + z.w*state.pos/100;
+    ctx.strokeStyle=COLORS.wire; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.moveTo(mx, z.y-16); ctx.lineTo(mx, z.y+z.h+16); ctx.stroke();
+    ctx.fillStyle=COLORS.capActive;
+    ctx.beginPath(); ctx.moveTo(mx,z.y-16); ctx.lineTo(mx-8,z.y-28); ctx.lineTo(mx+8,z.y-28); ctx.closePath(); ctx.fill();
+    ctx.fillStyle=COLORS.capActive;
+    ctx.beginPath(); ctx.arc(mx, z.y+z.h+22, 6, 0, 7); ctx.fill();
+
+    // a small sample wave whose density reflects position (higher pos => higher f)
+    const wx0=z.x, wx1=z.x+z.w, wy=z.y+z.h+70;
+    const kk = 0.02 + state.pos/100*0.35;
+    ctx.strokeStyle=bandAt(state.pos).color; ctx.lineWidth=2;
+    ctx.beginPath();
+    for(let x=wx0;x<=wx1;x+=3){
+      const y=wy - Math.sin((x-wx0)*kk - state.t*5)*20;
+      if(x===wx0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+
+    // info panel about the selected band
+    const b=bandAt(state.pos);
+    const px=CW/2-230, py=CH-96, pw=460;
+    ctx.fillStyle=COLORS.panel; ctx.strokeStyle=b.color; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(px,py,pw,80,12) : ctx.rect(px,py,pw,80); ctx.fill(); ctx.stroke();
+    ctx.textAlign='center'; ctx.direction='rtl';
+    ctx.fillStyle=b.color; ctx.font="bold 17px 'Cairo',sans-serif";
+    ctx.fillText(b.name, px+pw/2, py+24);
+    ctx.fillStyle=COLORS.wire; ctx.font="13px 'Tajawal',sans-serif";
+    ctx.fillText('التردد: '+b.f+'   |   الطول الموجي: '+b.lam, px+pw/2, py+46);
+    ctx.fillStyle=COLORS.muted;
+    ctx.fillText('الاستخدامات: '+b.use, px+pw/2, py+66);
+    ctx.direction='ltr';
+
+    // hint to drag
+    ctx.fillStyle=COLORS.muted; ctx.font="12px 'Tajawal',sans-serif"; ctx.textAlign='center';
+    ctx.fillText('👆 اسحب المؤشر على الشريط لاستكشاف أجزاء الطيف', CW/2, z.y-40);
+  }
+
+  window.t5State=state; window.t5Update=t5Update; window.t5Draw=t5Draw;
+  window.t5DragHitTest=function(x,y){
+    const z=state.barZone;
+    return x>=z.x-20 && x<=z.x+z.w+20 && y>=z.y-30 && y<=z.y+z.h+40;
+  };
+})();
+</script>
+<script>
+/* =========================================================================
+   ACTIVITY 6 — الكشف عن الموجات عن طريق المجال الكهربائي (هوائي قضيبي)
+   The wave's E-field drives electrons along a straight rod. Detection is
+   strongest when the rod is PARALLEL to E; zero when perpendicular.
+   ========================================================================= */
+(function(){
+  const COLORS = makeColors();
+  const state = {
+    simMode:'auto', t:0,
+    rodAngle:0,   // 0 = parallel to E (vertical) => best; 90 = perpendicular => none
+    freq:1.0
+  };
+  function t6Update(dt){ state.t += dt; }
+
+  function t6Draw(){
+    ctx.clearRect(0,0,CW,CH);
+    ctx.fillStyle=COLORS.bg; ctx.fillRect(0,0,CW,CH);
+    ctx.fillStyle=COLORS.capActive; ctx.font="bold 17px 'Cairo', sans-serif"; ctx.textAlign='center';
+    ctx.fillText('الكشف عن الموجات عن طريق المجال الكهربائي', CW/2, 30);
+
+    const phase = state.t*4*state.freq;
+    const midY = CH/2 + 10;
+
+    // ---- incoming wave (E-field, vertical) travelling right ----
+    const x0=70, x1=CW-260;
+    // E field wave (green) — vertical oscillation
+    ctx.strokeStyle=COLORS.capActive; ctx.lineWidth=2; ctx.globalAlpha=0.85;
+    ctx.beginPath();
+    for(let x=x0;x<=x1;x+=4){
+      const s=Math.sin((x-x0)*0.05*state.freq - phase);
+      const y=midY - s*52;
+      if(x===x0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.stroke(); ctx.globalAlpha=1;
+    // E field arrows along the axis
+    ctx.strokeStyle=COLORS.capActive; ctx.globalAlpha=0.55; ctx.lineWidth=1.5;
+    for(let x=x0;x<=x1;x+=30){
+      const s=Math.sin((x-x0)*0.05*state.freq - phase); const mag=s*52;
+      ctx.beginPath(); ctx.moveTo(x,midY); ctx.lineTo(x,midY-mag); ctx.stroke();
+    }
+    ctx.globalAlpha=1;
+    ctx.fillStyle=COLORS.capActive; ctx.font="bold 14px 'Cairo',sans-serif"; ctx.textAlign='left';
+    ctx.fillText('E المجال الكهربائي للموجة (رأسي)', 74, 70);
+    ctx.fillStyle=COLORS.muted; ctx.font="12px 'Tajawal',sans-serif";
+    ctx.fillText('اتجاه انتشار الموجة →', 74, CH-30);
+
+    // ---- rod antenna (right), rotated by rodAngle from vertical ----
+    const rodX=CW-160, rodLen=150;
+    // detection strength: E-field parallel-projection onto the rod = cos(angle)
+    const proj = Math.cos(state.rodAngle*Math.PI/180);   // 1 at 0°, 0 at 90°
+    const signal = Math.max(0, Math.abs(proj));
+    // instantaneous drive from the wave
+    const drive = Math.sin(phase) * signal;
+
+    ctx.save(); ctx.translate(rodX, midY); ctx.rotate(state.rodAngle*Math.PI/180);
+    // the rod
+    ctx.strokeStyle=COLORS.wire; ctx.lineWidth=5;
+    ctx.beginPath(); ctx.moveTo(0,-rodLen/2); ctx.lineTo(0,rodLen/2); ctx.stroke();
+    // electrons pushed along the rod by E (up/down), amplitude ∝ signal
+    for(let i=-3;i<=3;i++){
+      const baseY=i*rodLen/7;
+      const off=drive*13*(i===0?0.3:1);
+      ctx.fillStyle = drive>0?COLORS.blue:COLORS.red;
+      ctx.beginPath(); ctx.arc(0, baseY-off, 4.2, 0, 7); ctx.fill();
+    }
+    // feed point
+    ctx.fillStyle=COLORS.capDefault; ctx.beginPath(); ctx.arc(0,0,5,0,7); ctx.fill();
+    ctx.restore();
+    ctx.fillStyle=COLORS.muted; ctx.font="13px 'Tajawal',sans-serif"; ctx.textAlign='center';
+    ctx.fillText('هوائي قضيبي', rodX, midY+rodLen/2+42);
+    ctx.fillText('الإلكترونات تهتزّ بفعل E', rodX, midY+rodLen/2+60);
+
+    // little bulb/meter showing detected current
+    const glowY=midY+rodLen/2+90;
+    ctx.fillStyle = signal>0.6?COLORS.capActive:(signal>0.3?COLORS.capDefault:COLORS.red);
+    ctx.globalAlpha=0.3+0.6*signal*(0.6+0.4*Math.abs(Math.sin(phase)));
+    ctx.beginPath(); ctx.arc(rodX, glowY, 12+8*signal, 0, 7); ctx.fill();
+    ctx.globalAlpha=1;
+    ctx.fillStyle=COLORS.muted; ctx.font="11px 'Tajawal',sans-serif";
+    ctx.fillText('التيار المكتشَف', rodX, glowY+26);
+
+    // strength bar + HUD
+    const barX=CW-250, barY=92, barW=210;
+    ctx.fillStyle=COLORS.muted; ctx.font="12px 'Tajawal',sans-serif"; ctx.textAlign='right'; ctx.direction='rtl';
+    ctx.fillText('قوة الإشارة المكتشَفة', barX+barW, barY-6); ctx.direction='ltr';
+    ctx.strokeStyle=COLORS.border; ctx.strokeRect(barX,barY,barW,16);
+    ctx.fillStyle=signal>0.6?COLORS.capActive:(signal>0.3?COLORS.capDefault:COLORS.red);
+    ctx.fillRect(barX+1,barY+1,(barW-2)*signal,14);
+
+    drawHUD(barX-4, barY+34, barW+4, [
+      { text:'الإشارة ∝ cos(الزاوية)', bold:true },
+      { text:'زاوية الهوائي: '+state.rodAngle+'°' },
+      { text: state.rodAngle<15?'موازٍ لـ E → كشف أقوى':(state.rodAngle>75?'عمودي على E → لا كشف':'مائل → كشف أضعف'),
+        color: state.rodAngle<15?COLORS.capActive:(state.rodAngle>75?COLORS.red:COLORS.capDefault) }
+    ]);
+
+    ctx.fillStyle=COLORS.muted; ctx.font="13px 'Tajawal',sans-serif"; ctx.textAlign='center';
+    ctx.fillText('المجال الكهربائي E يحرّك الإلكترونات على طول القضيب — أقوى كشف عندما يوازي القضيبُ اتجاهَ E', CW/2, CH-12);
+  }
+
+  function drawHUD(x,y,w,lines){
+    const pad=12, lh=24, h=pad*2+lines.length*lh;
+    ctx.fillStyle=COLORS.panel; ctx.strokeStyle=COLORS.border; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x,y,w,h,10) : ctx.rect(x,y,w,h); ctx.fill(); ctx.stroke();
+    ctx.textAlign='right'; ctx.direction='rtl';
+    lines.forEach((ln,i)=>{
+      ctx.fillStyle=ln.color||COLORS.wire;
+      ctx.font=(ln.bold?"bold ":"")+"13px 'Tajawal', sans-serif";
+      ctx.fillText(ln.text, x+w-pad, y+pad+18+i*lh);
+    });
+    ctx.direction='ltr';
+  }
+
+  window.t6State=state; window.t6Update=t6Update; window.t6Draw=t6Draw;
+})();
+</script>
+<script>
+/* =========================================================================
+   ACTIVITY 7 — الكشف عن الموجات عن طريق المجال المغناطيسي (هوائي حلقي)
+   The wave's B-field threads a wire loop and induces an EMF (Faraday's law).
+   Detection is strongest when the loop plane faces the wave so the maximum
+   B-flux passes through it; zero when the loop is edge-on to B.
+   ========================================================================= */
+(function(){
+  const COLORS = makeColors();
+  const state = {
+    simMode:'auto', t:0,
+    loopAngle:0,   // 0 = plane faces B (max flux) => best; 90 = edge-on => none
+    freq:1.0
+  };
+  function t7Update(dt){ state.t += dt; }
+
+  function t7Draw(){
+    ctx.clearRect(0,0,CW,CH);
+    ctx.fillStyle=COLORS.bg; ctx.fillRect(0,0,CW,CH);
+    ctx.fillStyle=COLORS.capActive; ctx.font="bold 17px 'Cairo', sans-serif"; ctx.textAlign='center';
+    ctx.fillText('الكشف عن الموجات عن طريق المجال المغناطيسي', CW/2, 30);
+
+    const phase = state.t*4*state.freq;
+    const midY = CH/2 + 10;
+
+    // ---- incoming wave: show the B-field (blue) as the relevant component ----
+    const x0=70, x1=CW-260;
+    ctx.strokeStyle=COLORS.blue; ctx.lineWidth=2; ctx.globalAlpha=0.85;
+    ctx.beginPath();
+    for(let x=x0;x<=x1;x+=4){
+      const s=Math.sin((x-x0)*0.05*state.freq - phase);
+      const y=midY - s*52;
+      if(x===x0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.stroke(); ctx.globalAlpha=1;
+    // B field markers (⊗/⊙ style dots to suggest into/out of page component)
+    ctx.globalAlpha=0.6;
+    for(let x=x0;x<=x1;x+=30){
+      const s=Math.sin((x-x0)*0.05*state.freq - phase);
+      ctx.strokeStyle=COLORS.blue; ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.moveTo(x,midY); ctx.lineTo(x,midY-s*52); ctx.stroke();
+    }
+    ctx.globalAlpha=1;
+    ctx.fillStyle=COLORS.blue; ctx.font="bold 14px 'Cairo',sans-serif"; ctx.textAlign='left';
+    ctx.fillText('B المجال المغناطيسي للموجة', 74, 70);
+    ctx.fillStyle=COLORS.muted; ctx.font="12px 'Tajawal',sans-serif";
+    ctx.fillText('اتجاه انتشار الموجة →', 74, CH-30);
+
+    // ---- loop antenna (right): ellipse squashed by angle ----
+    const loopX=CW-160, loopR=64;
+    // flux through loop ∝ cos(angle): max when plane faces B, zero edge-on
+    const flux = Math.cos(state.loopAngle*Math.PI/180);
+    const signal = Math.max(0, Math.abs(flux));
+    // induced EMF ∝ dΦ/dt ∝ derivative of sin => cos, scaled by flux geometry
+    const emf = Math.cos(phase) * signal;
+
+    ctx.save(); ctx.translate(loopX, midY);
+    const sq = Math.cos(state.loopAngle*Math.PI/180); // horizontal squash depicts rotation
+    ctx.strokeStyle=COLORS.wire; ctx.lineWidth=4;
+    ctx.beginPath();
+    ctx.ellipse(0,0, Math.max(5, loopR*sq), loopR, 0, 0, Math.PI*2);
+    ctx.stroke();
+    // induced current arrows around the loop, brightness ∝ |emf|
+    const ia=Math.abs(emf);
+    if(ia>0.05 && sq>0.12){
+      ctx.strokeStyle = emf>0?COLORS.capActive:COLORS.red; ctx.lineWidth=2.5; ctx.globalAlpha=0.4+0.6*ia;
+      const dir = emf>0?1:-1;
+      for(let a=0;a<Math.PI*2;a+=Math.PI/3){
+        const ex=Math.max(5,loopR*sq)*Math.cos(a), ey=loopR*Math.sin(a);
+        const ta=a+dir*0.3;
+        const tx=Math.max(5,loopR*sq)*Math.cos(ta), ty=loopR*Math.sin(ta);
+        ctx.beginPath(); ctx.moveTo(ex,ey); ctx.lineTo(tx,ty); ctx.stroke();
+      }
+      ctx.globalAlpha=1;
+    }
+    // feed gap
+    ctx.fillStyle=COLORS.capDefault; ctx.beginPath(); ctx.arc(0,-loopR,4.5,0,7); ctx.fill();
+    ctx.restore();
+    ctx.fillStyle=COLORS.muted; ctx.font="13px 'Tajawal',sans-serif"; ctx.textAlign='center';
+    ctx.fillText('هوائي حلقي', loopX, midY+loopR+40);
+    ctx.fillText('B يخترق الحلقة فيحثّ ق.د.ك', loopX, midY+loopR+58);
+
+    // detected-current glow
+    const glowY=midY+loopR+86;
+    ctx.fillStyle = signal>0.6?COLORS.capActive:(signal>0.3?COLORS.capDefault:COLORS.red);
+    ctx.globalAlpha=0.3+0.6*signal*(0.6+0.4*Math.abs(Math.cos(phase)));
+    ctx.beginPath(); ctx.arc(loopX, glowY, 12+8*signal, 0, 7); ctx.fill();
+    ctx.globalAlpha=1;
+    ctx.fillStyle=COLORS.muted; ctx.font="11px 'Tajawal',sans-serif";
+    ctx.fillText('التيار المُحتثّ', loopX, glowY+26);
+
+    // strength bar + HUD
+    const barX=CW-250, barY=92, barW=210;
+    ctx.fillStyle=COLORS.muted; ctx.font="12px 'Tajawal',sans-serif"; ctx.textAlign='right'; ctx.direction='rtl';
+    ctx.fillText('قوة الإشارة المكتشَفة', barX+barW, barY-6); ctx.direction='ltr';
+    ctx.strokeStyle=COLORS.border; ctx.strokeRect(barX,barY,barW,16);
+    ctx.fillStyle=signal>0.6?COLORS.capActive:(signal>0.3?COLORS.capDefault:COLORS.red);
+    ctx.fillRect(barX+1,barY+1,(barW-2)*signal,14);
+
+    drawHUD(barX-4, barY+34, barW+4, [
+      { text:'الإشارة ∝ الفيض = cos(الزاوية)', bold:true },
+      { text:'زاوية الحلقة: '+state.loopAngle+'°' },
+      { text: state.loopAngle<15?'مستوى الحلقة يواجه B → كشف أقوى':(state.loopAngle>75?'الحلقة موازية لـ B → لا كشف':'ميل جزئي → كشف أضعف'),
+        color: state.loopAngle<15?COLORS.capActive:(state.loopAngle>75?COLORS.red:COLORS.capDefault) }
+    ]);
+
+    ctx.fillStyle=COLORS.muted; ctx.font="13px 'Tajawal',sans-serif"; ctx.textAlign='center';
+    ctx.fillText('المجال المغناطيسي B يخترق الحلقة فيحثّ ق.د.ك (قانون فارادي) — أقوى كشف عندما يمرّ أكبر فيض خلالها', CW/2, CH-12);
+  }
+
+  function drawHUD(x,y,w,lines){
+    const pad=12, lh=24, h=pad*2+lines.length*lh;
+    ctx.fillStyle=COLORS.panel; ctx.strokeStyle=COLORS.border; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x,y,w,h,10) : ctx.rect(x,y,w,h); ctx.fill(); ctx.stroke();
+    ctx.textAlign='right'; ctx.direction='rtl';
+    lines.forEach((ln,i)=>{
+      ctx.fillStyle=ln.color||COLORS.wire;
+      ctx.font=(ln.bold?"bold ":"")+"13px 'Tajawal', sans-serif";
+      ctx.fillText(ln.text, x+w-pad, y+pad+18+i*lh);
+    });
+    ctx.direction='ltr';
+  }
+
+  window.t7State=state; window.t7Update=t7Update; window.t7Draw=t7Draw;
+})();
+</script>
+<script>
+/* =========================================================================
+   ACTIVITY 8 — التضمين: سعوي (AM) / ترددي (FM) / طوري (PM)
+   Shows three stacked traces: the message signal, the carrier, and the
+   modulated output. AM varies amplitude, FM varies instantaneous frequency,
+   PM varies phase — all with the same message riding a high-freq carrier.
+   ========================================================================= */
+(function(){
+  const COLORS = makeColors();
+  const state = {
+    simMode:'auto', t:0,
+    modType:'am',        // 'am' | 'fm' | 'pm'
+    msgFreq:1.0,         // message (modulating) frequency
+    carrierFreq:8.0,     // carrier frequency
+    depth:0.7            // modulation depth / index
+  };
+  function t8Update(dt){ if(state.simMode==='auto') state.t += dt; }
+
+  // message signal value at horizontal position x (0..1 across the trace) and time
+  function message(u){
+    return Math.sin(2*Math.PI*state.msgFreq*u - state.t*2.2);
+  }
+
+  function drawTrace(cx, cy, w, amp, fn, color, lw){
+    ctx.strokeStyle=color; ctx.lineWidth=lw||2; ctx.beginPath();
+    const N=w;
+    for(let i=0;i<=N;i++){
+      const u=i/N;
+      const y=cy - fn(u)*amp;
+      const x=cx+i;
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+  }
+
+  function t8Draw(){
+    ctx.clearRect(0,0,CW,CH);
+    ctx.fillStyle=COLORS.bg; ctx.fillRect(0,0,CW,CH);
+    ctx.fillStyle=COLORS.capActive; ctx.font="bold 17px 'Cairo', sans-serif"; ctx.textAlign='center';
+    const typeName = state.modType==='am'?'التضمين السعوي (AM)':state.modType==='fm'?'التضمين الترددي (FM)':'التضمين الطوري (PM)';
+    ctx.fillText('التضمين — '+typeName, CW/2, 30);
+
+    const traceX=70, traceW=CW-330;      // leave room for HUD on the right
+    const amp=46;
+    const kc = 2*Math.PI*state.carrierFreq;   // carrier angular (per unit u)
+    const km = 2*Math.PI*state.msgFreq;
+    const tph = state.t*2.2;                   // scrolling phase of the message
+
+    // ---- 1) message signal ----
+    const y1=100;
+    ctx.fillStyle=COLORS.muted; ctx.font="13px 'Tajawal',sans-serif"; ctx.textAlign='right'; ctx.direction='rtl';
+    ctx.fillText('إشارة المعلومات (المُضمِّنة)', traceX+traceW, y1-amp-12); ctx.direction='ltr';
+    drawTrace(traceX, y1, traceW, amp, u=>Math.sin(km*u - tph), COLORS.capDefault, 2.5);
+
+    // ---- 2) carrier ----
+    const y2=228;
+    ctx.fillStyle=COLORS.muted; ctx.textAlign='right'; ctx.direction='rtl';
+    ctx.fillText('الموجة الحاملة (عالية التردد)', traceX+traceW, y2-amp-12); ctx.direction='ltr';
+    drawTrace(traceX, y2, traceW, amp, u=>Math.sin(kc*u - tph), COLORS.blue, 1.8);
+
+    // ---- 3) modulated output ----
+    const y3=372;
+    ctx.fillStyle=COLORS.muted; ctx.textAlign='right'; ctx.direction='rtl';
+    ctx.fillText('الموجة المُضمَّنة (الخرج)', traceX+traceW, y3-amp-16); ctx.direction='ltr';
+
+    let outFn, betaFM = state.depth*6, betaPM = state.depth*3.2;
+    if(state.modType==='am'){
+      // amplitude follows (1 + m·message)
+      outFn = u=>{
+        const m = state.depth*Math.sin(km*u - tph);
+        return (1+m)/(1+state.depth) * Math.sin(kc*u - tph);
+      };
+    } else if(state.modType==='fm'){
+      // instantaneous phase = kc·u + beta·sin(message)  (integral gives freq shift)
+      outFn = u=>Math.sin(kc*u - tph + betaFM*Math.sin(km*u - tph));
+    } else { // pm
+      outFn = u=>Math.sin(kc*u - tph + betaPM*Math.sin(km*u - tph));
+    }
+    drawTrace(traceX, y3, traceW, amp, outFn, COLORS.capActive, 2);
+
+    // For AM, draw the envelope (dashed) so the amplitude variation is obvious
+    if(state.modType==='am'){
+      ctx.strokeStyle=COLORS.capDefault; ctx.lineWidth=1.4; ctx.globalAlpha=0.8; ctx.setLineDash([5,4]);
+      for(const sgn of [1,-1]){
+        ctx.beginPath();
+        for(let i=0;i<=traceW;i++){
+          const u=i/traceW;
+          const m=state.depth*Math.sin(km*u - tph);
+          const env=(1+m)/(1+state.depth);
+          const y=y3 - sgn*env*amp;
+          const x=traceX+i;
+          if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+        }
+        ctx.stroke();
+      }
+      ctx.setLineDash([]); ctx.globalAlpha=1;
+    }
+
+    // baseline guides
+    ctx.strokeStyle=COLORS.border; ctx.lineWidth=1; ctx.globalAlpha=0.5; ctx.setLineDash([2,4]);
+    [y1,y2,y3].forEach(yy=>{ ctx.beginPath(); ctx.moveTo(traceX,yy); ctx.lineTo(traceX+traceW,yy); ctx.stroke(); });
+    ctx.setLineDash([]); ctx.globalAlpha=1;
+
+    // HUD
+    let desc;
+    if(state.modType==='am') desc='تتغيّر سعة الحاملة تبعًا للإشارة';
+    else if(state.modType==='fm') desc='يتغيّر تردد الحاملة تبعًا للإشارة';
+    else desc='يتغيّر طور الحاملة تبعًا للإشارة';
+    drawHUD(CW-250, 90, 232, [
+      { text:'نوع التضمين: '+(state.modType==='am'?'سعوي AM':state.modType==='fm'?'ترددي FM':'طوري PM'), bold:true, color:COLORS.capActive },
+      { text: desc },
+      { text:'تردد المُضمِّنة = '+state.msgFreq.toFixed(1) },
+      { text:'تردد الحاملة = '+state.carrierFreq.toFixed(1) },
+      { text:(state.modType==='am'?'عمق التضمين = ':'دليل التضمين = ')+state.depth.toFixed(2) }
+    ]);
+
+    ctx.fillStyle=COLORS.muted; ctx.font="13px 'Tajawal',sans-serif"; ctx.textAlign='center';
+    ctx.fillText('المعلومة تُحمَّل على الموجة الحاملة عالية التردد لتُرسل عبر الفضاء ثم تُستخرج عند الاستقبال', CW/2, CH-12);
+  }
+
+  function drawHUD(x,y,w,lines){
+    const pad=12, lh=24, h=pad*2+lines.length*lh;
+    ctx.fillStyle=COLORS.panel; ctx.strokeStyle=COLORS.border; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x,y,w,h,10) : ctx.rect(x,y,w,h); ctx.fill(); ctx.stroke();
+    ctx.textAlign='right'; ctx.direction='rtl';
+    lines.forEach((ln,i)=>{
+      ctx.fillStyle=ln.color||COLORS.wire;
+      ctx.font=(ln.bold?"bold ":"")+"13px 'Tajawal', sans-serif";
+      ctx.fillText(ln.text, x+w-pad, y+pad+18+i*lh);
+    });
+    ctx.direction='ltr';
+  }
+
+  window.t8State=state; window.t8Update=t8Update; window.t8Draw=t8Draw;
+  window.t8SetType=function(m){ state.modType=m; };
+})();
+</script>
+<script>
+/* =========================================================================
+   ACTIVITY 9 — توليد الموجات الكهرومغناطيسية بمذبذب كهربائي وساقين معدنيين
+   An LC oscillator drives an alternating current into two metal rods (a
+   dipole). Charges surge back and forth between the rods; the oscillating
+   charge/current radiates EM waves outward. Shows the circuit, the charge on
+   each rod, and the radiated wavefronts.  λ ∝ 1/f.
+   ========================================================================= */
+(function(){
+  const COLORS = makeColors();
+  const state = {
+    simMode:'auto', t:0,
+    oscFreq:1.0,   // oscillator frequency
+    amp:1.0        // charge amplitude / oscillation strength
+  };
+  function t9Update(dt){ if(state.simMode==='auto') state.t += dt; }
+
+  function t9Draw(){
+    ctx.clearRect(0,0,CW,CH);
+    ctx.fillStyle=COLORS.bg; ctx.fillRect(0,0,CW,CH);
+    ctx.fillStyle=COLORS.capActive; ctx.font="bold 17px 'Cairo', sans-serif"; ctx.textAlign='center';
+    ctx.fillText('توليد الموجات الكهرومغناطيسية بمذبذب كهربائي وساقين معدنيين', CW/2, 30);
+
+    const phase = state.t*3.4*state.oscFreq;
+    const q = Math.sin(phase) * state.amp;   // instantaneous charge (top rod +, bottom −, alternating)
+    const cur = Math.cos(phase) * state.amp; // current ∝ dq/dt
+
+    // ===== Left: the electric oscillator (LC circuit) =====
+    const ox=140, oy=CH/2;
+    ctx.strokeStyle=COLORS.wire; ctx.lineWidth=2.5;
+    // loop rectangle
+    const bx=ox-70, by=oy-70, bw=120, bh=140;
+    ctx.strokeRect(bx,by,bw,bh);
+    // inductor (bottom) — coil
+    ctx.strokeStyle=COLORS.capActive; ctx.lineWidth=3; ctx.beginPath();
+    for(let i=0;i<5;i++){ const xx=bx+26+i*16; ctx.arc(xx, by+bh, 7, Math.PI, 0, false); }
+    ctx.stroke();
+    ctx.fillStyle=COLORS.capActive; ctx.font="bold 13px serif"; ctx.textAlign='center';
+    ctx.fillText('L', bx+bw/2, by+bh+22);
+    // capacitor (top) — two plates with charge coloring
+    ctx.strokeStyle=COLORS.capDefault; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.moveTo(bx+bw/2-22, by); ctx.lineTo(bx+bw/2+22, by); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(bx+bw/2-22, by-12); ctx.lineTo(bx+bw/2+22, by-12); ctx.stroke();
+    ctx.fillStyle=COLORS.capDefault; ctx.textAlign='left';
+    ctx.fillText('C', bx+bw/2+28, by-4);
+    // oscillating current dots around the loop
+    ctx.fillStyle=COLORS.capActive; ctx.globalAlpha=0.5+0.5*Math.abs(cur);
+    const peri=2*(bw+bh);
+    for(let i=0;i<10;i++){
+      let d=(state.t*220*state.oscFreq*Math.sign(cur||1) + i*peri/10);
+      d=((d%peri)+peri)%peri;
+      let px,py;
+      if(d<bw){px=bx+d;py=by;} else if(d<bw+bh){px=bx+bw;py=by+(d-bw);}
+      else if(d<2*bw+bh){px=bx+bw-(d-bw-bh);py=by+bh;} else {px=bx;py=by+bh-(d-2*bw-bh);}
+      ctx.beginPath(); ctx.arc(px,py,3,0,7); ctx.fill();
+    }
+    ctx.globalAlpha=1;
+    ctx.fillStyle=COLORS.muted; ctx.font="13px 'Tajawal',sans-serif"; ctx.textAlign='center';
+    ctx.fillText('مذبذب كهربائي (دائرة LC)', ox, by+bh+46);
+
+    // wire from oscillator to the rods
+    const feedX=ox+70;
+    ctx.strokeStyle=COLORS.wire; ctx.lineWidth=2.5;
+    ctx.beginPath(); ctx.moveTo(bx+bw, oy); ctx.lineTo(feedX+70, oy); ctx.stroke();
+
+    // ===== Middle: the two metal rods (dipole) =====
+    const rodX=feedX+140, gap=16, rodLen=110;
+    // top rod
+    ctx.strokeStyle=COLORS.wire; ctx.lineWidth=6;
+    ctx.beginPath(); ctx.moveTo(rodX, oy-gap); ctx.lineTo(rodX, oy-gap-rodLen); ctx.stroke();
+    // bottom rod
+    ctx.beginPath(); ctx.moveTo(rodX, oy+gap); ctx.lineTo(rodX, oy+gap+rodLen); ctx.stroke();
+    // charge signs on the rods (alternate with q)
+    const topPos = q>0;   // top rod positive when q>0
+    ctx.font="bold 20px 'Cairo',sans-serif"; ctx.textAlign='center';
+    ctx.fillStyle = topPos?COLORS.red:COLORS.blue;
+    ctx.fillText(topPos?'+':'−', rodX, oy-gap-rodLen/2);
+    ctx.fillStyle = topPos?COLORS.blue:COLORS.red;
+    ctx.fillText(topPos?'−':'+', rodX, oy+gap+rodLen/2+7);
+    // charge magnitude bars along rods
+    ctx.globalAlpha=0.6;
+    for(let i=1;i<=4;i++){
+      const yy=gap+i*rodLen/5;
+      const mag=Math.abs(q)*(1-i/6);
+      ctx.strokeStyle=topPos?COLORS.red:COLORS.blue; ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.moveTo(rodX-8*mag, oy-yy); ctx.lineTo(rodX+8*mag, oy-yy); ctx.stroke();
+      ctx.strokeStyle=topPos?COLORS.blue:COLORS.red;
+      ctx.beginPath(); ctx.moveTo(rodX-8*mag, oy+yy); ctx.lineTo(rodX+8*mag, oy+yy); ctx.stroke();
+    }
+    ctx.globalAlpha=1;
+    // feed gap current arrow
+    ctx.fillStyle=COLORS.capActive; ctx.globalAlpha=0.4+0.6*Math.abs(cur);
+    ctx.beginPath(); ctx.arc(rodX, oy, 4, 0, 7); ctx.fill(); ctx.globalAlpha=1;
+    ctx.fillStyle=COLORS.muted; ctx.font="13px 'Tajawal',sans-serif"; ctx.textAlign='center';
+    ctx.fillText('ساقان معدنيان', rodX, oy+gap+rodLen+26);
+    ctx.fillText('(تتذبذب الشحنة بينهما)', rodX, oy+gap+rodLen+44);
+
+    // ===== Right: radiated EM wavefronts =====
+    // circular wavefronts emanating from the rods, spacing = wavelength ∝ 1/f
+    const spacing = 70/state.oscFreq;      // px between crests
+    ctx.strokeStyle=COLORS.capActive;
+    for(let r=20; r<560; r+=spacing){
+      const rr = r + (state.t*120*state.oscFreq) % spacing;
+      const alpha = Math.max(0, 0.55 - rr/760) * (0.5+0.5*state.amp);
+      if(alpha<=0) continue;
+      ctx.globalAlpha=alpha; ctx.lineWidth=2;
+      ctx.beginPath(); ctx.arc(rodX, oy, rr, -1.0, 1.0); ctx.stroke();
+    }
+    ctx.globalAlpha=1;
+    // wavelength marker
+    const wm0=rodX+40, wm1=wm0+spacing;
+    if(wm1 < CW-40){
+      ctx.strokeStyle=COLORS.capDefault; ctx.lineWidth=1.5; ctx.setLineDash([4,3]);
+      ctx.beginPath(); ctx.moveTo(wm0, oy+150); ctx.lineTo(wm1, oy+150); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle=COLORS.capDefault; ctx.font="italic 13px serif"; ctx.textAlign='center';
+      ctx.fillText('λ', (wm0+wm1)/2, oy+167);
+    }
+
+    // HUD
+    drawHUD(CW-234, 66, 216, [
+      { text:'التيار المتردد ⇄ إشعاع', bold:true, color:COLORS.capActive },
+      { text:'تردد المذبذب f = '+state.oscFreq.toFixed(1) },
+      { text:'الطول الموجي λ ∝ 1/f' },
+      { text: state.simMode==='auto'?'الحركة: تعمل ▶':'الحركة: متوقفة ⏸',
+        color: state.simMode==='auto'?COLORS.capActive:COLORS.capDefault }
+    ]);
+
+    ctx.fillStyle=COLORS.muted; ctx.font="13px 'Tajawal',sans-serif"; ctx.textAlign='center';
+    ctx.fillText('التيار المتردد من المذبذب يجعل الشحنات تتذبذب في الساقين، فتُشِع موجات كهرومغناطيسية في الفضاء', CW/2, CH-12);
+  }
+
+  function drawHUD(x,y,w,lines){
+    const pad=12, lh=24, h=pad*2+lines.length*lh;
+    ctx.fillStyle=COLORS.panel; ctx.strokeStyle=COLORS.border; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x,y,w,h,10) : ctx.rect(x,y,w,h); ctx.fill(); ctx.stroke();
+    ctx.textAlign='right'; ctx.direction='rtl';
+    lines.forEach((ln,i)=>{
+      ctx.fillStyle=ln.color||COLORS.wire;
+      ctx.font=(ln.bold?"bold ":"")+"13px 'Tajawal', sans-serif";
+      ctx.fillText(ln.text, x+w-pad, y+pad+18+i*lh);
+    });
+    ctx.direction='ltr';
+  }
+
+  window.t9State=state; window.t9Update=t9Update; window.t9Draw=t9Draw;
+})();
+</script>
+<script>
+/* =========================================================================
+   ACTIVITY 10 — مدى الموجات الراديوية: أرضية / سماوية / فضائية
+   Ground wave hugs the curved Earth (short range, weakens fast with freq).
+   Sky wave reflects off the ionosphere for long "skip" range, but punches
+   straight through above a critical frequency. Space wave is line-of-sight
+   (used by FM/TV/mobile) and is blocked once the receiver is over the
+   horizon, unless the tower is raised or a relay/satellite is used.
+   ========================================================================= */
+(function(){
+  const COLORS = makeColors();
+  const state = {
+    simMode:'auto', t:0,
+    mode:'ground',   // 'ground' | 'sky' | 'space'
+    band:1.0,        // 0.3..5 relative frequency position
+    rxPos:55         // 10..95 receiver distance along the ground (%)
+  };
+
+  function bandLabel(){
+    if(state.band < 1.2) return 'موجات متوسطة MF (نطاق AM)';
+    if(state.band < 3.2) return 'موجات قصيرة HF';
+    if(state.band < 4.2) return 'موجات مترية VHF (نطاق FM)';
+    return 'موجات ديسيمترية UHF (تلفاز/جوال)';
+  }
+
+  function t10Update(dt){ if(state.simMode==='auto') state.t += dt; }
+
+  // Earth modeled as a large circle; we only ever see a shallow slice of its
+  // top, so straight lines between elevated points can dip below the arc —
+  // exactly the "blocked by the horizon" behaviour we want for the space wave.
+  const earthR = 1500, spanAngle = 0.62;
+  function groundPoint(u){
+    const a = -Math.PI/2 + (u-0.5)*spanAngle;
+    const earthCx = 900/2, earthCy = 150 + earthR;
+    return { x: earthCx + earthR*Math.cos(a), y: earthCy + earthR*Math.sin(a) };
+  }
+
+  function t10Draw(){
+    ctx.clearRect(0,0,CW,CH);
+    ctx.fillStyle=COLORS.bg; ctx.fillRect(0,0,CW,CH);
+    ctx.fillStyle=COLORS.capActive; ctx.font="bold 17px 'Cairo', sans-serif"; ctx.textAlign='center';
+    ctx.fillText('مدى الموجات الراديوية — انتشار أرضي وسماوي وفضائي', CW/2, 30);
+
+    if(state.mode==='compare'){ drawCompareMode(); return; }
+
+    // curved ground
+    ctx.strokeStyle=COLORS.wire; ctx.lineWidth=3; ctx.beginPath();
+    for(let i=0;i<=100;i++){ const p=groundPoint(i/100); if(i===0) ctx.moveTo(p.x,p.y); else ctx.lineTo(p.x,p.y); }
+    ctx.stroke();
+    ctx.fillStyle=COLORS.border; ctx.globalAlpha=0.35; ctx.beginPath();
+    for(let i=0;i<=100;i++){ const p=groundPoint(i/100); if(i===0) ctx.moveTo(p.x,p.y); else ctx.lineTo(p.x,p.y); }
+    ctx.lineTo(CW,CH); ctx.lineTo(0,CH); ctx.closePath(); ctx.fill(); ctx.globalAlpha=1;
+
+    // ionosphere
+    const ionoY=70;
+    ctx.strokeStyle=COLORS.blue; ctx.globalAlpha=0.55; ctx.lineWidth=2; ctx.setLineDash([6,5]);
+    ctx.beginPath(); ctx.moveTo(30,ionoY); ctx.lineTo(CW-30,ionoY); ctx.stroke();
+    ctx.setLineDash([]); ctx.globalAlpha=1;
+    ctx.fillStyle=COLORS.blue; ctx.font="12px 'Tajawal',sans-serif"; ctx.textAlign='right'; ctx.direction='rtl';
+    ctx.fillText('طبقة الأيونوسفير (تعكس بعض الترددات)', CW-34, ionoY-8); ctx.direction='ltr';
+
+    // transmitting tower
+    const txU=0.08, txBase=groundPoint(txU), towerH=60;
+    ctx.strokeStyle=COLORS.wire; ctx.lineWidth=4;
+    ctx.beginPath(); ctx.moveTo(txBase.x,txBase.y); ctx.lineTo(txBase.x,txBase.y-towerH); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(txBase.x-14,txBase.y-towerH+10); ctx.lineTo(txBase.x,txBase.y-towerH); ctx.lineTo(txBase.x+14,txBase.y-towerH+10); ctx.stroke();
+    ctx.fillStyle=COLORS.muted; ctx.font="12px 'Tajawal',sans-serif"; ctx.textAlign='center';
+    ctx.fillText('برج الإرسال', txBase.x, txBase.y+18);
+    const txTop={x:txBase.x, y:txBase.y-towerH};
+
+    // receiver
+    const rxU=state.rxPos/100, rxPt=groundPoint(rxU);
+    ctx.fillStyle=COLORS.capDefault; ctx.beginPath(); ctx.arc(rxPt.x, rxPt.y-10, 6, 0,7); ctx.fill();
+    ctx.fillStyle=COLORS.muted; ctx.font="12px 'Tajawal',sans-serif"; ctx.textAlign='center';
+    ctx.fillText('المستقبل', rxPt.x, rxPt.y+18);
+
+    const phase=state.t*3.5;
+    let outcomeText='', outcomeGood=true;
+
+    if(state.mode==='ground'){
+      const reach = Math.max(0.14, 0.55 - state.band*0.09);
+      ctx.strokeStyle=COLORS.capActive; ctx.lineWidth=2.5; ctx.beginPath();
+      for(let i=0;i<=60;i++){
+        const u = txU + (i/60)*reach; if(u>0.97) break;
+        const p=groundPoint(u);
+        const decay=Math.max(0, 1-(u-txU)/reach);
+        const wig=Math.sin((u-txU)*260-phase)*6*decay;
+        const px=p.x, py=p.y-8-wig;
+        ctx.globalAlpha=0.25+0.75*decay;
+        if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+      }
+      ctx.stroke(); ctx.globalAlpha=1;
+      const madeIt = rxU <= txU+reach;
+      outcomeGood = madeIt;
+      outcomeText = madeIt ? 'الموجة الأرضية تتبع انحناء الأرض وتصل المستقبل (مدى محدود، يقلّ كلما زاد التردد)'
+                            : 'الموجة الأرضية تضعف وتتلاشى قبل الوصول إلى المستقبل — قرّبه أو خفّض التردد';
+    } else if(state.mode==='sky'){
+      const critical=3.4, penetrates = state.band>critical;
+      const hitU=(txU+rxU)/2, hitX=30+hitU*(CW-60);
+      if(!penetrates){
+        ctx.strokeStyle=COLORS.capActive; ctx.lineWidth=2.5;
+        ctx.beginPath(); ctx.moveTo(txTop.x,txTop.y); ctx.lineTo(hitX,ionoY); ctx.lineTo(rxPt.x,rxPt.y-8); ctx.stroke();
+        ctx.fillStyle=COLORS.blue; ctx.beginPath(); ctx.arc(hitX,ionoY,4+2*Math.abs(Math.sin(phase)),0,7); ctx.fill();
+        outcomeGood = rxU > txU+0.28;
+        outcomeText = outcomeGood
+          ? 'انعكست الموجة عن الأيونوسفير ("قفزة") ووصلت مستقبِلًا بعيدًا يتجاوز خط البصر ومدى الموجة الأرضية'
+          : 'الانعكاس ناجح، لكن المستقبل قريب جدًا — يقع ضمن "منطقة الصمت" بين مدى الموجة الأرضية ونقطة سقوط الموجة السماوية';
+      } else {
+        ctx.strokeStyle=COLORS.red; ctx.lineWidth=2.5; ctx.setLineDash([5,4]);
+        ctx.beginPath(); ctx.moveTo(txTop.x,txTop.y); ctx.lineTo(hitX,ionoY-6); ctx.lineTo(hitX+40,15); ctx.stroke();
+        ctx.setLineDash([]);
+        outcomeGood=false;
+        outcomeText = 'عند هذا التردد العالي تخترق الموجة طبقة الأيونوسفير ولا تنعكس — تُستخدم عندئذٍ الأقمار الصناعية بدل الانعكاس';
+      }
+    } else { // space
+      ctx.strokeStyle=COLORS.capActive; ctx.lineWidth=2.5;
+      const steps=40; let blocked=false;
+      ctx.beginPath(); ctx.moveTo(txTop.x,txTop.y);
+      for(let i=1;i<=steps;i++){
+        const u=i/steps;
+        const x=txTop.x+(rxPt.x-txTop.x)*u;
+        const y=txTop.y+((rxPt.y-8)-txTop.y)*u;
+        const gp=groundPoint(txU+(rxU-txU)*u);
+        if(y>gp.y && !blocked){ blocked=true; }
+        if(blocked) break;
+        ctx.lineTo(x,y);
+      }
+      if(blocked) ctx.strokeStyle=COLORS.red;
+      ctx.stroke();
+      outcomeGood=!blocked;
+      outcomeText = blocked
+        ? 'انحناء الأرض يحجب خط البصر — تحتاج المسافات الأبعد لبرج أعلى أو محطة تقوية أو قمر صناعي'
+        : 'الموجة الفضائية تسير في خط مستقيم (خط البصر) وتصل المستقبل مباشرة — هذا ما تعتمده FM والتلفاز والجوال';
+    }
+
+    ctx.fillStyle = outcomeGood?COLORS.capActive:COLORS.red;
+    ctx.font="bold 13px 'Tajawal',sans-serif"; ctx.textAlign='center';
+    ctx.fillText(outcomeGood?'✅ استقبال ناجح':'⚠️ لا استقبال', CW/2, CH-56);
+
+    const efficiencyNote = {
+      ground: 'الأكفأ لتغطية محلية موثوقة لا تتأثر بالجو (ليلًا ونهارًا)',
+      sky:    'الأكفأ للوصول إلى مسافات شاسعة (دولية) بأقل طاقة إرسال',
+      space:  'الأكفأ لجودة صوت/صورة عالية وسعة نقل بيانات كبيرة'
+    };
+
+    drawHUD(CW-260, 60, 240, [
+      { text:'نوع الانتشار: '+(state.mode==='ground'?'أرضية':state.mode==='sky'?'سماوية':'فضائية'), bold:true, color:COLORS.capActive },
+      { text:'نطاق التردد: '+bandLabel() },
+      { text: state.mode==='ground' ? 'تتبع انحناء الأرض — مدى محدود' :
+               state.mode==='sky' ? 'تنعكس عن الأيونوسفير — مدى بعيد جدًا' :
+               'خط مستقيم — يحدّه الأفق (انحناء الأرض)' },
+      { text:'⭐ '+efficiencyNote[state.mode], color:COLORS.capDefault }
+    ]);
+
+    ctx.fillStyle=COLORS.muted; ctx.font="13px 'Tajawal',sans-serif"; ctx.textAlign='center';
+    ctx.fillText(outcomeText, CW/2, CH-16);
+  }
+
+  /* ---- Compare mode: all three paths together + a side-by-side table ---- */
+  function drawCompareMode(){
+    // backdrop (ground + ionosphere), compressed into the upper ~230px
+    ctx.strokeStyle=COLORS.wire; ctx.lineWidth=3; ctx.beginPath();
+    for(let i=0;i<=100;i++){ const p=groundPoint(i/100); if(i===0) ctx.moveTo(p.x,p.y); else ctx.lineTo(p.x,p.y); }
+    ctx.stroke();
+    ctx.fillStyle=COLORS.border; ctx.globalAlpha=0.35; ctx.beginPath();
+    for(let i=0;i<=100;i++){ const p=groundPoint(i/100); if(i===0) ctx.moveTo(p.x,p.y); else ctx.lineTo(p.x,p.y); }
+    ctx.lineTo(CW,232); ctx.lineTo(0,232); ctx.closePath(); ctx.fill(); ctx.globalAlpha=1;
+
+    const ionoY=64;
+    ctx.strokeStyle=COLORS.blue; ctx.globalAlpha=0.55; ctx.lineWidth=2; ctx.setLineDash([6,5]);
+    ctx.beginPath(); ctx.moveTo(30,ionoY); ctx.lineTo(CW-30,ionoY); ctx.stroke();
+    ctx.setLineDash([]); ctx.globalAlpha=1;
+    ctx.fillStyle=COLORS.blue; ctx.font="11px 'Tajawal',sans-serif"; ctx.textAlign='right'; ctx.direction='rtl';
+    ctx.fillText('الأيونوسفير', CW-34, ionoY-6); ctx.direction='ltr';
+
+    const txU=0.08, txBase=groundPoint(txU), towerH=52;
+    ctx.strokeStyle=COLORS.wire; ctx.lineWidth=4;
+    ctx.beginPath(); ctx.moveTo(txBase.x,txBase.y); ctx.lineTo(txBase.x,txBase.y-towerH); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(txBase.x-12,txBase.y-towerH+9); ctx.lineTo(txBase.x,txBase.y-towerH); ctx.lineTo(txBase.x+12,txBase.y-towerH+9); ctx.stroke();
+    const txTop={x:txBase.x, y:txBase.y-towerH};
+    ctx.fillStyle=COLORS.muted; ctx.font="11px 'Tajawal',sans-serif"; ctx.textAlign='center';
+    ctx.fillText('البرج', txBase.x, txBase.y+16);
+
+    // three illustrative paths (fixed endpoints, chosen just to show relative reach)
+    const groundEndU=0.30, spaceEndU=0.42, skyEndU=0.92;
+
+    // ground: short, fading
+    ctx.strokeStyle=COLORS.capActive; ctx.lineWidth=2.5; ctx.beginPath();
+    for(let i=0;i<=40;i++){
+      const u=txU+(i/40)*(groundEndU-txU), p=groundPoint(u), decay=1-(i/40);
+      ctx.globalAlpha=0.3+0.7*decay;
+      const py=p.y-6-Math.sin(i*0.9)*3*decay;
+      if(i===0) ctx.moveTo(p.x,py); else ctx.lineTo(p.x,py);
+    }
+    ctx.stroke(); ctx.globalAlpha=1;
+    const gEnd=groundPoint(groundEndU);
+    ctx.fillStyle=COLORS.capActive; ctx.beginPath(); ctx.arc(gEnd.x,gEnd.y-8,4,0,7); ctx.fill();
+
+    // space: straight, medium range (within line of sight by construction)
+    const sEnd=groundPoint(spaceEndU);
+    ctx.strokeStyle=COLORS.capDefault; ctx.lineWidth=2.5;
+    ctx.beginPath(); ctx.moveTo(txTop.x,txTop.y); ctx.lineTo(sEnd.x,sEnd.y-8); ctx.stroke();
+    ctx.fillStyle=COLORS.capDefault; ctx.beginPath(); ctx.arc(sEnd.x,sEnd.y-8,4,0,7); ctx.fill();
+
+    // sky: bounce off ionosphere, far range
+    const hitX=30+((txU+skyEndU)/2)*(CW-60), skyEnd=groundPoint(skyEndU);
+    ctx.strokeStyle=COLORS.red; ctx.lineWidth=2.5;
+    ctx.beginPath(); ctx.moveTo(txTop.x,txTop.y); ctx.lineTo(hitX,ionoY); ctx.lineTo(skyEnd.x,skyEnd.y-8); ctx.stroke();
+    ctx.fillStyle=COLORS.red; ctx.beginPath(); ctx.arc(skyEnd.x,skyEnd.y-8,4,0,7); ctx.fill();
+
+    // legend
+    const legX=CW-56, legY=42;
+    [
+      {c:COLORS.capActive, t:'أرضية — مدى قصير'},
+      {c:COLORS.capDefault, t:'فضائية — خط بصر'},
+      {c:COLORS.red, t:'سماوية — مدى بعيد جدًا'}
+    ].forEach((it,i)=>{
+      ctx.fillStyle=it.c; ctx.beginPath(); ctx.arc(legX, legY+i*20, 5,0,7); ctx.fill();
+      ctx.fillStyle=COLORS.muted; ctx.font="12px 'Tajawal',sans-serif"; ctx.textAlign='right'; ctx.direction='rtl';
+      ctx.fillText(it.t, legX-12, legY+i*20+4); ctx.direction='ltr';
+    });
+
+    // ---- comparison table ----
+    const tblX=50, tblY=248, tblW=CW-100;
+    const cols=[ {w:0.15,label:'النوع'}, {w:0.22,label:'المدى'}, {w:0.21,label:'التردد المناسب'}, {w:0.42,label:'الأكفأ عندما...'} ];
+    const rows=[
+      ['أرضية','قصير – متوسط','MF (نطاق AM)','تريد تغطية محلية موثوقة، ثابتة ليلًا ونهارًا'],
+      ['سماوية','بعيد جدًا (قفزة)','HF (موجات قصيرة)','تريد الوصول لمسافات شاسعة (دولية) بأقل طاقة'],
+      ['فضائية','محدود بخط البصر','VHF/UHF (FM، تلفاز، جوال)','تريد جودة صوت/صورة عالية وسعة بيانات كبيرة']
+    ];
+    const rowColors=[COLORS.capActive, COLORS.red, COLORS.capDefault];
+    const headH=28, rowH=50, tblH=headH+rowH*rows.length;
+
+    ctx.fillStyle=COLORS.panel; ctx.strokeStyle=COLORS.border; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(tblX,tblY,tblW,tblH,10) : ctx.rect(tblX,tblY,tblW,tblH); ctx.fill(); ctx.stroke();
+
+    let cx=tblX; const colX=[];
+    cols.forEach(c=>{ colX.push(cx); cx+=c.w*tblW; });
+
+    ctx.font="bold 12.5px 'Tajawal',sans-serif"; ctx.fillStyle=COLORS.capActive; ctx.textAlign='right'; ctx.direction='rtl';
+    cols.forEach((c,i)=>{ ctx.fillText(c.label, colX[i]+c.w*tblW-10, tblY+19); });
+    ctx.strokeStyle=COLORS.border; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(tblX,tblY+headH); ctx.lineTo(tblX+tblW,tblY+headH); ctx.stroke();
+
+    rows.forEach((r,ri)=>{
+      const ry=tblY+headH+ri*rowH;
+      if(ri>0){
+        ctx.strokeStyle=COLORS.border; ctx.globalAlpha=0.5;
+        ctx.beginPath(); ctx.moveTo(tblX,ry); ctx.lineTo(tblX+tblW,ry); ctx.stroke(); ctx.globalAlpha=1;
+      }
+      r.forEach((cell,ci)=>{
+        ctx.font=(ci===0?"bold ":"")+"12px 'Tajawal',sans-serif";
+        ctx.fillStyle = ci===0 ? rowColors[ri] : COLORS.wire;
+        const colW = cols[ci].w*tblW - 20;
+        wrapAndDraw(cell, colX[ci]+cols[ci].w*tblW-10, ry+18, colW, 15);
+      });
+    });
+    ctx.direction='ltr';
+
+    ctx.fillStyle=COLORS.muted; ctx.font="12.5px 'Tajawal',sans-serif"; ctx.textAlign='center';
+    ctx.fillText('لا يوجد نوع "أفضل" مطلقًا — كل نوع أكفأ لهدف مختلف: تغطية محلية، أو مدى شاسع، أو جودة إشارة عالية', CW/2, CH-8);
+  }
+
+  // right-aligned word-wrap helper for the comparison table cells
+  function wrapAndDraw(text, xRight, y, maxW, lh){
+    ctx.textAlign='right';
+    const words = text.split(' ');
+    let line='', yy=y;
+    for(let i=0;i<words.length;i++){
+      const test = line ? line+' '+words[i] : words[i];
+      if(ctx.measureText(test).width > maxW && line){
+        ctx.fillText(line, xRight, yy);
+        line = words[i]; yy += lh;
+      } else { line = test; }
+    }
+    if(line) ctx.fillText(line, xRight, yy);
+  }
+
+  function drawHUD(x,y,w,lines){
+    const pad=12, lh=24, h=pad*2+lines.length*lh;
+    ctx.fillStyle=COLORS.panel; ctx.strokeStyle=COLORS.border; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x,y,w,h,10) : ctx.rect(x,y,w,h); ctx.fill(); ctx.stroke();
+    ctx.textAlign='right'; ctx.direction='rtl';
+    lines.forEach((ln,i)=>{
+      ctx.fillStyle=ln.color||COLORS.wire;
+      ctx.font=(ln.bold?"bold ":"")+"13px 'Tajawal', sans-serif";
+      ctx.fillText(ln.text, x+w-pad, y+pad+18+i*lh);
+    });
+    ctx.direction='ltr';
+  }
+
+  window.t10State=state; window.t10Update=t10Update; window.t10Draw=t10Draw;
+  window.t10SetMode=function(m){ state.mode=m; };
+})();
+</script>
+<script>
+/* =========================================================================
+   ACTIVITY 11 — تطبيقات الموجات الكهرومغناطيسية: الرادار، التحسس النائي، الهاتف الجوّال
+   Three switchable demos on one canvas: pulse-echo ranging (d = c·t/2),
+   satellite ground-scanning (footprint width vs altitude), and cellular
+   hand-off between two towers as a phone moves between their coverage.
+   ========================================================================= */
+(function(){
+  const COLORS = makeColors();
+  const state = {
+    simMode:'auto', t:0,
+    app:'radar',      // 'radar' | 'remote' | 'mobile'
+    targetDist:55,    // 15..90 (%) radar target distance
+    satAlt:45,        // 15..90 (%) satellite altitude
+    phonePos:50       // 0..100 phone position between the two towers
+  };
+
+  function t11Update(dt){ if(state.simMode==='auto') state.t += dt; }
+
+  function drawHUD(x,y,w,lines){
+    const pad=12, lh=24, h=pad*2+lines.length*lh;
+    ctx.fillStyle=COLORS.panel; ctx.strokeStyle=COLORS.border; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x,y,w,h,10) : ctx.rect(x,y,w,h); ctx.fill(); ctx.stroke();
+    ctx.textAlign='right'; ctx.direction='rtl';
+    lines.forEach((ln,i)=>{
+      ctx.fillStyle=ln.color||COLORS.wire;
+      ctx.font=(ln.bold?"bold ":"")+"13px 'Tajawal', sans-serif";
+      ctx.fillText(ln.text, x+w-pad, y+pad+18+i*lh);
+    });
+    ctx.direction='ltr';
+  }
+
+  /* ---- Radar: pulse-echo ranging ---- */
+  function drawRadar(){
+    const baseX=110, baseY=CH/2+40, spanX=CW-260;
+    const targetX = baseX + spanX*(state.targetDist/100);
+
+    ctx.strokeStyle=COLORS.border; ctx.lineWidth=1.5; ctx.setLineDash([4,4]);
+    ctx.beginPath(); ctx.moveTo(60,baseY+40); ctx.lineTo(CW-160,baseY+40); ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.strokeStyle=COLORS.wire; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.moveTo(baseX,baseY+40); ctx.lineTo(baseX,baseY); ctx.stroke();
+    ctx.beginPath(); ctx.arc(baseX,baseY,26,Math.PI*0.8,Math.PI*1.7); ctx.stroke();
+    const sweep = Math.sin(state.t*1.4)*0.35;
+    ctx.strokeStyle=COLORS.capActive; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(baseX,baseY); ctx.lineTo(baseX+24*Math.cos(sweep), baseY-24*Math.sin(sweep)); ctx.stroke();
+    ctx.fillStyle=COLORS.muted; ctx.font="12px 'Tajawal',sans-serif"; ctx.textAlign='center';
+    ctx.fillText('هوائي الرادار', baseX, baseY+58);
+
+    ctx.save(); ctx.translate(targetX, baseY-30);
+    ctx.fillStyle=COLORS.capDefault;
+    ctx.beginPath(); ctx.moveTo(-14,6); ctx.lineTo(14,0); ctx.lineTo(-14,-6); ctx.closePath(); ctx.fill();
+    ctx.restore();
+    ctx.fillStyle=COLORS.muted; ctx.font="12px 'Tajawal',sans-serif"; ctx.textAlign='center';
+    ctx.fillText('الهدف (طائرة / سفينة)', targetX, baseY-52);
+
+    const C=300, distPx=targetX-baseX, travel=(2*distPx)/C;
+    const period=Math.max(2.2, travel+0.8), cyc=state.t%period;
+    let justArrived=false;
+    if(cyc<travel){
+      const half=travel/2; let px, echoBack=false;
+      if(cyc<half){ px=baseX+C*cyc; } else { px=targetX-C*(cyc-half); echoBack=true; }
+      ctx.fillStyle = echoBack?COLORS.capDefault:COLORS.capActive;
+      ctx.beginPath(); ctx.arc(px, baseY-15, 5, 0,7); ctx.fill();
+      ctx.strokeStyle = echoBack?COLORS.capDefault:COLORS.capActive; ctx.globalAlpha=0.35; ctx.lineWidth=2;
+      ctx.beginPath(); ctx.arc(px, baseY-15, 12, 0, Math.PI*2); ctx.stroke(); ctx.globalAlpha=1;
+    } else if(cyc<travel+0.15){ justArrived=true; }
+
+    drawHUD(CW-250, 60, 232, [
+      { text:'التطبيق: الرادار', bold:true, color:COLORS.capActive },
+      { text:'د = c·t/2  (زمن الذهاب والإياب)' },
+      { text:'زمن الرحلة الكاملة ≈ '+travel.toFixed(2)+' (وحدة نسبية)' },
+      { text: justArrived?'📡 استُقبل الصدى — المسافة محسوبة':'... بانتظار عودة الصدى',
+        color: justArrived?COLORS.capActive:COLORS.muted }
+    ]);
+
+    ctx.fillStyle=COLORS.muted; ctx.font="13px 'Tajawal',sans-serif"; ctx.textAlign='center';
+    ctx.fillText('يُرسِل الرادار نبضة كهرومغناطيسية ترتدّ عن الهدف، ويُحسَب بُعده من زمن ذهاب الموجة وعودتها', CW/2, CH-16);
+  }
+
+  /* ---- Remote sensing: satellite scanning the ground ---- */
+  function drawRemote(){
+    const groundY=CH-90, gx0=60, gw=CW-220;
+    ctx.fillStyle=COLORS.border; ctx.globalAlpha=0.35; ctx.fillRect(gx0, groundY, gw, 40); ctx.globalAlpha=1;
+    ctx.strokeStyle=COLORS.wire; ctx.lineWidth=1.5; ctx.strokeRect(gx0, groundY, gw, 40);
+
+    const patches=[
+      {u0:0.05,u1:0.30,label:'غطاء نباتي',color:COLORS.capActive},
+      {u0:0.35,u1:0.55,label:'مسطح مائي',color:COLORS.blue},
+      {u0:0.60,u1:0.95,label:'أرض جرداء',color:COLORS.capDefault}
+    ];
+    patches.forEach(p=>{
+      ctx.fillStyle=p.color; ctx.globalAlpha=0.45;
+      ctx.fillRect(gx0+p.u0*gw, groundY, (p.u1-p.u0)*gw, 40);
+      ctx.globalAlpha=1;
+    });
+
+    const satY=90, satU=(Math.sin(state.t*0.35)+1)/2, satX=gx0+satU*gw;
+    ctx.fillStyle=COLORS.wire; ctx.fillRect(satX-16, satY-6, 32, 12);
+    ctx.strokeStyle=COLORS.capDefault; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(satX-20,satY); ctx.lineTo(satX-32,satY-10); ctx.moveTo(satX-20,satY); ctx.lineTo(satX-32,satY+10); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(satX+20,satY); ctx.lineTo(satX+32,satY-10); ctx.moveTo(satX+20,satY); ctx.lineTo(satX+32,satY+10); ctx.stroke();
+    ctx.fillStyle=COLORS.muted; ctx.font="12px 'Tajawal',sans-serif"; ctx.textAlign='center';
+    ctx.fillText('قمر صناعي', satX, satY-22);
+
+    const altFrac=state.satAlt/100, footHalf=20+altFrac*90;
+    ctx.strokeStyle=COLORS.capActive; ctx.globalAlpha=0.5; ctx.lineWidth=1.5; ctx.setLineDash([4,3]);
+    ctx.beginPath(); ctx.moveTo(satX,satY+8); ctx.lineTo(satX-footHalf,groundY); ctx.lineTo(satX+footHalf,groundY); ctx.closePath(); ctx.stroke();
+    ctx.setLineDash([]); ctx.globalAlpha=1;
+
+    const hereU=Math.max(0, Math.min(1, (satX-gx0)/gw));
+    const current = patches.find(p=> hereU>=p.u0 && hereU<=p.u1);
+
+    drawHUD(CW-250, 60, 232, [
+      { text:'التطبيق: التحسس النائي', bold:true, color:COLORS.capActive },
+      { text:'يفحص الآن: '+(current?current.label:'—') },
+      { text:'اتساع مجال المسح ∝ الارتفاع' },
+      { text:'ارتفاع أكبر ⇒ مجال أوسع لكن تفاصيل أقل', color:COLORS.muted }
+    ]);
+
+    ctx.fillStyle=COLORS.muted; ctx.font="13px 'Tajawal',sans-serif"; ctx.textAlign='center';
+    ctx.fillText('يرسل القمر الصناعي ويستقبل موجات كهرومغناطيسية من سطح الأرض لرصد الغطاء النباتي والمياه والطقس عن بُعد', CW/2, CH-16);
+  }
+
+  /* ---- Mobile phone: cellular hand-off ---- */
+  function drawMobile(){
+    const laneY=CH/2+20, t1x=180, t2x=CW-260, r=(t2x-t1x)/2+40;
+    [ {x:t1x,label:'البرج ١'}, {x:t2x,label:'البرج ٢'} ].forEach(tw=>{
+      ctx.strokeStyle=COLORS.border; ctx.setLineDash([5,4]); ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.arc(tw.x, laneY, r, 0, Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
+      ctx.strokeStyle=COLORS.wire; ctx.lineWidth=4;
+      ctx.beginPath(); ctx.moveTo(tw.x,laneY+40); ctx.lineTo(tw.x,laneY-10); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(tw.x-14,laneY); ctx.lineTo(tw.x,laneY-10); ctx.lineTo(tw.x+14,laneY); ctx.stroke();
+      ctx.fillStyle=COLORS.muted; ctx.font="12px 'Tajawal',sans-serif"; ctx.textAlign='center';
+      ctx.fillText(tw.label, tw.x, laneY+58);
+    });
+
+    const phoneX=t1x+(t2x-t1x)*(state.phonePos/100);
+    const d1=Math.abs(phoneX-t1x), d2=Math.abs(phoneX-t2x);
+    const serving = d1<=d2 ? 1 : 2;
+    const servingX = serving===1?t1x:t2x;
+
+    ctx.strokeStyle=COLORS.capActive; ctx.lineWidth=2; ctx.globalAlpha=0.8;
+    ctx.beginPath(); ctx.moveTo(servingX,laneY-10); ctx.lineTo(phoneX,laneY-30); ctx.stroke();
+    ctx.globalAlpha=1;
+
+    ctx.fillStyle=COLORS.capDefault; ctx.fillRect(phoneX-8, laneY-46, 16, 28);
+    ctx.fillStyle=COLORS.muted; ctx.font="12px 'Tajawal',sans-serif"; ctx.textAlign='center';
+    ctx.fillText('الهاتف', phoneX, laneY-56);
+
+    const nearHandoff = Math.abs(state.phonePos-50) < 4;
+
+    drawHUD(CW-250, 60, 232, [
+      { text:'التطبيق: الهاتف الجوّال', bold:true, color:COLORS.capActive },
+      { text:'البرج الخادم حاليًا: '+(serving===1?'البرج ١':'البرج ٢') },
+      { text: nearHandoff?'🔄 تسليم بين الخليتين (Handoff)':'اتصال مستمر ضمن خلية واحدة',
+        color: nearHandoff?COLORS.capActive:COLORS.muted }
+    ]);
+
+    ctx.fillStyle=COLORS.muted; ctx.font="13px 'Tajawal',sans-serif"; ctx.textAlign='center';
+    ctx.fillText('تُقسَّم الشبكة إلى خلايا لكل منها برج إرسال/استقبال؛ يتنقّل الاتصال بين الأبراج (تسليم) دون انقطاع أثناء الحركة', CW/2, CH-16);
+  }
+
+  function t11Draw(){
+    ctx.clearRect(0,0,CW,CH);
+    ctx.fillStyle=COLORS.bg; ctx.fillRect(0,0,CW,CH);
+    ctx.fillStyle=COLORS.capActive; ctx.font="bold 17px 'Cairo', sans-serif"; ctx.textAlign='center';
+    const names={radar:'الرادار', remote:'التحسس النائي (الاستشعار عن بُعد)', mobile:'الهاتف الجوّال'};
+    ctx.fillText('تطبيقات الموجات الكهرومغناطيسية — '+names[state.app], CW/2, 30);
+
+    if(state.app==='radar') drawRadar();
+    else if(state.app==='remote') drawRemote();
+    else drawMobile();
+  }
+
+  window.t11State=state; window.t11Update=t11Update; window.t11Draw=t11Draw;
+  window.t11SetApp=function(a){ state.app=a; };
+})();
+</script>
+<script>
+const canvas = document.getElementById('simCanvas');
+const ctx = canvas.getContext('2d');
+// Logical drawing space stays 900x480 — every activity keeps its coordinates.
+const CW = 900, CH = 480;
+
+/* Render at the device's real pixel density (and a little extra on small
+   screens). The drawing code still works in 900x480 logical units, but the
+   backing store is larger, so the text drawn inside the canvas stays sharp
+   and legible instead of turning to mush when the canvas is scaled down on a
+   phone. Re-run on resize/rotate. */
+function resizeCanvas(){
+  // measure the actual on-screen width of the canvas box
+  const rect = canvas.getBoundingClientRect();
+  const cssW = rect.width || canvas.clientWidth || CW;
+  const dpr  = window.devicePixelRatio || 1;
+  let scale = (cssW / CW) * dpr;
+  scale = Math.max(scale, dpr);          // never below native density
+  scale = Math.min(scale, 4);            // cap so we don't blow up memory
+  canvas.width  = Math.round(CW * scale);
+  canvas.height = Math.round(CH * scale);
+  ctx.setTransform(scale, 0, 0, scale, 0, 0);   // draw in logical 900x480 units
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+window.addEventListener('orientationchange', ()=> setTimeout(resizeCanvas, 200));
+window.addEventListener('load', ()=> setTimeout(resizeCanvas, 60));
+const pointer = { x: 0, y: 0, isDown: false, isClicked: false, justPressed: false,
+                  pressX: 0, pressY: 0 };
+let _clickPending = false;
+/* A fast tap can start AND finish in the gap between two animation frames.
+   The per-frame code polls pointer.isDown, so without latching, such a tap is
+   simply never seen and the interaction silently does nothing — this is what
+   made switches feel dead to touch. _pressPending latches "a press happened"
+   and is held until the next frame reads it, so no tap is ever dropped. */
+let _pressPending = false;
+let _pressPos = { x: 0, y: 0 };
+// exposed so the interaction state can be inspected while debugging on a real device
+window.pointer = pointer;
+
+function getCanvasPos(evt){
+  const rect = canvas.getBoundingClientRect();
+  const t = (evt.touches && evt.touches.length) ? evt.touches[0] : (evt.changedTouches && evt.changedTouches[0]);
+  const clientX = t ? t.clientX : evt.clientX;
+  const clientY = t ? t.clientY : evt.clientY;
+  return { x: (clientX-rect.left)*(CW/rect.width), y: (clientY-rect.top)*(CH/rect.height) };
+}
+/* Shared, touch-friendly hit test for canvas-drawn controls.
+   Clicks now register on PRESS, so pressX/pressY is the authoritative point;
+   the current x/y is also accepted so a slow drag-then-release still counts.
+   `pad` widens the rectangle: a fingertip covers far more area than a mouse
+   cursor, and on a wall-mounted whiteboard the touch frame is less precise
+   still, so every control gets a target comfortably bigger than its graphic. */
+function hitZone(zone, pad){
+  const m = (pad === undefined) ? 18 : pad;
+  const x0 = zone.x - m, y0 = zone.y - m;
+  const x1 = zone.x + zone.w + m, y1 = zone.y + zone.h + m;
+  const inPress   = pointer.pressX >= x0 && pointer.pressX <= x1 &&
+                    pointer.pressY >= y0 && pointer.pressY <= y1;
+  const inCurrent = pointer.x >= x0 && pointer.x <= x1 &&
+                    pointer.y >= y0 && pointer.y <= y1;
+  return inPress || inCurrent;
+}
+window.hitZone = hitZone;
+
+/* Pointer Events (not separate mouse + touch listeners): this is the one
+   event family every modern browser maps ALL input hardware to — a finger,
+   a mouse, a pen, or an interactive-whiteboard touch frame. Mixing legacy
+   mousedown/mouseup with touchstart/touchend used to cause a real bug on
+   some touchscreens: the browser fires a *second*, delayed "compatibility"
+   mouseup a moment after a real touchend, so a switch could get toggled
+   twice in a row (once by touch, once by the ghost mouse click) and net out
+   to "nothing happened." Listening to pointer events only avoids that. */
+/* Each activity registers a predicate that answers "is this canvas point on
+   something draggable?" (a plate, a slab, a switch). Only when the press lands
+   on such a target do we take over the gesture and stop the page scrolling;
+   a press on empty canvas stays a scroll, so the controls below remain
+   reachable in fullscreen. */
+window._dragHitTest = null;
+function onPointerDown(evt){
+  const p = getCanvasPos(evt); pointer.x=p.x; pointer.y=p.y; pointer.isDown=true;
+  // latch the press so a tap that ends before the next frame still registers
+  _pressPending = true; _pressPos.x = p.x; _pressPos.y = p.y;
+  /* Register the CLICK here, on press — not on release. On real touchscreens
+     (interactive whiteboards especially) the matching pointerup can be lost:
+     the panel may retarget it after pointer capture, fire it outside the
+     element, or drop it entirely on a quick stab. Waiting for release meant a
+     lost pointerup = a dead switch, which is exactly what the teacher saw.
+     Acting on press always fires, and matches how a physical switch feels. */
+  _clickPending = true;
+  /* If the press is on a draggable target, claim the gesture: preventDefault
+     stops the browser from scrolling the page for this touch, and .dragging
+     flips touch-action to none. On empty canvas we do NEITHER, so a vertical
+     swipe scrolls normally — the whole reason the teacher couldn't reach the
+     controls in fullscreen. */
+  const onDraggable = (typeof window._dragHitTest === 'function') && window._dragHitTest(p.x, p.y);
+  if (onDraggable) {
+    if (evt.cancelable) evt.preventDefault();
+    canvas.classList.add('dragging');
+    if (canvas.setPointerCapture && evt.pointerId != null) {
+      try { canvas.setPointerCapture(evt.pointerId); } catch(e){}
+    }
+  }
+}
+function onPointerMove(evt){
+  if(!pointer.isDown) return;
+  // Only swallow the move (blocking scroll) while we've actually claimed a
+  // drag; otherwise let the browser scroll the page.
+  if (canvas.classList.contains('dragging') && evt.cancelable) evt.preventDefault();
+  const p = getCanvasPos(evt); pointer.x=p.x; pointer.y=p.y;
+}
+function onPointerUp(evt){
+  const wasDown = pointer.isDown;
+  if(pointer.isDown && evt){
+    const p = getCanvasPos(evt); pointer.x=p.x; pointer.y=p.y;
+  }
+  pointer.isDown=false;
+  canvas.classList.remove('dragging');
+  if (wasDown && window.SoundFX) SoundFX.tick();
+}
+/* Safety net: if a device ever drops the pointerup (which is exactly the
+   failure this rewrite defends against), isDown would otherwise stay true
+   forever and the NEXT drag would start already "held down".
+   NOTE: pointerleave is deliberately NOT used here. A finger dragging the
+   plate or the dielectric slab routinely crosses the canvas edge, and
+   releasing on leave would abort the drag mid-gesture — the drag must only
+   end on a real release, or when the page itself loses the interaction. */
+function forceRelease(){
+  if (pointer.isDown){
+    pointer.isDown = false;
+    canvas.classList.remove('dragging');
+  }
+}
+window.addEventListener('blur', forceRelease);
+document.addEventListener('visibilitychange', ()=>{ if(document.hidden) forceRelease(); });
+/* Bind on BOTH the canvas and the window. Pointer capture, an overlay, or a
+   stray stopPropagation can each starve one of these paths; between the two,
+   at least one always sees the event. Duplicate handling is harmless because
+   the flags are idempotent latches, cleared once per frame by the loop. */
+canvas.addEventListener('pointerdown', onPointerDown);
+canvas.addEventListener('pointerup', onPointerUp);
+window.addEventListener('pointermove', onPointerMove, {passive:false});
+window.addEventListener('pointerup', onPointerUp);
+window.addEventListener('pointercancel', onPointerUp);
+
+/* ===== Manual scroll forwarding on the canvas =====
+   The canvas is touch-action:none so drags work anywhere on it, but that also
+   kills native scrolling on the canvas. To still let the teacher scroll to the
+   controls, we watch raw touches: if a touch does NOT begin on a draggable
+   part, we treat it as a scroll and move the nearest scroll container
+   ourselves by the finger's vertical delta. A touch that begins on a plate /
+   slab / switch is left alone so the drag logic handles it. */
+(function(){
+  let scrollForwarding = false;
+  let lastTouchY = 0;
+  let scrollTarget = null;
+
+  function nearestScrollable(el){
+    for (let n = el; n && n !== document.body; n = n.parentElement){
+      const oy = getComputedStyle(n).overflowY;
+      if ((oy === 'auto' || oy === 'scroll') && n.scrollHeight > n.clientHeight) return n;
+    }
+    // fullscreen fallbacks
+    const area = document.getElementById('canvasArea');
+    if (area && area.scrollHeight > area.clientHeight) return area;
+    return document.scrollingElement || document.documentElement;
+  }
+
+  canvas.addEventListener('touchstart', function(e){
+    if (e.touches.length !== 1) { scrollForwarding = false; return; }
+    const p = getCanvasPos(e);
+    const onDraggable = (typeof window._dragHitTest === 'function') && window._dragHitTest(p.x, p.y);
+    if (onDraggable) { scrollForwarding = false; return; }  // let the drag happen
+    // empty canvas → this gesture scrolls; forward it manually
+    scrollForwarding = true;
+    lastTouchY = e.touches[0].clientY;
+    scrollTarget = nearestScrollable(canvas);
+  }, {passive:true});
+
+  canvas.addEventListener('touchmove', function(e){
+    if (!scrollForwarding || e.touches.length !== 1 || !scrollTarget) return;
+    const y = e.touches[0].clientY;
+    const dy = lastTouchY - y;             // finger up → positive → scroll down
+    lastTouchY = y;
+    scrollTarget.scrollTop += dy;
+    if (e.cancelable) e.preventDefault();  // we've taken over this gesture
+  }, {passive:false});
+
+  function endForward(){ scrollForwarding = false; scrollTarget = null; }
+  canvas.addEventListener('touchend', endForward);
+  canvas.addEventListener('touchcancel', endForward);
+})();
+
+/* Legacy touch fallback: a few older Android/whiteboard browsers ship broken
+   or absent Pointer Events. If this browser has no pointer support at all,
+   wire the classic touch events instead so those devices still work. */
+if (!('onpointerdown' in window)) {
+  canvas.addEventListener('touchstart', onPointerDown, {passive:true});
+  window.addEventListener('touchmove', onPointerMove, {passive:false});
+  window.addEventListener('touchend', onPointerUp);
+  window.addEventListener('touchcancel', onPointerUp);
+  canvas.addEventListener('mousedown', onPointerDown);
+  window.addEventListener('mouseup', onPointerUp);
+}
+
+/* =========================================================================
+   SOUND — small synthesized effects (no audio files needed), plus mute.
+   ========================================================================= */
+const SoundFX = (function(){
+  let actx = null, enabled = true;
+  function ensure(){
+    if(!actx){
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if(!AC) return null;
+      actx = new AC();
+    }
+    if(actx.state === 'suspended') actx.resume();
+    return actx;
+  }
+  function tone(freq, dur, type, peak){
+    if(!enabled) return;
+    const c = ensure();
+    if(!c) return;
+    const osc = c.createOscillator(), gain = c.createGain();
+    osc.type = type || 'sine';
+    osc.frequency.setValueAtTime(freq, c.currentTime);
+    gain.gain.setValueAtTime(0.0001, c.currentTime);
+    gain.gain.linearRampToValueAtTime(peak || 0.07, c.currentTime + 0.008);
+    gain.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + dur);
+    osc.connect(gain); gain.connect(c.destination);
+    osc.start(); osc.stop(c.currentTime + dur + 0.03);
+  }
+  return {
+    click(){ tone(680, 0.09, 'sine', 0.06); },
+    tick(){ tone(560, 0.05, 'square', 0.035); },
+    toggleOn(){ tone(880, 0.12, 'triangle', 0.07); },
+    toggleOff(){ tone(420, 0.12, 'triangle', 0.07); },
+    setEnabled(v){ enabled = v; },
+    isEnabled(){ return enabled; }
+  };
+})();
+window.SoundFX = SoundFX;
+
+// A soft click for every button in the app (tabs, mode toggles, control
+// buttons, toolbar buttons) via one delegated listener — new buttons work
+// automatically without extra wiring.
+document.addEventListener('click', (e)=>{
+  const el = e.target.closest('.ctrl-btn, .tab-btn, .toolbar-btn, .welcome-start-btn');
+  if(el) SoundFX.click();
+});
+
+// (the release "tick" sound is now emitted directly inside onPointerUp above)
+
+// Mute / unmute button in the header.
+const soundToggleBtn = document.getElementById('soundToggleBtn');
+if (soundToggleBtn) {
+  soundToggleBtn.addEventListener('click', ()=>{
+    const next = !SoundFX.isEnabled();
+    SoundFX.setEnabled(next);
+    soundToggleBtn.textContent = next ? '🔊' : '🔇';
+    soundToggleBtn.classList.toggle('muted', !next);
+    soundToggleBtn.setAttribute('aria-label', next ? 'كتم الصوت' : 'تشغيل الصوت');
+    if (next) SoundFX.click();
+  });
+}
+
+/* ===== Light / dark theme toggle ===== */
+const themeToggleBtn = document.getElementById('themeToggleBtn');
+if (themeToggleBtn) {
+  const meta = document.querySelector('meta[name="theme-color"]');
+  function setTheme(name){
+    const light = (name === 'light');
+    document.documentElement.setAttribute('data-theme', light ? 'light' : 'dark');
+    // repaint the canvases to match (shared palette mutated in place)
+    if (window.applyCanvasTheme) window.applyCanvasTheme(light ? 'light' : 'dark');
+    // button shows the mode you'd switch TO
+    themeToggleBtn.textContent = light ? '☀️' : '🌙';
+    themeToggleBtn.title = light ? 'التحويل إلى المظهر الداكن' : 'التحويل إلى المظهر الفاتح';
+    if (meta) meta.setAttribute('content', light ? '#e9eef6' : '#0a0f1c');
+  }
+  let current = 'dark';
+  themeToggleBtn.addEventListener('click', ()=>{
+    current = (current === 'dark') ? 'light' : 'dark';
+    setTheme(current);
+    if (window.SoundFX) SoundFX.click();
+  });
+}
+
+/* =========================================================================
+   SIDEBAR SHOW/HIDE — tools & steps keep their spot but can collapse so the
+   experiment (canvas + controls) gets the full width.
+   ========================================================================= */
+const appMain = document.getElementById('appMain');
+const sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
+if (sidebarToggleBtn && appMain) {
+  sidebarToggleBtn.addEventListener('click', ()=>{
+    const hidden = appMain.classList.toggle('sidebar-hidden');
+    sidebarToggleBtn.classList.toggle('active', !hidden);
+    sidebarToggleBtn.textContent = hidden ? '☰ إظهار الأدوات والخطوات' : '☰ الأدوات والخطوات';
+    setTimeout(resizeCanvas, 50); // canvas width changed -> re-render crisp
+  });
+}
+
+/* =========================================================================
+   FULLSCREEN — expand the experiment (canvas + controls) to fill the screen.
+   ========================================================================= */
+const canvasArea = document.getElementById('canvasArea');
+const fullscreenBtn = document.getElementById('fullscreenBtn');
+function realFsElement(){
+  return document.fullscreenElement || document.webkitFullscreenElement || null;
+}
+function isPseudoFs(){
+  return canvasArea && canvasArea.classList.contains('pseudo-fs');
+}
+function isFullscreen(){
+  return !!realFsElement() || isPseudoFs();
+}
+function updateFullscreenBtn(){
+  if (!fullscreenBtn) return;
+  fullscreenBtn.textContent = isFullscreen() ? '✕ إغلاق ملء الشاشة' : '⛶ ملء الشاشة';
+  setTimeout(resizeCanvas, 80);
+  setTimeout(resizeCanvas, 300);
+}
+function enterPseudoFs(){
+  canvasArea.classList.add('pseudo-fs');
+  document.body.classList.add('fs-lock');
+  canvasArea.scrollTop = 0;
+  updateFullscreenBtn();
+}
+function exitPseudoFs(){
+  canvasArea.classList.remove('pseudo-fs');
+  document.body.classList.remove('fs-lock');
+  updateFullscreenBtn();
+}
+if (fullscreenBtn && canvasArea) {
+  fullscreenBtn.addEventListener('click', ()=>{
+    if (window.SoundFX) SoundFX.click();
+    if (isFullscreen()) {
+      // close whichever mode is active
+      if (realFsElement()) {
+        const exit = document.exitFullscreen || document.webkitExitFullscreen;
+        if (exit) exit.call(document);
+      }
+      if (isPseudoFs()) exitPseudoFs();
+      return;
+    }
+    // try the REAL fullscreen API first (desktop, Android Chrome)…
+    const req = canvasArea.requestFullscreen || canvasArea.webkitRequestFullscreen;
+    if (req) {
+      let p;
+      try { p = req.call(canvasArea); } catch(e){ p = null; }
+      // …and fall back to the CSS overlay if it rejects or isn't honoured
+      // (iPhone Safari resolves nothing useful here).
+      if (p && typeof p.then === 'function') {
+        p.then(()=> updateFullscreenBtn())
+         .catch(()=> enterPseudoFs());
+      } else {
+        // no promise returned: after a tick, if we're not really fullscreen,
+        // use the fallback.
+        setTimeout(()=>{ if (!realFsElement()) enterPseudoFs(); else updateFullscreenBtn(); }, 120);
+      }
+    } else {
+      enterPseudoFs();
+    }
+  });
+  document.addEventListener('fullscreenchange', updateFullscreenBtn);
+  document.addEventListener('webkitfullscreenchange', updateFullscreenBtn);
+  // Esc / back gesture closes the CSS overlay too
+  document.addEventListener('keydown', e=>{
+    if (e.key === 'Escape' && isPseudoFs()) exitPseudoFs();
+  });
+}
+
+
+/* =========================================================================
+   APP SHELL — experiment metadata, tabs, controls wiring, main loop
+   ========================================================================= */
+const EXPERIMENTS = {
+  1: {
+    title:'انتشار الموجة الكهرومغناطيسية',
+    subtitle:'مجالان E و B متعامدان ومتساويان في الطور ينتشران في الفضاء بسرعة الضوء',
+    tools:['مصدر موجات كهرومغناطيسية','محاور إحداثية (E، B، اتجاه الانتشار)','مؤشر التردد والطول الموجي'],
+    steps:['لاحظ المجال الكهربائي E (الأخضر) والمجال المغناطيسي B (الأزرق).','لاحظ أن المجالين متعامدان على بعضهما وعلى اتجاه الانتشار z.','لاحظ أنهما متساويان في الطور: يبلغان القمة معًا ويصفران معًا.','بالوضع اليدوي: أوقف الحركة لتفحص التعامد والتساوي في الطور بوضوح.','غيّر التردد f ولاحظ أن الطول الموجي λ يقلّ بزيادته (c = f·λ ثابتة).','بدّل الاستقطاب (رأسي/أفقي) لتغيير مستوى اهتزاز المجال الكهربائي.']
+  },
+  2: {
+    title:'تجربة هرتز',
+    subtitle:'توليد الموجات الكهرومغناطيسية في دائرة الإرسال واستقبالها في حلقة مفتوحة',
+    tools:['دائرة إرسال (محث + مكثف + فتحة شرارة)','دائرة استقبال (حلقة مفتوحة فيها فتحة شرارة)','مسطرة لقياس المسافة'],
+    steps:['لاحظ توليد الشرارة في دائرة الإرسال (تُصدر موجات كهرومغناطيسية).','لاحظ انتشار الموجات عبر الفضاء نحو دائرة الاستقبال.','غيّر المسافة بين الدائرتين ولاحظ تغيّر قوة الإشارة المستقبَلة.','أدِر زاوية حلقة الاستقبال ولاحظ متى تتولّد الشرارة ومتى تتوقف.','استنتج: تنتقل الطاقة عبر الفضاء بدون أسلاك، وأن للموجة استقطابًا.']
+  },
+  3: {
+    title:'دائرة الرنين LC والاستقبال',
+    subtitle:'اختيار المحطة (التردد) المطلوب عبر مطابقة تردد الدائرة مع تردد الموجة القادمة',
+    tools:['ملف حث L','مكثف متغير السعة C','هوائي استقبال','مؤشر تيار (جلفانومتر)'],
+    steps:['لاحظ الدائرة المتذبذبة المكوّنة من ملف L ومكثف C.','غيّر سعة المكثف C أو معامل الحث L لتغيير تردد الدائرة f₀.','راقب مؤشر التيار I يرتفع كلما اقترب f₀ من تردد الموجة القادمة.','عندما يتطابق f₀ مع تردد الموجة يبلغ التيار ذروته (حالة الرنين).','استنتج العلاقة: f_r = 1/(2π√(LC)).']
+  },
+  4: {
+    title:'هوائي إرسال واستقبال الموجات',
+    subtitle:'تذبذب الشحنات في هوائي الإرسال يولّد موجات تنتشر نحو هوائي الاستقبال',
+    tools:['هوائي إرسال','هوائي استقبال','مصدر تذبذب','مؤشر قوة الإشارة'],
+    steps:['لاحظ تذبذب الشحنات (الإلكترونات) داخل هوائي الإرسال.','لاحظ توليد الموجات وانتشارها نحو هوائي الاستقبال.','اضبط طول الهوائي بالنسبة للطول الموجي (λ/2 هو الأكفأ).','أدِر هوائي الاستقبال ولاحظ تغيّر قوة الإشارة المستلمة.','استنتج: أعلى كفاءة عند λ/2 وعند توازي الهوائيين.']
+  },
+  5: {
+    title:'الطيف الكهرومغناطيسي',
+    subtitle:'استكشف أجزاء الطيف من موجات الراديو حتى أشعة جاما وتطبيقاتها',
+    tools:['شريط الطيف الكهرومغناطيسي التفاعلي','مؤشر التردد/الطول الموجي'],
+    steps:['اسحب المؤشر على الشريط للتنقّل بين أجزاء الطيف.','لاحظ أن التردد يزداد والطول الموجي يقلّ كلما اتجهت يمينًا.','اقرأ نوع الموجة وترددها وطولها الموجي في اللوحة السفلية.','تعرّف على التطبيقات العلمية لكل نوع (الرادار، الطب، الاتصالات...).','قارن بين موجات الراديو (طويلة) وأشعة جاما (قصيرة وعالية الطاقة).']
+  },
+  6: {
+    title:'الكشف بالمجال الكهربائي',
+    subtitle:'المجال الكهربائي E للموجة يحرّك الإلكترونات في هوائي قضيبي فيتولّد تيار',
+    tools:['هوائي قضيبي مستقيم','موجة كهرومغناطيسية واردة','مؤشر التيار المكتشَف'],
+    steps:['لاحظ المجال الكهربائي E للموجة الواردة (رأسي).','لاحظ كيف يدفع E الإلكترونات صعودًا ونزولًا داخل القضيب فيتولّد تيار.','أدِر الهوائي القضيبي وراقب تغيّر قوة الإشارة المكتشَفة.','لاحظ أن الكشف أقوى عندما يوازي القضيبُ اتجاهَ E (زاوية 0°).','لاحظ انعدام الكشف عندما يكون القضيب عموديًا على E (زاوية 90°).','استنتج أن الإشارة تتناسب مع cos(الزاوية).']
+  },
+  7: {
+    title:'الكشف بالمجال المغناطيسي',
+    subtitle:'المجال المغناطيسي B للموجة يخترق حلقة سلكية فيحثّ ق.د.ك (قانون فارادي)',
+    tools:['هوائي حلقي سلكي','موجة كهرومغناطيسية واردة','مؤشر التيار المُحتثّ'],
+    steps:['لاحظ المجال المغناطيسي B للموجة الواردة.','لاحظ كيف يخترق B مستوى الحلقة فيولّد قوة دافعة كهربائية بالحث.','أدِر الحلقة وراقب تغيّر قوة الإشارة المكتشَفة.','لاحظ أن الكشف أقوى عندما يواجه مستوى الحلقة اتجاهَ B (أكبر فيض).','لاحظ انعدام الكشف عندما تكون الحلقة موازية لـ B (فيض صفر).','قارن هذه الطريقة بالكشف عبر المجال الكهربائي: مبدآن مختلفان لنفس الموجة.']
+  },
+  8: {
+    title:'التضمين (سعوي/ترددي/طوري)',
+    subtitle:'تحميل إشارة المعلومات على موجة حاملة عالية التردد بثلاث طرائق: AM و FM و PM',
+    tools:['مصدر إشارة المعلومات (المُضمِّنة)','مولّد الموجة الحاملة','مُضمِّن (AM/FM/PM)','راسم إشارة (أوسيلوسكوب)'],
+    steps:['لاحظ الإشارات الثلاث: المُضمِّنة (المعلومة)، الحاملة، والخرج المُضمَّن.','اختر التضمين السعوي AM: تتغيّر سعة الحاملة تبعًا للإشارة (لاحظ المُغلِّف).','اختر التضمين الترددي FM: يتغيّر تردد الحاملة تبعًا للإشارة (تتقارب وتتباعد الدورات).','اختر التضمين الطوري PM: يتغيّر طور الحاملة تبعًا للإشارة.','غيّر تردد المُضمِّنة والحاملة وعمق/دليل التضمين ولاحظ الأثر على الخرج.','استنتج: تُحمَّل المعلومة على الحاملة لتُرسل عبر الفضاء ثم تُستخرَج عند الاستقبال.']
+  },
+  9: {
+    title:'توليد الموجات بمذبذب وساقين معدنيين',
+    subtitle:'مذبذب كهربائي (دائرة LC) يغذّي ساقين معدنيين بتيار متردّد فتتذبذب الشحنات وتُشِع موجات',
+    tools:['مذبذب كهربائي (دائرة LC)','ساقان معدنيان (ثنائي قطب)','مؤشر الشحنة والتيار','مصدر تيار متردّد'],
+    steps:['لاحظ المذبذب الكهربائي (دائرة LC) وهو يولّد تيارًا متردّدًا.','لاحظ تدفّق التيار المتردّد من المذبذب إلى الساقين المعدنيين.','لاحظ تذبذب الشحنة بين الساقين: أحدهما موجب والآخر سالب ثم ينعكسان دوريًا.','لاحظ إشعاع الموجات الكهرومغناطيسية من الساقين إلى الفضاء.','غيّر تردد المذبذب f ولاحظ أن الطول الموجي λ يقلّ بزيادته (λ ∝ 1/f).','بالوضع اليدوي: أوقف الحركة لتتبّع الشحنة واتجاه التيار.']
+  },
+  10: {
+    title:'مدى الموجات الراديوية',
+    subtitle:'طرائق انتشار الموجة الراديوية فوق سطح الأرض: أرضية، وسماوية، وفضائية',
+    tools:['برج إرسال','طبقة الأيونوسفير','سطح الأرض المنحني','مستقبل على مسافة متغيّرة'],
+    steps:['لاحظ برج الإرسال على سطح الأرض المنحني وطبقة الأيونوسفير في الأعلى.','اختر نوع الانتشار: أرضية / سماوية / فضائية، ولاحظ اختلاف مسار كل نوع.','في الوضع الأرضي: لاحظ أن الموجة تتبع انحناء الأرض وتضعف تدريجيًا، ومداها يقلّ كلما زاد التردد.','في الوضع السماوي: لاحظ انعكاس الموجة عن الأيونوسفير ("قفزة") لتصل مسافات بعيدة جدًا، وأنها تخترق الطبقة عند الترددات العالية جدًا فلا تنعكس.','في الوضع الفضائي: لاحظ أن الموجة تسير في خط مستقيم (خط البصر) وتُحجب إذا حاول المستقبل تجاوز الأفق.','اضغط «قارن الأنواع الثلاثة» لمشاهدة المسارات الثلاثة معًا مع جدول يوضّح مدى كل نوع وترددها المناسب ومتى تكون الأكفأ.','استنتج: لا يوجد نوع "أفضل" مطلقًا — كل نوع أكفأ لغرض مختلف: تغطية محلية موثوقة (أرضية)، مدى شاسع بأقل طاقة (سماوية)، أو جودة إشارة وسعة بيانات عالية (فضائية).']
+  },
+  11: {
+    title:'تطبيقات الموجات الكهرومغناطيسية',
+    subtitle:'الرادار، والتحسس النائي (الاستشعار عن بُعد)، والهاتف الجوّال — ثلاثة تطبيقات عملية',
+    tools:['هوائي رادار', 'قمر صناعي للاستشعار عن بُعد', 'برجا هاتف جوّال (خليتان)', 'مؤشرات المسافة والإشارة'],
+    steps:['اختر تطبيق "الرادار": لاحظ النبضة تخرج من الهوائي وترتدّ عن الهدف وتعود.','لاحظ حساب المسافة من زمن الذهاب والإياب: د = c·t/2.','اختر تطبيق "التحسس النائي": لاحظ القمر الصناعي وهو يمسح سطح الأرض ويحدّد نوع الغطاء تحته.','غيّر ارتفاع القمر ولاحظ العلاقة بين الارتفاع واتساع مجال المسح.','اختر تطبيق "الهاتف الجوّال": لاحظ تقسيم الشبكة إلى خلايا كل منها له برج إرسال/استقبال.','حرّك موضع الهاتف بين البرجين ولاحظ لحظة "التسليم" (Handoff) من برج إلى آخر.']
+  }
+};
+
+const TAB_ORDER = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+
+let activeTab = 1;
+const tabsNav = document.getElementById('tabsNav');
+TAB_ORDER.forEach((id, idx)=>{
+  const btn = document.createElement('button');
+  btn.className = 'tab-btn' + (id===TAB_ORDER[0] ? ' active' : '');
+  btn.dataset.tab = id;
+  btn.innerHTML = `<span class="num">${idx+1}</span><span>${EXPERIMENTS[id].title}</span>`;
+  btn.addEventListener('click', ()=> switchTab(id));
+  tabsNav.appendChild(btn);
+});
+
+function stateByTab(){ return {1:t1State,2:t2State,3:t3State,4:t4State,5:t5State,6:t6State,7:t7State,8:t8State,9:t9State,10:t10State,11:t11State}; }
+
+function switchTab(id){
+  activeTab = id;
+  document.querySelectorAll('.tab-btn').forEach(b=> b.classList.toggle('active', Number(b.dataset.tab)===id));
+  document.querySelectorAll('.control-panel').forEach(p=> p.classList.toggle('active', Number(p.dataset.tab)===id));
+
+  const exp = EXPERIMENTS[id];
+  const displayNum = TAB_ORDER.indexOf(id) + 1;
+  document.getElementById('sidebarTitle').textContent = `النشاط ${displayNum}: ${exp.title}`;
+  document.getElementById('mainTitle').textContent = exp.title;
+  document.getElementById('mainSubtitle').textContent = exp.subtitle;
+  document.getElementById('toolsList').innerHTML = exp.tools.map(t=>`<li>${t}</li>`).join('');
+  document.getElementById('stepsList').innerHTML = exp.steps.map(s=>`<li>${s}</li>`).join('');
+
+  updateModeStatusPill();
+  window._dragHitTest = (typeof window['t'+id+'DragHitTest'] === 'function') ? window['t'+id+'DragHitTest'] : null;
+}
+
+function updateModeStatusPill(){
+  const s = stateByTab()[activeTab];
+  document.getElementById('modeStatus').textContent = (s && s.simMode==='manual') ? 'يدوي' : 'تلقائي';
+}
+
+document.querySelectorAll('[data-mode-tab]').forEach(btn=>{
+  btn.addEventListener('click', e=>{
+    const tab = Number(e.currentTarget.dataset.modeTab);
+    const s = stateByTab()[tab];
+    s.simMode = (s.simMode === 'auto') ? 'manual' : 'auto';
+    e.currentTarget.classList.toggle('on', s.simMode==='auto');
+    e.currentTarget.textContent = s.simMode==='auto' ? '⚙️ تلقائي' : '🖐️ يدوي';
+    if(tab===activeTab) updateModeStatusPill();
+  });
+});
+
+/* Tab 1: polarization */
+document.querySelectorAll('#polarizationBtns1 button').forEach(btn=>{
+  btn.addEventListener('click', e=>{
+    document.querySelectorAll('#polarizationBtns1 button').forEach(b=>b.classList.remove('on'));
+    e.currentTarget.classList.add('on');
+    t1SetPolarization(e.currentTarget.dataset.pol);
+  });
+});
+
+/* Tab 3: tune to resonance */
+document.getElementById('tuneBtn3').addEventListener('click', ()=>{
+  if (t3State.simMode === 'auto') {
+    t3State.simMode = 'manual';
+    const modeBtn = document.querySelector('[data-mode-tab="3"]');
+    if (modeBtn) { modeBtn.classList.remove('on'); modeBtn.textContent = '🖐️ يدوي'; }
+    updateModeStatusPill();
+  }
+  t3Tune();
+});
+
+/* Tab 4: antenna length */
+document.querySelectorAll('#antennaLenBtns4 button').forEach(btn=>{
+  btn.addEventListener('click', e=>{
+    document.querySelectorAll('#antennaLenBtns4 button').forEach(b=>b.classList.remove('on'));
+    e.currentTarget.classList.add('on');
+    t4SetLength(Number(e.currentTarget.dataset.len));
+  });
+});
+
+/* Tab 8: modulation type */
+document.querySelectorAll('#modTypeBtns8 button').forEach(btn=>{
+  btn.addEventListener('click', e=>{
+    document.querySelectorAll('#modTypeBtns8 button').forEach(b=>b.classList.remove('on'));
+    e.currentTarget.classList.add('on');
+    t8SetType(e.currentTarget.dataset.mod);
+    // update the depth label wording is handled in the draw HUD; nothing else needed
+  });
+});
+
+/* Tab 10: propagation mode (ground / sky / space wave) */
+document.querySelectorAll('#radioModeBtns10 button').forEach(btn=>{
+  btn.addEventListener('click', e=>{
+    document.querySelectorAll('#radioModeBtns10 button').forEach(b=>b.classList.remove('on'));
+    e.currentTarget.classList.add('on');
+    t10SetMode(e.currentTarget.dataset.radiomode);
+  });
+});
+
+/* Tab 11: application (radar / remote sensing / mobile phone) */
+document.querySelectorAll('#appBtns11 button').forEach(btn=>{
+  btn.addEventListener('click', e=>{
+    document.querySelectorAll('#appBtns11 button').forEach(b=>b.classList.remove('on'));
+    e.currentTarget.classList.add('on');
+    t11SetApp(e.currentTarget.dataset.app);
+  });
+});
+
+/* range sliders -> state */
+document.querySelectorAll('input[type=range][data-target]').forEach(inp=>{
+  inp.addEventListener('input', e=>{
+    const path = e.target.dataset.target.split('.');
+    const value = Number(e.target.value);
+    let obj = window[path[0]];
+    for(let i=1;i<path.length-1;i++) obj = obj[isNaN(path[i]) ? path[i] : Number(path[i])];
+    const lastKey = path[path.length-1];
+    obj[isNaN(lastKey) ? lastKey : Number(lastKey)] = value;
+    const labelEl = document.getElementById(e.target.dataset.label);
+    if(labelEl) labelEl.textContent = value.toFixed(1);
+  });
+});
+
+let lastTime = null;
+function loop(ts){
+  if(lastTime===null) lastTime = ts;
+  let dt = (ts - lastTime) / 1000; dt = Math.min(dt, 0.05); lastTime = ts;
+
+  pointer.isClicked = _clickPending; _clickPending = false;
+  pointer.justPressed = _pressPending;
+  if (_pressPending) { pointer.pressX = _pressPos.x; pointer.pressY = _pressPos.y; }
+  _pressPending = false;
+
+  switch(activeTab){
+    case 1: t1Update(dt); t1Draw(); break;
+    case 2: t2Update(dt); t2Draw(); break;
+    case 3: t3Update(dt); t3Draw(); break;
+    case 4: t4Update(dt); t4Draw(); break;
+    case 5: t5Update(dt); t5Draw(); break;
+    case 6: t6Update(dt); t6Draw(); break;
+    case 7: t7Update(dt); t7Draw(); break;
+    case 8: t8Update(dt); t8Draw(); break;
+    case 9: t9Update(dt); t9Draw(); break;
+    case 10: t10Update(dt); t10Draw(); break;
+    case 11: t11Update(dt); t11Draw(); break;
+  }
+  requestAnimationFrame(loop);
+}
+
+switchTab(1);
+requestAnimationFrame(loop);
+
+/* Welcome overlay */
+(function initWelcome(){
+  const overlay = document.getElementById('welcomeOverlay');
+  const btn = document.getElementById('startBtn');
+  function dismiss(){
+    document.body.classList.add('started');
+    if (overlay){ overlay.classList.add('hidden'); setTimeout(()=>{ overlay.style.display='none'; }, 550); }
+  }
+  if (btn) btn.addEventListener('click', dismiss);
+  if (overlay) overlay.addEventListener('click', dismiss);
+  if (!overlay || !btn) document.body.classList.add('started');
+})();
+</script>
+
+
+<!-- ===== وضع التضمين داخل واجهة التطبيق الموحّد =====
+     الملف يبقى صالحاً للفتح بمفرده؛ وعند تحميله داخل إطار (iframe) من
+     الصفحة الرئيسية نتخطى شاشة الترحيب الخاصة به لأن الترحيب صار موحّداً. -->
+<script>
+(function(){
+  var embedded = false;
+  try { embedded = window.self !== window.top; } catch(e){ embedded = true; }
+  if (!embedded && location.search.indexOf('embed=1') === -1) return;
+  document.documentElement.classList.add('is-embedded');
+  function start(){
+    document.body.classList.add('started');
+    var btn = document.getElementById('startBtn');
+    if (btn) btn.click();
+    var ov = document.getElementById('welcomeOverlay');
+    if (ov){ ov.classList.add('hidden'); ov.style.display = 'none'; }
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+  else start();
+})();
+</script>
+</body>
+</html>
