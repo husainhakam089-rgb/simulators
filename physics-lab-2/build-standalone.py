@@ -7,7 +7,7 @@
 بـ base64 ويُحقن وقت التشغيل في الإطار عبر srcdoc — فيبقى كل فصل معزولاً
 تماماً كما لو كان ملفاً مستقلاً، بلا تعارض في المعرّفات أو الأنماط.
 
-    python3 physics-lab/build-standalone.py
+    python3 physics-lab-2/build-standalone.py
 """
 
 import base64
@@ -17,12 +17,12 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SRC = os.path.join(HERE, 'index.html')
-OUT = os.path.join(HERE, 'physics-lab-standalone.html')
+OUT = os.path.join(HERE, 'physics-lab-2-standalone.html')
 IMAGE = os.path.join(HERE, 'assets', 'welcome.jpg')
 LOGO = os.path.join(HERE, 'assets', 'logo.png')
 CHAPTERS = [
-    ('ch1', os.path.join(HERE, 'chapters', 'chapter-1-capacitors.html')),
-    ('ch2', os.path.join(HERE, 'chapters', 'chapter-2-induction.html')),
+    ('ch3', os.path.join(HERE, 'chapters', 'chapter-3-ac.html')),
+    ('ch4', os.path.join(HERE, 'chapters', 'chapter-4-emwaves.html')),
 ]
 
 

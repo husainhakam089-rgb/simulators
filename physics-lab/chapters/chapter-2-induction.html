@@ -2843,6 +2843,14 @@ document.getElementById('startBtn').addEventListener('click', ()=>{
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
   else start();
+
+  // مفتاح Esc يُضغط والتركيز داخل التجربة، فلا يصل إلى الصفحة الحاضنة من
+  // تلقائه — نمرّره إليها لترجع خطوة واحدة (وليس أثناء ملء الشاشة).
+  document.addEventListener('keydown', function(e){
+    if (e.key !== 'Escape') return;
+    if (document.fullscreenElement || document.webkitFullscreenElement) return;
+    try { parent.postMessage({ __lab: 'back' }, '*'); } catch (err) {}
+  });
 })();
 </script>
 </body>

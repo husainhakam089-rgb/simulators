@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0a0f1c">
-<title>مختبر الفيزياء الافتراضي | الأستاذ أحمد نعمة العبودي</title>
+<title>مختبر الفيزياء الافتراضي — الفصلان الثالث والرابع | الأستاذ أحمد نعمة العبودي</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&family=Cairo:wght@600;800&display=swap" rel="stylesheet">
 <style>
@@ -207,8 +207,8 @@
   .chapter-card:hover::after,
   .chapter-card:focus-visible::after{ opacity:1; }
   .chapter-card:active{ transform:translateY(-1px); }
-  .chapter-card.c1{ --accent:var(--gold); --accent-glow:rgba(242,193,78,.18); }
-  .chapter-card.c2{ --accent:var(--cyan); --accent-glow:rgba(56,225,198,.16); }
+  .chapter-card.c3{ --accent:#8f7bff; --accent-glow:rgba(143,123,255,.18); }
+  .chapter-card.c4{ --accent:#ff8f6b; --accent-glow:rgba(255,143,107,.16); }
 
   .card-top{ display:flex; align-items:center; gap:13px; }
   .card-num{
@@ -375,22 +375,23 @@
     </div>
 
     <div class="chapter-grid">
-      <button class="chapter-card c1" type="button" data-chapter="1">
+      <button class="chapter-card c3" type="button" data-chapter="3">
         <div class="card-top">
-          <div class="card-num" aria-hidden="true">١<small>الفصل</small></div>
+          <div class="card-num" aria-hidden="true">٣<small>الفصل</small></div>
           <div class="card-title">
-            <b>المتسعات</b>
-            <span>السعة الكهربائية والعوازل</span>
+            <b>التيار المتناوب</b>
+            <span>الرادة الحثية والسعوية والرنين</span>
           </div>
         </div>
         <div class="card-topics">
-          <i>العوامل المؤثرة على السعة</i>
-          <i>العوازل</i>
-          <i>الشحن والتفريغ</i>
-          <i>التوالي والتوازي</i>
+          <i>رادة الحث</i>
+          <i>رادة السعة</i>
+          <i>الرنين</i>
+          <i>عامل القدرة</i>
+          <i>دوائر RLC</i>
         </div>
         <div class="card-go">
-          <span class="card-count">٦ تجارب تفاعلية</span>
+          <span class="card-count">٨ تجارب تفاعلية</span>
           <span>ادخل التجارب
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
                  stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5l7 7-7 7M20 12H4"/></svg>
@@ -398,22 +399,23 @@
         </div>
       </button>
 
-      <button class="chapter-card c2" type="button" data-chapter="2">
+      <button class="chapter-card c4" type="button" data-chapter="4">
         <div class="card-top">
-          <div class="card-num" aria-hidden="true">٢<small>الفصل</small></div>
+          <div class="card-num" aria-hidden="true">٤<small>الفصل</small></div>
           <div class="card-title">
-            <b>الحث الكهرومغناطيسي</b>
-            <span>الفيض وقانونا فارادي ولنز</span>
+            <b>الموجات الكهرومغناطيسية</b>
+            <span>توليدها وكشفها وتضمينها وتطبيقاتها</span>
           </div>
         </div>
         <div class="card-topics">
-          <i>توليد التيار المحتث</i>
-          <i>قانون لنز</i>
-          <i>الحث المتبادل</i>
-          <i>المحوّلات</i>
+          <i>انتشار الموجة</i>
+          <i>تجربة هرتز</i>
+          <i>الطيف الكهرومغناطيسي</i>
+          <i>التضمين</i>
+          <i>الهوائيات</i>
         </div>
         <div class="card-go">
-          <span class="card-count">١٠ تجارب تفاعلية</span>
+          <span class="card-count">١١ تجربة تفاعلية</span>
           <span>ادخل التجارب
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
                  stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5l7 7-7 7M20 12H4"/></svg>
@@ -438,7 +440,7 @@
       الفصول
     </button>
     <div class="viewer-title">
-      <b id="viewerTitle">الفصل الأول — المتسعات</b>
+      <b id="viewerTitle">الفصل الثالث — التيار المتناوب</b>
       <span id="viewerSub">الفيزياء — الصف السادس الإعدادي (الثاني عشر)</span>
     </div>
     <div class="teacher-chip">إعداد: <b>الأستاذ أحمد نعمة العبودي</b></div>
@@ -448,19 +450,19 @@
     <!-- «fullscreen *» وليس «fullscreen»: عند فتح الملف من القرص مباشرة
          (file://) يكون أصل الإطار معتماً، فالصيغة الضيّقة لا تفوّض له
          الصلاحية ويتعطّل زر «ملء الشاشة» داخل التجربة. -->
-    <section class="pane" id="pane-1" data-chapter="1">
-      <iframe title="الفصل الأول — المتسعات"
-              data-src="chapters/chapter-1-capacitors.html"
+    <section class="pane" id="pane-3" data-chapter="3">
+      <iframe title="الفصل الثالث — التيار المتناوب"
+              data-src="chapters/chapter-3-ac.html"
               allow="fullscreen *; autoplay *"
               allowfullscreen></iframe>
-      <div class="pane-loading"><div class="spinner"></div><div>جارٍ تحميل تجارب الفصل الأول…</div></div>
+      <div class="pane-loading"><div class="spinner"></div><div>جارٍ تحميل تجارب الفصل الثالث…</div></div>
     </section>
-    <section class="pane" id="pane-2" data-chapter="2">
-      <iframe title="الفصل الثاني — الحث الكهرومغناطيسي"
-              data-src="chapters/chapter-2-induction.html"
+    <section class="pane" id="pane-4" data-chapter="4">
+      <iframe title="الفصل الرابع — الموجات الكهرومغناطيسية"
+              data-src="chapters/chapter-4-emwaves.html"
               allow="fullscreen *; autoplay *"
               allowfullscreen></iframe>
-      <div class="pane-loading"><div class="spinner"></div><div>جارٍ تحميل تجارب الفصل الثاني…</div></div>
+      <div class="pane-loading"><div class="spinner"></div><div>جارٍ تحميل تجارب الفصل الرابع…</div></div>
     </section>
   </div>
 </div>
@@ -482,10 +484,10 @@
   var current  = 'splash';
 
   var CHAPTERS = {
-    '1': { title:'الفصل الأول — المتسعات',
-           sub:'السعة الكهربائية والعوازل — ٦ تجارب تفاعلية' },
-    '2': { title:'الفصل الثاني — الحث الكهرومغناطيسي',
-           sub:'الفيض وقانونا فارادي ولنز — ١٠ تجارب تفاعلية' }
+    '3': { title:'الفصل الثالث — التيار المتناوب',
+           sub:'الرادة الحثية والسعوية والرنين — ٨ تجارب تفاعلية' },
+    '4': { title:'الفصل الرابع — الموجات الكهرومغناطيسية',
+           sub:'توليدها وكشفها وتضمينها — ١١ تجربة تفاعلية' }
   };
 
   function show(name){
