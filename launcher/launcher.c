@@ -13,9 +13,14 @@
 
 #define IDR_APP_HTML 101
 
-/* اسم الملف الذي يُكتب ويُفتح؛ يُعرَّف وقت البناء لكل تطبيق */
+/* اسم الملف والمجلد؛ يُعرَّفان وقت البناء لكل تطبيق.
+   كل تطبيقات الأستاذ تتشارك مجلداً واحداً في بيانات المستخدم، لكن لكل
+   واحد اسم ملف خاص به — لو تشاركا الاسم لأطاح أحدهما بصفحة الآخر. */
+#ifndef APP_FOLDER
+#define APP_FOLDER L"PhysicsLab_AlAboudi"
+#endif
 #ifndef APP_FILENAME
-#define APP_FILENAME L"phy-sixth.html"
+#define APP_FILENAME L"index.html"
 #endif
 #ifndef APP_TITLE
 #define APP_TITLE L"مختبر الفيزياء الافتراضي"
@@ -33,7 +38,7 @@ static int app_dir(wchar_t *out, size_t cap)
     wchar_t base[MAX_PATH];
     if (FAILED(SHGetFolderPathW(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, base)))
         return 0;
-    if (FAILED(StringCchPrintfW(out, cap, L"%ls\\PhySixth", base)))
+    if (FAILED(StringCchPrintfW(out, cap, L"%ls\\%ls", base, APP_FOLDER)))
         return 0;
     /* موجود مسبقاً ليس خطأ */
     if (!CreateDirectoryW(out, NULL) && GetLastError() != ERROR_ALREADY_EXISTS)
@@ -84,7 +89,7 @@ int WINAPI wWinMain(HINSTANCE inst, HINSTANCE prev, PWSTR cmdline, int show)
     HINSTANCE rc = ShellExecuteW(NULL, L"open", path, NULL, NULL, SW_SHOWNORMAL);
     if ((INT_PTR)rc <= 32) {
         fail(L"تعذّر فتح المتصفح. افتح الملف يدوياً من:\n"
-             L"%LOCALAPPDATA%\\PhySixth");
+             L"%LOCALAPPDATA%\\" APP_FOLDER);
         return 1;
     }
     return 0;

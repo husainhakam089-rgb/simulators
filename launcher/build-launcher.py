@@ -19,13 +19,21 @@ DIST = os.path.join(HERE, 'dist')
 CC = 'x86_64-w64-mingw32-gcc'
 WINDRES = 'x86_64-w64-mingw32-windres'
 
+# اسم المنتج وبياناته على نسق نسخة الصف الثالث المتوسط، مع اسم ملف داخلي
+# مميّز لكل تطبيق لأن الجميع يتشاركون مجلد PhysicsLab_AlAboudi.
 APPS = [
-    dict(slug='phy-sixth-1-2', product='Phy Sixth 1-2',
-         desc='Physics virtual lab - chapters 1 and 2'),
-    dict(slug='phy-sixth-3-4', product='Phy Sixth 3-4',
-         desc='Physics virtual lab - chapters 3 and 4'),
-    dict(slug='phy-sixth-5', product='Phy Sixth 5',
-         desc='Physics virtual lab - chapter 5'),
+    dict(slug='phy-sixth-1-2', exe='PhysicsLab_Sixth_1-2',
+         product='Virtual Physics Lab', page='sixth-1-2.html',
+         title='مختبر الفيزياء الافتراضي — السادس (١ و ٢)',
+         desc='Virtual Physics Lab - Grade 12 - Chapters 1 and 2'),
+    dict(slug='phy-sixth-3-4', exe='PhysicsLab_Sixth_3-4',
+         product='Virtual Physics Lab', page='sixth-3-4.html',
+         title='مختبر الفيزياء الافتراضي — السادس (٣ و ٤)',
+         desc='Virtual Physics Lab - Grade 12 - Chapters 3 and 4'),
+    dict(slug='phy-sixth-5', exe='PhysicsLab_Sixth_5',
+         product='Virtual Physics Lab', page='sixth-5.html',
+         title='مختبر الفيزياء الافتراضي — السادس (٥)',
+         desc='Virtual Physics Lab - Grade 12 - Chapter 5'),
 ]
 
 RC = '''#include <windows.h>
@@ -68,25 +76,27 @@ def build(app):
         sys.exit('missing %s — run its build-standalone.py first' % html)
 
     icon = os.path.join(ROOT, 'desktop', 'icon.ico')
+    name = app['exe']
     rc_path = os.path.join(HERE, '.%s.rc' % slug)
     res_path = os.path.join(HERE, '.%s.res' % slug)
     with open(rc_path, 'w') as fh:
         fh.write(RC.format(html=html.replace('\\', '\\\\'),
                            icon=icon.replace('\\', '\\\\'),
-                           slug=slug, product=app['product'], desc=app['desc']))
+                           slug=name, product=app['product'], desc=app['desc']))
 
     subprocess.check_call([WINDRES, '-i', rc_path, '-O', 'coff', '-o', res_path])
 
     os.makedirs(DIST, exist_ok=True)
-    out = os.path.join(DIST, slug + '.exe')
+    out = os.path.join(DIST, name + '.exe')
     subprocess.check_call([
         CC, os.path.join(HERE, 'launcher.c'), res_path,
         '-o', out,
         '-municode',                       # نقطة الدخول wWinMain
         '-mwindows',                       # بلا نافذة طرفية سوداء
         '-O2', '-s',                       # مُحسَّن وبلا رموز تنقيح
-        '-DAPP_FILENAME=L"%s.html"' % slug,
-        '-DAPP_TITLE=L"%s"' % app['product'],
+        '-DAPP_FOLDER=L"PhysicsLab_AlAboudi"',
+        '-DAPP_FILENAME=L"%s"' % app['page'],
+        '-DAPP_TITLE=L"%s"' % app['title'],
         '-lshell32', '-lole32', '-luuid',
     ])
     os.remove(rc_path)
@@ -96,11 +106,11 @@ def build(app):
 
 def main():
     wanted = sys.argv[1:]
-    apps = [a for a in APPS if not wanted or a['slug'] in wanted]
+    apps = [a for a in APPS if not wanted or a['slug'] in wanted or a['exe'] in wanted]
     if not apps:
         sys.exit('unknown app; known: %s' % ', '.join(a['slug'] for a in APPS))
     for a in apps:
-        print('==> building %s' % a['product'])
+        print('==> building %s' % a['exe'])
         build(a)
 
 
