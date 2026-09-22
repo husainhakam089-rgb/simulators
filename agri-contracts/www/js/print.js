@@ -3,6 +3,7 @@
 import { escapeHtml, formatDate, formatMoney, formatTime, dayNameFromISO, formatDocNumber } from './util.js';
 import { amountPhrase } from './tafqeet.js';
 import { toast } from './ui.js';
+import * as art from './artwork.js';
 
 export const COPY_LABELS = {
   buyer: 'نسخة المشتري',
@@ -61,19 +62,34 @@ function img(src, cls, alt = '') {
   return src ? `<img class="${cls}" src="${escapeHtml(src)}" alt="${escapeHtml(alt)}">` : '';
 }
 
+/**
+ * رأس العقد كما في الدفتر الورقي: السيارة يميناً، الشعار وسطاً،
+ * والترتكتر يساراً. الإعدادات تعلو على الرسم المضمّن إن رفع المستخدم بديلاً.
+ */
 function headerBlock(s) {
+  const right = s.headerImageRight || art.CAR;
+  const left = s.headerImageLeft || art.TRACTOR;
+  const logo = s.logo || art.LOGO;
   return `
     <div class="head">
-      <div class="head__img">${img(s.headerImageRight, '', 'ترتكتر')}</div>
+      <div class="head__img">${img(right, '', 'سيارة')}</div>
       <div class="head__center">
-        ${s.logo ? img(s.logo, 'head__logo', 'الشعار') : `<div class="head__name">${escapeHtml(s.shopName)}</div>`}
-        ${s.logo ? `<div class="head__name">${escapeHtml(s.shopName)}</div>` : ''}
-        <div class="head__line"><b>الإدارة:</b> ${escapeHtml(s.manager)}</div>
-        <div class="head__line"><b>العنوان:</b> ${escapeHtml(s.address)}</div>
-        ${s.phones ? `<div class="head__line"><b>الموبايل:</b> ${escapeHtml(s.phones)}</div>` : ''}
+        ${logo
+          ? img(logo, 'head__logo', s.shopName)
+          : `<div class="head__name">${escapeHtml(s.shopName)}</div>`}
+        <div class="head__line head__line--manager"><b>بإدارة:</b> ${escapeHtml(s.manager)}</div>
+        <div class="head__line">${escapeHtml(s.address)}</div>
+        ${s.phones ? `<div class="head__line">${escapeHtml(s.phones)}</div>` : ''}
       </div>
-      <div class="head__img">${img(s.headerImageLeft, '', 'سيارة')}</div>
+      <div class="head__img">${img(left, '', 'ترتكتر')}</div>
     </div>`;
+}
+
+/** زخرفة الزوايا الأربع — صورة واحدة مقلوبة في كل زاوية. */
+function frameCorners() {
+  return ['tr', 'tl', 'br', 'bl']
+    .map((pos) => `<img class="frame__art frame__art--${pos}" src="${escapeHtml(art.CORNER)}" alt="">`)
+    .join('');
 }
 
 function partyBlock(title, p) {
@@ -105,10 +121,7 @@ export function renderContractPage(c, s, copyKey) {
   return `
   <div class="page">
     <div class="frame">
-      <span class="frame__corner frame__corner--tr"></span>
-      <span class="frame__corner frame__corner--tl"></span>
-      <span class="frame__corner frame__corner--br"></span>
-      <span class="frame__corner frame__corner--bl"></span>
+      ${frameCorners()}
       ${headerBlock(s)}
 
       <div class="strip">

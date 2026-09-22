@@ -17,9 +17,9 @@ export async function render(root) {
   const address = textField({ label: 'العنوان', value: s.address });
   const phones = textField({ label: 'أرقام الموبايل (تظهر في الرأس)', value: s.phones, type: 'tel' });
 
-  const logo = photoField({ label: 'الشعار', value: s.logo });
-  const imgRight = photoField({ label: 'صورة الرأس — اليمين (ترتكتر)', value: s.headerImageRight });
-  const imgLeft = photoField({ label: 'صورة الرأس — اليسار (سيارة)', value: s.headerImageLeft });
+  const logo = photoField({ label: 'الشعار (وسط الرأس)', value: s.logo });
+  const imgRight = photoField({ label: 'صورة الرأس — اليمين (سيارة)', value: s.headerImageRight });
+  const imgLeft = photoField({ label: 'صورة الرأس — اليسار (ترتكتر)', value: s.headerImageLeft });
 
   /* ----- العدّادات ----- */
   const contractNext = textField({
@@ -177,7 +177,7 @@ export async function render(root) {
 
       h('section', { class: 'card' },
         h('h2', { class: 'card__title', text: 'صور الرأس' }),
-        h('p', { class: 'muted', text: 'الأفضل الحصول عليها من المطبعة كملفات جاهزة؛ وإلا تُقص من صورة نظيفة لعقد فارغ.' }),
+        h('p', { class: 'muted', text: 'رسومات الدفتر الأصلي مضمّنة في التطبيق وتُطبع تلقائياً. ارفع صورة هنا فقط إن أردت استبدال واحدة منها — والأوضح دائماً ملف جاهز من المطبعة.' }),
         logo.el,
         h('div', { class: 'grid grid--2' }, imgRight.el, imgLeft.el),
       ),
