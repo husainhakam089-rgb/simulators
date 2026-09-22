@@ -182,7 +182,7 @@ export function renderContractPage(c, s, copyKey) {
   </div>`;
 }
 
-/** نصف ورقة: وصل واحد. */
+/** نصف ورقة: وصل واحد. بلا رسومات — الوصل نصّي بحت بطلب صاحب المعرض. */
 function receiptHalf(r, s, copyKey) {
   return `
   <div class="half">
@@ -192,7 +192,6 @@ function receiptHalf(r, s, copyKey) {
           <div class="rhead__name">${escapeHtml(s.shopName)}</div>
           <div class="rhead__line">الإدارة: ${escapeHtml(s.manager)} — ${escapeHtml(s.address)}</div>
         </div>
-        ${s.logo ? img(s.logo, 'rhead__logo', 'الشعار') : ''}
         <div style="text-align:center">
           <div class="docno">العدد: <span>${escapeHtml(formatDocNumber(r.number))}</span></div>
           ${copyKey ? `<div class="copytag">${escapeHtml(COPY_LABELS[copyKey] || '')}</div>` : ''}

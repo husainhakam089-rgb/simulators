@@ -254,7 +254,6 @@ html, body {
   border-bottom: 0.35mm solid var(--red);
   padding-bottom: 1.5mm;
 }
-.rhead__logo { max-height: 11mm; max-width: 35mm; object-fit: contain; }
 .rhead__name { font-family: "Amiri", "Cairo", serif; font-size: 4.6mm; font-weight: 700; color: var(--red); }
 .rhead__line { font-size: 2.8mm; }
 .rtitle { text-align: center; font-weight: 700; font-size: 4.4mm; margin: 1.5mm 0; text-decoration: underline; text-underline-offset: 1mm; }
