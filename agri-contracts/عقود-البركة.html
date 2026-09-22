@@ -409,6 +409,80 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
 .toast--error { background: var(--red); }
 .toast--warn { background: var(--warn); }
 
+/* ---------- عارض المستند ---------- */
+.docview {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  background: #4a4f4c;
+  display: flex;
+  flex-direction: column;
+}
+.docview__bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--green);
+  color: #fff;
+  padding: calc(env(safe-area-inset-top, 0px) + 7px) 10px 7px;
+}
+.docview__x {
+  border: 0;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  border-radius: 9px;
+  width: 36px;
+  height: 36px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+.docview__title { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.3; }
+.docview__title b { font-size: 0.92rem; }
+.docview__title small { font-size: 0.72rem; opacity: 0.85; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.docview__zoom { display: flex; gap: 5px; flex: 0 0 auto; }
+.docview__zoom .btn { background: rgba(255, 255, 255, 0.14); border-color: transparent; color: #fff; }
+
+.docview__scroll {
+  flex: 1;
+  overflow: auto;
+  padding: 8px;
+  display: flex;
+  align-items: flex-start;
+  -webkit-overflow-scrolling: touch;
+}
+/* الورقة تُعرض بمقاسها الحقيقي داخل إطار مصغَّر، فيبقى الشكل مطابقاً للمطبوع */
+/* التوسيط بهامش تلقائي لا بـ justify-content: مع الأخير يتعذّر التمرير
+   إلى حافة الورقة عند التكبير فوق عرض الشاشة. */
+.docview__stage {
+  position: relative;
+  flex: 0 0 auto;
+  margin-inline: auto;
+  direction: ltr;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+  background: #fff;
+}
+.docview__frame {
+  border: 0;
+  display: block;
+  transform-origin: top left;
+  background: #fff;
+}
+
+.docview__actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  padding: 9px 10px calc(9px + var(--safe-b));
+  background: #fff;
+  border-top: 1px solid var(--line);
+}
+.docview__actions .btn { flex: 1; max-width: 190px; }
+
+.list__row--doc { cursor: pointer; }
+.list__row--doc:active { background: #f3f6f3; }
+.list__row--doc:focus-visible { outline: 2px solid var(--green-2); outline-offset: 2px; }
+
 </style>
 </head>
 <body>
@@ -1697,156 +1771,6 @@ html, body {
     }
   });
 
-  // www/js/home.js
-  var home_exports = {};
-  __export(home_exports, {
-    render: () => render
-  });
-  async function render(root) {
-    const s = await load();
-    const [machineTypes, tools, contracts, receipts] = await Promise.all([
-      values("machineTypes"),
-      values("tools"),
-      all("contracts"),
-      all("receipts")
-    ]);
-    const recent = [...contracts, ...receipts].sort((a, b) => b.createdAt - a.createdAt).slice(0, 5);
-    const machineChips = h(
-      "div",
-      { class: "chips chips--big" },
-      machineTypes.map((t) => h("button", { type: "button", class: "chip chip--lg", onclick: () => go("contract", { type: t }) }, t))
-    );
-    const toolChips = h(
-      "div",
-      { class: "chips chips--big" },
-      tools.slice(0, 10).map((t) => h("button", { type: "button", class: "chip chip--lg", onclick: () => go("receipt", { tool: t }) }, t))
-    );
-    root.textContent = "";
-    root.append(
-      h(
-        "div",
-        { class: "screen" },
-        h(
-          "header",
-          { class: "hero" },
-          h("h1", { class: "hero__name", text: s.shopName }),
-          h("p", { class: "hero__sub", text: `${s.manager} — ${s.address}` })
-        ),
-        h(
-          "section",
-          { class: "card" },
-          h("h2", { class: "card__title", text: "ماذا تبيع الآن؟" }),
-          h("p", { class: "muted", text: "اختر النوع، والتطبيق يفتح الشاشة المناسبة: عقد كامل أم وصل صغير." }),
-          h("h3", { class: "subhead", text: "آلية كاملة ← عقد على ورقة A4" }),
-          machineChips,
-          h("h3", { class: "subhead", text: "أداة أو ملحق ← وصل على نصف ورقة" }),
-          toolChips
-        ),
-        h(
-          "section",
-          { class: "card" },
-          h("h2", { class: "card__title", text: "فتح مباشر" }),
-          h(
-            "div",
-            { class: "actions" },
-            h("button", { type: "button", class: "btn btn--primary", onclick: () => go("contract") }, "📄 عقد جديد"),
-            h("button", { type: "button", class: "btn", onclick: () => go("receipt") }, "🧾 وصل جديد"),
-            h("button", { type: "button", class: "btn btn--ghost", onclick: () => go("history") }, "🔎 السجل والبحث")
-          )
-        ),
-        h(
-          "section",
-          { class: "card" },
-          h("h2", { class: "card__title", text: "آخر ما حُفظ" }),
-          recent.length ? h("div", { class: "list" }, recent.map((d) => h(
-            "button",
-            {
-              type: "button",
-              class: "list__row",
-              onclick: () => go(d.kind === "receipt" ? "receipt" : "contract", { id: d.id })
-            },
-            h("span", { class: "list__no", text: formatDocNumber(d.number) }),
-            h(
-              "span",
-              { class: "list__main" },
-              h("b", { text: d.kind === "receipt" ? d.buyerName : d.buyer?.name || "" }),
-              h("small", { text: d.kind === "receipt" ? d.tool : `${d.machineType} ${d.brand}` })
-            ),
-            h(
-              "span",
-              { class: "list__side" },
-              h("b", { text: `${formatMoney(d.amount)} د.ع` }),
-              h("small", { text: formatDate(d.date) })
-            )
-          ))) : h("p", { class: "muted", text: "لا يوجد شيء محفوظ بعد." })
-        ),
-        s.conditionsReviewed ? null : h(
-          "section",
-          { class: "card card--warn" },
-          h("h2", { class: "card__title", text: "تنبيه قبل الطباعة الرسمية" }),
-          h("p", { text: "نص الشروط الثلاثة الحالي مسوّدة مؤقتة. افتح الإعدادات وانسخ النص الحرفي من الدفتر الورقي، ثم علّم «اعتُمد النص»." }),
-          h("button", { type: "button", class: "btn btn--sm", onclick: () => go("settings") }, "فتح الإعدادات")
-        )
-      )
-    );
-  }
-  var init_home = __esm({
-    "www/js/home.js"() {
-      init_db();
-      init_lists();
-      init_settings();
-      init_router();
-      init_ui();
-      init_util();
-    }
-  });
-
-  // www/js/customers.js
-  async function all2() {
-    if (!cache2) cache2 = await all("customers");
-    return cache2;
-  }
-  async function search(query, limit = 6) {
-    const list = await all2();
-    return rankSimilar(query, list, { key: "name", limit, min: 0.4 });
-  }
-  async function upsert(party) {
-    if (!party || !party.name) return null;
-    const list = await all2();
-    const key = normalizeAr(party.name);
-    const found = list.find(
-      (c) => normalizeAr(c.name) === key && (!party.mobile || !c.mobile || c.mobile === party.mobile)
-    );
-    const rec = {
-      id: found ? found.id : uid(),
-      name: party.name.trim(),
-      idType: party.idType || "",
-      idNumber: party.idNumber || "",
-      record: party.record || "",
-      page: party.page || "",
-      office: party.office || "",
-      address: party.address || "",
-      mobile: party.mobile || "",
-      uses: (found && found.uses ? found.uses : 0) + 1,
-      updatedAt: Date.now()
-    };
-    await put("customers", rec);
-    if (found) Object.assign(found, rec);
-    else list.push(rec);
-    return rec;
-  }
-  function invalidate2() {
-    cache2 = null;
-  }
-  var cache2;
-  var init_customers = __esm({
-    "www/js/customers.js"() {
-      init_db();
-      init_util();
-      cache2 = null;
-    }
-  });
-
   // www/js/tafqeet.js
   function underThousand(n) {
     const parts = [];
@@ -2283,6 +2207,9 @@ ${main}`;
   async function buildHtml(kind, doc, settings, copies) {
     return kind === "receipt" ? receiptHtml(doc, settings, copies) : contractHtml(doc, settings, copies);
   }
+  async function buildViewHtml(kind, doc, settings) {
+    return buildHtml(kind, doc, settings, [null]);
+  }
   function printActions(kind, getDoc, getSettings, getCopies) {
     const label = kind === "receipt" ? "الوصل" : "العقد";
     const withHtml = async (fn) => {
@@ -2339,6 +2266,281 @@ ${main}`;
       init_print();
       init_util();
       ORDER = ["buyer", "seller", "shop"];
+    }
+  });
+
+  // www/js/docviewer.js
+  async function openDocument(kind, doc, settings) {
+    const label = kind === "receipt" ? "وصل" : "عقد";
+    const html = await buildViewHtml(kind, doc, settings);
+    const pages = countPages(html);
+    const frame = h("iframe", {
+      class: "docview__frame",
+      title: `${label} ${formatDocNumber(doc.number)}`,
+      loading: "eager"
+    });
+    const stage = h("div", { class: "docview__stage" }, frame);
+    const scroll = h("div", { class: "docview__scroll" }, stage);
+    let zoom = 1;
+    let fitZoom = 1;
+    function applyZoom() {
+      frame.style.width = `${PAGE_W}px`;
+      frame.style.height = `${PAGE_H * pages}px`;
+      frame.style.transform = `scale(${zoom})`;
+      stage.style.width = `${PAGE_W * zoom}px`;
+      stage.style.height = `${PAGE_H * pages * zoom}px`;
+    }
+    function fit() {
+      const available = scroll.clientWidth - 16;
+      fitZoom = Math.max(MIN_ZOOM, Math.min(1, available / PAGE_W));
+      zoom = fitZoom;
+      applyZoom();
+    }
+    const zoomBy = (factor) => {
+      zoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoom * factor));
+      applyZoom();
+    };
+    const overlay = h("div", { class: "docview" });
+    const close = () => {
+      window.removeEventListener("resize", fit);
+      document.removeEventListener("keydown", onKey);
+      overlay.remove();
+    };
+    const onKey = (e) => {
+      if (e.key === "Escape") close();
+    };
+    const act = async (fn) => {
+      try {
+        await fn();
+      } catch (err) {
+        toast(err.message || "تعذّر تنفيذ العملية", "error");
+      }
+    };
+    const copies = doc.copies && doc.copies.length ? doc.copies : ["shop"];
+    overlay.append(
+      h(
+        "header",
+        { class: "docview__bar" },
+        h("button", { type: "button", class: "docview__x", "aria-label": "إغلاق", onclick: close }, "✕"),
+        h(
+          "div",
+          { class: "docview__title" },
+          h("b", { text: `${label} رقم ${formatDocNumber(doc.number)}` }),
+          h("small", { text: kind === "receipt" ? doc.buyerName || "" : `${doc.buyer?.name || ""} ← ${doc.seller?.name || ""}` })
+        ),
+        h(
+          "div",
+          { class: "docview__zoom" },
+          h("button", { type: "button", class: "btn btn--sm", onclick: () => zoomBy(0.8), "aria-label": "تصغير" }, "−"),
+          h("button", { type: "button", class: "btn btn--sm", onclick: fit }, "ملء العرض"),
+          h("button", { type: "button", class: "btn btn--sm", onclick: () => zoomBy(1.25), "aria-label": "تكبير" }, "+")
+        )
+      ),
+      scroll,
+      h(
+        "footer",
+        { class: "docview__actions" },
+        h("button", {
+          type: "button",
+          class: "btn btn--primary",
+          onclick: () => act(async () => {
+            const out = await buildHtml(kind, doc, settings, copies);
+            const via = await printDocument(out, { jobName: `${label} ${formatDocNumber(doc.number)}`, settings });
+            if (via === "direct") toast("أُرسل للطابعة مباشرة", "ok");
+          })
+        }, "🖨 طباعة"),
+        h("button", {
+          type: "button",
+          class: "btn",
+          onclick: () => act(async () => {
+            const out = await buildHtml(kind, doc, settings, copies);
+            const ok = await shareDocument(out, {
+              fileName: `${label}-${formatDocNumber(doc.number)}.pdf`,
+              title: `${label} ${formatDocNumber(doc.number)}`
+            });
+            if (ok) toast("جاهز للمشاركة", "ok");
+          })
+        }, "📤 مشاركة"),
+        h("button", {
+          type: "button",
+          class: "btn btn--ghost",
+          onclick: () => {
+            close();
+            go(kind === "receipt" ? "receipt" : "contract", { id: doc.id });
+          }
+        }, "✎ تعديل")
+      )
+    );
+    document.body.append(overlay);
+    document.addEventListener("keydown", onKey);
+    window.addEventListener("resize", fit);
+    frame.srcdoc = html;
+    requestAnimationFrame(fit);
+    return { close };
+  }
+  var PAGE_W, PAGE_H, MIN_ZOOM, MAX_ZOOM;
+  var init_docviewer = __esm({
+    "www/js/docviewer.js"() {
+      init_docactions();
+      init_print();
+      init_router();
+      init_ui();
+      init_util();
+      PAGE_W = 794;
+      PAGE_H = 1123;
+      MIN_ZOOM = 0.25;
+      MAX_ZOOM = 2.5;
+    }
+  });
+
+  // www/js/home.js
+  var home_exports = {};
+  __export(home_exports, {
+    render: () => render
+  });
+  async function render(root) {
+    const s = await load();
+    const [machineTypes, tools, contracts, receipts] = await Promise.all([
+      values("machineTypes"),
+      values("tools"),
+      all("contracts"),
+      all("receipts")
+    ]);
+    const recent = [...contracts, ...receipts].sort((a, b) => b.createdAt - a.createdAt).slice(0, 5);
+    const machineChips = h(
+      "div",
+      { class: "chips chips--big" },
+      machineTypes.map((t) => h("button", { type: "button", class: "chip chip--lg", onclick: () => go("contract", { type: t }) }, t))
+    );
+    const toolChips = h(
+      "div",
+      { class: "chips chips--big" },
+      tools.slice(0, 10).map((t) => h("button", { type: "button", class: "chip chip--lg", onclick: () => go("receipt", { tool: t }) }, t))
+    );
+    root.textContent = "";
+    root.append(
+      h(
+        "div",
+        { class: "screen" },
+        h(
+          "header",
+          { class: "hero" },
+          h("h1", { class: "hero__name", text: s.shopName }),
+          h("p", { class: "hero__sub", text: `${s.manager} — ${s.address}` })
+        ),
+        h(
+          "section",
+          { class: "card" },
+          h("h2", { class: "card__title", text: "ماذا تبيع الآن؟" }),
+          h("p", { class: "muted", text: "اختر النوع، والتطبيق يفتح الشاشة المناسبة: عقد كامل أم وصل صغير." }),
+          h("h3", { class: "subhead", text: "آلية كاملة ← عقد على ورقة A4" }),
+          machineChips,
+          h("h3", { class: "subhead", text: "أداة أو ملحق ← وصل على نصف ورقة" }),
+          toolChips
+        ),
+        h(
+          "section",
+          { class: "card" },
+          h("h2", { class: "card__title", text: "فتح مباشر" }),
+          h(
+            "div",
+            { class: "actions" },
+            h("button", { type: "button", class: "btn btn--primary", onclick: () => go("contract") }, "📄 عقد جديد"),
+            h("button", { type: "button", class: "btn", onclick: () => go("receipt") }, "🧾 وصل جديد"),
+            h("button", { type: "button", class: "btn btn--ghost", onclick: () => go("history") }, "🔎 السجل والبحث")
+          )
+        ),
+        h(
+          "section",
+          { class: "card" },
+          h("h2", { class: "card__title", text: "آخر ما حُفظ" }),
+          recent.length ? h("div", { class: "list" }, recent.map((d) => h(
+            "button",
+            {
+              type: "button",
+              class: "list__row",
+              onclick: () => openDocument(d.kind, d, s)
+            },
+            h("span", { class: "list__no", text: formatDocNumber(d.number) }),
+            h(
+              "span",
+              { class: "list__main" },
+              h("b", { text: d.kind === "receipt" ? d.buyerName : d.buyer?.name || "" }),
+              h("small", { text: d.kind === "receipt" ? d.tool : `${d.machineType} ${d.brand}` })
+            ),
+            h(
+              "span",
+              { class: "list__side" },
+              h("b", { text: `${formatMoney(d.amount)} د.ع` }),
+              h("small", { text: formatDate(d.date) })
+            )
+          ))) : h("p", { class: "muted", text: "لا يوجد شيء محفوظ بعد." })
+        ),
+        s.conditionsReviewed ? null : h(
+          "section",
+          { class: "card card--warn" },
+          h("h2", { class: "card__title", text: "تنبيه قبل الطباعة الرسمية" }),
+          h("p", { text: "نص الشروط الثلاثة الحالي مسوّدة مؤقتة. افتح الإعدادات وانسخ النص الحرفي من الدفتر الورقي، ثم علّم «اعتُمد النص»." }),
+          h("button", { type: "button", class: "btn btn--sm", onclick: () => go("settings") }, "فتح الإعدادات")
+        )
+      )
+    );
+  }
+  var init_home = __esm({
+    "www/js/home.js"() {
+      init_db();
+      init_lists();
+      init_settings();
+      init_docviewer();
+      init_router();
+      init_ui();
+      init_util();
+    }
+  });
+
+  // www/js/customers.js
+  async function all2() {
+    if (!cache2) cache2 = await all("customers");
+    return cache2;
+  }
+  async function search(query, limit = 6) {
+    const list = await all2();
+    return rankSimilar(query, list, { key: "name", limit, min: 0.4 });
+  }
+  async function upsert(party) {
+    if (!party || !party.name) return null;
+    const list = await all2();
+    const key = normalizeAr(party.name);
+    const found = list.find(
+      (c) => normalizeAr(c.name) === key && (!party.mobile || !c.mobile || c.mobile === party.mobile)
+    );
+    const rec = {
+      id: found ? found.id : uid(),
+      name: party.name.trim(),
+      idType: party.idType || "",
+      idNumber: party.idNumber || "",
+      record: party.record || "",
+      page: party.page || "",
+      office: party.office || "",
+      address: party.address || "",
+      mobile: party.mobile || "",
+      uses: (found && found.uses ? found.uses : 0) + 1,
+      updatedAt: Date.now()
+    };
+    await put("customers", rec);
+    if (found) Object.assign(found, rec);
+    else list.push(rec);
+    return rec;
+  }
+  function invalidate2() {
+    cache2 = null;
+  }
+  var cache2;
+  var init_customers = __esm({
+    "www/js/customers.js"() {
+      init_db();
+      init_util();
+      cache2 = null;
     }
   });
 
@@ -2960,6 +3162,10 @@ ${main}`;
         }
       }, label))
     );
+    async function view(d) {
+      const s = await load();
+      await openDocument(d.kind, d, s);
+    }
     async function reprint(d) {
       const s = await load();
       const html = await buildHtml(d.kind, d, s, d.copies && d.copies.length ? d.copies : ["shop"]);
@@ -2980,10 +3186,30 @@ ${main}`;
       countEl.textContent = rows.length ? `${rows.length} مستنداً` : "لا نتائج";
       listBox.textContent = "";
       for (const d of rows) {
+        const op = (icon, title, fn) => h("button", {
+          type: "button",
+          class: "btn btn--sm",
+          title,
+          onclick: (e) => {
+            e.stopPropagation();
+            fn();
+          }
+        }, icon);
         listBox.append(
           h(
             "div",
-            { class: "list__row list__row--static" },
+            {
+              class: "list__row list__row--doc",
+              role: "button",
+              tabindex: "0",
+              onclick: () => view(d),
+              onkeydown: (e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  view(d);
+                }
+              }
+            },
             h("span", { class: `list__no ${d.kind === "receipt" ? "is-receipt" : ""}`, text: formatDocNumber(d.number) }),
             h(
               "span",
@@ -3000,9 +3226,9 @@ ${main}`;
             h(
               "span",
               { class: "list__ops" },
-              h("button", { type: "button", class: "btn btn--sm", onclick: () => reprint(d) }, "🖨"),
-              h("button", { type: "button", class: "btn btn--sm btn--ghost", onclick: () => go(d.kind === "receipt" ? "receipt" : "contract", { id: d.id }) }, "✎"),
-              h("button", { type: "button", class: "btn btn--sm btn--ghost", onclick: () => removeDoc(d) }, "🗑")
+              op("🖨", "طباعة", () => reprint(d)),
+              op("✎", "تعديل", () => go(d.kind === "receipt" ? "receipt" : "contract", { id: d.id })),
+              op("🗑", "حذف", () => removeDoc(d))
             )
           )
         );
@@ -3016,7 +3242,14 @@ ${main}`;
         "div",
         { class: "screen" },
         h("header", { class: "screen__head" }, h("h1", { class: "screen__title", text: "السجل والبحث" })),
-        h("section", { class: "card" }, search2, filters, countEl),
+        h(
+          "section",
+          { class: "card" },
+          search2,
+          filters,
+          countEl,
+          h("p", { class: "muted", text: "اضغط على أي سطر ليفتح المستند مكتوباً كاملاً." })
+        ),
         h("section", { class: "card" }, listBox)
       )
     );
@@ -3026,6 +3259,7 @@ ${main}`;
       init_db();
       init_settings();
       init_docactions();
+      init_docviewer();
       init_print();
       init_router();
       init_ui();

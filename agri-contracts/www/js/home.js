@@ -3,6 +3,7 @@
 import * as db from './db.js';
 import * as lists from './lists.js';
 import * as settingsStore from './settings.js';
+import { openDocument } from './docviewer.js';
 import { go } from './router.js';
 import { h } from './ui.js';
 import { formatDocNumber, formatDate, formatMoney } from './util.js';
@@ -62,7 +63,7 @@ export async function render(root) {
           ? h('div', { class: 'list' }, recent.map((d) =>
               h('button', {
                 type: 'button', class: 'list__row',
-                onclick: () => go(d.kind === 'receipt' ? 'receipt' : 'contract', { id: d.id }),
+                onclick: () => openDocument(d.kind, d, s),
               },
                 h('span', { class: 'list__no', text: formatDocNumber(d.number) }),
                 h('span', { class: 'list__main' },

@@ -3,6 +3,7 @@
 import * as db from './db.js';
 import * as settingsStore from './settings.js';
 import { buildHtml } from './docactions.js';
+import { openDocument } from './docviewer.js';
 import { printDocument } from './print.js';
 import { go } from './router.js';
 import { ask, h, toast } from './ui.js';
@@ -40,6 +41,12 @@ export async function render(root) {
       }, label)),
   );
 
+  /** الضغط على السطر يفتح المستند مكتوباً كاملاً كما يخرج من الطابعة. */
+  async function view(d) {
+    const s = await settingsStore.load();
+    await openDocument(d.kind, d, s);
+  }
+
   async function reprint(d) {
     const s = await settingsStore.load();
     const html = await buildHtml(d.kind, d, s, d.copies && d.copies.length ? d.copies : ['shop']);
@@ -65,8 +72,18 @@ export async function render(root) {
     countEl.textContent = rows.length ? `${rows.length} مستنداً` : 'لا نتائج';
     listBox.textContent = '';
     for (const d of rows) {
+      // الأزرار لا تفتح العارض، لذا تُوقف الحدث عن السطر الحاوي لها
+      const op = (icon, title, fn) =>
+        h('button', {
+          type: 'button', class: 'btn btn--sm', title,
+          onclick: (e) => { e.stopPropagation(); fn(); },
+        }, icon);
+
       listBox.append(
-        h('div', { class: 'list__row list__row--static' },
+        h('div', { class: 'list__row list__row--doc', role: 'button', tabindex: '0',
+          onclick: () => view(d),
+          onkeydown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); view(d); } },
+        },
           h('span', { class: `list__no ${d.kind === 'receipt' ? 'is-receipt' : ''}`, text: formatDocNumber(d.number) }),
           h('span', { class: 'list__main' },
             h('b', { text: d.kind === 'receipt' ? d.buyerName : `${d.buyer?.name || '—'} ← ${d.seller?.name || '—'}` }),
@@ -77,9 +94,9 @@ export async function render(root) {
             h('small', { text: formatDate(d.date) }),
           ),
           h('span', { class: 'list__ops' },
-            h('button', { type: 'button', class: 'btn btn--sm', onclick: () => reprint(d) }, '🖨'),
-            h('button', { type: 'button', class: 'btn btn--sm btn--ghost', onclick: () => go(d.kind === 'receipt' ? 'receipt' : 'contract', { id: d.id }) }, '✎'),
-            h('button', { type: 'button', class: 'btn btn--sm btn--ghost', onclick: () => removeDoc(d) }, '🗑'),
+            op('🖨', 'طباعة', () => reprint(d)),
+            op('✎', 'تعديل', () => go(d.kind === 'receipt' ? 'receipt' : 'contract', { id: d.id })),
+            op('🗑', 'حذف', () => removeDoc(d)),
           ),
         ),
       );
@@ -93,7 +110,8 @@ export async function render(root) {
   root.append(
     h('div', { class: 'screen' },
       h('header', { class: 'screen__head' }, h('h1', { class: 'screen__title', text: 'السجل والبحث' })),
-      h('section', { class: 'card' }, search, filters, countEl),
+      h('section', { class: 'card' }, search, filters, countEl,
+        h('p', { class: 'muted', text: 'اضغط على أي سطر ليفتح المستند مكتوباً كاملاً.' })),
       h('section', { class: 'card' }, listBox),
     ),
   );

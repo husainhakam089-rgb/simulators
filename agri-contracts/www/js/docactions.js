@@ -50,6 +50,11 @@ export async function buildHtml(kind, doc, settings, copies) {
   return kind === 'receipt' ? receiptHtml(doc, settings, copies) : contractHtml(doc, settings, copies);
 }
 
+/** نسخة واحدة بلا ختم «نسخة …» — للعرض على الشاشة لا للطباعة. */
+export async function buildViewHtml(kind, doc, settings) {
+  return buildHtml(kind, doc, settings, [null]);
+}
+
 /**
  * أزرار الطباعة والمشاركة والمعاينة.
  * @param {'contract'|'receipt'} kind
