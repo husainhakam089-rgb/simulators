@@ -1,0 +1,12 @@
+node_modules/
+android/app/build/
+android/build/
+android/.gradle/
+android/local.properties
+android/app/release/
+*.apk
+*.aab
+.DS_Store
+
+# يُعاد توليده بأمر npx cap sync
+android/app/src/main/assets/public/

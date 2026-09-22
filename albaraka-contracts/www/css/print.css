@@ -1,0 +1,191 @@
+/* قالب الطباعة: العقد على A4 كامل والوصل على نصف A4.
+   المقاسات بالمليمتر حتى يطلع الشكل نفسه على أي طابعة. */
+@page { size: A4; margin: 0; }
+
+*, *::before, *::after { box-sizing: border-box; }
+
+.print-doc {
+  margin: 0;
+  background: #fff;
+  color: #101510;
+  font-family: 'Cairo', 'Amiri', system-ui, sans-serif;
+  font-size: 10.5pt;
+  line-height: 1.55;
+  direction: rtl;
+}
+
+.page {
+  width: 210mm;
+  height: 296mm;
+  padding: 5mm;
+  overflow: hidden;
+  margin: 0 auto;
+  background: #fff;
+  page-break-after: always;
+  break-after: page;
+  position: relative;
+  display: flex;
+}
+.page:last-child { page-break-after: auto; break-after: auto; }
+
+/* الإطار المزخرف */
+.frame {
+  border: 2.2mm double #0b5d3b;
+  outline: 0.4mm solid #b8860b;
+  outline-offset: 1.2mm;
+  border-radius: 3mm;
+  padding: 4mm 5mm;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* ----- الرأس ----- */
+.head {
+  display: grid;
+  grid-template-columns: 30mm 1fr 30mm;
+  align-items: center;
+  gap: 3mm;
+  border-bottom: 0.6mm solid #b8860b;
+  padding-bottom: 2mm;
+  position: relative;
+}
+.head-side img { width: 100%; max-height: 22mm; object-fit: contain; }
+.img-slot {
+  height: 18mm; border: 0.3mm dashed #c9d2ca; border-radius: 2mm;
+  display: flex; align-items: center; justify-content: center;
+  color: #9aa79d; font-size: 7pt;
+}
+.head-center { text-align: center; }
+.head-center .logo { max-height: 15mm; object-fit: contain; margin-bottom: 1mm; }
+.logo-slot { height: 13mm; }
+.head-center h1 {
+  margin: 0; font-size: 15pt; font-weight: 700; color: #b3151b;
+  font-family: 'Amiri', 'Cairo', serif; letter-spacing: 0;
+}
+.head-meta { font-size: 8.5pt; color: #14387f; }
+.doc-no {
+  position: absolute; top: 0; inset-inline-start: 0;
+  color: #b3151b; font-size: 9.5pt; font-weight: 600;
+}
+.doc-no b { font-variant-numeric: tabular-nums; font-size: 12pt; }
+.copy-tag {
+  position: absolute; top: 0; inset-inline-end: 0;
+  background: #0b5d3b; color: #fff;
+  padding: 0.6mm 3mm; border-radius: 2mm; font-size: 8.5pt;
+}
+
+/* ----- صور الطرفين وعنوان العقد ----- */
+.photos {
+  display: grid;
+  grid-template-columns: 26mm 1fr 26mm;
+  align-items: center;
+  gap: 3mm;
+  margin-top: 2.5mm;
+}
+.photo-cell {
+  height: 32mm; border: 0.4mm solid #0b5d3b; border-radius: 1.5mm;
+  position: relative; overflow: hidden; background: #fafdfa;
+}
+.photo-cell img { width: 100%; height: 100%; object-fit: cover; }
+.photo-cap {
+  position: absolute; bottom: 0; inset-inline: 0;
+  background: rgba(11, 93, 59, .85); color: #fff;
+  font-size: 7pt; text-align: center;
+}
+.doc-title {
+  margin: 0; text-align: center; color: #b3151b;
+  font-family: 'Amiri', serif; font-size: 20pt; font-weight: 700;
+  border-block: 0.4mm solid #b8860b; padding: 1mm 0;
+}
+
+/* ----- الأسطر ونقاط التنقيط ----- */
+.dateline {
+  display: flex; justify-content: space-between; gap: 4mm;
+  margin-top: 3mm; font-size: 10pt;
+}
+.dateline span { display: flex; align-items: baseline; gap: 1.5mm; flex: 1; }
+
+.intro { margin: 2.5mm 0 1.5mm; font-size: 10pt; }
+
+.row { display: flex; align-items: baseline; gap: 1.5mm; margin-bottom: 1.6mm; }
+.row label { color: #0b5d3b; font-weight: 600; white-space: nowrap; font-size: 9.5pt; }
+.row.two { gap: 6mm; }
+.row.two > span { display: flex; align-items: baseline; gap: 1.5mm; flex: 1; }
+
+.fill {
+  flex: 1;
+  border-bottom: 0.25mm dotted #5a665c;
+  min-height: 5mm;
+  padding: 0 1.5mm 0.4mm;
+  font-weight: 600;
+}
+.fill.ltr { direction: ltr; text-align: left; font-variant-numeric: tabular-nums; }
+
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 6mm; }
+.grid .wide, .amounts .wide, .row.wide { grid-column: 1 / -1; }
+.machine { margin-top: 1.5mm; }
+.annual { margin-top: 1mm; }
+.amounts { display: grid; grid-template-columns: 1fr 1fr; gap: 0 6mm; margin-top: 1mm; }
+.amounts .fill { font-weight: 700; }
+.notes { margin-top: 1mm; }
+
+/* ----- الطرفان ----- */
+.parties {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 4mm;
+  margin-top: 2.5mm;
+}
+.party {
+  border: 0.3mm solid #c9d2ca; border-radius: 2mm; padding: 2mm 2.5mm;
+}
+.party h3 {
+  margin: 0 0 1.5mm; font-size: 10pt; color: #b3151b;
+  border-bottom: 0.3mm solid #b8860b; padding-bottom: 0.8mm;
+}
+
+/* ----- الشروط ----- */
+.terms {
+  margin: 3mm 0 0; padding-inline-start: 5mm;
+  font-size: 8.8pt; line-height: 1.5; color: #1c2620;
+}
+.terms li { margin-bottom: 0.8mm; }
+
+/* ----- التواقيع ----- */
+.signs {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 3mm;
+  margin-top: auto; padding-top: 6mm; text-align: center; color: #14387f; font-size: 9pt;
+}
+.signs.two { grid-template-columns: repeat(2, 1fr); }
+.sign-line {
+  display: block; height: 10mm;
+  border-bottom: 0.3mm solid #14387f; margin-bottom: 1mm;
+}
+
+/* ----- الوصل: نصف ورقة ----- */
+.page.receipts { display: flex; flex-direction: column; padding: 4mm; }
+.slip { height: 135mm; overflow: hidden; }
+.slip .frame { height: 100%; padding: 3mm 4mm; }
+.slip .head { grid-template-columns: 22mm 1fr 22mm; }
+.slip .head-center h1 { font-size: 12.5pt; }
+.slip .head-side img, .slip .img-slot { max-height: 15mm; height: 14mm; }
+.slip .grid { margin-top: 2mm; }
+.slip .signs { margin-top: auto; padding-top: 4mm; }
+.slip.empty { border: 0; }
+
+.cut-line {
+  height: 11mm; display: flex; align-items: center; gap: 2mm;
+  color: #7c8a80; font-size: 8pt;
+}
+.cut-line::before, .cut-line::after {
+  content: ''; flex: 1; border-top: 0.3mm dashed #7c8a80;
+}
+
+@media screen {
+  .print-doc { background: #2b322d; padding: 4mm 0; }
+  .page { box-shadow: 0 2mm 8mm rgba(0,0,0,.3); margin-bottom: 4mm; }
+}
+@media print {
+  .print-doc { background: #fff; padding: 0; }
+  .page { box-shadow: none; margin: 0; }
+}

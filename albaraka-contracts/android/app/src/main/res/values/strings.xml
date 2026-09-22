@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">عقود البركة</string>
+    <string name="title_activity_main">عقود البركة</string>
+    <string name="package_name">com.albaraka.contracts</string>
+    <string name="custom_url_scheme">com.albaraka.contracts</string>
+</resources>

@@ -1,0 +1,44 @@
+name: بناء APK — عقود البركة
+
+on:
+  push:
+    paths:
+      - 'albaraka-contracts/**'
+      - '.github/workflows/android-apk.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: albaraka-contracts
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: android-actions/setup-android@v3
+
+      - name: تثبيت الحزم
+        run: npm ci
+
+      - name: نقل ملفات الويب إلى مشروع أندرويد
+        run: npx cap sync android
+
+      - name: بناء APK
+        run: ./gradlew assembleDebug --no-daemon
+        working-directory: albaraka-contracts/android
+
+      - name: رفع الملف الناتج
+        uses: actions/upload-artifact@v4
+        with:
+          name: albaraka-contracts-debug-apk
+          path: albaraka-contracts/android/app/build/outputs/apk/debug/*.apk

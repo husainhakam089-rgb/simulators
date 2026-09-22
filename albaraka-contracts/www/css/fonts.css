@@ -1,0 +1,31 @@
+/* خطوط مرفقة داخل التطبيق — لا اعتماد على خطوط الهاتف */
+@font-face {
+  font-family: 'Cairo';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('../assets/fonts/cairo-arabic.woff2') format('woff2');
+  unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF, U+200C-200E;
+}
+@font-face {
+  font-family: 'Cairo';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('../assets/fonts/cairo-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+2000-206F, U+2190-21BB;
+}
+@font-face {
+  font-family: 'Amiri';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../assets/fonts/amiri-arabic-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Amiri';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../assets/fonts/amiri-arabic-700.woff2') format('woff2');
+}
