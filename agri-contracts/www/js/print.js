@@ -11,15 +11,48 @@ export const COPY_LABELS = {
 };
 
 let cssCache = null;
+
+async function fileToBase64(url) {
+  const buf = await (await fetch(url)).arrayBuffer();
+  let binary = '';
+  const bytes = new Uint8Array(buf);
+  const CHUNK = 0x8000;
+  for (let i = 0; i < bytes.length; i += CHUNK) {
+    binary += String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK));
+  }
+  return btoa(binary);
+}
+
+/**
+ * ملفات الخطوط تُضمَّن داخل المستند بصيغة base64.
+ * السبب: مستند الطباعة يُحمَّل في صفحة منفصلة عن التطبيق، فلو بقيت الخطوط
+ * روابط خارجية لخرج العقد بخط بديل أو بحروف مقطّعة.
+ */
 async function printCss() {
   if (cssCache) return cssCache;
-  const [fonts, main] = await Promise.all([
+  // نسخة الملف الواحد تحمل أنماط الطباعة والخطوط بداخلها، فلا حاجة لجلبها.
+  if (typeof window !== 'undefined' && window.__INLINE_PRINT_CSS__) {
+    cssCache = window.__INLINE_PRINT_CSS__;
+    return cssCache;
+  }
+  const [fontsCss, main] = await Promise.all([
     fetch('assets/fonts/fonts.css').then((r) => r.text()),
     fetch('css/print.css').then((r) => r.text()),
   ]);
-  // مسارات الخطوط داخل المستند المولَّد تُقاس من جذر التطبيق.
-  cssCache = `${fonts.replace(/url\(([^)]+)\)/g, 'url(assets/fonts/$1)')}\n${main}`;
+  const files = [...new Set([...fontsCss.matchAll(/url\(([^)]+\.woff2)\)/g)].map((m) => m[1]))];
+  const encoded = await Promise.all(files.map((f) => fileToBase64(`assets/fonts/${f}`)));
+  let inlined = fontsCss;
+  files.forEach((f, i) => {
+    inlined = inlined.split(`url(${f})`).join(`url(data:font/woff2;base64,${encoded[i]})`);
+  });
+  cssCache = `${inlined}\n${main}`;
   return cssCache;
+}
+
+/** عدد صفحات A4 في المستند — تحتاجه الطبقة الأصلية لتوليد PDF بعدد الصفحات الصحيح. */
+export function countPages(html) {
+  const m = html.match(/class="(?:page|sheet-a4)"/g);
+  return m ? m.length : 1;
 }
 
 const dots = (v) => (v == null || v === '' ? '' : escapeHtml(v));
@@ -227,8 +260,18 @@ export async function buildDocument(innerHtml, { title = 'طباعة' } = {}) {
 
 /* ---------- الإرسال للطابعة ---------- */
 
+let pluginRef;
 function nativePlugin() {
-  return (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.NativePrint) || null;
+  if (pluginRef !== undefined) return pluginRef;
+  const cap = window.Capacitor;
+  if (!cap || !isNative()) {
+    pluginRef = null;
+  } else if (cap.registerPlugin) {
+    pluginRef = cap.registerPlugin('NativePrint');
+  } else {
+    pluginRef = (cap.Plugins && cap.Plugins.NativePrint) || null;
+  }
+  return pluginRef;
 }
 
 export function isNative() {
@@ -275,6 +318,7 @@ export async function printDocument(html, { jobName = 'عقد', settings = {} } 
       await plugin.printDirect({
         html,
         jobName,
+        pageCount: countPages(html),
         host: settings.printerAddress,
         port: Number(settings.printerPort) || 631,
         queue: settings.printerQueue || 'ipp/print',
@@ -285,7 +329,7 @@ export async function printDocument(html, { jobName = 'عقد', settings = {} } 
       void e;
     }
   }
-  await plugin.printHtml({ html, jobName });
+  await plugin.printHtml({ html, jobName, pageCount: countPages(html) });
   return 'system';
 }
 
@@ -296,6 +340,6 @@ export async function shareDocument(html, { fileName = 'عقد.pdf', title = 'ع
     toast('المشاركة كملف PDF متاحة داخل التطبيق على الهاتف فقط', 'warn');
     return false;
   }
-  await plugin.sharePdf({ html, fileName, title });
+  await plugin.sharePdf({ html, fileName, title, pageCount: countPages(html) });
   return true;
 }

@@ -1,0 +1,48 @@
+name: بناء APK — عقود البركة
+
+# البناء يدوي أو عند تغيّر التطبيق، ويرفع ملف APK جاهزاً للتنزيل من صفحة التشغيل.
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'agri-contracts/**'
+      - '.github/workflows/agri-contracts-android.yml'
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: agri-contracts
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: android-actions/setup-android@v3
+
+      - name: تثبيت الاعتماديات
+        run: npm install --no-audit --no-fund
+
+      - name: توليد مشروع أندرويد ودمج ملحق الطباعة
+        run: |
+          npx cap add android
+          node scripts/apply-android-extras.mjs
+
+      - name: بناء APK للتجربة
+        run: |
+          chmod +x android/gradlew
+          cd android && ./gradlew assembleDebug --no-daemon
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: albaraka-contracts-debug-apk
+          path: agri-contracts/android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
