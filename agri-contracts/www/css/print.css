@@ -1,0 +1,273 @@
+/* قالب الطباعة: A4 بالضبط للعقد، ونصف A4 للوصل.
+   كل المقاسات بالمليمتر ليخرج الورق مطابقاً للدفتر الأصلي.
+   نقاط الضبط النهائي (المرحلة 6.6) مجمّعة في :root ليسهل تعديلها بعد أول طبعة تجريبية. */
+
+:root {
+  --page-pad: 7mm;        /* هامش الورقة الخارجي */
+  --frame-pad: 5mm;       /* المسافة بين الإطار والنص */
+  --ink: #101010;
+  --red: #b3141a;         /* العناوين */
+  --blue: #14357f;        /* التواقيع */
+  --line: #444;
+  --base: 3.5mm;          /* حجم الخط الأساسي */
+}
+
+* { box-sizing: border-box; }
+
+@page { size: A4 portrait; margin: 0; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #fff;
+  color: var(--ink);
+  font-family: "Cairo", "Tajawal", sans-serif;
+  font-size: var(--base);
+  line-height: 1.75;
+  direction: rtl;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.page {
+  width: 210mm;
+  height: 297mm;
+  padding: var(--page-pad);
+  page-break-after: always;
+  break-after: page;
+  overflow: hidden;
+  position: relative;
+}
+.page:last-child { page-break-after: auto; break-after: auto; }
+
+/* ----- الإطار المزخرف ----- */
+.frame {
+  height: 100%;
+  border: 1.1mm double var(--red);
+  border-radius: 2mm;
+  padding: var(--frame-pad);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+.frame::before {
+  content: "";
+  position: absolute;
+  inset: 1.2mm;
+  border: 0.3mm solid var(--red);
+  border-radius: 1.4mm;
+  pointer-events: none;
+}
+.frame__corner {
+  position: absolute;
+  width: 7mm;
+  height: 7mm;
+  border: 0.6mm solid var(--red);
+}
+.frame__corner--tr { top: 2.4mm; right: 2.4mm; border-left: 0; border-bottom: 0; }
+.frame__corner--tl { top: 2.4mm; left: 2.4mm; border-right: 0; border-bottom: 0; }
+.frame__corner--br { bottom: 2.4mm; right: 2.4mm; border-left: 0; border-top: 0; }
+.frame__corner--bl { bottom: 2.4mm; left: 2.4mm; border-right: 0; border-top: 0; }
+
+/* ----- الرأس ----- */
+.head {
+  display: grid;
+  grid-template-columns: 26mm 1fr 26mm;
+  align-items: center;
+  gap: 3mm;
+  border-bottom: 0.4mm solid var(--red);
+  padding-bottom: 2mm;
+}
+.head__img {
+  height: 20mm;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.head__img img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.head__center { text-align: center; }
+.head__logo { max-height: 15mm; max-width: 60mm; object-fit: contain; }
+.head__name {
+  font-family: "Amiri", "Cairo", serif;
+  font-size: 6.2mm;
+  font-weight: 700;
+  color: var(--red);
+  line-height: 1.2;
+}
+.head__line { font-size: 3.1mm; color: #222; }
+.head__line b { color: var(--red); }
+
+/* ----- شريط الرقم والصور ----- */
+.strip {
+  display: grid;
+  grid-template-columns: 30mm 1fr 30mm;
+  align-items: start;
+  gap: 3mm;
+  margin-top: 2.5mm;
+}
+.photo {
+  height: 32mm;
+  border: 0.35mm solid var(--line);
+  border-radius: 1mm;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+.photo img { width: 100%; height: 100%; object-fit: cover; }
+.photo__cap {
+  position: absolute;
+  bottom: 0;
+  inset-inline: 0;
+  text-align: center;
+  font-size: 2.6mm;
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--red);
+}
+.strip__mid { text-align: center; padding-top: 2mm; }
+.docno {
+  font-size: 4.6mm;
+  font-weight: 700;
+  color: var(--red);
+  letter-spacing: 0.4mm;
+}
+.docno span { color: var(--ink); }
+.title {
+  font-family: "Amiri", "Cairo", serif;
+  font-size: 5.6mm;
+  font-weight: 700;
+  margin-top: 1mm;
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 1.2mm;
+}
+.copytag {
+  display: inline-block;
+  margin-top: 1.4mm;
+  border: 0.3mm solid var(--red);
+  border-radius: 8mm;
+  padding: 0.3mm 3mm;
+  font-size: 3mm;
+  color: var(--red);
+}
+
+/* ----- سطور البيانات ----- */
+.body { flex: 1; margin-top: 2.5mm; }
+.row {
+  display: flex;
+  align-items: baseline;
+  gap: 1.5mm;
+  margin-bottom: 1.6mm;
+}
+.row--wrap { flex-wrap: wrap; }
+.cell { display: flex; align-items: baseline; gap: 1.2mm; flex: 1; min-width: 0; }
+.cell--sm { flex: 0 0 auto; }
+.lbl { color: var(--red); font-weight: 600; white-space: nowrap; }
+.val {
+  flex: 1;
+  min-width: 0;
+  border-bottom: 0.25mm dotted var(--line);
+  padding: 0 1mm 0.4mm;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.val--free { white-space: normal; overflow: visible; }
+.val--wide { min-height: 5mm; }
+
+.section {
+  margin-top: 2.5mm;
+  border: 0.3mm solid #999;
+  border-radius: 1mm;
+  padding: 1.6mm 2mm 1mm;
+}
+.section__title {
+  color: var(--red);
+  font-weight: 700;
+  font-size: 3.6mm;
+  margin: -3.6mm 0 1mm;
+  background: #fff;
+  display: inline-block;
+  padding: 0 1.5mm;
+}
+.parties { display: grid; grid-template-columns: 1fr 1fr; gap: 3mm; }
+
+/* ----- الشروط ----- */
+.terms { margin-top: 2.5mm; }
+.terms__title { color: var(--red); font-weight: 700; margin-bottom: 0.8mm; }
+.terms ol { margin: 0; padding-inline-start: 5mm; font-size: 3.1mm; line-height: 1.6; }
+.terms li { margin-bottom: 0.6mm; }
+
+/* ----- التواقيع ----- */
+.signs {
+  margin-top: auto;
+  padding-top: 3mm;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 2mm;
+  text-align: center;
+  color: var(--blue);
+}
+.sign__name { font-size: 3.1mm; font-weight: 700; }
+.sign__line {
+  margin-top: 7mm;
+  border-top: 0.3mm solid var(--blue);
+}
+
+/* ----- الوصل الصغير ----- */
+.half {
+  height: 148.5mm;
+  padding: 5mm;
+  position: relative;
+}
+.half + .half { border-top: 0.3mm dashed #999; }
+.cutline {
+  position: absolute;
+  top: 148.5mm;
+  inset-inline: 0;
+  border-top: 0.3mm dashed #888;
+  text-align: center;
+  font-size: 2.6mm;
+  color: #888;
+}
+.cutline span { background: #fff; padding: 0 2mm; position: relative; top: -1.8mm; }
+.sheet-a4 { width: 210mm; height: 297mm; page-break-after: always; position: relative; }
+.sheet-a4:last-child { page-break-after: auto; }
+
+.rframe {
+  height: 100%;
+  border: 0.8mm double var(--red);
+  border-radius: 1.5mm;
+  padding: 3.5mm 4mm;
+  display: flex;
+  flex-direction: column;
+}
+.rhead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 3mm;
+  border-bottom: 0.35mm solid var(--red);
+  padding-bottom: 1.5mm;
+}
+.rhead__logo { max-height: 11mm; max-width: 35mm; object-fit: contain; }
+.rhead__name { font-family: "Amiri", "Cairo", serif; font-size: 4.6mm; font-weight: 700; color: var(--red); }
+.rhead__line { font-size: 2.8mm; }
+.rtitle { text-align: center; font-weight: 700; font-size: 4.4mm; margin: 1.5mm 0; text-decoration: underline; text-underline-offset: 1mm; }
+.rsigns {
+  margin-top: auto;
+  padding-top: 2mm;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2mm;
+  text-align: center;
+  color: var(--blue);
+  font-size: 3mm;
+}
+.rsigns .sign__line { margin-top: 6mm; }
+
+.muted-print { color: #666; font-size: 2.8mm; }

@@ -1,0 +1,11 @@
+{
+  "appId": "iq.albaraka.contracts",
+  "appName": "عقود البركة",
+  "webDir": "www",
+  "android": {
+    "allowMixedContent": true
+  },
+  "server": {
+    "androidScheme": "https"
+  }
+}
