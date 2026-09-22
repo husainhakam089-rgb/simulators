@@ -126,6 +126,11 @@ def write_js(produced):
         b64 = base64.b64encode(path.read_bytes()).decode()
         lines.append(f"export const {const_name[name]} = 'data:{mime};base64,{b64}';")
         lines.append("")
+    with Image.open(produced["corner"]) as corner:
+        ratio = corner.height / corner.width
+    lines.append("// نسبة ارتفاع زخرفة الزاوية إلى عرضها — يُحسب بها ارتفاعها في القالب.")
+    lines.append(f"export const CORNER_RATIO = {ratio:.4f};")
+    lines.append("")
     JS_OUT.write_text("\n".join(lines), encoding="utf-8")
     print(f"  artwork.js {JS_OUT.stat().st_size // 1024} ك.ب")
 
@@ -141,9 +146,13 @@ def write_zip(produced):
             "car     — صورة السيارة (يمين رأس العقد)\r\n"
             "logo    — شعار «معرض البركة لتجارة السيارات الحديثة» (وسط الرأس)\r\n"
             "corner  — زخرفة الزاوية، بخلفية شفافة، تُقلب للزوايا الأربع\r\n\r\n"
-            "لتبديل أي رسم: ضع البديل بنفس الاسم والامتداد في\r\n"
-            "www/assets/art/ ثم شغّل:  python3 scripts/extract-artwork.py\r\n"
-            "أو ارفعه مباشرة من شاشة الإعدادات داخل التطبيق.\r\n",
+            "لتبديل أي رسم، اختر واحدة:\r\n"
+            "  - الأسهل: ارفعه من شاشة الإعدادات داخل التطبيق، ويعلو على المضمّن.\r\n"
+            "  - أو ضع صورة العقد الأوضح في artwork-source/contract-scan.jpg\r\n"
+            "    واضبط CROPS في أعلى scripts/extract-artwork.py ثم شغّله.\r\n"
+            "\r\n"
+            "لا تضع البديل في www/assets/art/ وتشغّل السكربت: السكربت يعيد\r\n"
+            "توليد ذلك المجلد من صورة المصدر فيمحو ما وضعته.\r\n",
         )
     print(f"  {ZIP_OUT.name} {ZIP_OUT.stat().st_size // 1024} ك.ب")
 

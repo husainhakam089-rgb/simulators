@@ -43,14 +43,22 @@ export async function render(root) {
 
   /** الضغط على السطر يفتح المستند مكتوباً كاملاً كما يخرج من الطابعة. */
   async function view(d) {
-    const s = await settingsStore.load();
-    await openDocument(d.kind, d, s);
+    try {
+      const s = await settingsStore.load();
+      await openDocument(d.kind, d, s);
+    } catch (err) {
+      toast(err && err.message ? err.message : 'تعذّر فتح المستند', 'error');
+    }
   }
 
   async function reprint(d) {
-    const s = await settingsStore.load();
-    const html = await buildHtml(d.kind, d, s, d.copies && d.copies.length ? d.copies : ['shop']);
-    await printDocument(html, { jobName: `${d.kind === 'receipt' ? 'وصل' : 'عقد'} ${formatDocNumber(d.number)}`, settings: s });
+    try {
+      const s = await settingsStore.load();
+      const html = await buildHtml(d.kind, d, s, d.copies && d.copies.length ? d.copies : ['shop']);
+      await printDocument(html, { jobName: `${d.kind === 'receipt' ? 'وصل' : 'عقد'} ${formatDocNumber(d.number)}`, settings: s });
+    } catch (err) {
+      toast(err && err.message ? err.message : 'تعذّرت الطباعة', 'error');
+    }
   }
 
   async function removeDoc(d) {

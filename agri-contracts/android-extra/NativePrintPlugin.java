@@ -177,22 +177,32 @@ public class NativePrintPlugin extends Plugin {
      */
     private boolean renderToPdf(WebView webView, File out, int pageCount, Failure onFail) {
         int pages = Math.max(1, pageCount);
-        int totalHeight = Math.round(pages * A4_CSS_HEIGHT);
+        // الـ WebView يقيس بالبكسل الفيزيائي بينما الصفحة تُرصف بوحدات CSS،
+        // والنسبة بينهما هي كثافة الشاشة. بدون ضربها في الكثافة تخرج نافذة
+        // العرض أضيق من A4 على أي جهاز كثافته أكبر من واحد، فيُقتطع العقد.
+        float density = getContext().getResources().getDisplayMetrics().density;
+        if (density <= 0f) {
+            density = 1f;
+        }
+        int viewWidth = Math.round(A4_CSS_WIDTH * density);
+        float pageHeightPx = A4_CSS_HEIGHT * density;
+        int viewHeight = Math.round(pages * pageHeightPx);
+
         PdfDocument document = new PdfDocument();
         try {
             webView.measure(
-                    View.MeasureSpec.makeMeasureSpec(A4_CSS_WIDTH, View.MeasureSpec.EXACTLY),
-                    View.MeasureSpec.makeMeasureSpec(totalHeight, View.MeasureSpec.EXACTLY));
-            webView.layout(0, 0, A4_CSS_WIDTH, totalHeight);
+                    View.MeasureSpec.makeMeasureSpec(viewWidth, View.MeasureSpec.EXACTLY),
+                    View.MeasureSpec.makeMeasureSpec(viewHeight, View.MeasureSpec.EXACTLY));
+            webView.layout(0, 0, viewWidth, viewHeight);
 
-            float scale = (float) A4_PT_WIDTH / (float) A4_CSS_WIDTH;
+            float scale = (float) A4_PT_WIDTH / (float) viewWidth;
             for (int i = 0; i < pages; i++) {
                 PdfDocument.PageInfo info =
                         new PdfDocument.PageInfo.Builder(A4_PT_WIDTH, A4_PT_HEIGHT, i + 1).create();
                 PdfDocument.Page page = document.startPage(info);
                 Canvas canvas = page.getCanvas();
                 canvas.scale(scale, scale);
-                canvas.translate(0, -i * A4_CSS_HEIGHT);
+                canvas.translate(0, -i * pageHeightPx);
                 webView.draw(canvas);
                 document.finishPage(page);
             }

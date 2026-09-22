@@ -85,11 +85,21 @@ function headerBlock(s) {
     </div>`;
 }
 
-/** زخرفة الزوايا الأربع — صورة واحدة مقلوبة في كل زاوية. */
+/**
+ * زخرفة الزوايا الأربع — صورة واحدة مقلوبة في كل زاوية.
+ * تُمرَّر الصورة عبر قاعدة CSS واحدة في رأس المستند لا داخل كل وسم:
+ * تضمينها في كل زاوية يعني 12 نسخة من الصورة في عقد بثلاث نسخ.
+ */
 function frameCorners() {
   return ['tr', 'tl', 'br', 'bl']
-    .map((pos) => `<img class="frame__art frame__art--${pos}" src="${escapeHtml(art.CORNER)}" alt="">`)
+    .map((pos) => `<span class="frame__art frame__art--${pos}"></span>`)
     .join('');
+}
+
+/** قاعدة الزخرفة: تُكتب مرة واحدة لكل مستند. */
+function cornerStyle() {
+  return `.frame__art{background-image:url(${art.CORNER});`
+    + `height:calc(var(--corner-w) * ${art.CORNER_RATIO});}`;
 }
 
 function partyBlock(title, p) {
@@ -258,13 +268,14 @@ export function renderReceiptSheets(entries, s) {
 /** مستند HTML كامل جاهز للتحويل إلى PDF. */
 export async function buildDocument(innerHtml, { title = 'طباعة' } = {}) {
   const css = await printCss();
+  const extra = innerHtml.includes('frame__art') ? cornerStyle() : '';
   return `<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${escapeHtml(title)}</title>
-<style>${css}</style>
+<style>${css}${extra}</style>
 </head>
 <body>${innerHtml}</body>
 </html>`;
@@ -304,9 +315,15 @@ function printViaIframe(html) {
       } catch { /* الخطوط جاهزة أصلاً */ }
       // مهلة قصيرة لضمان تحميل الصور المضمّنة قبل الطباعة.
       setTimeout(() => {
-        win.focus();
-        win.print();
-        setTimeout(() => { frame.remove(); resolve(); }, 1200);
+        try {
+          win.focus();
+          win.print();
+        } catch (err) {
+          // لولا هذا لبقي الوعد معلّقاً إلى الأبد والإطار الضخم في الصفحة
+          toast(err && err.message ? err.message : 'تعذّر فتح نافذة الطباعة', 'error');
+        } finally {
+          setTimeout(() => { frame.remove(); resolve(); }, 1200);
+        }
       }, 350);
     };
     frame.srcdoc = html;

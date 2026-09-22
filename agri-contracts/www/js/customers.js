@@ -3,11 +3,13 @@
 import * as db from './db.js';
 import { normalizeAr, rankSimilar, uid } from './util.js';
 
-let cache = null;
+// يُخبَّأ الوعد لا الناتج: لو خُبِّئ الناتج بعد الانتظار، فنداءان متزامنان
+// (حفظ البائع والمشتري معاً) يجلب كلٌّ منهما نسخة، فتضيع إضافة أحدهما.
+let cachePromise = null;
 
 export async function all() {
-  if (!cache) cache = await db.all('customers');
-  return cache;
+  if (!cachePromise) cachePromise = db.all('customers');
+  return cachePromise;
 }
 
 /** بحث بالاسم — يُستعمل في اقتراح الزبون بعد أول حرفين. */
@@ -44,5 +46,5 @@ export async function upsert(party) {
 }
 
 export function invalidate() {
-  cache = null;
+  cachePromise = null;
 }

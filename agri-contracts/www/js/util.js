@@ -107,6 +107,37 @@ export function formatMoney(n) {
   return v.toLocaleString('en-US');
 }
 
+/**
+ * تنسيق حقل مبلغ مع الحفاظ على موضع المؤشر.
+ * إعادة ضبط input.value تُقفز المؤشر إلى آخر النص، فيتعذّر التعديل في
+ * وسط الرقم؛ لذا يُحسب الموضع بعدد الأرقام لا بعدد الحروف.
+ */
+export function formatMoneyInput(input) {
+  const raw = input.value;
+  const caret = input.selectionStart == null ? raw.length : input.selectionStart;
+  const digitsBefore = raw.slice(0, caret).replace(/\D/g, '').length;
+  const formatted = formatMoney(raw);
+  if (formatted === raw && caret === input.selectionEnd) return;
+  input.value = formatted;
+
+  let pos = digitsBefore === 0 ? 0 : formatted.length;
+  let seen = 0;
+  for (let i = 0; i < formatted.length && digitsBefore > 0; i++) {
+    if (formatted[i] >= '0' && formatted[i] <= '9') {
+      seen += 1;
+      if (seen === digitsBefore) {
+        pos = i + 1;
+        break;
+      }
+    }
+  }
+  try {
+    input.setSelectionRange(pos, pos);
+  } catch {
+    // بعض أنواع الحقول لا تدعم تحديد المدى — التنسيق نفسه تمّ
+  }
+}
+
 export function uid() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 }

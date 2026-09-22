@@ -7,7 +7,7 @@ import * as customers from './customers.js';
 import { amountPhrase } from './tafqeet.js';
 import { copiesPicker, printActions } from './docactions.js';
 import { askMulti, chipField, h, textArea, textField, toast, wheelField } from './ui.js';
-import { dayNameFromISO, digitsOnly, formatDocNumber, formatMoney, nowTime, todayISO } from './util.js';
+import { dayNameFromISO, digitsOnly, formatDocNumber, formatMoney, formatMoneyInput, nowTime, todayISO } from './util.js';
 
 export async function render(root, { id = null, tool = '' } = {}) {
   const s = await settingsStore.load();
@@ -49,7 +49,7 @@ export async function render(root, { id = null, tool = '' } = {}) {
   const amount = textField({
     label: 'المبلغ (رقماً)', value: existing?.amount ? formatMoney(existing.amount) : '',
     inputmode: 'numeric', required: true,
-    onInput: () => { amount.input.value = formatMoney(amount.input.value); recalc(); },
+    onInput: () => { formatMoneyInput(amount.input); recalc(); },
   });
   function amountValue() { return Number(digitsOnly(amount.get())) || 0; }
   function recalc() {
@@ -70,9 +70,10 @@ export async function render(root, { id = null, tool = '' } = {}) {
     onChange: (v) => settingsStore.save({ receiptsPerPage: v.startsWith('وصلان') ? 2 : 1 }),
   });
 
+  // كما في العقد: `saved` لا `existing`، كي لا يحرق الحفظ الثاني رقم وصل.
   function collect(number) {
     return {
-      id: existing?.id || `r_${Date.now().toString(36)}`,
+      id: saved?.id || `r_${Date.now().toString(36)}`,
       kind: 'receipt',
       number,
       date: dateW.get(),
@@ -86,7 +87,7 @@ export async function render(root, { id = null, tool = '' } = {}) {
       amountWords: amountPhrase(amountValue()),
       notes: notes.get(),
       copies: copies.get(),
-      createdAt: existing?.createdAt || Date.now(),
+      createdAt: saved?.createdAt || Date.now(),
       updatedAt: Date.now(),
     };
   }
@@ -102,12 +103,13 @@ export async function render(root, { id = null, tool = '' } = {}) {
         toast(`أكمل: ${problems.join('، ')}`, 'error');
         return;
       }
-      const number = existing ? existing.number : await settingsStore.takeNumber('receipt');
+      const number = saved ? saved.number : await settingsStore.takeNumber('receipt');
       const rec = collect(number);
       await db.put('receipts', rec);
       saved = rec;
       numberBox.querySelector('.docnum__val').textContent = formatDocNumber(number);
       numberBox.querySelector('.docnum__hint').textContent = 'محفوظ';
+      saveBtn.textContent = '💾 حفظ التعديلات';
 
       await Promise.all([
         lists.bump('tools', rec.tool),

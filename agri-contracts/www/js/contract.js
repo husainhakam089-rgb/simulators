@@ -11,7 +11,7 @@ import {
   askMulti, chipField, h, photoField, textArea, textField, toast, wheelField,
 } from './ui.js';
 import {
-  dayNameFromISO, digitsOnly, formatDocNumber, formatMoney, nowTime, todayISO,
+  dayNameFromISO, digitsOnly, formatDocNumber, formatMoney, formatMoneyInput, nowTime, todayISO,
 } from './util.js';
 
 export async function render(root, { id = null, type = '' } = {}) {
@@ -99,12 +99,12 @@ export async function render(root, { id = null, type = '' } = {}) {
   const amount = textField({
     label: 'المبلغ (رقماً)', value: existing?.amount ? formatMoney(existing.amount) : '',
     inputmode: 'numeric', required: true,
-    onInput: () => { amount.input.value = formatMoney(amount.input.value); recalc(); },
+    onInput: () => { formatMoneyInput(amount.input); recalc(); },
   });
   const paid = textField({
     label: 'وقد قبض منه', value: existing?.paid ? formatMoney(existing.paid) : '',
     inputmode: 'numeric',
-    onInput: () => { paid.input.value = formatMoney(paid.input.value); recalc(); },
+    onInput: () => { formatMoneyInput(paid.input); recalc(); },
   });
 
   function amountValue() { return Number(digitsOnly(amount.get())) || 0; }
@@ -128,9 +128,11 @@ export async function render(root, { id = null, type = '' } = {}) {
   const actions = printActions('contract', () => saved, () => settingsStore.current(), () => copies.get());
 
   /* ----- الحفظ ----- */
+  // ملاحظة: يُبنى على `saved` لا على `existing`، فالحفظ الثاني يحدّث العقد
+  // نفسه بدل أن يحجز رقماً جديداً ويكتب سجلاً مكرّراً.
   function collect(number) {
     return {
-      id: existing?.id || `c_${Date.now().toString(36)}`,
+      id: saved?.id || `c_${Date.now().toString(36)}`,
       kind: 'contract',
       number,
       date: dateW.get(),
@@ -155,7 +157,7 @@ export async function render(root, { id = null, type = '' } = {}) {
       sellerPhoto: sellerPhoto.get(),
       buyerPhoto: buyerPhoto.get(),
       copies: copies.get(),
-      createdAt: existing?.createdAt || Date.now(),
+      createdAt: saved?.createdAt || Date.now(),
       updatedAt: Date.now(),
     };
   }
@@ -200,12 +202,13 @@ export async function render(root, { id = null, type = '' } = {}) {
         toast(`أكمل: ${problems.join('، ')}`, 'error');
         return;
       }
-      const number = existing ? existing.number : await settingsStore.takeNumber('contract');
+      const number = saved ? saved.number : await settingsStore.takeNumber('contract');
       const rec = collect(number);
       await db.put('contracts', rec);
       saved = rec;
       numberBox.querySelector('.docnum__val').textContent = formatDocNumber(number);
       numberBox.querySelector('.docnum__hint').textContent = 'محفوظ';
+      saveBtn.textContent = '💾 حفظ التعديلات';
 
       // تغذية القوائم ودفتر الزبائن بما استُعمل فعلاً.
       await Promise.all([

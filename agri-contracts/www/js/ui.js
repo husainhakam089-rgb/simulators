@@ -175,8 +175,9 @@ export function chipField({
     const s = sheet({ title: label, body: h('div', {}, search, list) });
     const paint = (q) => {
       list.textContent = '';
-      const filtered = q ? rankSimilar(q, options, { min: 0.3, limit: 50 }) : options;
-      const shown = filtered.length ? filtered : options;
+      // بلا بحث تُعرض القائمة كاملة؛ ومع بحث بلا نتيجة تظهر «لا يوجد»
+      // بدل الرجوع إلى القائمة كاملة فيبدو البحث وكأنه أُهمل.
+      const shown = q ? rankSimilar(q, options, { min: 0.3, limit: 50 }) : options;
       for (const o of shown) {
         list.append(h('button', {
           type: 'button',
@@ -360,14 +361,24 @@ export function wheelField({ label, kind = 'date', value, onChange, hint }) {
       let Y = Math.max(0, years.indexOf(d[1] || String(now.getFullYear())));
       let M = Math.max(0, months.indexOf(d[2] || pad(now.getMonth() + 1)));
       let D = Math.max(0, days.indexOf(d[3] || pad(now.getDate())));
+      let cd = null;
+      let adjusting = false;
       const sync = () => {
-        // ضبط اليوم إن تجاوز عدد أيام الشهر.
+        // ضبط اليوم إن تجاوز عدد أيام الشهر — مع تحريك العمود فعلياً،
+        // وإلا بقي معروضاً 31 بينما القيمة المحفوظة 29.
         const dim = new Date(Number(years[Y]), Number(months[M]), 0).getDate();
-        if (Number(days[D]) > dim) D = dim - 1;
+        if (Number(days[D]) > dim) {
+          D = dim - 1;
+          if (cd && !adjusting) {
+            adjusting = true;
+            cd.goto(D, true);
+            setTimeout(() => { adjusting = false; }, 400);
+          }
+        }
         draft = `${years[Y]}-${months[M]}-${days[D]}`;
         manual.value = draft;
       };
-      const cd = wheelColumn(days, D, (i) => { D = i; sync(); });
+      cd = wheelColumn(days, D, (i) => { D = i; sync(); });
       const cm = wheelColumn(months, M, (i) => { M = i; sync(); });
       const cy = wheelColumn(years, Y, (i) => { Y = i; sync(); });
       cols.append(cd.el, cm.el, cy.el);

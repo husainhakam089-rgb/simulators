@@ -65,14 +65,20 @@ export async function buildViewHtml(kind, doc, settings) {
 export function printActions(kind, getDoc, getSettings, getCopies) {
   const label = kind === 'receipt' ? 'الوصل' : 'العقد';
 
+  // بلا هذا الالتقاط يضيع أي فشل في الطباعة أو المشاركة بصمت: الوعد
+  // مرفوض ولا أحد ينتظره، ومستمع window.error لا يلتقط الوعود المرفوضة.
   const withHtml = async (fn) => {
     const doc = getDoc();
     if (!doc) {
       toast(`احفظ ${label} أولاً`, 'warn');
       return;
     }
-    const html = await buildHtml(kind, doc, getSettings(), getCopies());
-    await fn(html, doc);
+    try {
+      const html = await buildHtml(kind, doc, getSettings(), getCopies());
+      await fn(html, doc);
+    } catch (err) {
+      toast(err && err.message ? err.message : 'تعذّرت العملية', 'error');
+    }
   };
 
   const printBtn = h('button', {

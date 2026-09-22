@@ -23,8 +23,12 @@ export async function go(name, params = {}, { replace = false } = {}) {
   currentName = name;
   const mod = await loader();
   rootEl.classList.add('is-loading');
-  await mod.render(rootEl, params);
-  rootEl.classList.remove('is-loading');
+  try {
+    await mod.render(rootEl, params);
+  } finally {
+    // بلا finally يبقى is-loading عالقاً والشاشة نصف شفافة عند أي فشل
+    rootEl.classList.remove('is-loading');
+  }
   rootEl.scrollTop = 0;
   window.scrollTo(0, 0);
   const state = { name, params };
