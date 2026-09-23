@@ -26,7 +26,11 @@ jobs:
           distribution: temurin
           java-version: '21'
 
+      # حزمة tools أزالتها جوجل، وهي ضمن الحزم الافتراضية لهذا الإجراء،
+      # فتُحدَّد الحزم المطلوبة صراحةً بدلاً منها.
       - uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-36 build-tools;36.0.0'
 
       - name: تثبيت الاعتماديات
         run: npm install --no-audit --no-fund
@@ -39,10 +43,16 @@ jobs:
       - name: بناء APK للتجربة
         run: |
           chmod +x android/gradlew
-          cd android && ./gradlew assembleDebug --no-daemon
+          cd android && ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: تسمية الملف
+        run: |
+          mkdir -p out
+          cp android/app/build/outputs/apk/debug/app-debug.apk "out/albaraka-contracts.apk"
+          ls -la out
 
       - uses: actions/upload-artifact@v4
         with:
-          name: albaraka-contracts-debug-apk
-          path: agri-contracts/android/app/build/outputs/apk/debug/*.apk
+          name: albaraka-contracts-apk
+          path: agri-contracts/out/albaraka-contracts.apk
           if-no-files-found: error
