@@ -196,9 +196,11 @@ export function renderContractPage(c, s, copyKey) {
         </div>
       </div>
 
+      <div class="sign-space"></div>
+
       <div class="signs">
         ${['البائع', 'الشاهد الأول', 'الشرعي', 'الشاهد الثاني', 'المشتري']
-          .map((n) => `<div><div class="sign__name">${n}</div><div class="sign__line"></div></div>`)
+          .map((n) => `<div class="sign__name">${n}</div>`)
           .join('')}
       </div>
     </div>

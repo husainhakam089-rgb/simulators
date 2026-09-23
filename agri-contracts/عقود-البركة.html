@@ -514,6 +514,7 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
   --frame-inner: #7f9a93; /* الخط الداخلي الرفيع */
   --base: 3.5mm;          /* حجم الخط الأساسي */
   --corner-w: 13mm;       /* عرض زخرفة الزاوية */
+  --sign-space: 8mm;      /* أدنى مساحة توقيع؛ تتمدّد تلقائياً في العقد القصير */
 }
 
 * { box-sizing: border-box; }
@@ -533,20 +534,23 @@ html, body {
   print-color-adjust: exact;
 }
 
+/* min-height لا height، وبلا overflow:hidden — لو طال العقد عن الورقة
+   فالأولى أن يكمل في ورقة ثانية على أن يُقصّ منه سطر. */
 .page {
   width: 210mm;
-  height: 297mm;
+  min-height: 297mm;
   padding: var(--page-pad);
   page-break-after: always;
   break-after: page;
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   position: relative;
 }
 .page:last-child { page-break-after: auto; break-after: auto; }
 
 /* ----- الإطار المزخرف ----- */
 .frame {
-  height: 100%;
+  flex: 1 0 auto;
   border: 0.45mm solid var(--frame);
   border-radius: 1mm;
   padding: var(--frame-pad);
@@ -664,7 +668,7 @@ html, body {
 }
 
 /* ----- سطور البيانات ----- */
-.body { flex: 1; margin-top: 2.5mm; }
+.body { flex: 0 0 auto; margin-top: 2.5mm; }
 .row {
   display: flex;
   align-items: baseline;
@@ -681,11 +685,10 @@ html, body {
   border-bottom: 0.25mm dotted var(--line);
   padding: 0 1mm 0.4mm;
   font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  /* يلتفّ ولا يُقص: قصّ العنوان بثلاث نقاط يعني ضياعه من العقد المطبوع */
+  overflow-wrap: anywhere;
 }
-.val--free { white-space: normal; overflow: visible; }
+.val--free { white-space: normal; }
 .val--wide { min-height: 5mm; }
 
 .section {
@@ -703,7 +706,13 @@ html, body {
   display: inline-block;
   padding: 0 1.5mm;
 }
-.parties { display: grid; grid-template-columns: 1fr 1fr; gap: 3mm; }
+/* minmax(0,1fr) لا 1fr: عمود الشبكة أدنى عرضه محتواه، فاسم أو عنوان طويل
+   كان يوسّع العمود ويدفع كتلة المشتري خارج الورقة. */
+.parties {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 3mm;
+}
 
 /* ----- الشروط ----- */
 .terms { margin-top: 2.5mm; }
@@ -712,18 +721,26 @@ html, body {
 .terms li { margin-bottom: 0.6mm; }
 
 /* ----- التواقيع ----- */
+/* مساحة التوقيع: تتمدّد لتبتلع الفراغ الباقي في عقد قصير، وتنكمش إلى
+   حدّها الأدنى في عقد طويل، فتبقى الأسماء دائماً أسفل الإطار. */
+.sign-space {
+  flex: 1 1 var(--sign-space);
+  min-height: 4mm;
+}
+
+/* كما في الدفتر الأصلي: أسماء زرقاء قرب أسفل الإطار، ومساحة التوقيع
+   فوقها لا تحتها، وبلا خطوط مطبوعة. */
 .signs {
-  margin-top: auto;
-  padding-top: 3mm;
+  padding-bottom: 2mm;
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 2mm;
   text-align: center;
   color: var(--blue);
 }
-.sign__name { font-size: 3.1mm; font-weight: 700; }
+.sign__name { font-size: 3.2mm; font-weight: 700; }
 .sign__line {
-  margin-top: 7mm;
+  margin-top: 6mm;
   border-top: 0.3mm solid var(--blue);
 }
 
@@ -2049,8 +2066,10 @@ ${main}`;
         </div>
       </div>
 
+      <div class="sign-space"></div>
+
       <div class="signs">
-        ${["البائع", "الشاهد الأول", "الشرعي", "الشاهد الثاني", "المشتري"].map((n) => `<div><div class="sign__name">${n}</div><div class="sign__line"></div></div>`).join("")}
+        ${["البائع", "الشاهد الأول", "الشرعي", "الشاهد الثاني", "المشتري"].map((n) => `<div class="sign__name">${n}</div>`).join("")}
       </div>
     </div>
   </div>`;
