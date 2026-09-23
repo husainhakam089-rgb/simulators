@@ -66,10 +66,14 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release delete apk-latest --yes --cleanup-tag 2>/dev/null || true
+          set -e
+          # الرفع خطوة مستقلة لا وسيطاً في أمر الإنشاء: وسيط الملف مرّ صامتاً
+          # في المحاولة السابقة فخرج الإصدار بلا APK.
+          gh release delete apk-latest --yes --cleanup-tag || echo "لا يوجد إصدار سابق"
           gh release create apk-latest \
             --title "عقود البركة — آخر APK" \
-            --notes "بُني من $GITHUB_SHA
-          نزّل الملف وثبّته على الهاتف (اسمح بالتثبيت من مصادر غير معروفة)." \
-            --prerelease \
-            out/albaraka-contracts.apk
+            --notes "بُني من ${GITHUB_SHA}. نزّل الملف وثبّته على الهاتف (اسمح بالتثبيت من مصادر غير معروفة)." \
+            --prerelease
+          gh release upload apk-latest out/albaraka-contracts.apk --clobber
+          echo "--- مرفقات الإصدار ---"
+          gh release view apk-latest --json assets --jq '.assets[] | "\(.name)  \(.size) بايت"'
