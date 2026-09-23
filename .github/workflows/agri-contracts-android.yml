@@ -8,6 +8,9 @@ on:
       - 'agri-contracts/**'
       - '.github/workflows/agri-contracts-android.yml'
 
+permissions:
+  contents: write
+
 jobs:
   apk:
     runs-on: ubuntu-latest
@@ -56,3 +59,17 @@ jobs:
           name: albaraka-contracts-apk
           path: agri-contracts/out/albaraka-contracts.apk
           if-no-files-found: error
+
+      # إصدار ثابت الرابط: تنزيل مباشر على الهاتف بلا تسجيل دخول ولا فك ضغط
+      - name: نشر الإصدار
+        if: github.ref_name == 'claude/hopeful-brahmagupta-emwanr' || github.ref_name == 'main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete apk-latest --yes --cleanup-tag 2>/dev/null || true
+          gh release create apk-latest \
+            --title "عقود البركة — آخر APK" \
+            --notes "بُني من $GITHUB_SHA
+          نزّل الملف وثبّته على الهاتف (اسمح بالتثبيت من مصادر غير معروفة)." \
+            --prerelease \
+            out/albaraka-contracts.apk
