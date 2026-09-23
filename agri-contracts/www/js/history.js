@@ -2,12 +2,10 @@
 
 import * as db from './db.js';
 import * as settingsStore from './settings.js';
-import { buildHtml } from './docactions.js';
+import { docRow } from './doclist.js';
 import { openDocument } from './docviewer.js';
-import { printDocument } from './print.js';
-import { go } from './router.js';
-import { ask, h, toast } from './ui.js';
-import { formatDate, formatDocNumber, formatMoney, normalizeAr } from './util.js';
+import { h, toast } from './ui.js';
+import { formatDocNumber, normalizeAr } from './util.js';
 
 function haystack(d) {
   return normalizeAr([
@@ -45,30 +43,16 @@ export async function render(root) {
   async function view(d) {
     try {
       const s = await settingsStore.load();
-      await openDocument(d.kind, d, s);
+      await openDocument(d.kind, d, s, {
+        onDeleted: () => {
+          const i = alldocs.indexOf(d);
+          if (i >= 0) alldocs.splice(i, 1);
+          paint();
+        },
+      });
     } catch (err) {
       toast(err && err.message ? err.message : 'تعذّر فتح المستند', 'error');
     }
-  }
-
-  async function reprint(d) {
-    try {
-      const s = await settingsStore.load();
-      const html = await buildHtml(d.kind, d, s, d.copies && d.copies.length ? d.copies : ['shop']);
-      await printDocument(html, { jobName: `${d.kind === 'receipt' ? 'وصل' : 'عقد'} ${formatDocNumber(d.number)}`, settings: s });
-    } catch (err) {
-      toast(err && err.message ? err.message : 'تعذّرت الطباعة', 'error');
-    }
-  }
-
-  async function removeDoc(d) {
-    const yes = await ask(`حذف ${d.kind === 'receipt' ? 'الوصل' : 'العقد'} رقم ${formatDocNumber(d.number)}؟ لا يمكن التراجع.`, { yes: 'احذف', no: 'تراجع' });
-    if (!yes) return;
-    await db.remove(d.kind === 'receipt' ? 'receipts' : 'contracts', d.id);
-    const i = alldocs.indexOf(d);
-    if (i >= 0) alldocs.splice(i, 1);
-    toast('حُذف', 'ok');
-    paint();
   }
 
   function paint() {
@@ -79,36 +63,7 @@ export async function render(root) {
 
     countEl.textContent = rows.length ? `${rows.length} مستنداً` : 'لا نتائج';
     listBox.textContent = '';
-    for (const d of rows) {
-      // الأزرار لا تفتح العارض، لذا تُوقف الحدث عن السطر الحاوي لها
-      const op = (icon, title, fn) =>
-        h('button', {
-          type: 'button', class: 'btn btn--sm', title,
-          onclick: (e) => { e.stopPropagation(); fn(); },
-        }, icon);
-
-      listBox.append(
-        h('div', { class: 'list__row list__row--doc', role: 'button', tabindex: '0',
-          onclick: () => view(d),
-          onkeydown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); view(d); } },
-        },
-          h('span', { class: `list__no ${d.kind === 'receipt' ? 'is-receipt' : ''}`, text: formatDocNumber(d.number) }),
-          h('span', { class: 'list__main' },
-            h('b', { text: d.kind === 'receipt' ? d.buyerName : `${d.buyer?.name || '—'} ← ${d.seller?.name || '—'}` }),
-            h('small', { text: d.kind === 'receipt' ? d.tool : `${d.machineType || ''} ${d.brand || ''} ${d.model || ''} — شاصي ${d.chassis || '—'}` }),
-          ),
-          h('span', { class: 'list__side' },
-            h('b', { text: `${formatMoney(d.amount)} د.ع` }),
-            h('small', { text: formatDate(d.date) }),
-          ),
-          h('span', { class: 'list__ops' },
-            op('🖨', 'طباعة', () => reprint(d)),
-            op('✎', 'تعديل', () => go(d.kind === 'receipt' ? 'receipt' : 'contract', { id: d.id })),
-            op('🗑', 'حذف', () => removeDoc(d)),
-          ),
-        ),
-      );
-    }
+    for (const d of rows) listBox.append(docRow(d, view));
   }
 
   search.addEventListener('input', paint);
@@ -119,7 +74,7 @@ export async function render(root) {
     h('div', { class: 'screen' },
       h('header', { class: 'screen__head' }, h('h1', { class: 'screen__title', text: 'السجل والبحث' })),
       h('section', { class: 'card' }, search, filters, countEl,
-        h('p', { class: 'muted', text: 'اضغط على أي سطر ليفتح المستند مكتوباً كاملاً.' })),
+        h('p', { class: 'muted', text: 'اضغط على أي سطر ليفتح المستند كاملاً، ومنه الطباعة والمشاركة والتعديل والحذف.' })),
       h('section', { class: 'card' }, listBox),
     ),
   );

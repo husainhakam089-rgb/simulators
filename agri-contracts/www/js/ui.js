@@ -370,9 +370,11 @@ export function wheelField({ label, kind = 'date', value, onChange, hint }) {
         if (Number(days[D]) > dim) {
           D = dim - 1;
           if (cd && !adjusting) {
+            // تصحيح فوري لا انسيابي: الانسيابي يتأخر عن قراءة القيمة،
+            // فيبقى معروضاً ٣١ بينما المحفوظ ٢٨.
             adjusting = true;
-            cd.goto(D, true);
-            setTimeout(() => { adjusting = false; }, 400);
+            cd.goto(D);
+            setTimeout(() => { adjusting = false; }, 250);
           }
         }
         draft = `${years[Y]}-${months[M]}-${days[D]}`;

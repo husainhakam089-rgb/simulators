@@ -3,10 +3,11 @@
 import * as db from './db.js';
 import * as lists from './lists.js';
 import * as settingsStore from './settings.js';
+import { docRow } from './doclist.js';
 import { openDocument } from './docviewer.js';
 import { go } from './router.js';
 import { h } from './ui.js';
-import { formatDocNumber, formatDate, formatMoney } from './util.js';
+
 
 export async function render(root) {
   const s = await settingsStore.load();
@@ -61,20 +62,9 @@ export async function render(root) {
         h('h2', { class: 'card__title', text: 'آخر ما حُفظ' }),
         recent.length
           ? h('div', { class: 'list' }, recent.map((d) =>
-              h('button', {
-                type: 'button', class: 'list__row',
-                onclick: () => openDocument(d.kind, d, s),
-              },
-                h('span', { class: 'list__no', text: formatDocNumber(d.number) }),
-                h('span', { class: 'list__main' },
-                  h('b', { text: d.kind === 'receipt' ? d.buyerName : (d.buyer?.name || '') }),
-                  h('small', { text: d.kind === 'receipt' ? d.tool : `${d.machineType} ${d.brand}` }),
-                ),
-                h('span', { class: 'list__side' },
-                  h('b', { text: `${formatMoney(d.amount)} د.ع` }),
-                  h('small', { text: formatDate(d.date) }),
-                ),
-              )))
+              docRow(d, (doc) => openDocument(doc.kind, doc, s, {
+                onDeleted: () => go('home', {}, { replace: true }),
+              }))))
           : h('p', { class: 'muted', text: 'لا يوجد شيء محفوظ بعد.' }),
       ),
 

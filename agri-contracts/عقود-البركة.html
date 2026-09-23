@@ -309,10 +309,11 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
 .docnum__hint { font-size: 0.72rem; color: var(--muted); }
 
 /* ---------- ورقة منزلقة ---------- */
+/* فوق عارض المستند (70): تأكيد الحذف يُفتح من داخله. */
 .sheet {
   position: fixed;
   inset: 0;
-  z-index: 60;
+  z-index: 90;
   background: rgba(20, 28, 24, 0.45);
   display: flex;
   align-items: flex-end;
@@ -393,7 +394,7 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
   position: fixed;
   bottom: calc(var(--nav-h) + var(--safe-b) + 14px);
   inset-inline: 14px;
-  z-index: 80;
+  z-index: 100;
   background: #222;
   color: #fff;
   border-radius: 11px;
@@ -482,6 +483,41 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
 .list__row--doc { cursor: pointer; }
 .list__row--doc:active { background: #f3f6f3; }
 .list__row--doc:focus-visible { outline: 2px solid var(--green-2); outline-offset: 2px; }
+
+/* ---------- سطر المستند في القوائم ---------- */
+.docrow {
+  border: 1px solid var(--line);
+  border-inline-start: 4px solid var(--green);
+  border-radius: 12px;
+  background: #fff;
+  padding: 9px 12px;
+  cursor: pointer;
+}
+.docrow--receipt { border-inline-start-color: #6c5b1f; }
+.docrow:active { background: #f3f6f3; }
+.docrow:focus-visible { outline: 2px solid var(--green-2); outline-offset: 2px; }
+
+.docrow__line { display: flex; align-items: baseline; gap: 8px; }
+.docrow__line--sub { margin-top: 1px; }
+.docrow__who,
+.docrow__what {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.docrow__no {
+  flex: 0 0 auto;
+  color: var(--green);
+  font-weight: 700;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+.docrow--receipt .docrow__no { color: #6c5b1f; }
+.docrow__what { color: var(--muted); font-size: 0.83rem; }
+.docrow__date { flex: 0 0 auto; color: var(--muted); font-size: 0.78rem; }
+.btn--danger { color: var(--red); border-color: #e7c3c3; }
 
 </style>
 </head>
@@ -1671,10 +1707,10 @@ html, body {
             D = dim - 1;
             if (cd && !adjusting) {
               adjusting = true;
-              cd.goto(D, true);
+              cd.goto(D);
               setTimeout(() => {
                 adjusting = false;
-              }, 400);
+              }, 250);
             }
           }
           draft = `${years[Y]}-${months[M]}-${days[D]}`;
@@ -1823,6 +1859,47 @@ html, body {
       toastTimer = null;
       MAX_CHIPS = 9;
       ITEM_H = 40;
+    }
+  });
+
+  // www/js/doclist.js
+  function docRow(doc, onOpen) {
+    const isReceipt = doc.kind === "receipt";
+    const who = (isReceipt ? doc.buyerName : doc.buyer && doc.buyer.name) || "—";
+    const what = isReceipt ? doc.tool || "وصل" : [doc.machineType, doc.brand].filter(Boolean).join(" — ") || "عقد";
+    const open2 = () => onOpen(doc);
+    return h(
+      "div",
+      {
+        class: `docrow ${isReceipt ? "docrow--receipt" : ""}`,
+        role: "button",
+        tabindex: "0",
+        onclick: open2,
+        onkeydown: (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            open2();
+          }
+        }
+      },
+      h(
+        "div",
+        { class: "docrow__line" },
+        h("b", { class: "docrow__who", text: who }),
+        h("span", { class: "docrow__no", text: formatDocNumber(doc.number) })
+      ),
+      h(
+        "div",
+        { class: "docrow__line docrow__line--sub" },
+        h("span", { class: "docrow__what", text: what }),
+        h("span", { class: "docrow__date", text: formatDate(doc.date) })
+      )
+    );
+  }
+  var init_doclist = __esm({
+    "www/js/doclist.js"() {
+      init_ui();
+      init_util();
     }
   });
 
@@ -2341,7 +2418,7 @@ ${main}`;
   });
 
   // www/js/docviewer.js
-  async function openDocument(kind, doc, settings) {
+  async function openDocument(kind, doc, settings, hooks = {}) {
     const label = kind === "receipt" ? "وصل" : "عقد";
     const html = await buildViewHtml(kind, doc, settings);
     const pages = countPages(html);
@@ -2439,7 +2516,22 @@ ${main}`;
             close();
             go(kind === "receipt" ? "receipt" : "contract", { id: doc.id });
           }
-        }, "✎ تعديل")
+        }, "✎ تعديل"),
+        h("button", {
+          type: "button",
+          class: "btn btn--ghost btn--danger",
+          onclick: () => act(async () => {
+            const yes = await ask(
+              `حذف ${label} رقم ${formatDocNumber(doc.number)}؟ لا يمكن التراجع.`,
+              { yes: "احذف", no: "تراجع" }
+            );
+            if (!yes) return;
+            await remove(kind === "receipt" ? "receipts" : "contracts", doc.id);
+            close();
+            toast("حُذف", "ok");
+            if (hooks.onDeleted) hooks.onDeleted();
+          })
+        }, "🗑 حذف")
       )
     );
     document.body.append(overlay);
@@ -2452,6 +2544,7 @@ ${main}`;
   var PAGE_W, PAGE_H, MIN_ZOOM, MAX_ZOOM;
   var init_docviewer = __esm({
     "www/js/docviewer.js"() {
+      init_db();
       init_docactions();
       init_print();
       init_router();
@@ -2525,27 +2618,9 @@ ${main}`;
           "section",
           { class: "card" },
           h("h2", { class: "card__title", text: "آخر ما حُفظ" }),
-          recent.length ? h("div", { class: "list" }, recent.map((d) => h(
-            "button",
-            {
-              type: "button",
-              class: "list__row",
-              onclick: () => openDocument(d.kind, d, s)
-            },
-            h("span", { class: "list__no", text: formatDocNumber(d.number) }),
-            h(
-              "span",
-              { class: "list__main" },
-              h("b", { text: d.kind === "receipt" ? d.buyerName : d.buyer?.name || "" }),
-              h("small", { text: d.kind === "receipt" ? d.tool : `${d.machineType} ${d.brand}` })
-            ),
-            h(
-              "span",
-              { class: "list__side" },
-              h("b", { text: `${formatMoney(d.amount)} د.ع` }),
-              h("small", { text: formatDate(d.date) })
-            )
-          ))) : h("p", { class: "muted", text: "لا يوجد شيء محفوظ بعد." })
+          recent.length ? h("div", { class: "list" }, recent.map((d) => docRow(d, (doc) => openDocument(doc.kind, doc, s, {
+            onDeleted: () => go("home", {}, { replace: true })
+          })))) : h("p", { class: "muted", text: "لا يوجد شيء محفوظ بعد." })
         ),
         s.conditionsReviewed ? null : h(
           "section",
@@ -2562,10 +2637,10 @@ ${main}`;
       init_db();
       init_lists();
       init_settings();
+      init_doclist();
       init_docviewer();
       init_router();
       init_ui();
-      init_util();
     }
   });
 
@@ -3238,82 +3313,23 @@ ${main}`;
     async function view(d) {
       try {
         const s = await load();
-        await openDocument(d.kind, d, s);
+        await openDocument(d.kind, d, s, {
+          onDeleted: () => {
+            const i = alldocs.indexOf(d);
+            if (i >= 0) alldocs.splice(i, 1);
+            paint();
+          }
+        });
       } catch (err) {
         toast(err && err.message ? err.message : "تعذّر فتح المستند", "error");
       }
-    }
-    async function reprint(d) {
-      try {
-        const s = await load();
-        const html = await buildHtml(d.kind, d, s, d.copies && d.copies.length ? d.copies : ["shop"]);
-        await printDocument(html, { jobName: `${d.kind === "receipt" ? "وصل" : "عقد"} ${formatDocNumber(d.number)}`, settings: s });
-      } catch (err) {
-        toast(err && err.message ? err.message : "تعذّرت الطباعة", "error");
-      }
-    }
-    async function removeDoc(d) {
-      const yes = await ask(`حذف ${d.kind === "receipt" ? "الوصل" : "العقد"} رقم ${formatDocNumber(d.number)}؟ لا يمكن التراجع.`, { yes: "احذف", no: "تراجع" });
-      if (!yes) return;
-      await remove(d.kind === "receipt" ? "receipts" : "contracts", d.id);
-      const i = alldocs.indexOf(d);
-      if (i >= 0) alldocs.splice(i, 1);
-      toast("حُذف", "ok");
-      paint();
     }
     function paint() {
       const q = normalizeAr(search2.value.trim());
       const rows = alldocs.filter((d) => kindFilter === "all" || d.kind === kindFilter).filter((d) => !q || haystack(d).includes(q));
       countEl.textContent = rows.length ? `${rows.length} مستنداً` : "لا نتائج";
       listBox.textContent = "";
-      for (const d of rows) {
-        const op = (icon, title, fn) => h("button", {
-          type: "button",
-          class: "btn btn--sm",
-          title,
-          onclick: (e) => {
-            e.stopPropagation();
-            fn();
-          }
-        }, icon);
-        listBox.append(
-          h(
-            "div",
-            {
-              class: "list__row list__row--doc",
-              role: "button",
-              tabindex: "0",
-              onclick: () => view(d),
-              onkeydown: (e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  view(d);
-                }
-              }
-            },
-            h("span", { class: `list__no ${d.kind === "receipt" ? "is-receipt" : ""}`, text: formatDocNumber(d.number) }),
-            h(
-              "span",
-              { class: "list__main" },
-              h("b", { text: d.kind === "receipt" ? d.buyerName : `${d.buyer?.name || "—"} ← ${d.seller?.name || "—"}` }),
-              h("small", { text: d.kind === "receipt" ? d.tool : `${d.machineType || ""} ${d.brand || ""} ${d.model || ""} — شاصي ${d.chassis || "—"}` })
-            ),
-            h(
-              "span",
-              { class: "list__side" },
-              h("b", { text: `${formatMoney(d.amount)} د.ع` }),
-              h("small", { text: formatDate(d.date) })
-            ),
-            h(
-              "span",
-              { class: "list__ops" },
-              op("🖨", "طباعة", () => reprint(d)),
-              op("✎", "تعديل", () => go(d.kind === "receipt" ? "receipt" : "contract", { id: d.id })),
-              op("🗑", "حذف", () => removeDoc(d))
-            )
-          )
-        );
-      }
+      for (const d of rows) listBox.append(docRow(d, view));
     }
     search2.addEventListener("input", paint);
     paint();
@@ -3329,7 +3345,7 @@ ${main}`;
           search2,
           filters,
           countEl,
-          h("p", { class: "muted", text: "اضغط على أي سطر ليفتح المستند مكتوباً كاملاً." })
+          h("p", { class: "muted", text: "اضغط على أي سطر ليفتح المستند كاملاً، ومنه الطباعة والمشاركة والتعديل والحذف." })
         ),
         h("section", { class: "card" }, listBox)
       )
@@ -3339,10 +3355,8 @@ ${main}`;
     "www/js/history.js"() {
       init_db();
       init_settings();
-      init_docactions();
+      init_doclist();
       init_docviewer();
-      init_print();
-      init_router();
       init_ui();
       init_util();
     }

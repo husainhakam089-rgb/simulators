@@ -1,9 +1,10 @@
 // عارض المستند: يفتح العقد أو الوصل مكتوباً كاملاً كما يخرج من الطابعة.
 
+import * as db from './db.js';
 import { buildHtml, buildViewHtml } from './docactions.js';
 import { countPages, printDocument, shareDocument } from './print.js';
 import { go } from './router.js';
-import { h, toast } from './ui.js';
+import { ask, h, toast } from './ui.js';
 import { formatDocNumber } from './util.js';
 
 const PAGE_W = 794; // عرض A4 بوحدات CSS
@@ -16,8 +17,9 @@ const MAX_ZOOM = 2.5;
  * @param {'contract'|'receipt'} kind
  * @param {object} doc المستند المحفوظ
  * @param {object} settings
+ * @param {{onDeleted?: () => void}} [hooks]
  */
-export async function openDocument(kind, doc, settings) {
+export async function openDocument(kind, doc, settings, hooks = {}) {
   const label = kind === 'receipt' ? 'وصل' : 'عقد';
   const html = await buildViewHtml(kind, doc, settings);
   const pages = countPages(html);
@@ -111,6 +113,18 @@ export async function openDocument(kind, doc, settings) {
         type: 'button', class: 'btn btn--ghost',
         onclick: () => { close(); go(kind === 'receipt' ? 'receipt' : 'contract', { id: doc.id }); },
       }, '✎ تعديل'),
+      h('button', {
+        type: 'button', class: 'btn btn--ghost btn--danger',
+        onclick: () => act(async () => {
+          const yes = await ask(`حذف ${label} رقم ${formatDocNumber(doc.number)}؟ لا يمكن التراجع.`,
+            { yes: 'احذف', no: 'تراجع' });
+          if (!yes) return;
+          await db.remove(kind === 'receipt' ? 'receipts' : 'contracts', doc.id);
+          close();
+          toast('حُذف', 'ok');
+          if (hooks.onDeleted) hooks.onDeleted();
+        }),
+      }, '🗑 حذف'),
     ),
   );
 

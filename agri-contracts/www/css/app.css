@@ -265,10 +265,11 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
 .docnum__hint { font-size: 0.72rem; color: var(--muted); }
 
 /* ---------- ورقة منزلقة ---------- */
+/* فوق عارض المستند (70): تأكيد الحذف يُفتح من داخله. */
 .sheet {
   position: fixed;
   inset: 0;
-  z-index: 60;
+  z-index: 90;
   background: rgba(20, 28, 24, 0.45);
   display: flex;
   align-items: flex-end;
@@ -349,7 +350,7 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
   position: fixed;
   bottom: calc(var(--nav-h) + var(--safe-b) + 14px);
   inset-inline: 14px;
-  z-index: 80;
+  z-index: 100;
   background: #222;
   color: #fff;
   border-radius: 11px;
@@ -438,3 +439,38 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
 .list__row--doc { cursor: pointer; }
 .list__row--doc:active { background: #f3f6f3; }
 .list__row--doc:focus-visible { outline: 2px solid var(--green-2); outline-offset: 2px; }
+
+/* ---------- سطر المستند في القوائم ---------- */
+.docrow {
+  border: 1px solid var(--line);
+  border-inline-start: 4px solid var(--green);
+  border-radius: 12px;
+  background: #fff;
+  padding: 9px 12px;
+  cursor: pointer;
+}
+.docrow--receipt { border-inline-start-color: #6c5b1f; }
+.docrow:active { background: #f3f6f3; }
+.docrow:focus-visible { outline: 2px solid var(--green-2); outline-offset: 2px; }
+
+.docrow__line { display: flex; align-items: baseline; gap: 8px; }
+.docrow__line--sub { margin-top: 1px; }
+.docrow__who,
+.docrow__what {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.docrow__no {
+  flex: 0 0 auto;
+  color: var(--green);
+  font-weight: 700;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+.docrow--receipt .docrow__no { color: #6c5b1f; }
+.docrow__what { color: var(--muted); font-size: 0.83rem; }
+.docrow__date { flex: 0 0 auto; color: var(--muted); font-size: 0.78rem; }
+.btn--danger { color: var(--red); border-color: #e7c3c3; }
