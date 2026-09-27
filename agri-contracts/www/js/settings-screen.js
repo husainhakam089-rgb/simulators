@@ -5,6 +5,7 @@ import * as lists from './lists.js';
 import * as settingsStore from './settings.js';
 import * as customers from './customers.js';
 import { ask, h, photoField, textArea, textField, toast } from './ui.js';
+import { shareTextFile } from './print.js';
 import { go } from './router.js';
 import { digitsOnly, formatDocNumber, setDigitStyle } from './util.js';
 
@@ -108,11 +109,16 @@ export async function render(root) {
       customers: await db.all('customers'),
       lists: await db.all('lists'),
     };
-    const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
-    const a = h('a', {
-      href: URL.createObjectURL(blob),
-      download: `نسخة-البركة-${new Date().toISOString().slice(0, 10)}.json`,
-    });
+    const text = JSON.stringify(payload);
+    const fileName = `نسخة-البركة-${new Date().toISOString().slice(0, 10)}.json`;
+
+    // على الهاتف تُفتح قائمة المشاركة؛ رابط التنزيل لا يعمل داخل WebView.
+    if (await shareTextFile(text, { fileName, title: 'نسخة احتياطية' })) {
+      toast('اختر أين تحفظ النسخة', 'ok');
+      return;
+    }
+    const blob = new Blob([text], { type: 'application/json' });
+    const a = h('a', { href: URL.createObjectURL(blob), download: fileName });
     document.body.append(a);
     a.click();
     setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
@@ -225,7 +231,7 @@ export async function render(root) {
 
       h('section', { class: 'card' },
         h('h2', { class: 'card__title', text: 'النسخ الاحتياطي' }),
-        h('p', { class: 'muted', text: 'الورق يحفظ العقد نفسه فقط؛ هذه النسخة تحفظ أيضاً قائمة الزبائن والقوائم التي كبرت مع الوقت.' }),
+        h('p', { class: 'muted', text: 'الورق يحفظ العقد نفسه فقط؛ هذه النسخة تحفظ أيضاً العقود والزبائن والقوائم والعدّاد. صدّرها قبل أي حذف للتطبيق.' }),
         h('div', { class: 'actions' },
           h('button', { type: 'button', class: 'btn', onclick: exportAll }, '⬇ تصدير نسخة'),
           h('button', { type: 'button', class: 'btn btn--ghost', onclick: () => importInput.click() }, '⬆ استيراد نسخة'),

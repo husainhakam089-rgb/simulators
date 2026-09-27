@@ -1,0 +1,32 @@
+// توقيع ثابت + رقم إصدار متصاعد.
+//
+// بدونه يولّد كل بناء مفتاح تجربة جديداً، فيرفض أندرويد تثبيت النسخة
+// الجديدة فوق القديمة برسالة «حدث خطأ أثناء تثبيت الحزمة» — لأن التوقيع
+// اختلف. بهذا الملف تُوقَّع كل النسخ بمفتاح واحد فتُحدَّث فوق بعضها
+// وتبقى العقود المحفوظة في مكانها.
+
+android {
+    signingConfigs {
+        albaraka {
+            storeFile file('albaraka.keystore')
+            storePassword 'albaraka'
+            keyAlias 'albaraka'
+            keyPassword 'albaraka'
+        }
+    }
+
+    defaultConfig {
+        versionCode Integer.parseInt(project.findProperty('albarakaVersionCode') ?: '1')
+        versionName project.findProperty('albarakaVersionName') ?: '1.0'
+    }
+
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.albaraka
+        }
+        release {
+            signingConfig signingConfigs.albaraka
+            minifyEnabled false
+        }
+    }
+}

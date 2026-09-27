@@ -371,6 +371,24 @@ export async function printDocument(html, { jobName = 'عقد', settings = {} } 
   return 'system';
 }
 
+/**
+ * مشاركة ملف نصّي جاهز (النسخة الاحتياطية).
+ * تنزيل blob عبر رابط لا يعمل داخل WebView أندرويد، فيُمرَّر المحتوى
+ * للطبقة الأصلية لتكتبه وتفتح قائمة المشاركة.
+ */
+export async function shareTextFile(text, { fileName, mimeType = 'application/json', title = fileName } = {}) {
+  const plugin = nativePlugin();
+  if (!plugin || !plugin.shareFile) return false;
+  const bytes = new TextEncoder().encode(text);
+  let binary = '';
+  const CHUNK = 0x8000;
+  for (let i = 0; i < bytes.length; i += CHUNK) {
+    binary += String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK));
+  }
+  await plugin.shareFile({ base64: btoa(binary), fileName, mimeType, title });
+  return true;
+}
+
 /** مشاركة نسخة PDF (واتساب مثلاً). */
 export async function shareDocument(html, { fileName = 'عقد.pdf', title = 'عقد' } = {}) {
   const plugin = nativePlugin();

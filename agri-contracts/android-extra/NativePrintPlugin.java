@@ -21,6 +21,8 @@ import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.util.Base64;
 
 /**
  * جسر الطباعة إلى أندرويد.
@@ -195,7 +197,7 @@ public class NativePrintPlugin extends Plugin {
     public void sharePdf(PluginCall call) {
         final String html = call.getString("html", "");
         final String title = call.getString("title", "مستند");
-        final String fileName = safeFileName(call.getString("fileName", "مستند.pdf"));
+        final String fileName = safeFileName(call.getString("fileName", "مستند.pdf"), ".pdf");
 
         onUi(call, () -> withLoadedWebView(html, false, webView -> {
             File dir = new File(getContext().getCacheDir(), "shared");
@@ -210,22 +212,7 @@ public class NativePrintPlugin extends Plugin {
                     return;
                 }
                 try {
-                    Uri uri = FileProvider.getUriForFile(
-                            getContext(), getContext().getPackageName() + ".fileprovider", pdf);
-                    Intent send = new Intent(Intent.ACTION_SEND);
-                    send.setType("application/pdf");
-                    send.putExtra(Intent.EXTRA_STREAM, uri);
-                    send.putExtra(Intent.EXTRA_SUBJECT, title);
-                    send.putExtra(Intent.EXTRA_TITLE, title);
-                    // بعض تطبيقات الطابعات تقرأ الملف من ClipData لا من EXTRA_STREAM،
-                    // ومنها تأخذ إذن القراءة المؤقّت.
-                    send.setClipData(ClipData.newRawUri(title, uri));
-                    send.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-
-                    Intent chooser = Intent.createChooser(send, "طباعة أو مشاركة");
-                    chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    chooser.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                    getContext().startActivity(chooser);
+                    shareIntent(pdf, "application/pdf", title);
                     call.resolve();
                 } catch (Exception e) {
                     call.reject("تعذّرت المشاركة: " + e.getMessage());
@@ -234,13 +221,62 @@ public class NativePrintPlugin extends Plugin {
         }));
     }
 
+    /**
+     * مشاركة ملف جاهز المحتوى — تُستعمل لتصدير النسخة الاحتياطية.
+     * تنزيل الملفات عبر رابط blob لا يعمل داخل WebView أندرويد، فتُمرَّر
+     * المحتويات من الواجهة وتُكتب هنا ثم تُفتح قائمة المشاركة.
+     */
+    @PluginMethod
+    public void shareFile(PluginCall call) {
+        final String base64 = call.getString("base64", "");
+        final String mimeType = call.getString("mimeType", "application/octet-stream");
+        final String title = call.getString("title", "ملف");
+        final String fileName = safeFileName(call.getString("fileName", "ملف"), "");
+
+        try {
+            File dir = new File(getContext().getCacheDir(), "shared");
+            if (!dir.exists() && !dir.mkdirs()) {
+                call.reject("تعذّر تهيئة مجلد المشاركة");
+                return;
+            }
+            File file = new File(dir, fileName);
+            try (FileOutputStream stream = new FileOutputStream(file)) {
+                stream.write(Base64.getDecoder().decode(base64));
+            }
+            shareIntent(file, mimeType, title);
+            call.resolve();
+        } catch (Exception e) {
+            call.reject("تعذّرت مشاركة الملف: " + e.getMessage());
+        }
+    }
+
+    /** فتح قائمة المشاركة لملف داخل مجلد المشاركة. */
+    private void shareIntent(File file, String mimeType, String title) {
+        Uri uri = FileProvider.getUriForFile(
+                getContext(), getContext().getPackageName() + ".fileprovider", file);
+        Intent send = new Intent(Intent.ACTION_SEND);
+        send.setType(mimeType);
+        send.putExtra(Intent.EXTRA_STREAM, uri);
+        send.putExtra(Intent.EXTRA_SUBJECT, title);
+        send.putExtra(Intent.EXTRA_TITLE, title);
+        // بعض تطبيقات الطابعات تقرأ الملف من ClipData لا من EXTRA_STREAM،
+        // ومنها تأخذ إذن القراءة المؤقّت.
+        send.setClipData(ClipData.newRawUri(title, uri));
+        send.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+        Intent chooser = Intent.createChooser(send, title);
+        chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        chooser.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        getContext().startActivity(chooser);
+    }
+
     /** اسم ملف صالح: بلا فواصل مسار ولا محارف تكسر مزوّد الملفات. */
-    private static String safeFileName(String name) {
+    private static String safeFileName(String name, String extension) {
         String cleaned = name.replaceAll("[\\\\/:*?\"<>|\\r\\n]", "_").trim();
         if (cleaned.isEmpty()) {
             cleaned = "مستند";
         }
-        return cleaned.endsWith(".pdf") ? cleaned : cleaned + ".pdf";
+        return extension.isEmpty() || cleaned.endsWith(extension) ? cleaned : cleaned + extension;
     }
 
 }

@@ -2310,6 +2310,18 @@ ${main}`;
     await plugin.printHtml({ html, jobName, pageCount: countPages(html) });
     return "system";
   }
+  async function shareTextFile(text, { fileName, mimeType = "application/json", title = fileName } = {}) {
+    const plugin = nativePlugin();
+    if (!plugin || !plugin.shareFile) return false;
+    const bytes = new TextEncoder().encode(text);
+    let binary = "";
+    const CHUNK = 32768;
+    for (let i = 0; i < bytes.length; i += CHUNK) {
+      binary += String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK));
+    }
+    await plugin.shareFile({ base64: btoa(binary), fileName, mimeType, title });
+    return true;
+  }
   async function shareDocument(html, { fileName = "عقد.pdf", title = "عقد" } = {}) {
     const plugin = nativePlugin();
     if (!plugin || !plugin.sharePdf) {
@@ -3498,11 +3510,14 @@ ${main}`;
         customers: await all("customers"),
         lists: await all("lists")
       };
-      const blob = new Blob([JSON.stringify(payload)], { type: "application/json" });
-      const a = h("a", {
-        href: URL.createObjectURL(blob),
-        download: `نسخة-البركة-${(/* @__PURE__ */ new Date()).toISOString().slice(0, 10)}.json`
-      });
+      const text = JSON.stringify(payload);
+      const fileName = `نسخة-البركة-${(/* @__PURE__ */ new Date()).toISOString().slice(0, 10)}.json`;
+      if (await shareTextFile(text, { fileName, title: "نسخة احتياطية" })) {
+        toast("اختر أين تحفظ النسخة", "ok");
+        return;
+      }
+      const blob = new Blob([text], { type: "application/json" });
+      const a = h("a", { href: URL.createObjectURL(blob), download: fileName });
       document.body.append(a);
       a.click();
       setTimeout(() => {
@@ -3629,7 +3644,7 @@ ${main}`;
           "section",
           { class: "card" },
           h("h2", { class: "card__title", text: "النسخ الاحتياطي" }),
-          h("p", { class: "muted", text: "الورق يحفظ العقد نفسه فقط؛ هذه النسخة تحفظ أيضاً قائمة الزبائن والقوائم التي كبرت مع الوقت." }),
+          h("p", { class: "muted", text: "الورق يحفظ العقد نفسه فقط؛ هذه النسخة تحفظ أيضاً العقود والزبائن والقوائم والعدّاد. صدّرها قبل أي حذف للتطبيق." }),
           h(
             "div",
             { class: "actions" },
@@ -3649,6 +3664,7 @@ ${main}`;
       init_settings();
       init_customers();
       init_ui();
+      init_print();
       init_router();
       init_util();
     }

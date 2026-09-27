@@ -35,6 +35,22 @@ mkdirSync(printPkg, { recursive: true });
 copyFileSync(join(extra, 'PdfWriter.java'), join(printPkg, 'PdfWriter.java'));
 done.push('نُسخ PdfWriter.java إلى android/print');
 
+/* 1ج) توقيع ثابت: بدونه لا تُثبَّت نسخة فوق أخرى */
+const appDir = join(android, 'app');
+copyFileSync(join(extra, 'albaraka.keystore'), join(appDir, 'albaraka.keystore'));
+copyFileSync(join(extra, 'signing.gradle'), join(appDir, 'signing.gradle'));
+const appGradle = join(appDir, 'build.gradle');
+if (existsSync(appGradle)) {
+  const gradle = readFileSync(appGradle, 'utf8');
+  if (gradle.includes("apply from: 'signing.gradle'")) {
+    skipped.push('signing.gradle مطبَّق مسبقاً');
+  } else {
+    writeFileSync(appGradle, `${gradle.trimEnd()}\n\napply from: 'signing.gradle'\n`);
+    done.push('رُبط التوقيع الثابت في build.gradle');
+  }
+}
+done.push('نُسخ مفتاح التوقيع');
+
 /* 2) تسجيل الملحق في MainActivity */
 const mainActivity = join(pkgPath, 'MainActivity.java');
 if (existsSync(mainActivity)) {

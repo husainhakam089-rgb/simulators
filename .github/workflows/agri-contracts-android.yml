@@ -43,16 +43,21 @@ jobs:
           npx cap add android
           node scripts/apply-android-extras.mjs
 
-      - name: بناء APK للتجربة
+      # نسخة إصدار موقّعة بالمفتاح الثابت، ورقم إصدار متصاعد مع كل بناء
+      - name: بناء APK
         run: |
           chmod +x android/gradlew
-          cd android && ./gradlew assembleDebug --no-daemon --stacktrace
+          cd android && ./gradlew assembleRelease --no-daemon --stacktrace \
+            -PalbarakaVersionCode=${{ github.run_number }} \
+            -PalbarakaVersionName=1.${{ github.run_number }}
 
-      - name: تسمية الملف
+      - name: تسمية الملف والتحقّق من التوقيع
         run: |
           mkdir -p out
-          cp android/app/build/outputs/apk/debug/app-debug.apk "out/albaraka-contracts.apk"
+          cp android/app/build/outputs/apk/release/app-release.apk "out/albaraka-contracts.apk"
           ls -la out
+          APKSIGNER=$(ls "$ANDROID_HOME"/build-tools/*/apksigner | tail -1)
+          "$APKSIGNER" verify --print-certs out/albaraka-contracts.apk | grep -i "SHA-256 digest" || true
 
       - uses: actions/upload-artifact@v4
         with:
