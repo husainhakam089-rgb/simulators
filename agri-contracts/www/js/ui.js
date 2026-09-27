@@ -1,6 +1,6 @@
 // مكوّنات الواجهة: كبسولات، عجلة دوارة، اقتراح، أوراق منزلقة، تنبيهات.
 
-import { escapeHtml, fileToDataURL, pad, rankSimilar } from './util.js';
+import { escapeHtml, fileToDataURL, pad, rankSimilar, toArabicDigits, toLatinDigits } from './util.js';
 
 /** بنّاء عناصر مختصر. */
 export function h(tag, attrs = {}, ...children) {
@@ -275,8 +275,9 @@ export function chipField({
 const ITEM_H = 40;
 
 function wheelColumn(values, initialIndex, onPick) {
+  // القيم تبقى لاتينية للحساب، والمعروض بشكل الأرقام المختار.
   const list = h('div', { class: 'wheel__list' },
-    values.map((v, i) => h('div', { class: 'wheel__item', dataset: { i } }, v)),
+    values.map((v, i) => h('div', { class: 'wheel__item', dataset: { i } }, toArabicDigits(v))),
   );
   const col = h('div', { class: 'wheel__col' }, list);
 
@@ -386,7 +387,8 @@ export function wheelField({ label, kind = 'date', value, onChange, hint }) {
       cols.append(cd.el, cm.el, cy.el);
     }
 
-    manual.addEventListener('change', () => { draft = manual.value.trim(); });
+    // تقبل الكتابة بأي لوحة مفاتيح، والقيمة تُخزَّن لاتينية.
+    manual.addEventListener('change', () => { draft = toLatinDigits(manual.value.trim()); });
 
     sheet({
       title: label,
@@ -408,9 +410,9 @@ function formatFor(kind, v) {
   if (!v) return '—';
   if (kind === 'date') {
     const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v);
-    return m ? `${m[3]} / ${m[2]} / ${m[1]}` : v;
+    return toArabicDigits(m ? `${m[3]} / ${m[2]} / ${m[1]}` : v);
   }
-  return v;
+  return toArabicDigits(v);
 }
 
 /* ---------- حقل نصي مع اقتراح ---------- */

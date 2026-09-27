@@ -6,7 +6,7 @@ import * as settingsStore from './settings.js';
 import * as customers from './customers.js';
 import { ask, h, photoField, textArea, textField, toast } from './ui.js';
 import { go } from './router.js';
-import { formatDocNumber } from './util.js';
+import { digitsOnly, formatDocNumber, setDigitStyle } from './util.js';
 
 export async function render(root) {
   const s = await settingsStore.load();
@@ -41,6 +41,10 @@ export async function render(root) {
   const printerQueue = textField({ label: 'مسار الطابور', value: s.printerQueue, placeholder: 'ipp/print' });
 
   /* ----- نصوص العقد ----- */
+  const digitStyle = h('select', { class: 'input' },
+    h('option', { value: 'arabic', selected: s.digitStyle !== 'latin' }, 'عربية ٠١٢٣٤٥٦٧٨٩'),
+    h('option', { value: 'latin', selected: s.digitStyle === 'latin' }, 'إنجليزية 0123456789'),
+  );
   const subjectWord = h('select', { class: 'input' },
     h('option', { value: 'الآلية', selected: s.subjectWord === 'الآلية' }, 'الآلية'),
     h('option', { value: 'السيارة', selected: s.subjectWord === 'السيارة' }, 'السيارة'),
@@ -150,17 +154,19 @@ export async function render(root) {
         logo: logo.get(),
         headerImageRight: imgRight.get(),
         headerImageLeft: imgLeft.get(),
-        contractNext: Number(contractNext.get().replace(/\D/g, '')) || 1,
-        receiptNext: Number(receiptNext.get().replace(/\D/g, '')) || 1,
+        contractNext: Number(digitsOnly(contractNext.get())) || 1,
+        receiptNext: Number(digitsOnly(receiptNext.get())) || 1,
         printerMode: printerMode.value,
         printerAddress: printerAddress.get(),
-        printerPort: Number(printerPort.get().replace(/\D/g, '')) || 631,
+        printerPort: Number(digitsOnly(printerPort.get())) || 631,
         printerQueue: printerQueue.get() || 'ipp/print',
+        digitStyle: digitStyle.value,
         subjectWord: subjectWord.value,
         engineNoRequired: engineNoRequired.checked,
         conditionsReviewed: conditionsReviewed.checked,
         conditions: conditions.map((c) => c.get()).filter(Boolean),
       });
+      setDigitStyle(digitStyle.value);
       toast('حُفظت الإعدادات', 'ok');
     },
   }, '💾 حفظ الإعدادات');
@@ -198,6 +204,11 @@ export async function render(root) {
 
       h('section', { class: 'card' },
         h('h2', { class: 'card__title', text: 'نصوص العقد' }),
+        h('div', { class: 'field' },
+          h('label', { class: 'field__label', text: 'شكل الأرقام في العقد والشاشات' }),
+          digitStyle,
+          h('div', { class: 'field__hint', text: 'أرقام الشاصي والمحرك تبقى كما تُكتب في الحالتين، لأنها أرقام مضروبة على الآلية نفسها.' }),
+        ),
         h('div', { class: 'field' }, h('label', { class: 'field__label', text: 'الكلمة المستعملة في العقد' }), subjectWord),
         h('label', { class: 'checkrow' }, engineNoRequired, h('span', { text: 'رقم المحرك حقل إلزامي' })),
         h('h3', { class: 'subhead', text: 'الشروط المطبوعة أسفل العقد' }),

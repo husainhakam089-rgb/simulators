@@ -28,6 +28,13 @@ for (const file of ['NativePrintPlugin.java', 'IppClient.java']) {
   done.push(`نُسخ ${file}`);
 }
 
+/* 1ب) مساعد التحويل إلى PDF — داخل حزمة android.print لأن بانِيَي
+   ردّي PrintDocumentAdapter محدودان بتلك الحزمة ولا يُشتقّان من خارجها. */
+const printPkg = join(android, 'app/src/main/java/android/print');
+mkdirSync(printPkg, { recursive: true });
+copyFileSync(join(extra, 'PdfWriter.java'), join(printPkg, 'PdfWriter.java'));
+done.push('نُسخ PdfWriter.java إلى android/print');
+
 /* 2) تسجيل الملحق في MainActivity */
 const mainActivity = join(pkgPath, 'MainActivity.java');
 if (existsSync(mainActivity)) {

@@ -1,3 +1,5 @@
+import { toLatinDigits } from './util.js';
+
 // تفقيط: تحويل المبلغ الرقمي إلى حروف عربية (دينار عراقي).
 
 const ONES = ['', 'واحد', 'اثنان', 'ثلاثة', 'أربعة', 'خمسة', 'ستة', 'سبعة', 'ثمانية', 'تسعة'];
@@ -66,7 +68,7 @@ export function tafqeet(value, opts = {}) {
     prefix = '',
     suffix = 'لا غير',
   } = opts;
-  const amount = Math.floor(Math.abs(Number(String(value).replace(/[^\d.]/g, '')) || 0));
+  const amount = Math.floor(Math.abs(Number(toLatinDigits(value).replace(/[^\d.]/g, '')) || 0));
   if (!amount) return '';
   if (amount >= 1e15) return '';
 

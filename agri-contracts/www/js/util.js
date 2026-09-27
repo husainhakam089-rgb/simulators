@@ -1,10 +1,44 @@
 // أدوات عامة: تطبيع النص العربي، التشابه، التواريخ، الأرقام.
 
+const ARABIC_DIGITS = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+
+// نمط الأرقام في كل ما يُعرض ويُطبع. يُضبط مرة عند الإقلاع من الإعدادات،
+// فلا يحتاج كل موضع عرض أن يعرف الإعدادات.
+let digitStyle = 'arabic';
+
+/** @param {'arabic'|'latin'} style */
+export function setDigitStyle(style) {
+  digitStyle = style === 'latin' ? 'latin' : 'arabic';
+}
+
+export function getDigitStyle() {
+  return digitStyle;
+}
+
+/** الأرقام العربية (الهندية) المستعملة في العراق: ٠١٢٣٤٥٦٧٨٩ */
+export function toArabicDigits(value) {
+  const text = String(value == null ? '' : value);
+  if (digitStyle === 'latin') return text;
+  return text.replace(/[0-9]/g, (d) => ARABIC_DIGITS[Number(d)]);
+}
+
+/** العكس — للحساب والتخزين والبحث مهما كانت لوحة مفاتيح المستخدم. */
+export function toLatinDigits(value) {
+  return String(value == null ? '' : value)
+    .replace(/[\u0660-\u0669]/g, (d) => String(d.charCodeAt(0) - 0x0660))
+    .replace(/[\u06F0-\u06F9]/g, (d) => String(d.charCodeAt(0) - 0x06F0));
+}
+
+/** هل المحرف رقم، عربياً كان أم لاتينياً؟ */
+function isDigit(ch) {
+  return (ch >= '0' && ch <= '9') || (ch >= '٠' && ch <= '٩');
+}
+
 export const AR_DAYS = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
 
 /** تطبيع النص العربي لغرض المقارنة فقط (لا يُحفظ بهذا الشكل). */
 export function normalizeAr(s) {
-  return String(s || '')
+  return toLatinDigits(s || '')
     .replace(/[ً-ٰٟـ]/g, '') // تشكيل وتطويل
     .replace(/[أإآٱ]/g, 'ا')
     .replace(/ى/g, 'ي')
@@ -58,7 +92,7 @@ export function rankSimilar(query, items, { key = null, min = 0.45, limit = 6 } 
 export const pad = (n, w = 2) => String(n).padStart(w, '0');
 
 /** رقم العقد بصيغة الدفتر: خمس خانات. */
-export const formatDocNumber = (n) => pad(n, 5);
+export const formatDocNumber = (n) => toArabicDigits(pad(n, 5));
 
 export function todayISO(d = new Date()) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -84,7 +118,7 @@ export function parseISO(iso) {
 /** عرض التاريخ كما في الدفتر: يوم / شهر / سنة. */
 export function formatDate(iso) {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso || ''));
-  return m ? `${m[3]} / ${m[2]} / ${m[1]}` : '';
+  return m ? toArabicDigits(`${m[3]} / ${m[2]} / ${m[1]}`) : '';
 }
 
 /** الوقت بصيغة 12 ساعة مع ص/م. */
@@ -94,17 +128,17 @@ export function formatTime(hhmm) {
   let h = Number(m[1]);
   const suffix = h < 12 ? 'صباحاً' : 'مساءً';
   h = h % 12 || 12;
-  return `${h}:${m[2]} ${suffix}`;
+  return toArabicDigits(`${h}:${m[2]}`) + ` ${suffix}`;
 }
 
 export function digitsOnly(s) {
-  return String(s || '').replace(/[^\d]/g, '');
+  return toLatinDigits(s || '').replace(/[^\d]/g, '');
 }
 
-/** تنسيق المبلغ بفواصل الآلاف. */
+/** تنسيق المبلغ بفواصل الآلاف وأرقام عربية. */
 export function formatMoney(n) {
   const v = Number(digitsOnly(n) || 0);
-  return v.toLocaleString('en-US');
+  return toArabicDigits(v.toLocaleString('en-US'));
 }
 
 /**
@@ -115,7 +149,7 @@ export function formatMoney(n) {
 export function formatMoneyInput(input) {
   const raw = input.value;
   const caret = input.selectionStart == null ? raw.length : input.selectionStart;
-  const digitsBefore = raw.slice(0, caret).replace(/\D/g, '').length;
+  const digitsBefore = digitsOnly(raw.slice(0, caret)).length;
   const formatted = formatMoney(raw);
   if (formatted === raw && caret === input.selectionEnd) return;
   input.value = formatted;
@@ -123,7 +157,7 @@ export function formatMoneyInput(input) {
   let pos = digitsBefore === 0 ? 0 : formatted.length;
   let seen = 0;
   for (let i = 0; i < formatted.length && digitsBefore > 0; i++) {
-    if (formatted[i] >= '0' && formatted[i] <= '9') {
+    if (isDigit(formatted[i])) {
       seen += 1;
       if (seen === digitsBefore) {
         pos = i + 1;

@@ -216,7 +216,13 @@ html, body {
 /* ----- الشروط ----- */
 .terms { margin-top: 2.5mm; }
 .terms__title { color: var(--red); font-weight: 700; margin-bottom: 0.8mm; }
-.terms ol { margin: 0; padding-inline-start: 5mm; font-size: 3.1mm; line-height: 1.6; }
+.terms ol {
+  margin: 0;
+  padding-inline-start: 5mm;
+  font-size: 3.1mm;
+  line-height: 1.6;
+  list-style-type: arabic-indic;
+}
 .terms li { margin-bottom: 0.6mm; }
 
 /* ----- التواقيع ----- */

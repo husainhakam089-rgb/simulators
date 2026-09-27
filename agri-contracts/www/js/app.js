@@ -5,6 +5,7 @@ import * as lists from './lists.js';
 import * as settingsStore from './settings.js';
 import { current, go, mount, onNavigate, register, start } from './router.js';
 import { h, toast } from './ui.js';
+import { setDigitStyle } from './util.js';
 
 register('home', () => import('./home.js'));
 register('contract', () => import('./contract.js'));
@@ -38,7 +39,8 @@ async function boot() {
   try {
     await db.open();
     await lists.seed();
-    await settingsStore.load();
+    const s = await settingsStore.load();
+    setDigitStyle(s.digitStyle);
   } catch (e) {
     document.getElementById('app').innerHTML =
       `<div class="screen"><section class="card card--warn"><h2 class="card__title">تعذّر فتح قاعدة البيانات</h2><p>${e.message}</p></section></div>`;

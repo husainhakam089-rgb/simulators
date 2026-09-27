@@ -33,6 +33,7 @@ export const DEFAULTS = {
   receiptsPerPage: 2, // وصلان في الورقة الواحدة مع خط قص
   // نصوص العقد
   conditions: [...DEFAULT_CONDITIONS],
+  digitStyle: 'arabic', // 'arabic' = ٠١٢٣ أو 'latin' = 0123
   subjectWord: 'الآلية', // قرار معلّق: «الآلية» أم «السيارة»
   engineNoRequired: false, // قرار معلّق: رقم المحرك إلزامي؟
   conditionsReviewed: false, // تُرفع بعد اعتماد نص الشروط الحقيقي من الدفتر

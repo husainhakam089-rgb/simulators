@@ -753,7 +753,13 @@ html, body {
 /* ----- الشروط ----- */
 .terms { margin-top: 2.5mm; }
 .terms__title { color: var(--red); font-weight: 700; margin-bottom: 0.8mm; }
-.terms ol { margin: 0; padding-inline-start: 5mm; font-size: 3.1mm; line-height: 1.6; }
+.terms ol {
+  margin: 0;
+  padding-inline-start: 5mm;
+  font-size: 3.1mm;
+  line-height: 1.6;
+  list-style-type: arabic-indic;
+}
 .terms li { margin-bottom: 0.6mm; }
 
 /* ----- التواقيع ----- */
@@ -991,8 +997,22 @@ html, body {
   });
 
   // www/js/util.js
+  function setDigitStyle(style) {
+    digitStyle = style === "latin" ? "latin" : "arabic";
+  }
+  function toArabicDigits(value) {
+    const text = String(value == null ? "" : value);
+    if (digitStyle === "latin") return text;
+    return text.replace(/[0-9]/g, (d) => ARABIC_DIGITS[Number(d)]);
+  }
+  function toLatinDigits(value) {
+    return String(value == null ? "" : value).replace(/[\u0660-\u0669]/g, (d) => String(d.charCodeAt(0) - 1632)).replace(/[\u06F0-\u06F9]/g, (d) => String(d.charCodeAt(0) - 1776));
+  }
+  function isDigit(ch) {
+    return ch >= "0" && ch <= "9" || ch >= "٠" && ch <= "٩";
+  }
   function normalizeAr(s) {
-    return String(s || "").replace(/[ً-ٰٟـ]/g, "").replace(/[أإآٱ]/g, "ا").replace(/ى/g, "ي").replace(/ة/g, "ه").replace(/ؤ/g, "و").replace(/ئ/g, "ي").replace(/\s+/g, " ").trim().toLowerCase();
+    return toLatinDigits(s || "").replace(/[ً-ٰٟـ]/g, "").replace(/[أإآٱ]/g, "ا").replace(/ى/g, "ي").replace(/ة/g, "ه").replace(/ؤ/g, "و").replace(/ئ/g, "ي").replace(/\s+/g, " ").trim().toLowerCase();
   }
   function levenshtein(a, b) {
     if (a === b) return 0;
@@ -1041,7 +1061,7 @@ html, body {
   }
   function formatDate(iso) {
     const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso || ""));
-    return m ? `${m[3]} / ${m[2]} / ${m[1]}` : "";
+    return m ? toArabicDigits(`${m[3]} / ${m[2]} / ${m[1]}`) : "";
   }
   function formatTime(hhmm) {
     const m = /^(\d{1,2}):(\d{2})$/.exec(String(hhmm || ""));
@@ -1049,26 +1069,26 @@ html, body {
     let h2 = Number(m[1]);
     const suffix = h2 < 12 ? "صباحاً" : "مساءً";
     h2 = h2 % 12 || 12;
-    return `${h2}:${m[2]} ${suffix}`;
+    return toArabicDigits(`${h2}:${m[2]}`) + ` ${suffix}`;
   }
   function digitsOnly(s) {
-    return String(s || "").replace(/[^\d]/g, "");
+    return toLatinDigits(s || "").replace(/[^\d]/g, "");
   }
   function formatMoney(n) {
     const v = Number(digitsOnly(n) || 0);
-    return v.toLocaleString("en-US");
+    return toArabicDigits(v.toLocaleString("en-US"));
   }
   function formatMoneyInput(input) {
     const raw = input.value;
     const caret = input.selectionStart == null ? raw.length : input.selectionStart;
-    const digitsBefore = raw.slice(0, caret).replace(/\D/g, "").length;
+    const digitsBefore = digitsOnly(raw.slice(0, caret)).length;
     const formatted = formatMoney(raw);
     if (formatted === raw && caret === input.selectionEnd) return;
     input.value = formatted;
     let pos = digitsBefore === 0 ? 0 : formatted.length;
     let seen = 0;
     for (let i = 0; i < formatted.length && digitsBefore > 0; i++) {
-      if (formatted[i] >= "0" && formatted[i] <= "9") {
+      if (isDigit(formatted[i])) {
         seen += 1;
         if (seen === digitsBefore) {
           pos = i + 1;
@@ -1110,12 +1130,14 @@ html, body {
       reader.readAsDataURL(file);
     });
   }
-  var AR_DAYS, pad, formatDocNumber;
+  var ARABIC_DIGITS, digitStyle, AR_DAYS, pad, formatDocNumber;
   var init_util = __esm({
     "www/js/util.js"() {
+      ARABIC_DIGITS = ["٠", "١", "٢", "٣", "٤", "٥", "٦", "٧", "٨", "٩"];
+      digitStyle = "arabic";
       AR_DAYS = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
       pad = (n, w = 2) => String(n).padStart(w, "0");
-      formatDocNumber = (n) => pad(n, 5);
+      formatDocNumber = (n) => toArabicDigits(pad(n, 5));
     }
   });
 
@@ -1275,6 +1297,8 @@ html, body {
         // وصلان في الورقة الواحدة مع خط قص
         // نصوص العقد
         conditions: [...DEFAULT_CONDITIONS],
+        digitStyle: "arabic",
+        // 'arabic' = ٠١٢٣ أو 'latin' = 0123
         subjectWord: "الآلية",
         // قرار معلّق: «الآلية» أم «السيارة»
         engineNoRequired: false,
@@ -1614,7 +1638,7 @@ html, body {
     const list = h(
       "div",
       { class: "wheel__list" },
-      values2.map((v, i) => h("div", { class: "wheel__item", dataset: { i } }, v))
+      values2.map((v, i) => h("div", { class: "wheel__item", dataset: { i } }, toArabicDigits(v)))
     );
     const col = h("div", { class: "wheel__col" }, list);
     const mark = (idx) => {
@@ -1731,7 +1755,7 @@ html, body {
         cols.append(cd.el, cm.el, cy.el);
       }
       manual.addEventListener("change", () => {
-        draft = manual.value.trim();
+        draft = toLatinDigits(manual.value.trim());
       });
       sheet({
         title: label,
@@ -1756,9 +1780,9 @@ html, body {
     if (!v) return "—";
     if (kind === "date") {
       const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v);
-      return m ? `${m[3]} / ${m[2]} / ${m[1]}` : v;
+      return toArabicDigits(m ? `${m[3]} / ${m[2]} / ${m[1]}` : v);
     }
-    return v;
+    return toArabicDigits(v);
   }
   function textField({ label, value = "", placeholder = "", type = "text", inputmode, required = false, suggest = null, onPick = null, onInput = null, hint = null }) {
     const input = h("input", { class: "input", type, value, placeholder, inputmode });
@@ -1942,7 +1966,7 @@ html, body {
       prefix = "",
       suffix = "لا غير"
     } = opts;
-    const amount = Math.floor(Math.abs(Number(String(value).replace(/[^\d.]/g, "")) || 0));
+    const amount = Math.floor(Math.abs(Number(toLatinDigits(value).replace(/[^\d.]/g, "")) || 0));
     if (!amount) return "";
     if (amount >= 1e15) return "";
     const groups = [];
@@ -1967,6 +1991,7 @@ html, body {
   var ONES, TEENS, TENS, HUNDREDS, SCALES;
   var init_tafqeet = __esm({
     "www/js/tafqeet.js"() {
+      init_util();
       ONES = ["", "واحد", "اثنان", "ثلاثة", "أربعة", "خمسة", "ستة", "سبعة", "ثمانية", "تسعة"];
       TEENS = ["عشرة", "أحد عشر", "اثنا عشر", "ثلاثة عشر", "أربعة عشر", "خمسة عشر", "ستة عشر", "سبعة عشر", "ثمانية عشر", "تسعة عشر"];
       TENS = ["", "", "عشرون", "ثلاثون", "أربعون", "خمسون", "ستون", "سبعون", "ثمانون", "تسعون"];
@@ -2107,8 +2132,8 @@ ${main}`;
             <div class="cell"><span class="lbl">اللون</span><span class="val">${dots(c.color)}</span></div>
           </div>
           <div class="row">
-            <div class="cell"><span class="lbl">رقم الشاصي</span><span class="val">${dots(c.chassis)}</span></div>
-            <div class="cell"><span class="lbl">رقم المحرك</span><span class="val">${dots(c.engineNo)}</span></div>
+            <div class="cell"><span class="lbl">رقم الشاصي</span><span class="val">${serial(c.chassis)}</span></div>
+            <div class="cell"><span class="lbl">رقم المحرك</span><span class="val">${serial(c.engineNo)}</span></div>
           </div>
           <div class="row">
             <div class="cell"><span class="lbl">المرقمة</span><span class="val">${dots(c.plate)}</span></div>
@@ -2294,7 +2319,7 @@ ${main}`;
     await plugin.sharePdf({ html, fileName, title, pageCount: countPages(html) });
     return true;
   }
-  var COPY_LABELS, cssCache, dots, pluginRef;
+  var COPY_LABELS, cssCache, dots, serial, pluginRef;
   var init_print = __esm({
     "www/js/print.js"() {
       init_util();
@@ -2307,7 +2332,8 @@ ${main}`;
         shop: "نسخة المعرض"
       };
       cssCache = null;
-      dots = (v) => v == null || v === "" ? "" : escapeHtml(v);
+      dots = (v) => v == null || v === "" ? "" : escapeHtml(toArabicDigits(v));
+      serial = (v) => v == null || v === "" ? "" : escapeHtml(v);
     }
   });
 
@@ -3397,6 +3423,12 @@ ${main}`;
     });
     const printerPort = textField({ label: "المنفذ", value: String(s.printerPort), inputmode: "numeric" });
     const printerQueue = textField({ label: "مسار الطابور", value: s.printerQueue, placeholder: "ipp/print" });
+    const digitStyle2 = h(
+      "select",
+      { class: "input" },
+      h("option", { value: "arabic", selected: s.digitStyle !== "latin" }, "عربية ٠١٢٣٤٥٦٧٨٩"),
+      h("option", { value: "latin", selected: s.digitStyle === "latin" }, "إنجليزية 0123456789")
+    );
     const subjectWord = h(
       "select",
       { class: "input" },
@@ -3513,17 +3545,19 @@ ${main}`;
           logo: logo.get(),
           headerImageRight: imgRight.get(),
           headerImageLeft: imgLeft.get(),
-          contractNext: Number(contractNext.get().replace(/\D/g, "")) || 1,
-          receiptNext: Number(receiptNext.get().replace(/\D/g, "")) || 1,
+          contractNext: Number(digitsOnly(contractNext.get())) || 1,
+          receiptNext: Number(digitsOnly(receiptNext.get())) || 1,
           printerMode: printerMode.value,
           printerAddress: printerAddress.get(),
-          printerPort: Number(printerPort.get().replace(/\D/g, "")) || 631,
+          printerPort: Number(digitsOnly(printerPort.get())) || 631,
           printerQueue: printerQueue.get() || "ipp/print",
+          digitStyle: digitStyle2.value,
           subjectWord: subjectWord.value,
           engineNoRequired: engineNoRequired.checked,
           conditionsReviewed: conditionsReviewed.checked,
           conditions: conditions.map((c) => c.get()).filter(Boolean)
         });
+        setDigitStyle(digitStyle2.value);
         toast("حُفظت الإعدادات", "ok");
       }
     }, "💾 حفظ الإعدادات");
@@ -3570,6 +3604,13 @@ ${main}`;
           "section",
           { class: "card" },
           h("h2", { class: "card__title", text: "نصوص العقد" }),
+          h(
+            "div",
+            { class: "field" },
+            h("label", { class: "field__label", text: "شكل الأرقام في العقد والشاشات" }),
+            digitStyle2,
+            h("div", { class: "field__hint", text: "أرقام الشاصي والمحرك تبقى كما تُكتب في الحالتين، لأنها أرقام مضروبة على الآلية نفسها." })
+          ),
           h("div", { class: "field" }, h("label", { class: "field__label", text: "الكلمة المستعملة في العقد" }), subjectWord),
           h("label", { class: "checkrow" }, engineNoRequired, h("span", { text: "رقم المحرك حقل إلزامي" })),
           h("h3", { class: "subhead", text: "الشروط المطبوعة أسفل العقد" }),
@@ -3619,6 +3660,7 @@ ${main}`;
   init_settings();
   init_router();
   init_ui();
+  init_util();
   register("home", () => Promise.resolve().then(() => (init_home(), home_exports)));
   register("contract", () => Promise.resolve().then(() => (init_contract(), contract_exports)));
   register("receipt", () => Promise.resolve().then(() => (init_receipt(), receipt_exports)));
@@ -3650,7 +3692,8 @@ ${main}`;
     try {
       await open();
       await seed();
-      await load();
+      const s = await load();
+      setDigitStyle(s.digitStyle);
     } catch (e) {
       document.getElementById("app").innerHTML = `<div class="screen"><section class="card card--warn"><h2 class="card__title">تعذّر فتح قاعدة البيانات</h2><p>${e.message}</p></section></div>`;
       return;

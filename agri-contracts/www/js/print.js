@@ -1,6 +1,6 @@
 // بناء قالب الطباعة (A4 للعقد، نصف A4 للوصل) وإرساله للطابعة أو مشاركته PDF.
 
-import { escapeHtml, formatDate, formatMoney, formatTime, dayNameFromISO, formatDocNumber } from './util.js';
+import { escapeHtml, formatDate, formatMoney, formatTime, dayNameFromISO, formatDocNumber, toArabicDigits } from './util.js';
 import { amountPhrase } from './tafqeet.js';
 import { toast } from './ui.js';
 import * as art from './artwork.js';
@@ -56,7 +56,14 @@ export function countPages(html) {
   return m ? m.length : 1;
 }
 
-const dots = (v) => (v == null || v === '' ? '' : escapeHtml(v));
+/** قيمة تُطبع بأرقام عربية. */
+const dots = (v) => (v == null || v === '' ? '' : escapeHtml(toArabicDigits(v)));
+
+/**
+ * قيمة تُطبع كما كُتبت: أرقام الشاصي والمحرك أرقام تسلسلية مضروبة على
+ * الآلية نفسها، وتحويلها يجعل العقد لا يطابقها.
+ */
+const serial = (v) => (v == null || v === '' ? '' : escapeHtml(v));
 
 function img(src, cls, alt = '') {
   return src ? `<img class="${cls}" src="${escapeHtml(src)}" alt="${escapeHtml(alt)}">` : '';
@@ -160,8 +167,8 @@ export function renderContractPage(c, s, copyKey) {
             <div class="cell"><span class="lbl">اللون</span><span class="val">${dots(c.color)}</span></div>
           </div>
           <div class="row">
-            <div class="cell"><span class="lbl">رقم الشاصي</span><span class="val">${dots(c.chassis)}</span></div>
-            <div class="cell"><span class="lbl">رقم المحرك</span><span class="val">${dots(c.engineNo)}</span></div>
+            <div class="cell"><span class="lbl">رقم الشاصي</span><span class="val">${serial(c.chassis)}</span></div>
+            <div class="cell"><span class="lbl">رقم المحرك</span><span class="val">${serial(c.engineNo)}</span></div>
           </div>
           <div class="row">
             <div class="cell"><span class="lbl">المرقمة</span><span class="val">${dots(c.plate)}</span></div>
