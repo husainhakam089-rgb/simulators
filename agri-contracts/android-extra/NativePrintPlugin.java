@@ -3,11 +3,15 @@ package iq.albaraka.contracts;
 import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.pdf.PdfDocument;
 import android.net.Uri;
-import android.print.PdfWriter;
 import android.print.PrintAttributes;
 import android.print.PrintDocumentAdapter;
 import android.print.PrintManager;
+import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -39,8 +43,12 @@ import java.util.Base64;
 @CapacitorPlugin(name = "NativePrint")
 public class NativePrintPlugin extends Plugin {
 
-    /** عرض صفحة A4 بوحدات CSS عند 96 نقطة/إنش — يطابق قالب الطباعة. */
+    /** مقاس صفحة A4 بوحدات CSS عند 96 نقطة/إنش — يطابق قالب الطباعة. */
     private static final int A4_CSS_WIDTH = 794;
+    private static final float A4_CSS_HEIGHT = 297f * 96f / 25.4f;
+    /** مقاس A4 بالنقاط (72 نقطة/إنش) وهو مقاس صفحة PDF. */
+    private static final int A4_PT_WIDTH = 595;
+    private static final int A4_PT_HEIGHT = 842;
     /** مهلة تحميل الخطوط والصور المضمّنة قبل التحويل. */
     private static final long SETTLE_MS = 700;
 
@@ -59,11 +67,10 @@ public class NativePrintPlugin extends Plugin {
     /**
      * تحميل مستند الطباعة في WebView خارج الشاشة ثم تنفيذ العمل بعد اكتماله.
      *
-     * يُضاف الـ WebView فعلياً إلى شجرة العرض بعرض الصفحة الحقيقي: الصفحة
-     * غير المُلحقة بنافذة لا تحمّل خطوطها وصورها كاملةً، فتخرج ناقصة.
-     * أما تحويل الصفحة إلى PDF فيتولّاه PdfWriter عبر مسار الطباعة نفسه.
+     * يُضاف الـ WebView فعلياً إلى شجرة العرض بمقاس الورقة كاملاً: الصفحة
+     * غير المُلحقة بنافذة، أو المُلحقة بمقاس صفري، لا تُرسم فتخرج بيضاء.
      */
-    private void withLoadedWebView(String html, boolean disposeAfter, WebViewReady ready) {
+    private void withLoadedWebView(String html, int pageCount, boolean disposeAfter, WebViewReady ready) {
         ViewGroup root = getActivity() == null ? null : getActivity().findViewById(android.R.id.content);
         if (root == null) {
             throw new IllegalStateException("الشاشة غير جاهزة");
@@ -72,8 +79,15 @@ public class NativePrintPlugin extends Plugin {
         final WebView webView = new WebView(getContext());
         webView.getSettings().setJavaScriptEnabled(false);
         webView.getSettings().setAllowFileAccess(false);
-        webView.setLayoutParams(new ViewGroup.LayoutParams(Math.round(A4_CSS_WIDTH * density()), 1));
-        webView.setTranslationX(-100000f);
+        // بمقاس الورقة كاملاً منذ البداية: الـ WebView لا يرسم إلا ما رُصف
+        // فعلاً، فلو أُلحق بارتفاع سطر واحد خرجت الصفحة بيضاء.
+        float density = density();
+        int viewWidth = Math.round(A4_CSS_WIDTH * density);
+        int viewHeight = Math.round(Math.max(1, pageCount) * A4_CSS_HEIGHT * density);
+        webView.setLayoutParams(new ViewGroup.LayoutParams(viewWidth, viewHeight));
+        // الرسم البرمجي على Canvas يحتاج طبقة برمجية لا معجّلة بالعتاد.
+        webView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+        webView.setTranslationX(-((float) viewWidth + 2000f));
 
         if (disposeAfter) {
             root.addView(webView);
@@ -136,7 +150,8 @@ public class NativePrintPlugin extends Plugin {
     public void printHtml(PluginCall call) {
         final String html = call.getString("html", "");
         final String jobName = call.getString("jobName", "مستند");
-        onUi(call, () -> withLoadedWebView(html, false, webView -> {
+        final int pageCount = call.getInt("pageCount", 1);
+        onUi(call, () -> withLoadedWebView(html, pageCount, false, webView -> {
             try {
                 PrintManager printManager = (PrintManager) getContext().getSystemService(Context.PRINT_SERVICE);
                 PrintDocumentAdapter adapter = webView.createPrintDocumentAdapter(jobName);
@@ -160,35 +175,35 @@ public class NativePrintPlugin extends Plugin {
         final String host = call.getString("host", "");
         final int port = call.getInt("port", 631);
         final String queue = call.getString("queue", "ipp/print");
+        final int pageCount = call.getInt("pageCount", 1);
 
         if (host.isEmpty()) {
             call.reject("عنوان الطابعة غير محفوظ في الإعدادات");
             return;
         }
 
-        onUi(call, () -> withLoadedWebView(html, false, webView -> {
+        onUi(call, () -> withLoadedWebView(html, pageCount, true, webView -> {
             File pdf = new File(getContext().getCacheDir(), "print-job.pdf");
-            PdfWriter.write(webView.createPrintDocumentAdapter(jobName), pdf, (ok, error) -> {
-                if (!ok) {
-                    call.reject(error);
-                    return;
-                }
-                // الشبكة خارج خيط الواجهة.
-                new Thread(() -> {
-                    try {
-                        IppClient.Result result = IppClient.printPdf(host, port, queue, pdf, jobName, "albaraka");
-                        if (result.ok) {
-                            JSObject ret = new JSObject();
-                            ret.put("status", result.statusCode);
-                            call.resolve(ret);
-                        } else {
-                            call.reject(result.message);
-                        }
-                    } catch (Exception e) {
-                        call.reject("تعذّر الاتصال بالطابعة: " + e.getMessage());
+            String error = renderToPdf(webView, pdf, pageCount);
+            if (error != null) {
+                call.reject(error);
+                return;
+            }
+            // الشبكة خارج خيط الواجهة.
+            new Thread(() -> {
+                try {
+                    IppClient.Result result = IppClient.printPdf(host, port, queue, pdf, jobName, "albaraka");
+                    if (result.ok) {
+                        JSObject ret = new JSObject();
+                        ret.put("status", result.statusCode);
+                        call.resolve(ret);
+                    } else {
+                        call.reject(result.message);
                     }
-                }).start();
-            });
+                } catch (Exception e) {
+                    call.reject("تعذّر الاتصال بالطابعة: " + e.getMessage());
+                }
+            }).start();
         }));
     }
 
@@ -197,27 +212,27 @@ public class NativePrintPlugin extends Plugin {
     public void sharePdf(PluginCall call) {
         final String html = call.getString("html", "");
         final String title = call.getString("title", "مستند");
+        final int pageCount = call.getInt("pageCount", 1);
         final String fileName = safeFileName(call.getString("fileName", "مستند.pdf"), ".pdf");
 
-        onUi(call, () -> withLoadedWebView(html, false, webView -> {
+        onUi(call, () -> withLoadedWebView(html, pageCount, true, webView -> {
             File dir = new File(getContext().getCacheDir(), "shared");
             if (!dir.exists() && !dir.mkdirs()) {
                 call.reject("تعذّر تهيئة مجلد المشاركة");
                 return;
             }
             File pdf = new File(dir, fileName);
-            PdfWriter.write(webView.createPrintDocumentAdapter(title), pdf, (ok, error) -> {
-                if (!ok) {
-                    call.reject(error);
-                    return;
-                }
-                try {
-                    shareIntent(pdf, "application/pdf", title);
-                    call.resolve();
-                } catch (Exception e) {
-                    call.reject("تعذّرت المشاركة: " + e.getMessage());
-                }
-            });
+            String error = renderToPdf(webView, pdf, pageCount);
+            if (error != null) {
+                call.reject(error);
+                return;
+            }
+            try {
+                shareIntent(pdf, "application/pdf", title);
+                call.resolve();
+            } catch (Exception e) {
+                call.reject("تعذّرت المشاركة: " + e.getMessage());
+            }
         }));
     }
 
@@ -268,6 +283,90 @@ public class NativePrintPlugin extends Plugin {
         chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         chooser.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         getContext().startActivity(chooser);
+    }
+
+    /**
+     * رسم صفحات المستند في ملف PDF بمقاس A4 بالضبط.
+     * @return رسالة الخطأ، أو null عند النجاح.
+     */
+    private String renderToPdf(WebView webView, File out, int pageCount) {
+        int pages = Math.max(1, pageCount);
+        // الـ WebView يقيس بالبكسل الفيزيائي بينما الصفحة تُرصف بوحدات CSS،
+        // والنسبة بينهما كثافة الشاشة. بدون ضربها تخرج الورقة مقصوصة.
+        float density = density();
+        int viewWidth = Math.round(A4_CSS_WIDTH * density);
+        float pageHeightPx = A4_CSS_HEIGHT * density;
+        int viewHeight = Math.round(pages * pageHeightPx);
+
+        webView.measure(
+                View.MeasureSpec.makeMeasureSpec(viewWidth, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(viewHeight, View.MeasureSpec.EXACTLY));
+        webView.layout(0, 0, viewWidth, viewHeight);
+
+        if (isBlank(webView, viewWidth, pageHeightPx)) {
+            return "خرجت الصفحة بيضاء. استعمل زر الطباعة ثم اختر «حفظ كـ PDF».";
+        }
+
+        PdfDocument document = new PdfDocument();
+        try {
+            float scale = (float) A4_PT_WIDTH / (float) viewWidth;
+            for (int i = 0; i < pages; i++) {
+                PdfDocument.PageInfo info =
+                        new PdfDocument.PageInfo.Builder(A4_PT_WIDTH, A4_PT_HEIGHT, i + 1).create();
+                PdfDocument.Page page = document.startPage(info);
+                Canvas canvas = page.getCanvas();
+                canvas.scale(scale, scale);
+                canvas.translate(0, -i * pageHeightPx);
+                webView.draw(canvas);
+                document.finishPage(page);
+            }
+            try (FileOutputStream stream = new FileOutputStream(out)) {
+                document.writeTo(stream);
+            }
+            return out.length() > 0 ? null : "خرج ملف PDF فارغاً";
+        } catch (Exception e) {
+            return "تعذّر توليد ملف PDF: " + e.getMessage();
+        } finally {
+            document.close();
+        }
+    }
+
+    /**
+     * فحص أن الصفحة الأولى رُسمت فعلاً.
+     * بدونه تخرج ورقة بيضاء صامتة إن امتنع الـ WebView عن الرسم، وهو ما
+     * يحصل حين لا يكون مُلحقاً بنافذة أو حين يُرصف بمقاس صفري.
+     */
+    private boolean isBlank(WebView webView, int viewWidth, float pageHeightPx) {
+        final int probeWidth = 120;
+        int probeHeight = Math.max(1, Math.round(probeWidth * pageHeightPx / viewWidth));
+        Bitmap probe = Bitmap.createBitmap(probeWidth, probeHeight, Bitmap.Config.ARGB_8888);
+        try {
+            Canvas canvas = new Canvas(probe);
+            canvas.drawColor(Color.WHITE);
+            float scale = (float) probeWidth / (float) viewWidth;
+            canvas.scale(scale, scale);
+            webView.draw(canvas);
+
+            int[] pixels = new int[probeWidth * probeHeight];
+            probe.getPixels(pixels, 0, probeWidth, 0, 0, probeWidth, probeHeight);
+            int inked = 0;
+            for (int pixel : pixels) {
+                int r = Color.red(pixel);
+                int g = Color.green(pixel);
+                int b = Color.blue(pixel);
+                if (r < 235 || g < 235 || b < 235) {
+                    inked++;
+                    if (inked > 40) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        } catch (Exception e) {
+            return false; // الفحص نفسه ليس سبباً لمنع المحاولة
+        } finally {
+            probe.recycle();
+        }
     }
 
     /** اسم ملف صالح: بلا فواصل مسار ولا محارف تكسر مزوّد الملفات. */
