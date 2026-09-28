@@ -1,0 +1,2795 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>الخلية — محاكي تفاعلي · أحياء السادس الإعدادي</title>
+<style>
+  :root{
+    /* نفس لوحة محاكي «حرب التنانين» للحفاظ على وحدة الواجهة */
+    --ash:#0d0b0c;
+    --smoke:#1a1516;
+    --bone:#e8ded0;
+    --ember:#ff6a1f;
+    --blood:#a8221b;
+    --gold:#d9a441;
+    --steel:#7d8894;
+    /* ألوان حيوية للرسوم */
+    --cyto:#8fb9a8;
+    --nucleus:#7b6ccc;
+    --mito:#d9713f;
+    --golgi:#d2689a;
+    --lyso:#9a5fc4;
+    --chloro:#4f9e4a;
+    --vac:#5f9cc4;
+    --wall:#b39a63;
+    --ok:#3fbf6f;
+    --bad:#d4483c;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{width:100%;height:100%;overflow:hidden;background:var(--ash);
+    font-family:"Segoe UI","Tahoma","Noto Naskh Arabic",sans-serif;color:var(--bone)}
+  body{display:flex;flex-direction:column;overscroll-behavior:none}
+  button,input,select{font-family:inherit}
+
+  .panel{
+    background:linear-gradient(180deg,rgba(14,11,12,.86),rgba(14,11,12,.66));
+    border:1px solid rgba(217,164,65,.28);
+    clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px);
+    backdrop-filter:blur(3px);
+  }
+
+  /* ═══════════ الرأس والتبويبات ═══════════ */
+  #top{flex:0 0 auto;padding:10px 16px 0;border-bottom:1px solid rgba(217,164,65,.16);
+    background:linear-gradient(180deg,#100d0e,#0d0b0c)}
+  #titleRow{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+  #titleRow h1{font-size:clamp(16px,2.3vw,25px);font-weight:600;letter-spacing:clamp(2px,.5vw,6px);
+    color:var(--bone);text-shadow:0 0 30px rgba(255,106,31,.25)}
+  #titleRow .sub{color:var(--gold);letter-spacing:2px;font-size:11px}
+  #titleRow .src{margin-inline-start:auto;font-size:10.5px;color:var(--steel);letter-spacing:1px}
+
+  #tabs{display:flex;gap:2px;margin-top:10px;overflow-x:auto;overflow-y:hidden;
+    scrollbar-width:thin;scrollbar-color:rgba(217,164,65,.35) transparent}
+  #tabs::-webkit-scrollbar{height:4px}
+  #tabs::-webkit-scrollbar-thumb{background:rgba(217,164,65,.3)}
+  .tab{cursor:pointer;white-space:nowrap;font-size:12px;letter-spacing:1.5px;padding:10px 13px;
+    color:var(--steel);background:rgba(255,255,255,.03);border:0;border-bottom:2px solid transparent;
+    transition:color .18s,border-color .18s,background .18s}
+  .tab:hover{color:var(--bone)}
+  .tab.on{color:var(--gold);border-bottom-color:var(--ember);background:rgba(255,106,31,.07)}
+  .tab:focus-visible{outline:2px solid var(--bone);outline-offset:-2px}
+
+  /* ═══════════ الجسم: مسرح + لوحة معلومات ═══════════ */
+  #wrap{flex:1 1 auto;display:flex;flex-direction:row-reverse;min-height:0}
+
+  #stage{position:relative;flex:1 1 auto;min-width:0;min-height:0;
+    background:radial-gradient(ellipse at 50% 45%,#141a19 0%,#0c0a0b 72%)}
+  #svgHost{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:manipulation}
+  #fx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+
+  #sceneHead{position:absolute;top:10px;right:14px;left:14px;pointer-events:none;
+    display:flex;gap:10px;align-items:flex-start;justify-content:space-between}
+  #sceneName{font-size:13px;letter-spacing:2px;color:var(--gold)}
+  #sceneHint{font-size:11px;color:var(--steel);line-height:1.7;max-width:62%;text-align:left}
+
+  /* لوحات فوق المسرح (أزرار خاصة بكل مشهد) */
+  #sceneTools{position:absolute;bottom:12px;right:12px;display:flex;flex-wrap:wrap;gap:6px;
+    max-width:calc(100% - 24px)}
+  .stool{cursor:pointer;font-size:11.5px;letter-spacing:1px;color:var(--bone);padding:8px 12px;
+    background:linear-gradient(180deg,rgba(26,21,22,.92),rgba(13,11,12,.8));
+    border:1px solid rgba(217,164,65,.3);
+    clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)}
+  .stool:hover{border-color:var(--gold);color:var(--gold)}
+  .stool.on{color:var(--ash);background:var(--gold);border-color:var(--gold);font-weight:600}
+  .stool:focus-visible{outline:2px solid var(--bone);outline-offset:2px}
+
+  /* شريط أطوار الانقسام */
+  #phaseBar{position:absolute;top:44px;left:14px;width:min(250px,44vw);padding:10px 13px;display:none}
+  #phaseBar.on{display:block}
+  #phaseBar .pname{color:var(--gold);font-size:12.5px;letter-spacing:1.5px;margin-bottom:5px}
+  #phaseBar .pdesc{font-size:11.5px;color:var(--bone);line-height:1.75;opacity:.9}
+  #phaseBar .pchrom{margin-top:7px;font-size:11px;color:var(--steel);letter-spacing:1px}
+  #phaseBar .pcap{margin-top:7px;padding-top:7px;border-top:1px solid rgba(217,164,65,.14);
+    font-size:11px;color:var(--gold);line-height:1.6;opacity:.9}
+  #phaseBar .pchrom b{color:var(--ember);font-variant-numeric:tabular-nums}
+
+  /* ═══════════ لوحة المعلومات ═══════════ */
+  #info{width:min(340px,34vw);flex:0 0 auto;display:flex;flex-direction:column;
+    background:linear-gradient(270deg,rgba(9,8,9,.97) 0%,rgba(11,10,11,.94) 80%,rgba(11,10,11,.9) 100%);
+    border-inline-end:1px solid rgba(217,164,65,.16);text-align:right}
+  #infoHead{flex:0 0 auto;padding:14px 16px 10px;border-bottom:1px solid rgba(217,164,65,.14);
+    display:flex;align-items:flex-start;gap:8px}
+  #infoName{font-size:15px;color:var(--bone);letter-spacing:1.5px;font-weight:600;line-height:1.5}
+  #infoClose{margin-inline-start:auto;cursor:pointer;background:transparent;border:1px solid rgba(125,136,148,.3);
+    color:var(--steel);font-size:13px;width:26px;height:26px;flex:0 0 auto}
+  #infoClose:hover{color:var(--bone);border-color:var(--bone)}
+  #infoBody{flex:1 1 auto;overflow-y:auto;padding:14px 16px 18px;
+    scrollbar-width:thin;scrollbar-color:rgba(217,164,65,.35) transparent}
+  #infoBody::-webkit-scrollbar{width:6px}
+  #infoBody::-webkit-scrollbar-thumb{background:rgba(217,164,65,.3)}
+  .fld{margin-bottom:14px}
+  .fld h5{font-size:10px;letter-spacing:3px;color:var(--gold);opacity:.85;font-weight:600;
+    margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid rgba(217,164,65,.14)}
+  .fld p{font-size:12.5px;line-height:1.95;color:var(--bone);opacity:.94}
+  .fld.note p{color:#ffd9a8}
+  .fld ul{list-style:none;font-size:12.5px;line-height:1.95}
+  .fld li{padding-inline-start:14px;position:relative}
+  .fld li::before{content:'▪';position:absolute;inset-inline-start:0;color:var(--gold);opacity:.7}
+  #infoFoot{flex:0 0 auto;padding:12px 16px;border-top:1px solid rgba(217,164,65,.14);display:flex;gap:8px}
+  #seeFn{flex:1;cursor:pointer;font-size:12px;letter-spacing:2px;color:var(--ash);
+    background:linear-gradient(180deg,#ffb14d,var(--ember));border:0;padding:12px 10px;
+    clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)}
+  #seeFn:hover{filter:brightness(1.12)}
+  #seeFn:disabled{background:rgba(255,255,255,.06);color:var(--steel);cursor:default;filter:none}
+  #seeFn:focus-visible{outline:2px solid var(--bone);outline-offset:3px}
+  #infoEmpty{padding:18px 16px;font-size:12.5px;line-height:2;color:var(--steel)}
+  #infoEmpty b{color:var(--gold)}
+
+  /* ═══════════ شريط التحكم ═══════════ */
+  #bar{flex:0 0 auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    padding:9px 16px;border-top:1px solid rgba(217,164,65,.16);
+    background:linear-gradient(0deg,#100d0e,#0d0b0c);font-size:12px}
+  #bar .ctl{display:flex;align-items:center;gap:7px}
+  #bar label{color:var(--steel);letter-spacing:1px;white-space:nowrap}
+  #bar input[type=range]{accent-color:var(--ember);width:104px;height:16px}
+  #bar output{color:var(--bone);opacity:.75;font-variant-numeric:tabular-nums;min-width:30px;text-align:left}
+  .tgl{cursor:pointer;display:flex;align-items:center;gap:6px;color:var(--steel);letter-spacing:1px}
+  .tgl input{accent-color:var(--ember);width:15px;height:15px}
+  .tgl:hover{color:var(--bone)}
+  #playBtn{cursor:pointer;letter-spacing:2px;color:var(--gold);padding:8px 16px;
+    background:rgba(255,106,31,.08);border:1px solid rgba(217,164,65,.4);
+    clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)}
+  #playBtn:hover{background:rgba(255,106,31,.16)}
+  #playBtn:focus-visible{outline:2px solid var(--bone);outline-offset:2px}
+  #barSpacer{margin-inline-start:auto}
+  #resetBtn{cursor:pointer;font-size:11px;letter-spacing:1.5px;color:var(--steel);
+    background:transparent;border:1px solid rgba(125,136,148,.28);padding:8px 12px}
+  #resetBtn:hover{color:var(--bone);border-color:var(--bone)}
+
+  /* ═══════════ رسم SVG: حالات التفاعل ═══════════ */
+  .part{cursor:pointer}
+  #svgHost.dim .part:not(.sel){opacity:.22}
+  #svgHost.dim .part:not(.sel):has(.part.sel){opacity:1}
+  .part.sel{filter:url(#fGlow)}
+  .lbl{pointer-events:none;font-size:13px;letter-spacing:.5px;fill:var(--bone)}
+  .lbl.sm{font-size:11.5px}
+  .lead{pointer-events:none;stroke:rgba(232,222,208,.45);stroke-width:1;fill:none}
+  .lblDot{pointer-events:none;fill:var(--gold)}
+  #labelLayer.off{display:none}
+  .cap{pointer-events:none;font-size:14px;letter-spacing:1px;fill:var(--gold)}
+
+  /* ═══════════ جداول المقارنة ═══════════ */
+  #sheet{position:absolute;inset:auto 14px 56px 14px;max-height:66%;display:none;
+    flex-direction:column;overflow:hidden}
+  #sheet.on{display:flex}
+  #sheetHead{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:11px 14px;
+    border-bottom:1px solid rgba(217,164,65,.18)}
+  #sheetHead h4{font-size:12.5px;color:var(--gold);letter-spacing:1.5px;font-weight:600}
+  #sheetClose{margin-inline-start:auto;cursor:pointer;background:transparent;
+    border:1px solid rgba(125,136,148,.3);color:var(--steel);width:24px;height:24px;font-size:12px}
+  #sheetBody{flex:1 1 auto;overflow:auto;padding:4px 0 8px}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th,td{padding:8px 12px;text-align:right;border-bottom:1px solid rgba(125,136,148,.14);line-height:1.7}
+  th{color:var(--gold);font-weight:600;font-size:11px;letter-spacing:1.5px;
+    background:rgba(255,106,31,.06);position:sticky;top:0}
+  td:first-child{color:var(--steel)}
+
+  /* ═══════════ وضع الامتحان ═══════════ */
+  #exam{position:absolute;inset:0;display:none;flex-direction:column;overflow:hidden;
+    background:radial-gradient(ellipse at 50% 40%,#141a19 0%,#0c0a0b 75%)}
+  #exam.on{display:flex}
+  #examTop{flex:0 0 auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+    padding:10px 14px;border-bottom:1px solid rgba(217,164,65,.16)}
+  #examTop .seg{display:flex;gap:2px}
+  #examTop .seg button{cursor:pointer;font-size:11.5px;letter-spacing:1px;padding:8px 12px;
+    color:var(--steel);background:rgba(255,255,255,.03);border:1px solid rgba(125,136,148,.2)}
+  #examTop .seg button.on{color:var(--ash);background:var(--gold);border-color:var(--gold);font-weight:600}
+  #score{margin-inline-start:auto;font-size:12px;color:var(--steel);letter-spacing:1px}
+  #score b{color:var(--ember);font-variant-numeric:tabular-nums;font-size:15px}
+  #examBody{flex:1 1 auto;min-height:0;position:relative;display:flex;flex-direction:column}
+
+  /* أشّر الأجزاء */
+  #dragWrap{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+  #pickRow{flex:0 0 auto;display:flex;gap:6px;flex-wrap:wrap;padding:9px 14px;
+    border-bottom:1px solid rgba(217,164,65,.12);align-items:center}
+  #pickRow span{font-size:11px;color:var(--steel);letter-spacing:1px}
+  #dragStage{flex:1 1 auto;min-height:0;position:relative}
+  #dragSvgHost{position:absolute;inset:0;width:100%;height:100%}
+  #tray{flex:0 0 auto;display:flex;gap:7px;flex-wrap:wrap;padding:10px 14px;max-height:34%;overflow-y:auto;
+    border-top:1px solid rgba(217,164,65,.14);background:rgba(9,8,9,.6)}
+  .chip{cursor:grab;touch-action:none;font-size:12px;letter-spacing:.5px;color:var(--bone);
+    padding:8px 12px;background:linear-gradient(180deg,rgba(38,31,28,.95),rgba(20,16,17,.9));
+    border:1px solid rgba(217,164,65,.35);white-space:nowrap;user-select:none;
+    clip-path:polygon(7px 0,100% 0,100% calc(100% - 7px),calc(100% - 7px) 100%,0 100%,0 7px)}
+  .chip.drag{position:fixed;z-index:60;cursor:grabbing;border-color:var(--ember);
+    box-shadow:0 8px 24px rgba(0,0,0,.6);pointer-events:none}
+  .chip.done{cursor:default;color:#9fe9b9;border-color:rgba(63,191,111,.6);background:rgba(63,191,111,.12)}
+  .chip.wrong{animation:shake .32s}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+  .slot{fill:rgba(232,222,208,.06);stroke:rgba(217,164,65,.55);stroke-width:1.4;stroke-dasharray:4 3}
+  .slot.hot{fill:rgba(255,106,31,.18);stroke:var(--ember);stroke-dasharray:none}
+  .slot.done{fill:rgba(63,191,111,.16);stroke:var(--ok);stroke-dasharray:none}
+  .slotTxt{pointer-events:none;font-size:10.5px;fill:#9fe9b9;letter-spacing:.2px}
+  #dragDone{padding:12px 14px;font-size:12.5px;color:var(--gold);line-height:1.8;display:none}
+  #dragDone.on{display:block}
+
+  /* اختبر نفسك */
+  #quiz{flex:1 1 auto;overflow-y:auto;padding:16px 16px 22px;display:none}
+  #quiz.on{display:block}
+  #qMeta{font-size:11px;color:var(--steel);letter-spacing:1.5px;margin-bottom:9px}
+  #qText{font-size:14.5px;line-height:1.95;color:var(--bone);margin-bottom:14px}
+  #qOpts{display:flex;flex-direction:column;gap:8px;max-width:760px}
+  .opt{cursor:pointer;text-align:right;font-size:13px;line-height:1.8;color:var(--bone);
+    padding:11px 13px;background:rgba(255,255,255,.035);border:1px solid rgba(125,136,148,.22);
+    transition:border-color .18s,background .18s}
+  .opt:hover:not(:disabled){border-color:var(--gold)}
+  .opt:disabled{cursor:default}
+  .opt.good{border-color:var(--ok);background:rgba(63,191,111,.14);color:#c8f2d8}
+  .opt.bad{border-color:var(--bad);background:rgba(212,72,60,.12);color:#f6c9c4}
+  #qWhy{margin-top:14px;padding:12px 14px;font-size:12.5px;line-height:1.95;display:none;max-width:760px}
+  #qWhy.on{display:block}
+  #qWhy b{color:var(--gold)}
+  #qNext{margin-top:14px;cursor:pointer;font-size:12px;letter-spacing:2px;color:var(--ash);
+    background:linear-gradient(180deg,#ffb14d,var(--ember));border:0;padding:11px 22px;display:none;
+    clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)}
+  #qNext.on{display:inline-block}
+
+  /* ═══════════ موبايل ═══════════ */
+  @media (max-width:860px),(orientation:portrait){
+    #wrap{flex-direction:column}
+    #stage{flex:1 1 auto}
+    #info{width:100%;flex:0 0 auto;max-height:46%;border-inline-end:0;
+      border-top:1px solid rgba(217,164,65,.2);
+      background:linear-gradient(0deg,rgba(9,8,9,.98),rgba(11,10,11,.95))}
+    #info.closed #infoBody,#info.closed #infoFoot,#info.closed #infoEmpty{display:none}
+    #sheet{inset:auto 8px 8px 8px;max-height:72%}
+    #sceneHint{display:none}
+    #phaseBar{width:min(210px,56vw);left:8px;top:40px;padding:8px 10px}
+    .lbl{font-size:16px}
+    .lbl.sm{font-size:14px}
+    .lead{stroke-width:1.4}
+    .lblDot{r:4.4}
+    #bar{gap:8px;padding:8px 10px;font-size:11.5px}
+    #bar input[type=range]{width:74px}
+    #titleRow .src{display:none}
+    th,td{padding:7px 9px;font-size:11.5px}
+  }
+  @media (max-width:420px){
+    #titleRow h1{font-size:15px;letter-spacing:1px}
+    #bar label{display:none}
+    #bar input[type=range]{width:64px}
+    .tab{padding:9px 10px;font-size:11.5px}
+  }
+
+  /* ── حالات التحديد على الرسم ── */
+  .part{transition:opacity .28s,transform .3s}
+  .part.sel{transform-box:fill-box;transform-origin:center;transform:scale(1.06)}
+  .part.sel[data-part=cyto],.part.sel[data-part=pm],.part.sel[data-part=wall],
+  .part.sel[data-part=bilayer],.part.sel[data-part=nucleoplasm],.part.sel[data-part=env],
+  .part.sel[data-part=chromatin]{transform:none}
+  #svgHost.flat *{filter:none!important}
+  .lbl,.cap,.slotTxt{direction:rtl}
+  #dragSvgHost .part{pointer-events:none;cursor:default}
+  #sceneTools input[type=range]{cursor:pointer}
+
+  @media (prefers-reduced-motion:reduce){
+    *{animation-duration:.001ms!important;transition-duration:.001ms!important}
+  }
+</style>
+</head>
+<body>
+
+<header id="top">
+  <div id="titleRow">
+    <h1>الخلية</h1>
+    <div class="sub">محاكي تفاعلي · الفصل الأول · أحياء السادس الإعدادي</div>
+    <div class="src">اضغط أي جزء من الرسم لتظهر معلوماته</div>
+  </div>
+  <nav id="tabs"></nav>
+</header>
+
+<main id="wrap">
+  <section id="stage">
+    <svg id="svgHost" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid meet"
+         role="img" aria-label="مشهد تفاعلي للخلية"></svg>
+    <canvas id="fx" aria-hidden="true"></canvas>
+
+    <div id="sceneHead">
+      <div id="sceneName"></div>
+      <div id="sceneHint"></div>
+    </div>
+
+    <div id="phaseBar" class="panel">
+      <div class="pname" id="phaseName"></div>
+      <div class="pdesc" id="phaseDesc"></div>
+      <div class="pchrom" id="phaseChrom"></div>
+      <div class="pcap" id="phaseCap"></div>
+    </div>
+
+    <div id="sceneTools"></div>
+
+    <div id="sheet" class="panel">
+      <div id="sheetHead">
+        <h4 id="sheetTitle"></h4>
+        <button id="sheetClose" title="إغلاق">✕</button>
+      </div>
+      <div id="sheetBody"></div>
+    </div>
+
+    <!-- ═══════════ وضع الامتحان ═══════════ -->
+    <div id="exam">
+      <div id="examTop">
+        <div class="seg">
+          <button id="mLabel" class="on">أشّر الأجزاء</button>
+          <button id="mQuiz">اختبر نفسك</button>
+        </div>
+        <div id="score"></div>
+      </div>
+
+      <div id="examBody">
+        <div id="dragWrap">
+          <div id="pickRow">
+            <span>اختر الرسم:</span>
+          </div>
+          <div id="dragStage">
+            <svg id="dragSvgHost" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid meet"
+                 role="img" aria-label="رسم بدون أسماء للتأشير"></svg>
+          </div>
+          <div id="dragDone"></div>
+          <div id="tray"></div>
+        </div>
+
+        <div id="quiz">
+          <div id="qMeta"></div>
+          <div id="qText"></div>
+          <div id="qOpts"></div>
+          <div id="qWhy" class="panel"></div>
+          <button id="qNext">السؤال التالي</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <aside id="info">
+    <div id="infoHead">
+      <div id="infoName">لوحة المعلومات</div>
+      <button id="infoClose" title="إغلاق">✕</button>
+    </div>
+    <div id="infoEmpty">
+      اضغط على أي <b>عضية</b> أو جزء داخل الرسم، وتطلعلك هنا:
+      الاسم، الموقع، التركيب، الوظيفة، وملاحظة مهمة للامتحان.
+    </div>
+    <div id="infoBody" hidden></div>
+    <div id="infoFoot" hidden>
+      <button id="seeFn">شوف الوظيفة</button>
+    </div>
+  </aside>
+</main>
+
+<div id="bar">
+  <button id="playBtn">إيقاف ⏸</button>
+  <div class="ctl">
+    <label for="spd">سرعة الحركة</label>
+    <input id="spd" type="range" min="0.2" max="2.5" step="0.1" value="1">
+    <output id="spdOut">1.0×</output>
+  </div>
+  <label class="tgl"><input id="lblTgl" type="checkbox" checked>إظهار الأسماء</label>
+  <label class="tgl"><input id="glowTgl" type="checkbox" checked>تأثيرات واقعية</label>
+  <div id="barSpacer"></div>
+  <button id="resetBtn">إعادة المشهد</button>
+</div>
+
+<script>
+"use strict";
+/* ══════════════════════════════════════════════════════════════════════════
+   1 · المحتوى العلمي
+   ──────────────────────────────────────────────────────────────────────────
+   كل النصوص هنا بمصطلحات المنهج العراقي (السادس الإعدادي / الفصل الأول:
+   الخلية). المصطلحات مثبّتة كما هي: «الشبكة البلازمية الداخلية»،
+   «الجسيمات الحالة»، «النوية»، «الشبكة الكروماتينية»، «الغلاف النووي»،
+   «البلازم النووي»، «السايتوبلازم».
+   ملاحظة: الصياغة الحرفية والأرقام تُطابق مع الملزمة عند توفّرها — راجع
+   قائمة TODO بآخر الملف.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+const INFO = {
+  /* ── الغشاء والسايتوبلازم ── */
+  pm: {
+    name: 'الغشاء البلازمي',
+    loc: 'يحيط بالخلية من الخارج، وفي الخلية النباتية يقع تحت الجدار الخلوي مباشرة.',
+    struct: 'طبقتان من الدهون المفسفرة (الفوسفولبيدات): الرؤوس المحبة للماء للخارج والأذناب الكارهة للماء للداخل، تتخللهما جزيئات بروتينية (غائرة وسطحية) وجزيئات كولسترول وكاربوهيدرات. يوصف تركيبه بنموذج الفسيفساء المائع.',
+    fn: 'يحدد شكل الخلية ويحميها ويفصل محتوياتها عن الوسط الخارجي، وينظّم مرور المواد داخلاً وخارجاً لأنه ذو نفاذية اختيارية (نصف نفّاذ).',
+    note: 'صفة الغشاء البلازمي: نفاذية اختيارية — يسمح بمرور جزيئات ويمنع أخرى. أما الجدار الخلوي فنفاذيته تامة.'
+  },
+  cyto: {
+    name: 'السايتوبلازم',
+    loc: 'يملأ الفراغ بين الغشاء البلازمي والغلاف النووي.',
+    struct: 'مادة شبه سائلة (هيالوبلازم) تحتوي على الماء والأملاح والبروتينات، وتنغمر فيها العضيات الحية والمحتويات غير الحية.',
+    fn: 'وسط تحدث فيه معظم التفاعلات الحيوية داخل الخلية، وينقل المواد بين العضيات بحركة جريان مستمرة.',
+    note: 'السايتوبلازم + النواة = البروتوبلازم (المادة الحية في الخلية).'
+  },
+  nonliving: {
+    name: 'المحتويات غير الحية',
+    loc: 'حبيبات وقطرات منتشرة داخل السايتوبلازم.',
+    struct: 'مواد لا تركيب عضوي لها، تُصنّف إلى: مواد غذائية مخزونة (النشأ، الكلايكوجين، الدهون، البروتين)، مواد إفرازية (الإنزيمات والهورمونات)، مواد إطراحية (فضلات الأيض)، وصبغات.',
+    fn: 'خزن الغذاء والطاقة، وإفراز المواد التي تحتاجها الخلية أو الجسم، والتخلص من الفضلات.',
+    note: 'سؤال متكرر: عدّد المحتويات غير الحية — الجواب بالتصنيف الرباعي أعلاه (غذائية مخزونة / إفرازية / إطراحية / صبغات).'
+  },
+
+  /* ── النواة ── */
+  nuc: {
+    name: 'النواة',
+    loc: 'قرب مركز الخلية الحيوانية، وتُدفع جانباً في الخلية النباتية بسبب كبر الفجوة العصارية.',
+    struct: 'أكبر عضية في الخلية، تتركب من: الغلاف النووي، البلازم النووي، النوية، والشبكة الكروماتينية.',
+    fn: 'تسيطر على جميع نشاطات الخلية وتنظّمها، وتحفظ المادة الوراثية (DNA) وتنقل الصفات الوراثية إلى الخلايا الوليدة.',
+    note: 'النواة هي مركز السيطرة على الخلية؛ غيابها (كما في كريات الدم الحمراء الناضجة في الإنسان) يعني فقدان القدرة على الانقسام.'
+  },
+  env: {
+    name: 'الغلاف النووي',
+    loc: 'يحيط بالنواة ويفصل محتوياتها عن السايتوبلازم.',
+    struct: 'غشاء مزدوج (غشاءان يحصران بينهما فراغاً)، يحمل ثقوباً نووية، ويتصل غشاؤه الخارجي بالشبكة البلازمية الداخلية.',
+    fn: 'يحمي محتويات النواة، وينظّم تبادل المواد بين النواة والسايتوبلازم عبر الثقوب النووية.',
+    note: 'الغلاف النووي مزدوج — لا تكتب «غشاء واحد». والثقوب النووية هي منفذ خروج الـ RNA إلى السايتوبلازم.'
+  },
+  pore: {
+    name: 'الثقوب النووية',
+    loc: 'منتشرة على الغلاف النووي.',
+    struct: 'فتحات دقيقة يكوّنها التحام الغشاءين الخارجي والداخلي للغلاف النووي.',
+    fn: 'تسمح بمرور المواد بين النواة والسايتوبلازم — يخرج منها الـ RNA ويدخل منها البروتين والإنزيمات.',
+    note: 'عبْر هذه الثقوب تخرج رسائل الـ RNA إلى الرايبوسومات لتصنيع البروتين.'
+  },
+  nucleoplasm: {
+    name: 'البلازم النووي',
+    loc: 'يملأ داخل النواة.',
+    struct: 'سائل شبه لزج تنغمر فيه النوية والشبكة الكروماتينية.',
+    fn: 'وسط للتفاعلات داخل النواة، ويحوي المواد اللازمة لبناء الأحماض النووية.',
+    note: 'انتبه للاسم بالمنهج: «البلازم النووي» لمحتوى النواة السائل، مقابل «السايتوبلازم» خارجها.'
+  },
+  nucleolus: {
+    name: 'النوية',
+    loc: 'جسم كروي داخل النواة، وقد توجد نوية واحدة أو أكثر.',
+    struct: 'كتلة كثيفة غنية بالـ RNA والبروتين، غير محاطة بغشاء.',
+    fn: 'تكوين الـ RNA الرايبوسومي وبناء الرايبوسومات.',
+    note: 'النوية غير محاطة بغشاء، ووظيفتها تكوين الرايبوسومات — سؤال وزاري متكرر.'
+  },
+  chromatin: {
+    name: 'الشبكة الكروماتينية',
+    loc: 'داخل النواة، منغمرة في البلازم النووي.',
+    struct: 'خيوط دقيقة متشابكة من DNA وبروتين، تتكاثف عند الانقسام فتظهر بشكل كروموسومات.',
+    fn: 'تحمل المادة الوراثية والصفات المنقولة إلى الخلايا الوليدة.',
+    note: 'الشبكة الكروماتينية في الخلية غير المنقسمة = الكروموسومات في الخلية المنقسمة.'
+  },
+
+  /* ── العضيات ── */
+  rer: {
+    name: 'الشبكة البلازمية الداخلية الخشنة',
+    loc: 'تنتشر في السايتوبلازم وتتصل بالغلاف النووي.',
+    struct: 'شبكة من القنوات والأكياس المحددة بغشاء، تحمل رايبوسومات على سطحها الخارجي فتظهر خشنة.',
+    fn: 'تصنيع البروتين بواسطة الرايبوسومات المرتبطة بها، ونقله داخل قنواتها إلى جهاز كولجي.',
+    note: 'الخشنة = عليها رايبوسومات = بروتين. الملساء = بدون رايبوسومات = دهون وستيرويدات.'
+  },
+  ser: {
+    name: 'الشبكة البلازمية الداخلية الملساء',
+    loc: 'في السايتوبلازم، وتتصل بالشبكة الخشنة.',
+    struct: 'قنوات وأنابيب غشائية خالية من الرايبوسومات فيظهر سطحها أملس.',
+    fn: 'تصنيع الدهون والستيرويدات، ونقل المواد داخل الخلية، وإزالة سموم بعض المواد.',
+    note: 'لا تحمل رايبوسومات — لذلك لا تصنّع بروتيناً.'
+  },
+  ribo: {
+    name: 'الرايبوسومات',
+    loc: 'حرة في السايتوبلازم، أو مرتبطة بسطح الشبكة البلازمية الداخلية الخشنة والغلاف النووي.',
+    struct: 'أجسام كروية دقيقة جداً غير محاطة بغشاء، تتركب من RNA رايبوسومي وبروتين، وتتكوّن في النوية.',
+    fn: 'مواقع تصنيع (بناء) البروتين في الخلية.',
+    note: 'الرايبوسوم غير محاط بغشاء — مثل النوية. وتوجد الرايبوسومات في الخلايا بدائية النواة أيضاً.'
+  },
+  golgi: {
+    name: 'جهاز كولجي',
+    loc: 'في السايتوبلازم قرب النواة، ويسمى في الخلية النباتية الدكتيوسوم.',
+    struct: 'مجموعة أكياس (صهاريج) غشائية مسطحة متراكبة بعضها فوق بعض، تتفرع عن حوافها حويصلات.',
+    fn: 'استلام البروتين من الشبكة البلازمية الداخلية، وتعديله وتجميعه وتغليفه في حويصلات لإفرازه خارج الخلية أو لاستخدامه داخلها، وتكوين الجسيمات الحالة.',
+    note: 'جهاز كولجي = مركز التغليف والإفراز، ومنه تنشأ الجسيمات الحالة.'
+  },
+  lyso: {
+    name: 'الجسيمات الحالة',
+    loc: 'منتشرة في السايتوبلازم، وتنشأ من جهاز كولجي.',
+    struct: 'حويصلات كروية محاطة بغشاء واحد، تحتوي على إنزيمات محللة (هاضمة).',
+    fn: 'الهضم داخل الخلية: هضم الأجسام الغريبة والبكتريا التي تدخلها، وتحليل العضيات التالفة والمواد التي لا تحتاجها الخلية.',
+    note: 'تسمى «أكياس الانتحار» لأن تمزّق غشائها يؤدي إلى هضم الخلية نفسها (التحلل الذاتي).'
+  },
+  mito: {
+    name: 'المايتوكوندريا',
+    loc: 'منتشرة في سايتوبلازم الخلايا الحيوانية والنباتية، وتزداد في الخلايا النشيطة.',
+    struct: 'عضية عصوية أو كروية محاطة بغشاء مزدوج: الخارجي أملس، والداخلي مثنيّ إلى أعراف تسمى الكرستي، وتحصر بينها مادة الحشوة (المطرس) التي تحوي إنزيمات و DNA ورايبوسومات خاصة بها.',
+    fn: 'موقع التنفس الخلوي: أكسدة المواد الغذائية وتحرير الطاقة وخزنها في جزيئات ATP.',
+    note: 'تسمى بيت الطاقة في الخلية. فائدة الكرستي: زيادة المساحة السطحية للأغشية الحاملة للإنزيمات.'
+  },
+  centro: {
+    name: 'الجسم المركزي',
+    loc: 'في السايتوبلازم قرب النواة — يوجد في الخلايا الحيوانية ولا يوجد في الخلايا النباتية الراقية.',
+    struct: 'يتركب من جسيمين مركزيين (سنتريولين) أسطوانيين متعامدين، كل منهما مكوّن من أنيبيبات دقيقة.',
+    fn: 'يتضاعف عند انقسام الخلية ويكوّن خيوط المغزل التي تسحب الكروموسومات نحو القطبين.',
+    note: 'فرق مهم: الجسم المركزي موجود في الخلية الحيوانية ومفقود في الخلية النباتية.'
+  },
+  vesicle: {
+    name: 'الحويصلات الإفرازية',
+    loc: 'تنفصل عن حواف أكياس جهاز كولجي وتتحرك نحو الغشاء البلازمي.',
+    struct: 'أكياس صغيرة محاطة بغشاء تحمل داخلها مواد معدّة للإفراز.',
+    fn: 'نقل المواد المغلّفة إلى الغشاء البلازمي والتحامها به لإخراج محتواها خارج الخلية (الإفراز الخلوي).',
+    note: 'مسار البروتين للامتحان: النواة (رسالة RNA) ← الرايبوسوم ← الشبكة الخشنة ← جهاز كولجي ← حويصلة ← خارج الخلية.'
+  },
+
+  /* ── خاص بالنباتية ── */
+  wall: {
+    name: 'الجدار الخلوي',
+    loc: 'يحيط بالخلية النباتية من الخارج، خارج الغشاء البلازمي.',
+    struct: 'طبقة غير حية تتركب أساساً من السليلوز، وقد تترسب فيها مواد أخرى كاللكنين.',
+    fn: 'يعطي الخلية شكلها الثابت ويحميها ويسندها، ونفاذيته تامة فيسمح بمرور الماء والمواد المذابة.',
+    note: 'الجدار الخلوي غير حي ونفاذيته تامة — بخلاف الغشاء البلازمي الحي ذي النفاذية الاختيارية.'
+  },
+  chloro: {
+    name: 'البلاستيدة الخضراء',
+    loc: 'في سايتوبلازم الخلايا النباتية الخضراء المعرّضة للضوء.',
+    struct: 'محاطة بغشاء مزدوج، وداخلها مادة الستروما وأقراص غشائية (ثايلاكويد) تتراكم بهيئة أكوام تسمى الغرانا، وتحتوي على صبغة الكلوروفيل الخضراء.',
+    fn: 'إجراء عملية البناء الضوئي: تحويل طاقة الضوء إلى طاقة كيميائية في مواد غذائية (كاربوهيدرات) مع تحرير الأوكسجين.',
+    note: 'البلاستيدة الخضراء والمايتوكوندريا كلتاهما بغشاء مزدوج وتحتويان DNA ورايبوسومات خاصة بها.'
+  },
+  vacuole: {
+    name: 'الفجوة العصارية',
+    loc: 'تحتل معظم حجم الخلية النباتية الناضجة وتدفع النواة والسايتوبلازم إلى الأطراف.',
+    struct: 'فجوة كبيرة محاطة بغشاء (التونوبلاست) مملوءة بالعصير الخلوي: ماء وأملاح وسكريات وصبغات ومواد إطراحية.',
+    fn: 'خزن الماء والمواد الغذائية والفضلات، والحفاظ على ضغط الامتلاء الذي يشدّ الخلية ويعطي النبات دعامته.',
+    note: 'في الخلية الحيوانية توجد فجوات صغيرة وعديدة، أما النباتية ففجوة واحدة كبيرة — فرق يُسأل عنه.'
+  },
+
+  /* ── بدائية النواة ── */
+  nucleoid: {
+    name: 'المنطقة النووية (بدون غلاف نووي)',
+    loc: 'وسط سايتوبلازم الخلية بدائية النواة.',
+    struct: 'جزيئة DNA حلقية واحدة عارية، غير محاطة بغلاف نووي ولا ترتبط ببروتين بالطريقة نفسها.',
+    fn: 'تحمل المادة الوراثية وتسيطر على نشاط الخلية البكتيرية.',
+    note: 'الفرق الجوهري: بدائية النواة لا تملك نواة حقيقية (لا غلاف نووي) ولا عضيات محاطة بأغشية.'
+  },
+  capsule: {
+    name: 'المحفظة',
+    loc: 'الطبقة الخارجية المحيطة بالجدار الخلوي البكتيري.',
+    struct: 'طبقة مخاطية هلامية.',
+    fn: 'حماية الخلية البكتيرية ومساعدتها على الالتصاق بالسطوح ومقاومة الظروف غير الملائمة.',
+    note: 'راجع الملزمة: هل ذُكرت المحفظة في رسم الخلية البكتيرية؟ (مدرجة في قائمة TODO)'
+  },
+  bwall: {
+    name: 'الجدار الخلوي البكتيري',
+    loc: 'خارج الغشاء البلازمي للخلية بدائية النواة.',
+    struct: 'جدار متين لا يتركب من السليلوز كجدار الخلية النباتية.',
+    fn: 'حماية الخلية وإعطاؤها شكلها ومقاومة الضغط الداخلي.',
+    note: 'جدار الخلية موجود في البكتريا والنبات، لكن تركيبه الكيميائي يختلف.'
+  },
+  plasmid: {
+    name: 'البلازميد',
+    loc: 'في سايتوبلازم الخلية البكتيرية إلى جانب الـ DNA الرئيسي.',
+    struct: 'جزيئة DNA حلقية صغيرة مستقلة.',
+    fn: 'تحمل جينات إضافية (مثل مقاومة المضادات الحيوية) وتتضاعف مستقلة.',
+    note: 'راجع الملزمة: هل البلازميد مؤشَّر على الرسم؟ (مدرج في قائمة TODO)'
+  },
+  flagel: {
+    name: 'السوط',
+    loc: 'يمتد من سطح الخلية البكتيرية إلى الخارج.',
+    struct: 'خيط بروتيني طويل واحد أو أكثر.',
+    fn: 'الحركة — يدفع الخلية في الوسط السائل.',
+    note: 'راجع الملزمة: عدد الأسواط وموقعها كما في رسم الملزمة. (مدرج في قائمة TODO)'
+  },
+
+  bribo: {
+    name: 'الرايبوسومات',
+    loc: 'حرة في سايتوبلازم الخلية بدائية النواة (لا ترتبط بشبكة بلازمية لعدم وجودها).',
+    struct: 'أجسام دقيقة من RNA وبروتين، غير محاطة بغشاء، وهي أصغر من رايبوسومات الخلية حقيقية النواة.',
+    fn: 'تصنيع البروتين في الخلية البكتيرية.',
+    note: 'الرايبوسومات هي العضية الوحيدة المشتركة بين بدائية النواة وحقيقية النواة — لأنها غير محاطة بغشاء.'
+  },
+  bpm: {
+    name: 'الغشاء البلازمي',
+    loc: 'تحت الجدار الخلوي في الخلية بدائية النواة.',
+    struct: 'غشاء من دهون مفسفرة وبروتينات، وقد ينثني إلى الداخل.',
+    fn: 'تنظيم مرور المواد، وتقوم عليه تفاعلات التنفس لعدم وجود مايتوكوندريا في الخلية البكتيرية.',
+    note: 'في بدائية النواة يؤدي الغشاء البلازمي وظائف تقوم بها عضيات مستقلة في حقيقية النواة.'
+  },
+
+  /* ── الغشاء مكبّراً ── */
+  bilayer: {
+    name: 'الطبقة الدهنية المزدوجة',
+    loc: 'الأساس البنائي للغشاء البلازمي وأغشية العضيات.',
+    struct: 'صفّان من جزيئات الدهون المفسفرة: الرؤوس المحبة للماء نحو الخارج والداخل المائي، والأذناب الكارهة للماء متقابلة في الوسط.',
+    fn: 'تشكّل حاجزاً يمنع مرور المواد الذائبة في الماء والأيونات إلا عبر بروتينات خاصة.',
+    note: 'بسبب الوسط الدهني: الجزيئات الصغيرة غير القطبية (O₂ و CO₂) تعبر بسهولة، والأيونات والسكريات تحتاج بروتينات.'
+  },
+  head: {
+    name: 'الرأس المحب للماء',
+    loc: 'سطحا الغشاء: الخارجي والداخلي.',
+    struct: 'مجموعة الفوسفات القطبية من جزيئة الدهن المفسفر.',
+    fn: 'يواجه الماء داخل الخلية وخارجها ويثبّت ترتيب الغشاء.',
+    note: 'محب للماء = قطبي = للخارج. كاره للماء = غير قطبي = للداخل.'
+  },
+  tail: {
+    name: 'الذيل الكاره للماء',
+    loc: 'وسط الغشاء بين صفّي الرؤوس.',
+    struct: 'سلسلتان من الأحماض الدهنية.',
+    fn: 'تكوين المنطقة الدهنية الداخلية التي تمنع مرور المواد القطبية.',
+    note: 'المنطقة الكارهة للماء هي سبب النفاذية الاختيارية للغشاء.'
+  },
+  intProt: {
+    name: 'البروتين الغائر (المتكامل)',
+    loc: 'مغمور في الطبقة الدهنية وقد يمتد عبر الغشاء كاملاً.',
+    struct: 'جزيئة بروتينية تنغمر بين الأذناب الكارهة للماء.',
+    fn: 'نقل المواد عبر الغشاء، وبعضها يعمل كإنزيم أو كمستقبل.',
+    note: 'صورة الفسيفساء المائع: البروتينات «قطع فسيفساء» داخل بحر دهني مائع.'
+  },
+  channel: {
+    name: 'بروتين القناة',
+    loc: 'يمتد عبر سماكة الغشاء من سطح إلى سطح.',
+    struct: 'بروتين بداخله ممر مائي دقيق.',
+    fn: 'يسمح بمرور أيونات وجزيئات قطبية معيّنة لا تستطيع اجتياز المنطقة الدهنية.',
+    note: 'المرور عبر القناة انتقائي — لكل مادة قناتها.'
+  },
+  periProt: {
+    name: 'البروتين السطحي (الطرفي)',
+    loc: 'على السطح الداخلي أو الخارجي للغشاء دون أن ينغمر.',
+    struct: 'بروتين مرتبط بسطح الطبقة الدهنية أو ببروتين غائر.',
+    fn: 'الدعامة والتعرّف ونقل الإشارات.',
+    note: 'فرّق بين الغائر (يخترق) والسطحي (لا يخترق).'
+  },
+  chol: {
+    name: 'الكولسترول',
+    loc: 'بين جزيئات الدهون المفسفرة في الغشاء.',
+    struct: 'جزيئات ستيرويدية صغيرة.',
+    fn: 'تنظيم مرونة الغشاء وميوعته وثباته.',
+    note: 'راجع الملزمة: هل ذُكر الكولسترول في تركيب الغشاء؟ (مدرج في قائمة TODO)'
+  },
+  glyco: {
+    name: 'الكاربوهيدرات (البروتين السكري)',
+    loc: 'على السطح الخارجي للغشاء البلازمي.',
+    struct: 'سلاسل سكرية متفرعة مرتبطة ببروتين أو بدهن.',
+    fn: 'التعرّف بين الخلايا واستقبال الإشارات وتمييز الخلية عن غيرها.',
+    note: 'الكاربوهيدرات على السطح الخارجي فقط — لا تظهر على السطح الداخلي.'
+  }
+};
+
+/* ── جداول المقارنة ── */
+const TABLES = {
+  animalPlant: {
+    title: 'الفروق بين الخلية النباتية والخلية الحيوانية',
+    head: ['وجه المقارنة', 'الخلية النباتية', 'الخلية الحيوانية'],
+    rows: [
+      ['الجدار الخلوي', 'موجود ويتركب من السليلوز', 'غير موجود'],
+      ['الشكل', 'ثابت ومنتظم (بسبب الجدار)', 'متغير وغير منتظم'],
+      ['البلاستيدات الخضراء', 'موجودة في الخلايا الخضراء', 'غير موجودة'],
+      ['الفجوة العصارية', 'واحدة كبيرة تحتل معظم الحجم', 'صغيرة وعديدة أو معدومة'],
+      ['الجسم المركزي', 'غير موجود في النباتات الراقية', 'موجود'],
+      ['موقع النواة', 'جانبية (تدفعها الفجوة)', 'وسطية غالباً'],
+      ['الغذاء المخزون', 'النشأ', 'الكلايكوجين'],
+      ['التغذية', 'ذاتية التغذية بالبناء الضوئي', 'غير ذاتية التغذية'],
+      ['جهاز كولجي', 'يسمى الدكتيوسوم', 'جهاز كولجي']
+    ]
+  },
+  proEu: {
+    title: 'الفروق بين الخلية بدائية النواة والخلية حقيقية النواة',
+    head: ['وجه المقارنة', 'بدائية النواة', 'حقيقية النواة'],
+    rows: [
+      ['النواة', 'لا توجد نواة حقيقية (لا غلاف نووي)', 'نواة حقيقية محاطة بغلاف نووي'],
+      ['المادة الوراثية', 'DNA حلقي عارٍ في السايتوبلازم', 'DNA مع بروتين في كروموسومات داخل النواة'],
+      ['العضيات المحاطة بأغشية', 'غير موجودة (لا مايتوكوندريا ولا شبكة بلازمية ولا كولجي)', 'موجودة'],
+      ['الرايبوسومات', 'موجودة', 'موجودة'],
+      ['الحجم', 'صغيرة جداً', 'أكبر بعدة أضعاف'],
+      ['الجدار الخلوي', 'موجود ولا يتركب من السليلوز', 'موجود في النبات (سليلوز) ومفقود في الحيوان'],
+      ['الانقسام', 'انقسام بسيط (ثنائي)', 'انقسام خيطي متساوٍ أو اختزالي'],
+      ['أمثلة', 'البكتريا والبكتريا الخضراء المزرقة', 'الخلايا النباتية والحيوانية والفطريات']
+    ]
+  },
+  mitMei: {
+    title: 'الفروق بين الانقسام الخيطي المتساوي والانقسام الاختزالي',
+    head: ['وجه المقارنة', 'الخيطي المتساوي', 'الاختزالي'],
+    rows: [
+      ['موقع حدوثه', 'الخلايا الجسمية', 'الخلايا الجنسية (التكاثرية)'],
+      ['عدد الانقسامات', 'انقسام واحد', 'انقسامان متعاقبان'],
+      ['عدد الخلايا الناتجة', 'خليتان', 'أربع خلايا'],
+      ['عدد الكروموسومات في الناتج', 'مثل الخلية الأم (2n)', 'نصف عدد الخلية الأم (n)'],
+      ['التصالب (العبور)', 'لا يحدث', 'يحدث في الطور التمهيدي الأول'],
+      ['الغرض منه', 'النمو وتعويض الخلايا التالفة', 'تكوين الأمشاج والحفاظ على ثبات العدد بالإخصاب']
+    ]
+  }
+};
+
+/* ── أسئلة «اختبر نفسك» ── */
+const QUIZ = [
+  { q:'أي العضيات الآتية تسمى «بيت الطاقة» في الخلية؟',
+    o:['المايتوكوندريا','جهاز كولجي','الجسيمات الحالة','النوية'], c:0,
+    why:'المايتوكوندريا موقع التنفس الخلوي؛ تؤكسد المواد الغذائية وتحرر الطاقة وتخزنها في ATP، لذلك تسمى بيت الطاقة.' },
+  { q:'الأعراف المثنية في الغشاء الداخلي للمايتوكوندريا تسمى:',
+    o:['الغرانا','الكرستي','الستروما','الثايلاكويد'], c:1,
+    why:'الكرستي هي ثنيات الغشاء الداخلي للمايتوكوندريا، وفائدتها زيادة المساحة السطحية الحاملة للإنزيمات. أما الغرانا والستروما والثايلاكويد فتخص البلاستيدة الخضراء.' },
+  { q:'العضية التي تنشأ منها الجسيمات الحالة هي:',
+    o:['الشبكة البلازمية الملساء','النوية','جهاز كولجي','الجسم المركزي'], c:2,
+    why:'جهاز كولجي يغلّف الإنزيمات المحللة في حويصلات تنفصل عنه لتكوّن الجسيمات الحالة.' },
+  { q:'سميت الجسيمات الحالة «أكياس الانتحار» لأن:',
+    o:['تمزّق غشائها يؤدي إلى هضم الخلية نفسها','تقتل البكتريا الخارجية','تنقسم مع الخلية','تحمل المادة الوراثية'], c:0,
+    why:'إذا تمزّق غشاء الجسيمات الحالة تحررت إنزيماتها المحللة داخل الخلية فهضمتها (التحلل الذاتي).' },
+  { q:'الجزء غير المحاط بغشاء من التراكيب الآتية هو:',
+    o:['المايتوكوندريا','الرايبوسوم','الفجوة العصارية','البلاستيدة الخضراء'], c:1,
+    why:'الرايبوسوم جسم دقيق من RNA وبروتين غير محاط بغشاء — ومثله النوية.' },
+  { q:'وظيفة النوية هي:',
+    o:['هضم العضيات التالفة','تكوين الرايبوسومات','تصنيع الدهون','تكوين خيوط المغزل'], c:1,
+    why:'النوية تكوّن الـ RNA الرايبوسومي وتبني الرايبوسومات.' },
+  { q:'يوصف تركيب الغشاء البلازمي بنموذج:',
+    o:['الشبكة الكروماتينية','الفسيفساء المائع','الغشاء المزدوج','الغرانا'], c:1,
+    why:'نموذج الفسيفساء المائع: بروتينات مبثوثة كقطع الفسيفساء داخل طبقة دهنية مزدوجة مائعة.' },
+  { q:'صفة الغشاء البلازمي من ناحية النفاذية أنه:',
+    o:['تام النفاذية','غير نفّاذ','ذو نفاذية اختيارية','نفّاذ للأيونات فقط'], c:2,
+    why:'الغشاء البلازمي نصف نفّاذ (نفاذية اختيارية): يسمح بمرور مواد ويمنع أخرى، بخلاف الجدار الخلوي التام النفاذية.' },
+  { q:'التركيب الموجود في الخلية الحيوانية والمفقود في الخلية النباتية الراقية هو:',
+    o:['جهاز كولجي','الجسم المركزي','المايتوكوندريا','الرايبوسومات'], c:1,
+    why:'الجسم المركزي (السنتريولات) يوجد في الخلايا الحيوانية ولا يوجد في النباتات الراقية.' },
+  { q:'المادة الغذائية المخزونة في الخلية النباتية هي:',
+    o:['الكلايكوجين','النشأ','الدهن فقط','السليلوز'], c:1,
+    why:'النبات يخزن النشأ، والحيوان يخزن الكلايكوجين. أما السليلوز فمادة بناء الجدار الخلوي.' },
+  { q:'الشبكة البلازمية الداخلية الخشنة تختلف عن الملساء بأنها:',
+    o:['أوسع قنوات','تحمل رايبوسومات على سطحها','محاطة بغشاء مزدوج','توجد في النبات فقط'], c:1,
+    why:'وجود الرايبوسومات على سطح الخشنة يجعلها خشنة ويمكّنها من تصنيع البروتين، والملساء خالية منها فتصنع الدهون والستيرويدات.' },
+  { q:'المسار الصحيح للبروتين المُعدّ للإفراز خارج الخلية هو:',
+    o:['كولجي ← رايبوسوم ← شبكة خشنة ← الغشاء','رايبوسوم ← شبكة خشنة ← كولجي ← حويصلة ← الغشاء','نواة ← كولجي ← مايتوكوندريا ← الغشاء','شبكة ملساء ← جسيم حال ← كولجي'], c:1,
+    why:'الرايبوسوم يبني البروتين، ثم ينتقل في قنوات الشبكة الخشنة إلى جهاز كولجي فيعدّله ويغلّفه في حويصلة تتحرك للغشاء البلازمي وتفرغه خارجاً.' },
+  { q:'الغلاف النووي:',
+    o:['غشاء واحد بلا ثقوب','غشاء مزدوج بثقوب ويتصل بالشبكة البلازمية','جدار سليلوزي','غير موجود في الخلية النباتية'], c:1,
+    why:'الغلاف النووي مزدوج، تخترقه ثقوب نووية، ويتصل غشاؤه الخارجي بالشبكة البلازمية الداخلية.' },
+  { q:'الفجوة العصارية في الخلية النباتية الناضجة:',
+    o:['صغيرة وعديدة','واحدة كبيرة تدفع النواة للجانب','غير محاطة بغشاء','تقوم بالبناء الضوئي'], c:1,
+    why:'فجوة واحدة كبيرة محاطة بغشاء (التونوبلاست) تحتل معظم الحجم وتدفع النواة والسايتوبلازم إلى الأطراف وتحافظ على ضغط الامتلاء.' },
+  { q:'أي مما يأتي لا يوجد في الخلية بدائية النواة؟',
+    o:['الرايبوسومات','الجدار الخلوي','الغشاء البلازمي','المايتوكوندريا'], c:3,
+    why:'بدائية النواة تخلو من العضيات المحاطة بأغشية كالمايتوكوندريا والشبكة البلازمية وكولجي، لكنها تملك رايبوسومات وغشاءً بلازمياً وجداراً.' },
+  { q:'الشبكة الكروماتينية تتكاثف عند الانقسام فتظهر بشكل:',
+    o:['نويات','كروموسومات','خيوط مغزل','حويصلات'], c:1,
+    why:'خيوط الكروماتين (DNA + بروتين) تتكاثف وتقصر فتظهر كروموسومات واضحة في الطور التمهيدي.' },
+  { q:'البلاستيدة الخضراء والمايتوكوندريا تشتركان في أنهما:',
+    o:['محاطتان بغشاء مزدوج وفيهما DNA خاص','غير محاطتين بغشاء','توجدان في الحيوان فقط','تقومان بالبناء الضوئي'], c:0,
+    why:'كلتاهما بغشاء مزدوج وتحتوي DNA ورايبوسومات خاصة بها، لكن البناء الضوئي في البلاستيدة والتنفس الخلوي في المايتوكوندريا.' },
+  { q:'المحتويات غير الحية تصنّف إلى:',
+    o:['حية وغير حية','غذائية مخزونة وإفرازية وإطراحية وصبغات','بروتينية ودهنية','عضيات وأغشية'], c:1,
+    why:'تصنيف المحتويات غير الحية: مواد غذائية مخزونة، مواد إفرازية، مواد إطراحية، وصبغات.' },
+  { q:'الانقسام الخيطي المتساوي ينتج:',
+    o:['خليتين بعدد كروموسومات الخلية الأم','أربع خلايا بنصف العدد','خليتين بنصف العدد','أربع خلايا بالعدد نفسه'], c:0,
+    why:'الانقسام الخيطي المتساوي يحدث في الخلايا الجسمية وينتج خليتين مماثلتين للأم في عدد الكروموسومات (2n).' },
+  { q:'التصالب (العبور) بين الكروموسومات المتماثلة يحدث في:',
+    o:['الطور الاستوائي للانقسام الخيطي','الطور التمهيدي الأول للانقسام الاختزالي','الطور النهائي','الطور البيني'], c:1,
+    why:'في الطور التمهيدي الأول تتزاوج الكروموسومات المتماثلة ويحدث تبادل قطع بينها (التصالب/العبور) فتتنوع الصفات الوراثية.' },
+  { q:'الجدار الخلوي في الخلية النباتية:',
+    o:['حي وذو نفاذية اختيارية','غير حي ونفاذيته تامة','يتركب من دهون','يقوم بالإفراز'], c:1,
+    why:'الجدار الخلوي طبقة غير حية من السليلوز نفاذيتها تامة، ووظيفتها الدعامة والحماية وتثبيت الشكل.' },
+  { q:'الجسم المركزي يتركب من:',
+    o:['أكياس مسطحة متراكبة','جسيمين مركزيين متعامدين','خيوط كروماتينية','غشاء مزدوج بأعراف'], c:1,
+    why:'الجسم المركزي جسيمان مركزيان (سنتريولان) أسطوانيان متعامدان من أنيبيبات دقيقة، ويكوّنان خيوط المغزل عند الانقسام.' }
+];
+
+/* ══════════════════════════════════════════════════════════════════════════
+   2 · أدوات رسم عامة (SVG)
+   ══════════════════════════════════════════════════════════════════════════ */
+
+const SVGNS = 'http://www.w3.org/2000/svg';
+
+/* مولّد أرقام شبه عشوائية ثابت — حتى يبقى شكل الخلية نفسه بكل تشغيل */
+function rng(seed){ let s = seed >>> 0;
+  return function(){ s = (s + 0x6D2B79F5) >>> 0; let t = s;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+
+const n2 = v => Math.round(v * 10) / 10;
+
+/* مسار مغلق ناعم يمر بكل النقاط (Catmull-Rom → Bezier) */
+function smoothClosed(pts){
+  const n = pts.length; let d = `M${n2(pts[0][0])},${n2(pts[0][1])}`;
+  for (let i = 0; i < n; i++){
+    const p0 = pts[(i - 1 + n) % n], p1 = pts[i], p2 = pts[(i + 1) % n], p3 = pts[(i + 2) % n];
+    const c1 = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
+    const c2 = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
+    d += `C${n2(c1[0])},${n2(c1[1])} ${n2(c2[0])},${n2(c2[1])} ${n2(p2[0])},${n2(p2[1])}`;
+  }
+  return d + 'Z';
+}
+/* مسار مفتوح ناعم */
+function smoothOpen(pts){
+  if (pts.length < 3) return `M${pts.map(p => n2(p[0]) + ',' + n2(p[1])).join(' L')}`;
+  let d = `M${n2(pts[0][0])},${n2(pts[0][1])}`;
+  for (let i = 0; i < pts.length - 1; i++){
+    const p0 = pts[Math.max(0, i - 1)], p1 = pts[i], p2 = pts[i + 1],
+          p3 = pts[Math.min(pts.length - 1, i + 2)];
+    const c1 = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
+    const c2 = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
+    d += `C${n2(c1[0])},${n2(c1[1])} ${n2(c2[0])},${n2(c2[1])} ${n2(p2[0])},${n2(p2[1])}`;
+  }
+  return d;
+}
+
+/* حدود خلية غير منتظمة الشكل (واقعية) */
+function blobPath(cx, cy, rx, ry, wob, seed, steps){
+  const r = rng(seed), pts = [], k = steps || 22;
+  for (let i = 0; i < k; i++){
+    const a = i / k * Math.PI * 2, w = 1 + (r() - 0.5) * 2 * wob;
+    pts.push([cx + Math.cos(a) * rx * w, cy + Math.sin(a) * ry * w]);
+  }
+  return { d: smoothClosed(pts), pts };
+}
+/* مسار مصغّر من نفس الشكل (للأغشية المزدوجة والجدران) */
+function insetBlob(pts, cx, cy, k){
+  return smoothClosed(pts.map(p => [cx + (p[0] - cx) * k, cy + (p[1] - cy) * k]));
+}
+
+/* شريط متموّج للشبكة البلازمية الداخلية: يرجع المسار + مواقع الرايبوسومات + نقاط المسير */
+function erRibbon(x0, y0, dx, dy, amp, cycles, steps){
+  const pts = [], k = steps || 26, len = Math.hypot(dx, dy),
+        ux = dx / len, uy = dy / len, nx = -uy, ny = ux;
+  for (let i = 0; i <= k; i++){
+    const t = i / k, s = Math.sin(t * Math.PI * 2 * cycles) * amp * Math.sin(Math.PI * t * 0.9 + 0.3);
+    pts.push([x0 + ux * len * t + nx * s, y0 + uy * len * t + ny * s]);
+  }
+  const dots = [];
+  for (let i = 1; i < k; i += 2){
+    const p = pts[i], q = pts[i + 1] || pts[i - 1];
+    const tx = q[0] - p[0], ty = q[1] - p[1], tl = Math.hypot(tx, ty) || 1;
+    const px = -ty / tl, py = tx / tl, off = 7.5;
+    dots.push([p[0] + px * off, p[1] + py * off]);
+    if (i % 4 === 1) dots.push([p[0] - px * off, p[1] - py * off]);
+  }
+  return { d: smoothOpen(pts), dots, pts };
+}
+
+/* تعريفات مشتركة: تدرجات لونية، ظلال، توهّج، نسيج */
+const DEFS = `
+<defs>
+  <radialGradient id="gCyto" cx="42%" cy="38%" r="72%">
+    <stop offset="0%"  stop-color="#43695c" stop-opacity=".97"/>
+    <stop offset="58%" stop-color="#2c4a41" stop-opacity=".95"/>
+    <stop offset="100%" stop-color="#1b302b" stop-opacity=".95"/>
+  </radialGradient>
+  <linearGradient id="gMemb" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%"   stop-color="#ffe6b4"/>
+    <stop offset="50%"  stop-color="#e0b169"/>
+    <stop offset="100%" stop-color="#9c7a3c"/>
+  </linearGradient>
+  <radialGradient id="gNucl" cx="38%" cy="32%" r="78%">
+    <stop offset="0%"  stop-color="#a99ce8"/>
+    <stop offset="55%" stop-color="#7565c2"/>
+    <stop offset="100%" stop-color="#453a80"/>
+  </radialGradient>
+  <radialGradient id="gNucleolus" cx="36%" cy="34%" r="70%">
+    <stop offset="0%"  stop-color="#7c62c9"/>
+    <stop offset="100%" stop-color="#3a2a70"/>
+  </radialGradient>
+  <radialGradient id="gMito" cx="34%" cy="28%" r="80%">
+    <stop offset="0%"  stop-color="#f0a86f"/>
+    <stop offset="55%" stop-color="#d4703c"/>
+    <stop offset="100%" stop-color="#8f4522"/>
+  </radialGradient>
+  <linearGradient id="gGolgi" x1="0" y1="0" x2="1" y2="0.4">
+    <stop offset="0%"  stop-color="#eda0c4"/>
+    <stop offset="60%" stop-color="#c76093"/>
+    <stop offset="100%" stop-color="#8d3a63"/>
+  </linearGradient>
+  <radialGradient id="gLyso" cx="35%" cy="30%" r="75%">
+    <stop offset="0%"  stop-color="#c49ce8"/>
+    <stop offset="100%" stop-color="#6f3ba0"/>
+  </radialGradient>
+  <linearGradient id="gRer" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%"  stop-color="#8fb4d8"/>
+    <stop offset="100%" stop-color="#4d6c94"/>
+  </linearGradient>
+  <linearGradient id="gSer" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%"  stop-color="#9fcbb6"/>
+    <stop offset="100%" stop-color="#55886f"/>
+  </linearGradient>
+  <radialGradient id="gChloro" cx="34%" cy="30%" r="76%">
+    <stop offset="0%"  stop-color="#8ed473"/>
+    <stop offset="55%" stop-color="#4c9c45"/>
+    <stop offset="100%" stop-color="#245e2a"/>
+  </radialGradient>
+  <radialGradient id="gVac" cx="40%" cy="32%" r="75%">
+    <stop offset="0%"  stop-color="#7fc0e0" stop-opacity=".55"/>
+    <stop offset="70%" stop-color="#4a8cb4" stop-opacity=".42"/>
+    <stop offset="100%" stop-color="#2f6383" stop-opacity=".5"/>
+  </radialGradient>
+  <linearGradient id="gWall" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%"  stop-color="#d8bd80"/>
+    <stop offset="45%" stop-color="#b09253"/>
+    <stop offset="100%" stop-color="#7d663a"/>
+  </linearGradient>
+  <radialGradient id="gGran" cx="35%" cy="30%" r="72%">
+    <stop offset="0%"  stop-color="#e3c98f"/>
+    <stop offset="100%" stop-color="#8d7233"/>
+  </radialGradient>
+  <radialGradient id="gCentro" cx="35%" cy="30%" r="75%">
+    <stop offset="0%"  stop-color="#c8d2dc"/>
+    <stop offset="100%" stop-color="#5e6b78"/>
+  </radialGradient>
+  <radialGradient id="gLight" cx="50%" cy="0%" r="90%">
+    <stop offset="0%"  stop-color="#fff3c4" stop-opacity=".55"/>
+    <stop offset="100%" stop-color="#fff3c4" stop-opacity="0"/>
+  </radialGradient>
+  <linearGradient id="gBact" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%"  stop-color="#c9b06f"/>
+    <stop offset="100%" stop-color="#8b7434"/>
+  </linearGradient>
+  <radialGradient id="gBactCyto" cx="40%" cy="32%" r="78%">
+    <stop offset="0%"  stop-color="#5b6f52"/>
+    <stop offset="100%" stop-color="#2a3627"/>
+  </radialGradient>
+
+  <filter id="fGlow" x="-40%" y="-40%" width="180%" height="180%">
+    <feGaussianBlur stdDeviation="5" result="b"/>
+    <feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+  <filter id="fSoft" x="-30%" y="-30%" width="160%" height="160%">
+    <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#000" flood-opacity=".55"/>
+  </filter>
+  <filter id="fBlur6"><feGaussianBlur stdDeviation="6"/></filter>
+  <filter id="fGrain">
+    <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" seed="7" result="t"/>
+    <feColorMatrix in="t" type="saturate" values="0" result="g"/>
+    <feComposite in="g" in2="SourceGraphic" operator="in"/>
+  </filter>
+</defs>`;
+
+/* أشكال عضيات جاهزة — التحويل (transform) دائماً على مجموعة خارجية،
+   ومجموعة .part بلا transform حتى يعمل تكبيرها عند التحديد بـ CSS */
+function part(id, inner, extra){
+  return `<g class="part" data-part="${id}"${extra ? ' ' + extra : ''}>${inner}</g>`;
+}
+function wrap(tr, inner){ return `<g transform="${tr}">${inner}</g>`; }
+
+/* مايتوكوندريا: غشاء مزدوج + أعراف (كرستي) */
+function mitoShape(w, h){
+  const rx = w / 2, ry = h / 2, cr = [];
+  for (let i = -3; i <= 3; i++){
+    const x = i * (w * 0.13);
+    const yy = ry * 0.82 * Math.sqrt(Math.max(0, 1 - (x / (rx * 0.94)) ** 2));
+    cr.push(`M${n2(x)},${n2(-yy)} C${n2(x + 9)},${n2(-yy * .45)} ${n2(x - 9)},${n2(yy * .45)} ${n2(x)},${n2(yy)}`);
+  }
+  return `
+    <ellipse rx="${n2(rx)}" ry="${n2(ry)}" fill="url(#gMito)" stroke="#f6c79c" stroke-width="2.2" filter="url(#fSoft)"/>
+    <ellipse rx="${n2(rx - 5)}" ry="${n2(ry - 5)}" fill="none" stroke="#ffdcb8" stroke-width="1.3" opacity=".75"/>
+    <g stroke="#ffd9ac" stroke-width="2" fill="none" opacity=".85" stroke-linecap="round">${cr.join('')}</g>
+    <ellipse class="mitoGlow" rx="${n2(rx + 3)}" ry="${n2(ry + 3)}" fill="none"
+             stroke="#ffcf8a" stroke-width="3" opacity="0"/>`;
+}
+/* جهاز كولجي / الدكتيوسوم: أكياس مسطحة متراكبة */
+function golgiShape(){
+  const s = [];
+  for (let i = 0; i < 5; i++){
+    const w = 108 - i * 13, y = i * 15;
+    s.push(`<path d="M${-w / 2},${y} C${-w / 3},${y - 13} ${w / 3},${y - 13} ${w / 2},${y}
+             C${w / 3},${y + 7} ${-w / 3},${y + 7} ${-w / 2},${y} Z"
+             fill="url(#gGolgi)" stroke="#f7c0da" stroke-width="1.6"/>`);
+  }
+  return `<g filter="url(#fSoft)">${s.join('')}</g>
+    <circle cx="-64" cy="14" r="7" fill="url(#gGolgi)" stroke="#f7c0da" stroke-width="1.2" opacity=".9"/>
+    <circle cx="66" cy="42" r="6" fill="url(#gGolgi)" stroke="#f7c0da" stroke-width="1.2" opacity=".9"/>
+    <circle cx="-56" cy="58" r="5" fill="url(#gGolgi)" stroke="#f7c0da" stroke-width="1.2" opacity=".85"/>`;
+}
+/* جسيم حال: حويصلة بحبيبات إنزيمية */
+function lysoShape(r){
+  const rr = rng(Math.round(r * 97)), g = [];
+  for (let i = 0; i < 9; i++){
+    const a = rr() * 6.283, d = rr() * (r - 5);
+    g.push(`<circle cx="${n2(Math.cos(a) * d)}" cy="${n2(Math.sin(a) * d)}" r="${n2(1.4 + rr() * 1.5)}" fill="#f0dcff" opacity=".8"/>`);
+  }
+  return `<circle r="${r}" fill="url(#gLyso)" stroke="#dcc0f5" stroke-width="2" filter="url(#fSoft)"/>${g.join('')}`;
+}
+/* بلاستيدة خضراء: غشاء مزدوج + غرانا (أكوام ثايلاكويد) + ستروما */
+function chloroShape(w, h){
+  const rx = w / 2, ry = h / 2, st = [];
+  const spots = [[-26, -9], [-6, 9], [16, -11], [32, 8], [-16, -22], [4, -24], [-34, 12], [24, 22]];
+  spots.forEach(([x, y]) => {
+    const lines = [];
+    for (let i = 0; i < 4; i++) lines.push(`<rect x="-8" y="${-5 + i * 3.1}" width="16" height="2.1" rx="1" fill="#1f6b2a" opacity=".9"/>`);
+    st.push(`<g transform="translate(${x},${y})"><ellipse rx="9.5" ry="6.4" fill="#2f8035" opacity=".95"/>${lines.join('')}</g>`);
+  });
+  return `
+    <ellipse rx="${n2(rx)}" ry="${n2(ry)}" fill="url(#gChloro)" stroke="#bdf0a6" stroke-width="2" filter="url(#fSoft)"/>
+    <ellipse rx="${n2(rx - 4)}" ry="${n2(ry - 4)}" fill="none" stroke="#d8ffc8" stroke-width="1.1" opacity=".6"/>
+    <g class="grana">${st.join('')}</g>
+    <ellipse class="chloroGlow" rx="${n2(rx + 3)}" ry="${n2(ry + 3)}" fill="none" stroke="#eaffb0" stroke-width="3" opacity="0"/>`;
+}
+/* جسم مركزي: جسيمان مركزيان متعامدان + أنيبيبات */
+function centroShape(){
+  const tub = [];
+  for (let i = 0; i < 9; i++){
+    const a = i / 9 * 6.283;
+    tub.push(`<line x1="${n2(Math.cos(a) * 15)}" y1="${n2(Math.sin(a) * 15)}"
+      x2="${n2(Math.cos(a) * 27)}" y2="${n2(Math.sin(a) * 27)}" stroke="#aab6c2" stroke-width="1.2" opacity=".5"/>`);
+  }
+  return `<g opacity=".9">${tub.join('')}</g>
+    <g transform="rotate(-18)"><rect x="-17" y="-6" width="34" height="12" rx="4" fill="url(#gCentro)" stroke="#dfe7ee" stroke-width="1.4"/>
+      <line x1="-13" y1="0" x2="13" y2="0" stroke="#6b7783" stroke-width="1"/></g>
+    <g transform="translate(6,12) rotate(74)"><rect x="-16" y="-5.5" width="32" height="11" rx="4" fill="url(#gCentro)" stroke="#dfe7ee" stroke-width="1.4"/>
+      <line x1="-12" y1="0" x2="12" y2="0" stroke="#6b7783" stroke-width="1"/></g>`;
+}
+/* النواة: غلاف نووي مزدوج بثقوب + نوية + شبكة كروماتينية */
+function nucleusShape(r, seed, showParts){
+  const rr = rng(seed || 11), pores = [], chrom = [];
+  for (let i = 0; i < 16; i++){
+    const a = i / 16 * 6.283 + 0.12;
+    pores.push(`<g transform="translate(${n2(Math.cos(a) * r)},${n2(Math.sin(a) * r)}) rotate(${n2(a * 57.3)})">
+      <rect x="-2.6" y="-4.6" width="5.2" height="9.2" rx="2.2" fill="#2a2140" stroke="#cbbcf6" stroke-width="1.1"/></g>`);
+  }
+  for (let i = 0; i < 9; i++){
+    const pts = [];
+    let a = rr() * 6.283, d = 12 + rr() * (r * 0.62);
+    for (let j = 0; j < 5; j++){
+      a += (rr() - 0.5) * 2.2; d = Math.min(r * 0.78, Math.max(8, d + (rr() - 0.5) * 34));
+      pts.push([Math.cos(a) * d, Math.sin(a) * d]);
+    }
+    chrom.push(`<path d="${smoothOpen(pts)}" fill="none" stroke="#3a2d6b" stroke-width="${n2(1.6 + rr() * 1.5)}"
+      opacity=".85" stroke-linecap="round"/>`);
+  }
+  const body = `
+    <circle r="${r}" fill="url(#gNucl)" stroke="#cbbcf6" stroke-width="2" filter="url(#fSoft)"/>
+    <circle r="${n2(r - 5)}" fill="none" stroke="#e2d8ff" stroke-width="1.2" opacity=".55"/>`;
+  if (!showParts) return body + `<g>${chrom.join('')}</g><g>${pores.join('')}</g>
+    <circle cx="${n2(-r * 0.22)}" cy="${n2(r * 0.16)}" r="${n2(r * 0.3)}" fill="url(#gNucleolus)" stroke="#b6a3ef" stroke-width="1.4"/>`;
+  /* نسخة بأجزاء قابلة للضغط (مشهد النواة المكبّرة) */
+  return body
+    + part('chromatin', `<g>${chrom.join('')}</g><circle r="${n2(r - 8)}" fill="transparent"/>`)
+    + part('pore', `<g>${pores.join('')}</g>`)
+    + part('nucleolus', `<circle cx="${n2(-r * 0.22)}" cy="${n2(r * 0.16)}" r="${n2(r * 0.3)}"
+        fill="url(#gNucleolus)" stroke="#b6a3ef" stroke-width="1.6"/>`);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   3 · نظام الجزيئات المتحركة (مسارات داخل الخلية)
+   ══════════════════════════════════════════════════════════════════════════ */
+
+function prepPath(pts){
+  const cum = [0];
+  for (let i = 1; i < pts.length; i++)
+    cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
+  return { pts, cum, len: cum[cum.length - 1] };
+}
+function alongPath(p, d){
+  const { pts, cum } = p;
+  if (d <= 0) return pts[0];
+  for (let i = 1; i < cum.length; i++){
+    if (d <= cum[i]){
+      const t = (d - cum[i - 1]) / ((cum[i] - cum[i - 1]) || 1);
+      return [pts[i - 1][0] + (pts[i][0] - pts[i - 1][0]) * t,
+              pts[i - 1][1] + (pts[i][1] - pts[i - 1][1]) * t];
+    }
+  }
+  return pts[pts.length - 1];
+}
+/* تعريف تيار جزيئات: عدة مسارات، ولّادة دورية، شكل الجزيئة */
+function flow(o){
+  return {
+    paths: o.paths.map(prepPath), speed: o.speed || 55, every: o.every || 1.3,
+    max: o.max || 5, r: o.r || 3.2, fill: o.fill || '#ffffff', halo: o.halo !== false,
+    tail: !!o.tail, ring: !!o.ring, owner: o.owner || null, acc: o.every ? o.every * 0.4 : 0.5,
+    items: []
+  };
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   4 · المشاهد
+   ══════════════════════════════════════════════════════════════════════════ */
+
+const SCENES = {};
+
+/* ───────────────────────── 4.1 الخلية الحيوانية ───────────────────────── */
+SCENES.animal = {
+  title: 'الخلية الحيوانية',
+  hint: 'كل عضية تؤدي وظيفتها أمامك: رسائل تخرج من الثقوب النووية، بروتين يمشي في الشبكة الخشنة إلى كولجي، حويصلات تُفرَز خارج الخلية، جسيم حال يهضم جسماً غريباً، ومايتوكوندريا تنبض بالطاقة.',
+  build(){
+    const CX = 500, CY = 350, RX = 268, RY = 225;
+    const cell = blobPath(CX, CY, RX, RY, 0.045, 5, 24);
+    const NUC = [415, 285], NR = 90;
+
+    const rer1 = erRibbon(475, 385, 165, -30, 26, 1.5, 24);
+    const rer2 = erRibbon(450, 428, 140, 50, 20, 1.3, 20);
+    const ser1 = erRibbon(330, 215, -40, 110, 22, 1.5, 20);
+    const ser2 = erRibbon(300, 330, 18, 108, 18, 1.3, 20);
+
+    const GOLGI = [630, 420];
+    const MITO = [[320, 455, -22], [680, 225, 26], [535, 540, 6]];
+    const LYSO = [[720, 320, 19], [500, 505, 16]];
+    const DEBRIS = [585, 520];
+
+    const rr = rng(21), freeRibo = [];
+    [[620, 570], [385, 545], [560, 175], [300, 405]].forEach(([bx, by]) => {
+      for (let i = 0; i < 7; i++)
+        freeRibo.push([bx + (rr() - 0.5) * 60, by + (rr() - 0.5) * 42]);
+    });
+
+    const dotsOf = pts => pts.map(p =>
+      `<circle cx="${n2(p[0])}" cy="${n2(p[1])}" r="3.1" fill="#26354a" stroke="#a9c6e4" stroke-width=".8"/>`).join('');
+
+    const body = `
+      <!-- السايتوبلازم -->
+      ${part('cyto', `
+        <path d="${cell.d}" fill="url(#gCyto)"/>
+        <path d="${cell.d}" fill="#7fd6b8" opacity=".05" filter="url(#fGrain)"/>`)}
+
+      <!-- الغشاء البلازمي (خطان: غشاء مزدوج الطبقة الدهنية) -->
+      ${part('pm', `
+        <path d="${cell.d}" fill="none" stroke="url(#gMemb)" stroke-width="7" filter="url(#fSoft)"/>
+        <path d="${insetBlob(cell.pts, CX, CY, 0.968)}" fill="none" stroke="#f3dcae" stroke-width="2.2" opacity=".72"/>`)}
+
+      <!-- الشبكة البلازمية الداخلية الملساء -->
+      ${part('ser', `
+        <path d="${ser1.d}" fill="none" stroke="url(#gSer)" stroke-width="13" stroke-linecap="round" opacity=".95"/>
+        <path d="${ser1.d}" fill="none" stroke="#d6f0e2" stroke-width="3" stroke-linecap="round" opacity=".5"/>
+        <path d="${ser2.d}" fill="none" stroke="url(#gSer)" stroke-width="11" stroke-linecap="round" opacity=".95"/>
+        <path d="${ser2.d}" fill="none" stroke="#d6f0e2" stroke-width="2.6" stroke-linecap="round" opacity=".5"/>`)}
+
+      <!-- الشبكة البلازمية الداخلية الخشنة -->
+      ${part('rer', `
+        <path d="${rer1.d}" fill="none" stroke="url(#gRer)" stroke-width="14" stroke-linecap="round"/>
+        <path d="${rer1.d}" fill="none" stroke="#dcecfb" stroke-width="3.2" stroke-linecap="round" opacity=".45"/>
+        <path d="${rer2.d}" fill="none" stroke="url(#gRer)" stroke-width="12" stroke-linecap="round"/>
+        <path d="${rer2.d}" fill="none" stroke="#dcecfb" stroke-width="2.8" stroke-linecap="round" opacity=".45"/>
+        ${dotsOf(rer1.dots)}${dotsOf(rer2.dots)}`)}
+
+      <!-- النواة -->
+      ${wrap(`translate(${NUC[0]},${NUC[1]})`, part('nuc', nucleusShape(NR, 11, true)))}
+
+      <!-- الجسم المركزي -->
+      ${wrap('translate(575,200)', part('centro', centroShape()))}
+
+      <!-- جهاز كولجي -->
+      ${wrap(`translate(${GOLGI[0]},${GOLGI[1]}) rotate(-8)`, part('golgi', golgiShape()))}
+
+      <!-- المايتوكوندريا -->
+      ${MITO.map(([x, y, r]) => wrap(`translate(${x},${y}) rotate(${r})`, part('mito', mitoShape(98, 50)))).join('')}
+
+      <!-- الجسيمات الحالة -->
+      ${LYSO.map(([x, y, r], i) => wrap(`translate(${x},${y})`,
+          part('lyso', lysoShape(r), i === 1 ? 'id="lysoActive"' : ''))).join('')}
+
+      <!-- جسم غريب / عضية تالفة (هدف الجسيم الحال) -->
+      <g id="debris" transform="translate(${DEBRIS[0]},${DEBRIS[1]})">
+        <path d="${blobPath(0, 0, 17, 13, 0.3, 77, 9).d}" fill="#6b5b4a" stroke="#b9a58c" stroke-width="1.6" opacity=".95"/>
+        <circle r="4" cx="-4" cy="3" fill="#3d3228" opacity=".8"/>
+      </g>
+
+      <!-- الرايبوسومات الحرة -->
+      ${part('ribo', freeRibo.map(p =>
+        `<circle cx="${n2(p[0])}" cy="${n2(p[1])}" r="3.3" fill="#22304a" stroke="#accbe8" stroke-width=".9"/>`).join(''))}
+
+      <!-- المحتويات غير الحية -->
+      ${part('nonliving', `
+        <g filter="url(#fSoft)">
+          <path d="${blobPath(360, 508, 15, 12, .25, 9, 9).d}" fill="url(#gGran)" stroke="#f0dca8" stroke-width="1.2"/>
+          <path d="${blobPath(716, 428, 12, 10, .25, 13, 9).d}" fill="url(#gGran)" stroke="#f0dca8" stroke-width="1.2"/>
+          <path d="${blobPath(305, 250, 10, 9, .25, 31, 9).d}" fill="url(#gGran)" stroke="#f0dca8" stroke-width="1.2"/>
+          <path d="${blobPath(452, 536, 11, 9, .25, 45, 9).d}" fill="url(#gGran)" stroke="#f0dca8" stroke-width="1.2"/>
+        </g>`)}
+
+      <!-- الحويصلات الإفرازية -->
+      ${part('vesicle', `
+        <circle cx="683" cy="463" r="9" fill="rgba(236,160,196,.55)" stroke="#f7c0da" stroke-width="1.6"/>
+        <circle cx="706" cy="497" r="7" fill="rgba(236,160,196,.5)" stroke="#f7c0da" stroke-width="1.4"/>`)}
+    `;
+
+    /* مسارات الحركة */
+    const poreAt = a => [NUC[0] + Math.cos(a) * NR, NUC[1] + Math.sin(a) * NR];
+    const mrnaPaths = [
+      [poreAt(0.35), [500, 350], rer1.dots[2]],
+      [poreAt(0.9), [470, 400], rer2.dots[1]],
+      [poreAt(-0.5), [520, 250], [560, 180]],
+      [poreAt(1.9), [350, 400], [385, 540]]
+    ];
+    const proteinPaths = [
+      rer1.pts.slice(4).concat([[GOLGI[0] - 10, GOLGI[1] - 14]]),
+      rer2.pts.slice(3).concat([[GOLGI[0] - 20, GOLGI[1] + 6]])
+    ];
+    const exitA = 0.12, exitB = 0.55;
+    const exitPt = a => [CX + Math.cos(a) * RX * 1.0, CY + Math.sin(a) * RY * 1.0];
+    const outPt = a => [CX + Math.cos(a) * RX * 1.22, CY + Math.sin(a) * RY * 1.22];
+    const vesPaths = [
+      [[GOLGI[0] + 40, GOLGI[1] + 45], [700, 470], exitPt(exitA), outPt(exitA)],
+      [[GOLGI[0] + 46, GOLGI[1] + 55], [700, 520], exitPt(exitB), outPt(exitB)]
+    ];
+    const atpPaths = [];
+    MITO.forEach(([mx, my]) => {
+      [[GOLGI[0], GOLGI[1]], NUC, [rer1.dots[4][0], rer1.dots[4][1]], [LYSO[0][0], LYSO[0][1]]]
+        .forEach(t => atpPaths.push([[mx, my], [(mx + t[0]) / 2 + 18, (my + t[1]) / 2 - 16], t]));
+    });
+
+    return {
+      body,
+      stream: { cx: CX, cy: CY, rx: RX * 0.94, ry: RY * 0.94, count: 46 },
+      flows: [
+        flow({ paths: mrnaPaths, speed: 58, every: 0.85, max: 7, r: 3.4, fill: '#cbb6ff', tail: true }),
+        flow({ paths: proteinPaths, speed: 42, every: 1.2, max: 5, r: 3.8, fill: '#ffe2ab', tail: true, owner: 'rer' }),
+        flow({ paths: vesPaths, speed: 40, every: 2.2, max: 3, r: 8, fill: 'rgba(240,170,205,.5)', ring: true, owner: 'golgi' }),
+        flow({ paths: atpPaths, speed: 66, every: 0.5, max: 12, r: 2.7, fill: '#ffe066', owner: 'mito' })
+      ],
+      parts: [
+        { id: 'pm',        anchor: [694, 176], label: [858, 108], side: 'R' },
+        { id: 'mito',      anchor: [680, 225], label: [858, 186], side: 'R' },
+        { id: 'rer',       anchor: [600, 366], label: [858, 262], side: 'R' },
+        { id: 'lyso',      anchor: [720, 320], label: [858, 330], side: 'R' },
+        { id: 'golgi',     anchor: [640, 440], label: [858, 404], side: 'R' },
+        { id: 'vesicle',   anchor: [694, 480], label: [858, 478], side: 'R' },
+        { id: 'ribo',      anchor: [620, 570], label: [858, 548], side: 'R' },
+        { id: 'nonliving', anchor: [716, 428], label: [858, 620], side: 'R' },
+        { id: 'centro',    anchor: [575, 200], label: [142, 104], side: 'L' },
+        { id: 'nuc',       anchor: [430, 250], label: [142, 176], side: 'L' },
+        { id: 'nucleolus', anchor: [395, 300], label: [142, 250], side: 'L' },
+        { id: 'ser',       anchor: [300, 268], label: [142, 330], side: 'L' },
+        { id: 'cyto',      anchor: [330, 370], label: [142, 404], side: 'L' },
+        { id: 'chromatin', anchor: [450, 320], label: [142, 476], side: 'L' }
+      ],
+      tools: [
+        { id: 'membTest', label: 'اختبر نصف النفاذية', toggle: true },
+        { id: 'protRoute', label: 'تتبّع مسار البروتين' },
+        { id: 'tableAP', label: 'جدول: نباتية / حيوانية' }
+      ],
+      /* الحركات الخاصة: نبض المايتوكوندريا، هضم الجسيم الحال، عبور الغشاء */
+      state: { lyso: { ph: 'wait', t: 0 }, memb: [] },
+      init(api){
+        this.state.lyso = { ph: 'wait', t: 0 };
+        this.state.memb = [];
+        api.g('lysoTrack', `<g id="lysoTrack" opacity="0">${lysoShape(15)}</g>`);
+        api.g('membMol', '<g id="membMol"></g>');
+        const d = api.el('#debris'); if (d){ d.style.opacity = 1; d.style.transform = 'none'; }
+      },
+      tick(dt, t, api){
+        /* نبض المايتوكوندريا + توزيع الطاقة */
+        const pulse = 0.35 + 0.65 * (0.5 + 0.5 * Math.sin(t * 2.1));
+        api.all('.mitoGlow').forEach((e, i) =>
+          e.setAttribute('opacity', String(0.15 + pulse * 0.5 * (i % 2 ? 0.8 : 1))));
+
+        /* الجسيم الحال: ينشأ من كولجي ← يتحرك للجسم الغريب ← يلتحم ← يهضمه */
+        const S = this.state.lyso, trk = api.el('#lysoTrack'), deb = api.el('#debris');
+        if (trk && deb){
+          S.t += dt;
+          const lerp = (a, b, k) => a + (b - a) * k;
+          if (S.ph === 'wait'){
+            trk.setAttribute('opacity', '0');
+            deb.style.opacity = '1';
+            deb.setAttribute('transform', `translate(${DEBRIS[0]},${DEBRIS[1]}) scale(1)`);
+            if (S.t > 1.4){ S.ph = 'go'; S.t = 0; }
+          } else if (S.ph === 'go'){
+            const k = Math.min(1, S.t / 3.2);
+            const x = lerp(GOLGI[0] - 10, DEBRIS[0] - 22, k), y = lerp(GOLGI[1] + 55, DEBRIS[1] - 6, k);
+            trk.setAttribute('opacity', String(Math.min(1, k * 4)));
+            trk.setAttribute('transform', `translate(${n2(x)},${n2(y)})`);
+            if (k >= 1){ S.ph = 'fuse'; S.t = 0; }
+          } else if (S.ph === 'fuse'){
+            const k = Math.min(1, S.t / 1.1);
+            trk.setAttribute('transform', `translate(${n2(lerp(DEBRIS[0] - 22, DEBRIS[0], k))},${n2(DEBRIS[1])}) scale(${n2(1 + k * 0.5)})`);
+            trk.setAttribute('opacity', String(1 - k * 0.35));
+            if (k >= 1){ S.ph = 'digest'; S.t = 0; }
+          } else if (S.ph === 'digest'){
+            const k = Math.min(1, S.t / 2.4);
+            deb.setAttribute('transform', `translate(${DEBRIS[0]},${DEBRIS[1]}) scale(${n2(1 - k * 0.92)})`);
+            deb.style.opacity = String(1 - k);
+            trk.setAttribute('opacity', String(0.65 * (1 - k)));
+            trk.setAttribute('transform', `translate(${DEBRIS[0]},${DEBRIS[1]}) scale(${n2(1.5 - k * 0.5)})`);
+            if (k >= 1){ S.ph = 'wait'; S.t = 0; }
+          }
+        }
+
+        /* نصف النفاذية: جزيئات صغيرة تعبر وكبيرة ترتد */
+        if (api.tool('membTest')){
+          const host = api.el('#membMol');
+          if (host){
+            const M = this.state.memb;
+            if (M.length < 9 && Math.random() < dt * 2.6){
+              const big = Math.random() < 0.42;
+              const a = -0.9 + Math.random() * 2.6;
+              const px = CX + Math.cos(a) * RX, py = CY + Math.sin(a) * RY;
+              const el = document.createElementNS(SVGNS, 'g');
+              el.innerHTML = big
+                ? `<circle r="9.5" fill="rgba(212,72,60,.38)" stroke="#f0a49a" stroke-width="1.8"/>
+                   <circle r="3" fill="#f0a49a" opacity=".8"/>`
+                : `<circle r="4" fill="#9fe9d0" stroke="#e6fff6" stroke-width="1.2"/>`;
+              host.appendChild(el);
+              M.push({ el, big, a, d: 1.42, dir: -1, dead: 0 });
+            }
+            for (let i = M.length - 1; i >= 0; i--){
+              const m = M[i];
+              m.d += m.dir * dt * 0.22;
+              if (m.dir < 0 && m.d <= 1.0){
+                if (m.big){ m.dir = 1; m.bounced = 1; } else { m.d = 0.99; m.dir = -1; }
+              }
+              if (!m.big && m.d < 0.42) m.dead = 1;
+              if (m.big && m.d > 1.6) m.dead = 1;
+              const x = CX + Math.cos(m.a) * RX * m.d, y = CY + Math.sin(m.a) * RY * m.d;
+              m.el.setAttribute('transform', `translate(${n2(x)},${n2(y)})`);
+              m.el.setAttribute('opacity', String(m.dead ? 0 : (m.d < 0.6 ? m.d / 0.6 : 1)));
+              if (m.dead){ m.el.remove(); M.splice(i, 1); }
+            }
+          }
+        } else if (this.state.memb.length){
+          this.state.memb.forEach(m => m.el.remove());
+          this.state.memb = [];
+        }
+      }
+    };
+  }
+};
+
+/* ───────────────────────── 4.2 الخلية النباتية ───────────────────────── */
+SCENES.plant = {
+  title: 'الخلية النباتية',
+  hint: 'جدار خلوي يحيط بالخلية، فجوة عصارية كبيرة تدفع النواة جانباً، وبلاستيدات خضراء تلمع حين يدخل الضوء وتطلق نواتج البناء الضوئي. لا يوجد جسم مركزي.',
+  build(){
+    const IX0 = 232, IX1 = 768, IY0 = 152, IY1 = 548;       /* داخل الجدار */
+    const W = 18;                                            /* سماكة الجدار */
+    const rrect = (x0, y0, x1, y1, r) =>
+      `M${x0 + r},${y0} L${x1 - r},${y0} Q${x1},${y0} ${x1},${y0 + r} L${x1},${y1 - r}
+       Q${x1},${y1} ${x1 - r},${y1} L${x0 + r},${y1} Q${x0},${y1} ${x0},${y1 - r} L${x0},${y0 + r}
+       Q${x0},${y0} ${x0 + r},${y0} Z`;
+
+    const NUC = [280, 262], NR = 46;
+    const VAC = [325, 205, 675, 425];
+    const GOLGI = [390, 470];
+    const rer = erRibbon(462, 452, 112, 22, 15, 1.4, 20);
+    const ser = erRibbon(726, 226, 6, 92, 13, 1.4, 18);
+    const CHL = [[280, 486, -72], [644, 500, 10], [722, 368, -72], [600, 180, -6]];
+    const MITO = [[452, 180, 0], [728, 452, 70]];
+    const rr = rng(33), ribo = [];
+    for (let i = 0; i < 9; i++) ribo.push([330 + (rr() - 0.5) * 66, 178 + (rr() - 0.5) * 34]);
+    for (let i = 0; i < 6; i++) ribo.push([300 + (rr() - 0.5) * 50, 350 + (rr() - 0.5) * 40]);
+
+    const dotsOf = pts => pts.map(p =>
+      `<circle cx="${n2(p[0])}" cy="${n2(p[1])}" r="3" fill="#26354a" stroke="#a9c6e4" stroke-width=".8"/>`).join('');
+
+    const body = `
+      <!-- ضوء داخل إلى البلاستيدات -->
+      <g id="lightRays" opacity=".8">
+        <ellipse cx="500" cy="52" rx="300" ry="200" fill="url(#gLight)"/>
+        ${[330, 430, 530, 630, 720].map((x, i) =>
+          `<line class="ray" data-i="${i}" x1="${x}" y1="30" x2="${x - 22}" y2="170"
+             stroke="#fff3c4" stroke-width="2" opacity=".3"/>`).join('')}
+      </g>
+
+      <!-- الجدار الخلوي -->
+      ${part('wall', `
+        <path d="${rrect(IX0 - W, IY0 - W, IX1 + W, IY1 + W, 46)}" fill="url(#gWall)" stroke="#e7d3a0" stroke-width="2" filter="url(#fSoft)"/>
+        <path d="${rrect(IX0 - 6, IY0 - 6, IX1 + 6, IY1 + 6, 38)}" fill="#0d0b0c" opacity=".45"/>
+        <path d="${rrect(IX0 - W + 6, IY0 - W + 6, IX1 + W - 6, IY1 + W - 6, 42)}" fill="none" stroke="#f1e0b4" stroke-width="1" opacity=".35"/>`)}
+
+      <!-- السايتوبلازم -->
+      ${part('cyto', `
+        <path d="${rrect(IX0, IY0, IX1, IY1, 34)}" fill="url(#gCyto)"/>
+        <path d="${rrect(IX0, IY0, IX1, IY1, 34)}" fill="#7fd6b8" opacity=".05" filter="url(#fGrain)"/>`)}
+
+      <!-- الغشاء البلازمي -->
+      ${part('pm', `
+        <path d="${rrect(IX0, IY0, IX1, IY1, 34)}" fill="none" stroke="url(#gMemb)" stroke-width="5"/>
+        <path d="${rrect(IX0 + 5, IY0 + 5, IX1 - 5, IY1 - 5, 30)}" fill="none" stroke="#f3dcae" stroke-width="1.6" opacity=".6"/>`)}
+
+      <!-- الفجوة العصارية -->
+      ${part('vacuole', `
+        <path d="${rrect(VAC[0], VAC[1], VAC[2], VAC[3], 62)}" fill="url(#gVac)" stroke="#a9dcf2" stroke-width="3" filter="url(#fSoft)"/>
+        <path d="${rrect(VAC[0] + 7, VAC[1] + 7, VAC[2] - 7, VAC[3] - 7, 56)}" fill="none" stroke="#d6f1fb" stroke-width="1.2" opacity=".5"/>
+        <text class="cap" x="500" y="322" text-anchor="middle" opacity=".55">العصير الخلوي</text>`)}
+
+      <!-- الشبكة الملساء -->
+      ${part('ser', `
+        <path d="${ser.d}" fill="none" stroke="url(#gSer)" stroke-width="11" stroke-linecap="round"/>
+        <path d="${ser.d}" fill="none" stroke="#d6f0e2" stroke-width="2.6" stroke-linecap="round" opacity=".5"/>`)}
+
+      <!-- الشبكة الخشنة -->
+      ${part('rer', `
+        <path d="${rer.d}" fill="none" stroke="url(#gRer)" stroke-width="12" stroke-linecap="round"/>
+        <path d="${rer.d}" fill="none" stroke="#dcecfb" stroke-width="2.8" stroke-linecap="round" opacity=".45"/>
+        ${dotsOf(rer.dots)}`)}
+
+      <!-- النواة (جانبية) -->
+      ${wrap(`translate(${NUC[0]},${NUC[1]})`, part('nuc', nucleusShape(NR, 17, true)))}
+
+      <!-- جهاز كولجي (الدكتيوسوم) -->
+      ${wrap(`translate(${GOLGI[0]},${GOLGI[1]}) rotate(-6) scale(.78)`, part('golgi', golgiShape()))}
+
+      <!-- البلاستيدات الخضراء -->
+      ${CHL.map(([x, y, r]) => wrap(`translate(${x},${y}) rotate(${r})`, part('chloro', chloroShape(96, 56)))).join('')}
+
+      <!-- المايتوكوندريا -->
+      ${MITO.map(([x, y, r]) => wrap(`translate(${x},${y}) rotate(${r})`, part('mito', mitoShape(80, 42)))).join('')}
+
+      <!-- الجسيمات الحالة -->
+      ${wrap('translate(278,396)', part('lyso', lysoShape(14)))}
+
+      <!-- الرايبوسومات -->
+      ${part('ribo', ribo.map(p =>
+        `<circle cx="${n2(p[0])}" cy="${n2(p[1])}" r="3.1" fill="#22304a" stroke="#accbe8" stroke-width=".9"/>`).join(''))}
+
+      <!-- المحتويات غير الحية (حبيبات نشأ) -->
+      ${part('nonliving', `
+        <g filter="url(#fSoft)">
+          <path d="${blobPath(500, 512, 13, 10, .25, 61, 9).d}" fill="url(#gGran)" stroke="#f0dca8" stroke-width="1.2"/>
+          <path d="${blobPath(534, 494, 10, 8, .25, 67, 9).d}" fill="url(#gGran)" stroke="#f0dca8" stroke-width="1.2"/>
+          <path d="${blobPath(300, 448, 9, 8, .25, 71, 9).d}" fill="url(#gGran)" stroke="#f0dca8" stroke-width="1.2"/>
+        </g>`)}
+    `;
+
+    const sugarPaths = CHL.map(([x, y]) => [[x, y], [(x + 500) / 2, (y + 330) / 2], [500, 330]]);
+    const atpPaths = MITO.map(([x, y]) => [[x, y], [(x + NUC[0]) / 2, (y + NUC[1]) / 2], NUC]);
+    const protPaths = [rer.pts.slice(4).concat([[GOLGI[0] + 20, GOLGI[1]]])];
+
+    return {
+      body,
+      stream: { cx: 500, cy: 350, rx: 268, ry: 198, count: 30, fMin: 0.84, fMax: 0.985 },
+      flows: [
+        flow({ paths: sugarPaths, speed: 34, every: 1.1, max: 8, r: 3.4, fill: '#bff08a', owner: 'chloro' }),
+        flow({ paths: atpPaths, speed: 58, every: 0.9, max: 5, r: 2.7, fill: '#ffe066', owner: 'mito' }),
+        flow({ paths: protPaths, speed: 40, every: 1.5, max: 4, r: 3.6, fill: '#ffe2ab', owner: 'rer' })
+      ],
+      parts: [
+        { id: 'wall',      anchor: [500, 140],  label: [858, 104], side: 'R' },
+        { id: 'pm',        anchor: [640, 156],  label: [858, 168], side: 'R' },
+        { id: 'chloro',    anchor: [644, 500],  label: [858, 240], side: 'R' },
+        { id: 'vacuole',   anchor: [600, 300],  label: [858, 312], side: 'R' },
+        { id: 'ser',       anchor: [728, 272],  label: [858, 386], side: 'R' },
+        { id: 'mito',      anchor: [728, 452],  label: [858, 458], side: 'R' },
+        { id: 'rer',       anchor: [530, 466],  label: [858, 530], side: 'R' },
+        { id: 'nonliving', anchor: [500, 512],  label: [858, 602], side: 'R' },
+        { id: 'nuc',       anchor: [280, 240],  label: [142, 112], side: 'L' },
+        { id: 'nucleolus', anchor: [270, 270],  label: [142, 186], side: 'L' },
+        { id: 'cyto',      anchor: [300, 330],  label: [142, 260], side: 'L' },
+        { id: 'lyso',      anchor: [278, 396],  label: [142, 334], side: 'L' },
+        { id: 'golgi',     anchor: [390, 492],  label: [142, 408], side: 'L' },
+        { id: 'ribo',      anchor: [330, 178],  label: [142, 482], side: 'L' }
+      ],
+      tools: [
+        { id: 'compare', label: 'قارن بالحيوانية', toggle: true },
+        { id: 'light', label: 'أدخل الضوء', toggle: true, on: true }
+      ],
+      init(api){ api.setTool('light', true); },
+      tick(dt, t, api){
+        const lit = api.tool('light');
+        const rays = api.el('#lightRays');
+        if (rays) rays.setAttribute('opacity', lit ? String(0.55 + 0.3 * (0.5 + 0.5 * Math.sin(t * 1.3))) : '0');
+        api.all('.chloroGlow').forEach((e, i) => e.setAttribute('opacity',
+          lit ? String(0.2 + 0.55 * (0.5 + 0.5 * Math.sin(t * 1.8 + i))) : '0'));
+        api.all('.mitoGlow').forEach((e, i) =>
+          e.setAttribute('opacity', String(0.15 + 0.4 * (0.5 + 0.5 * Math.sin(t * 2.1 + i)))));
+        api.flowEnabled('chloro', lit);
+      }
+    };
+  }
+};
+
+/* ────────────────── 4.3 بدائية النواة وحقيقية النواة ────────────────── */
+SCENES.pro = {
+  title: 'بدائية النواة وحقيقية النواة',
+  hint: 'الخلية البكتيرية (يمين) بلا نواة حقيقية وبلا عضيات محاطة بأغشية، مقابل خلية حقيقية النواة (يسار) بنواة محددة بغلاف نووي وعضيات كاملة.',
+  build(){
+    /* ── البكتريا ── */
+    const BX = 720, BY = 300, BW = 280, BH = 140;
+    const cap = (x0, y0, x1, y1, r) =>
+      `M${x0 + r},${y0} L${x1 - r},${y0} A${r},${r} 0 0 1 ${x1 - r},${y1} L${x0 + r},${y1} A${r},${r} 0 0 1 ${x0 + r},${y0} Z`;
+    const bOut = cap(BX - BW / 2, BY - BH / 2, BX + BW / 2, BY + BH / 2, BH / 2);
+    const bMid = cap(BX - BW / 2 + 9, BY - BH / 2 + 9, BX + BW / 2 - 9, BY + BH / 2 - 9, BH / 2 - 9);
+    const bIn  = cap(BX - BW / 2 + 16, BY - BH / 2 + 16, BX + BW / 2 - 16, BY + BH / 2 - 16, BH / 2 - 16);
+
+    /* DNA حلقي عارٍ (النيوكليويد) */
+    const rr = rng(91), dnaPts = [];
+    for (let i = 0; i < 16; i++){
+      const a = i / 16 * 6.283;
+      dnaPts.push([BX - 22 + Math.cos(a) * (44 + (rr() - .5) * 26), BY + Math.sin(a) * (30 + (rr() - .5) * 18)]);
+    }
+    const ribo = [];
+    for (let i = 0; i < 22; i++){
+      const t = rr(), a = rr() * 6.283, d = Math.sqrt(t);
+      ribo.push([BX + Math.cos(a) * d * (BW / 2 - 30), BY + Math.sin(a) * d * (BH / 2 - 26)]);
+    }
+    const flag = [];
+    for (let i = 0; i <= 26; i++){
+      const t = i / 26;
+      flag.push([BX + BW / 2 - 4 + t * 96, BY + 10 + Math.sin(t * 9) * 16 * t]);
+    }
+
+    /* ── حقيقية النواة ── */
+    const EX = 300, EY = 340, ER = 142;
+    const ec = blobPath(EX, EY, ER, ER * 0.92, 0.05, 3, 20);
+    const eRer = erRibbon(306, 356, 66, -10, 13, 1.3, 16);
+
+    const body = `
+      <text class="cap" x="720" y="62" text-anchor="middle">خلية بدائية النواة (بكتريا)</text>
+      <text class="cap" x="300" y="62" text-anchor="middle">خلية حقيقية النواة</text>
+      <line x1="500" y1="90" x2="500" y2="620" stroke="rgba(217,164,65,.18)" stroke-width="1" stroke-dasharray="6 6"/>
+
+      <!-- ══ البكتريا ══ -->
+      ${part('flagel', `
+        <path d="${smoothOpen(flag)}" fill="none" stroke="#d8c68e" stroke-width="4.5" stroke-linecap="round"/>
+        <path d="${smoothOpen(flag)}" fill="none" stroke="#fff3cf" stroke-width="1.6" stroke-linecap="round" opacity=".6"/>`)}
+      ${part('capsule', `
+        <path d="${bOut}" fill="rgba(226,205,150,.22)" stroke="#e8d9a8" stroke-width="2" stroke-dasharray="7 4"/>`)}
+      ${part('bwall', `<path d="${bMid}" fill="url(#gBact)" stroke="#f0e0ac" stroke-width="1.8" filter="url(#fSoft)"/>`)}
+      ${part('bpm', `<path d="${bIn}" fill="none" stroke="#ffe6b4" stroke-width="3.4"/>`)}
+      <path d="${bIn}" fill="url(#gBactCyto)"/>
+      ${part('nucleoid', `
+        <path d="${smoothClosed(dnaPts)}" fill="none" stroke="#e2d0ff" stroke-width="3.4" opacity=".95"/>
+        <path d="${smoothClosed(dnaPts)}" fill="none" stroke="#8f77e0" stroke-width="7" opacity=".3"/>`)}
+      ${part('plasmid', `
+        <ellipse cx="${BX + 96}" cy="${BY - 36}" rx="15" ry="10" fill="none" stroke="#e2d0ff" stroke-width="3" transform="rotate(-18 ${BX + 96} ${BY - 36})"/>
+        <ellipse cx="${BX + 84}" cy="${BY + 42}" rx="12" ry="8" fill="none" stroke="#e2d0ff" stroke-width="2.6" transform="rotate(24 ${BX + 84} ${BY + 42})"/>`)}
+      ${part('bribo', ribo.map(p =>
+        `<circle cx="${n2(p[0])}" cy="${n2(p[1])}" r="3.1" fill="#22304a" stroke="#accbe8" stroke-width=".9"/>`).join(''))}
+
+      <!-- ══ حقيقية النواة ══ -->
+      ${part('cyto', `
+        <path d="${ec.d}" fill="url(#gCyto)"/>
+        <path d="${ec.d}" fill="#7fd6b8" opacity=".05" filter="url(#fGrain)"/>`)}
+      ${part('pm', `
+        <path d="${ec.d}" fill="none" stroke="url(#gMemb)" stroke-width="5.5" filter="url(#fSoft)"/>
+        <path d="${insetBlob(ec.pts, EX, EY, .962)}" fill="none" stroke="#f3dcae" stroke-width="1.8" opacity=".65"/>`)}
+      ${part('rer', `
+        <path d="${eRer.d}" fill="none" stroke="url(#gRer)" stroke-width="10" stroke-linecap="round"/>
+        ${eRer.dots.map(p => `<circle cx="${n2(p[0])}" cy="${n2(p[1])}" r="2.6" fill="#26354a" stroke="#a9c6e4" stroke-width=".7"/>`).join('')}`)}
+      ${wrap('translate(275,300)', part('nuc', nucleusShape(48, 13, true)))}
+      ${wrap('translate(330,406) rotate(24)', part('mito', mitoShape(70, 36)))}
+      ${wrap('translate(262,412) scale(.45)', part('golgi', golgiShape()))}
+      ${part('ribo', [[340, 256], [356, 272], [324, 242], [372, 310], [386, 292]].map(p =>
+        `<circle cx="${p[0]}" cy="${p[1]}" r="3" fill="#22304a" stroke="#accbe8" stroke-width=".9"/>`).join(''))}
+    `;
+
+    return {
+      body,
+      stream: { cx: EX, cy: EY, rx: ER * 0.86, ry: ER * 0.8, count: 20 },
+      flows: [
+        flow({ paths: [[[330, 406], [300, 356], [275, 300]]], speed: 48, every: 1.2, max: 3, r: 2.6, fill: '#ffe066', owner: 'mito' })
+      ],
+      parts: [
+        { id: 'capsule',  anchor: [720, 232],      label: [720, 128], side: 'C' },
+        { id: 'bribo',    anchor: [790, 264],      label: [918, 176], side: 'C' },
+        { id: 'plasmid',  anchor: [816, 264],      label: [936, 246], side: 'C' },
+        { id: 'flagel',   anchor: [860, 322],      label: [906, 450], side: 'C' },
+        { id: 'nucleoid', anchor: [700, 300],      label: [760, 536], side: 'C' },
+        { id: 'bwall',    anchor: [598, 262],      label: [560, 214], side: 'L' },
+        { id: 'bpm',      anchor: [604, 330],      label: [560, 344], side: 'L' },
+        { id: 'nuc',      anchor: [268, 268],      label: [142, 118], side: 'L' },
+        { id: 'mito',     anchor: [330, 406],      label: [418, 540], side: 'C' },
+        { id: 'rer',      anchor: [348, 350],      label: [142, 470], side: 'L' },
+        { id: 'pm',       anchor: [296, 212],      label: [142, 196], side: 'L' },
+        { id: 'cyto',     anchor: [232, 380],      label: [142, 276], side: 'L' },
+        { id: 'golgi',    anchor: [246, 432],      label: [142, 392], side: 'L' }
+      ],
+      tools: [
+        { id: 'diff', label: 'أبرز الفروقات', toggle: true },
+        { id: 'tablePE', label: 'جدول الفروقات' }
+      ],
+      diffParts: ['nucleoid', 'nuc', 'capsule', 'bwall', 'mito', 'golgi', 'rer'],
+      tick(dt, t, api){
+        api.all('.mitoGlow').forEach(e => e.setAttribute('opacity', String(0.15 + 0.4 * (0.5 + 0.5 * Math.sin(t * 2.1)))));
+      }
+    };
+  }
+};
+
+/* ────────────────────── 4.4 الغشاء البلازمي مكبّراً ────────────────────── */
+SCENES.membrane = {
+  title: 'الغشاء البلازمي مكبّراً',
+  hint: 'مقطع مكبّر: طبقتان من الدهون المفسفرة (رؤوس محبة للماء وأذناب كارهة للماء) تتخللها بروتينات وكولسترول وكاربوهيدرات — نموذج الفسيفساء المائع. اختر جزيئة وشاهد: تعبر أو لا تعبر.',
+  build(){
+    const TOP = 300, BOT = 400, Y0 = TOP + 12, Y1 = BOT - 12;   /* حدود الطبقة */
+    const lips = [];
+    const skip = x => (x > 268 && x < 344) || (x > 486 && x < 566) || (x > 792 && x < 862);
+    for (let x = 52; x <= 950; x += 30){
+      if (skip(x)) continue;
+      lips.push(`
+        <g class="lip">
+          <circle cx="${x}" cy="${TOP}" r="10.5" fill="#e8d59a" stroke="#fff3cf" stroke-width="1.4"/>
+          <path d="M${x - 3.6},${TOP + 9} C${x - 7},${Y0 + 14} ${x - 1},${Y0 + 26} ${x - 4},${Y0 + 38}"
+                fill="none" stroke="#c8a96a" stroke-width="2.6" stroke-linecap="round"/>
+          <path d="M${x + 3.6},${TOP + 9} C${x + 7},${Y0 + 14} ${x + 1},${Y0 + 26} ${x + 4},${Y0 + 38}"
+                fill="none" stroke="#c8a96a" stroke-width="2.6" stroke-linecap="round"/>
+          <circle cx="${x}" cy="${BOT}" r="10.5" fill="#e8d59a" stroke="#fff3cf" stroke-width="1.4"/>
+          <path d="M${x - 3.6},${BOT - 9} C${x - 7},${Y1 - 14} ${x - 1},${Y1 - 26} ${x - 4},${Y1 - 38}"
+                fill="none" stroke="#c8a96a" stroke-width="2.6" stroke-linecap="round"/>
+          <path d="M${x + 3.6},${BOT - 9} C${x + 7},${Y1 - 14} ${x + 1},${Y1 - 26} ${x + 4},${Y1 - 38}"
+                fill="none" stroke="#c8a96a" stroke-width="2.6" stroke-linecap="round"/>
+        </g>`);
+    }
+    const cholAt = x => `
+      <g transform="translate(${x},350)">
+        <rect x="-5" y="-22" width="10" height="44" rx="5" fill="#9fd8c4" stroke="#d9fff2" stroke-width="1.2"/>
+        <circle cy="-20" r="4.4" fill="#d9fff2"/>
+      </g>`;
+
+    const body = `
+      <rect x="0" y="0" width="1000" height="${TOP - 14}" fill="#16232b" opacity=".55"/>
+      <rect x="0" y="${BOT + 14}" width="1000" height="${700 - BOT - 14}" fill="#1b302b" opacity=".6"/>
+      <text class="cap" x="500" y="52" text-anchor="middle" opacity=".8">خارج الخلية (الوسط الخارجي)</text>
+      <text class="cap" x="500" y="604" text-anchor="middle" opacity=".8">داخل الخلية (السايتوبلازم)</text>
+
+      ${part('bilayer', `
+        <rect x="20" y="${TOP - 14}" width="960" height="${BOT - TOP + 28}" rx="16"
+              fill="rgba(200,169,106,.1)" stroke="rgba(255,243,207,.28)" stroke-width="1.2"/>`)}
+
+      <!-- الكولسترول -->
+      ${part('chol', cholAt(196) + cholAt(646) + cholAt(430))}
+
+      <!-- الدهون المفسفرة -->
+      <g id="lipids">${lips.join('')}</g>
+      ${part('head', `
+        <circle cx="112" cy="${TOP}" r="12" fill="none" stroke="#fff3cf" stroke-width="2.4" opacity=".9"/>
+        <circle cx="112" cy="${BOT}" r="12" fill="none" stroke="#fff3cf" stroke-width="2.4" opacity=".9"/>`)}
+      ${part('tail', `
+        <rect x="126" y="${TOP + 12}" width="34" height="${BOT - TOP - 24}" rx="9"
+              fill="rgba(200,169,106,.16)" stroke="#e8d59a" stroke-width="1.8" stroke-dasharray="5 4"/>`)}
+
+      <!-- بروتين غائر (متكامل) -->
+      ${wrap('translate(306,350)', part('intProt', `
+        <path d="M-30,-58 C-46,-30 -44,20 -28,56 C-6,66 16,64 32,52 C46,18 46,-26 30,-56 C8,-66 -12,-66 -30,-58 Z"
+              fill="#6f93bd" stroke="#cfe4f7" stroke-width="2" filter="url(#fSoft)"/>
+        <path d="M-18,-40 C-26,-14 -24,16 -14,40" fill="none" stroke="#e8f3ff" stroke-width="1.4" opacity=".5"/>`))}
+
+      <!-- بروتين قناة -->
+      ${wrap('translate(526,350)', part('channel', `
+        <path d="M-32,-56 C-44,-26 -44,22 -32,54 L-11,50 C-19,20 -19,-22 -11,-52 Z"
+              fill="#7fa8c9" stroke="#d6eaf9" stroke-width="2"/>
+        <path d="M32,-56 C44,-26 44,22 32,54 L11,50 C19,20 19,-22 11,-52 Z"
+              fill="#7fa8c9" stroke="#d6eaf9" stroke-width="2"/>
+        <rect class="chanGate" x="-9" y="-52" width="18" height="104" fill="rgba(159,233,208,.18)"/>`))}
+
+      <!-- بروتين سطحي (طرفي) -->
+      ${wrap('translate(690,414)', part('periProt', `
+        <path d="M-34,10 C-30,-14 -8,-22 6,-16 C24,-22 38,-8 34,10 C10,20 -12,20 -34,10 Z"
+              fill="#9fcbb6" stroke="#e2fff2" stroke-width="1.8" filter="url(#fSoft)"/>`))}
+
+      <!-- بروتين سكري (كاربوهيدرات) -->
+      ${wrap('translate(826,350)', part('glyco', `
+        <path d="M-28,-54 C-40,-26 -40,22 -26,54 C-4,64 18,60 32,50 C44,18 44,-24 28,-54 C6,-64 -10,-64 -28,-54 Z"
+              fill="#8c7fc4" stroke="#ddd4ff" stroke-width="2" filter="url(#fSoft)"/>
+        <g stroke="#ffd9f0" stroke-width="2.4" fill="none" stroke-linecap="round">
+          <path d="M-8,-56 L-14,-86"/><path d="M-14,-86 L-30,-100"/><path d="M-14,-86 L-2,-104"/>
+          <path d="M12,-56 L20,-84"/><path d="M20,-84 L38,-96"/><path d="M20,-84 L14,-106"/>
+        </g>
+        <g fill="#ffe4f6">
+          <circle cx="-30" cy="-100" r="4.6"/><circle cx="-2" cy="-104" r="4.6"/>
+          <circle cx="38" cy="-96" r="4.6"/><circle cx="14" cy="-106" r="4.6"/>
+          <circle cx="-14" cy="-86" r="4"/><circle cx="20" cy="-84" r="4"/>
+        </g>`))}
+
+      <g id="molLayer"></g>
+      <text id="molMsg" class="cap" x="500" y="240" text-anchor="middle" opacity="0"></text>
+    `;
+
+    return {
+      body, stream: null, flows: [],
+      parts: [
+        { id: 'head',      anchor: [112, 300], label: [150, 178], side: 'C' },
+        { id: 'tail',      anchor: [143, 350], label: [96, 496],  side: 'C' },
+        { id: 'bilayer',   anchor: [230, 286], label: [300, 152], side: 'C' },
+        { id: 'intProt',   anchor: [306, 350], label: [330, 520], side: 'C' },
+        { id: 'channel',   anchor: [526, 350], label: [540, 556], side: 'C' },
+        { id: 'chol',      anchor: [430, 350], label: [430, 168], side: 'C' },
+        { id: 'periProt',  anchor: [690, 420], label: [714, 520], side: 'C' },
+        { id: 'glyco',     anchor: [826, 250], label: [880, 146], side: 'C' }
+      ],
+      tools: [
+        { id: 'o2',   label: 'أوكسجين O₂', radio: 'mol', on: true },
+        { id: 'co2',  label: 'ثاني أوكسيد الكاربون CO₂', radio: 'mol' },
+        { id: 'h2o',  label: 'ماء H₂O', radio: 'mol' },
+        { id: 'na',   label: 'أيون صوديوم Na⁺', radio: 'mol' },
+        { id: 'gluc', label: 'كلوكوز', radio: 'mol' },
+        { id: 'prot', label: 'جزيئة بروتين كبيرة', radio: 'mol' }
+      ],
+      MOL: {
+        o2:   { n: 'O₂',    r: 6,  c: '#9fe9d0', pass: 'lipid', msg: 'يعبر مباشرة عبر الطبقة الدهنية — جزيئة صغيرة غير قطبية.' },
+        co2:  { n: 'CO₂',   r: 7,  c: '#a9d8f0', pass: 'lipid', msg: 'يعبر مباشرة عبر الطبقة الدهنية — جزيئة صغيرة غير قطبية.' },
+        h2o:  { n: 'H₂O',   r: 6,  c: '#7fc0e0', pass: 'channel', msg: 'يعبر بكميات قليلة عبر الطبقة الدهنية، وبسرعة عبر بروتينات القنوات.' },
+        na:   { n: 'Na⁺',   r: 7,  c: '#ffd166', pass: 'channel', msg: 'أيون قطبي: لا يجتاز المنطقة الكارهة للماء، يمر فقط عبر بروتين القناة.' },
+        gluc: { n: 'كلوكوز', r: 11, c: '#f0a45c', pass: 'channel', msg: 'جزيئة قطبية كبيرة: تحتاج بروتيناً ناقلاً في الغشاء للمرور.' },
+        prot: { n: 'بروتين', r: 20, c: '#d4483c', pass: 'no', msg: 'جزيئة كبيرة جداً: لا تعبر الغشاء بالانتشار — يرتد عند السطح (نفاذية اختيارية).' }
+      },
+      state: { mols: [], acc: 0 },
+      init(api){ api.setRadio('mol', 'o2'); this.state.mols = []; this.state.acc = 0; },
+      tick(dt, t, api){
+        const host = api.el('#molLayer'); if (!host) return;
+        const key = api.radio('mol') || 'o2', M = this.MOL[key], S = this.state;
+        const msg = api.el('#molMsg');
+        if (msg){ msg.textContent = M.msg; msg.setAttribute('opacity', '0.85'); }
+
+        api.all('.chanGate').forEach(e =>
+          e.setAttribute('opacity', M.pass === 'channel' ? String(0.25 + 0.35 * (0.5 + 0.5 * Math.sin(t * 3))) : '0.12'));
+
+        S.acc += dt;
+        if (S.acc > 1.05 && S.mols.length < 6){
+          S.acc = 0;
+          const lane = M.pass === 'channel' ? 526 : (60 + Math.random() * 880);
+          const el = document.createElementNS(SVGNS, 'g');
+          el.innerHTML = `<circle r="${M.r}" fill="${M.c}" opacity=".85" stroke="#ffffff" stroke-width="1.2"/>
+            <text y="4" text-anchor="middle" font-size="${M.r > 9 ? 11 : 9}" fill="#0d0b0c">${M.n}</text>`;
+          host.appendChild(el);
+          S.mols.push({ el, x: lane, y: 90, vy: 62, state: 'in', kind: M.pass });
+        }
+        for (let i = S.mols.length - 1; i >= 0; i--){
+          const m = S.mols[i];
+          m.y += m.vy * dt;
+          if (m.state === 'in' && m.y >= 292){
+            if (m.kind === 'no'){ m.vy = -70; m.state = 'bounce'; }
+            else m.state = 'through';
+          }
+          if (m.state === 'bounce' && m.y < 80){ m.el.remove(); S.mols.splice(i, 1); continue; }
+          if (m.y > 640){ m.el.remove(); S.mols.splice(i, 1); continue; }
+          m.el.setAttribute('transform', `translate(${n2(m.x)},${n2(m.y)})`);
+          m.el.setAttribute('opacity', m.y > 560 ? String(Math.max(0, (640 - m.y) / 80)) : '1');
+        }
+      },
+      onReset(){ this.state.mols.forEach(m => m.el.remove()); this.state.mols = []; }
+    };
+  }
+};
+
+/* ─────────────────────────── 4.5 النواة مكبّرة ─────────────────────────── */
+SCENES.nucleus = {
+  title: 'النواة مكبّرة',
+  hint: 'الغلاف النووي غشاء مزدوج تخترقه الثقوب النووية، وبداخله البلازم النووي والنوية والشبكة الكروماتينية. رسائل الـ RNA تخرج من الثقوب إلى السايتوبلازم.',
+  build(){
+    const CX = 470, CY = 350, R = 214;
+    const rr = rng(5), chrom = [], pores = [];
+    for (let i = 0; i < 14; i++){
+      const pts = []; let a = rr() * 6.283, d = 22 + rr() * R * 0.6;
+      for (let j = 0; j < 6; j++){
+        a += (rr() - 0.5) * 2.1; d = Math.min(R * 0.8, Math.max(16, d + (rr() - 0.5) * 70));
+        pts.push([CX + Math.cos(a) * d, CY + Math.sin(a) * d]);
+      }
+      chrom.push(`<path class="chrm" d="${smoothOpen(pts)}" fill="none" stroke="#3b2d70" stroke-width="${n2(2.4 + rr() * 2.4)}"
+        opacity=".9" stroke-linecap="round"/>`);
+    }
+    const poreAngles = [];
+    for (let i = 0; i < 18; i++){
+      const a = i / 18 * 6.283 + 0.07; poreAngles.push(a);
+      const x = CX + Math.cos(a) * R, y = CY + Math.sin(a) * R;
+      pores.push(`<g transform="translate(${n2(x)},${n2(y)}) rotate(${n2(a * 57.3)})">
+        <rect x="-5" y="-10" width="10" height="20" rx="4" fill="#0d0b0c" opacity=".85"/>
+        <rect x="-5" y="-10" width="10" height="20" rx="4" fill="none" stroke="#d9cbff" stroke-width="2"/>
+        <circle cx="0" cy="-10" r="3.2" fill="#c9b6f7"/><circle cx="0" cy="10" r="3.2" fill="#c9b6f7"/>
+      </g>`);
+    }
+    const eR = erRibbon(760, 180, 30, 160, 20, 1.5, 20);
+
+    const body = `
+      <text class="cap" x="880" y="620" text-anchor="middle" opacity=".7">السايتوبلازم</text>
+
+      <!-- الشبكة البلازمية الداخلية متصلة بالغلاف النووي -->
+      ${part('rer', `
+        <path d="M${CX + R - 8},${CY - 60} C700,270 720,240 760,200" fill="none" stroke="url(#gRer)" stroke-width="13" stroke-linecap="round"/>
+        <path d="${eR.d}" fill="none" stroke="url(#gRer)" stroke-width="13" stroke-linecap="round"/>
+        ${eR.dots.map(p => `<circle cx="${n2(p[0])}" cy="${n2(p[1])}" r="3" fill="#26354a" stroke="#a9c6e4" stroke-width=".8"/>`).join('')}`)}
+
+      <!-- البلازم النووي -->
+      ${part('nucleoplasm', `
+        <circle cx="${CX}" cy="${CY}" r="${R - 6}" fill="url(#gNucl)"/>
+        <circle cx="${CX}" cy="${CY}" r="${R - 6}" fill="#c9b6f7" opacity=".05" filter="url(#fGrain)"/>`)}
+
+      <!-- الشبكة الكروماتينية -->
+      ${part('chromatin', `<g>${chrom.join('')}</g>`)}
+
+      <!-- النوية -->
+      ${wrap(`translate(${CX - 62},${CY + 46})`, part('nucleolus', `
+        <circle r="58" fill="url(#gNucleolus)" stroke="#b6a3ef" stroke-width="2" filter="url(#fSoft)"/>
+        <circle r="58" fill="#e0d4ff" opacity=".08" filter="url(#fGrain)"/>
+        <circle class="nucleolusGlow" r="62" fill="none" stroke="#d9c9ff" stroke-width="3" opacity="0"/>
+        ${[[-22, -14, 5], [6, -24, 4], [20, 10, 6], [-8, 22, 4.5], [30, -6, 3.6], [-30, 12, 4]].map(([x, y, r]) =>
+          `<circle cx="${x}" cy="${y}" r="${r}" fill="#a48ce4" opacity=".55"/>`).join('')}`))}
+
+      <!-- الغلاف النووي: غشاءان + ثقوب -->
+      ${part('env', `
+        <circle cx="${CX}" cy="${CY}" r="${R}" fill="none" stroke="#e8dcff" stroke-width="5"/>
+        <circle cx="${CX}" cy="${CY}" r="${R - 13}" fill="none" stroke="#c4b0f0" stroke-width="4.4"/>
+        <circle cx="${CX}" cy="${CY}" r="${R - 6.5}" fill="rgba(200,180,255,.12)" stroke="none"/>`)}
+      ${part('pore', `<g>${pores.join('')}</g>`)}
+    `;
+
+    const rnaPaths = [0, 3, 7, 11, 14].map(i => {
+      const a = poreAngles[i];
+      return [[CX + Math.cos(a) * R, CY + Math.sin(a) * R],
+              [CX + Math.cos(a) * (R + 70), CY + Math.sin(a) * (R + 70)],
+              [CX + Math.cos(a) * (R + 150), CY + Math.sin(a) * (R + 150)]];
+    });
+
+    return {
+      body,
+      stream: null,
+      flows: [flow({ paths: rnaPaths, speed: 54, every: 0.7, max: 8, r: 3.6, fill: '#cbb6ff', tail: true, owner: 'pore' })],
+      parts: [
+        { id: 'env',         anchor: [CX + Math.cos(-1.1) * R, CY + Math.sin(-1.1) * R], label: [858, 116], side: 'R' },
+        { id: 'pore',        anchor: [CX + Math.cos(-0.35) * R, CY + Math.sin(-0.35) * R], label: [858, 222], side: 'R' },
+        { id: 'rer',         anchor: [770, 300], label: [858, 400], side: 'R' },
+        { id: 'chromatin',   anchor: [CX + 96, CY - 84], label: [142, 116], side: 'L' },
+        { id: 'nucleoplasm', anchor: [CX + 30, CY + 150], label: [142, 236], side: 'L' },
+        { id: 'nucleolus',   anchor: [CX - 62, CY + 46], label: [142, 356], side: 'L' }
+      ],
+      tools: [],
+      tick(dt, t, api){
+        api.all('.nucleolusGlow').forEach(e => e.setAttribute('opacity', String(0.1 + 0.35 * (0.5 + 0.5 * Math.sin(t * 1.5)))));
+        api.all('.chrm').forEach((e, i) => {
+          const k = 1 + 0.02 * Math.sin(t * 0.9 + i);
+          e.setAttribute('transform', `translate(${n2(CX * (1 - k))},${n2(CY * (1 - k))}) scale(${n2(k)})`);
+        });
+      }
+    };
+  }
+};
+
+/* ══════════════════════════════════════════════════════════════════════════
+   5 · الانقسام الخلوي (محرك مشترك للخيطي والاختزالي)
+   ══════════════════════════════════════════════════════════════════════════ */
+
+const CLR = { a: '#e2574c', aT: '#f5a39c', b: '#4d8fd6', bT: '#a3c8f0' };
+const lerp = (a, b, k) => a + (b - a) * k;
+const ease = k => k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+
+/* شكل خلية مع إمكانية «الخصر» (الانقسام السايتوبلازمي) */
+function cellShape(c){
+  const steps = 40, pts = [];
+  for (let i = 0; i < steps; i++){
+    const a = i / steps * Math.PI * 2;
+    const cs = Math.cos(a), sn = Math.sin(a);
+    /* الخلية النباتية شبه مستطيلة بزوايا دائرية، والحيوانية بيضوية */
+    let x = c.rect ? Math.sign(cs) * Math.pow(Math.abs(cs), 0.45) * c.rx : cs * c.rx;
+    let y = c.rect ? Math.sign(sn) * Math.pow(Math.abs(sn), 0.45) * c.ry : sn * c.ry;
+    if (c.waist > 0){
+      if (c.axis === 'y'){ const f = Math.exp(-Math.pow(y / (c.ry * 0.34), 2)); x *= 1 - c.waist * f; }
+      else { const f = Math.exp(-Math.pow(x / (c.rx * 0.34), 2)); y *= 1 - c.waist * f; }
+    }
+    pts.push([c.cx + x, c.cy + y]);
+  }
+  return smoothClosed(pts);
+}
+function chromatidMarkup(){
+  return `
+    <rect class="armT" x="-5.4" y="-31" width="10.8" height="25" rx="5.2"/>
+    <rect class="armM" x="-5.4" y="6"  width="10.8" height="25" rx="5.2"/>
+    <rect class="armC" x="-2.2" y="-7" width="4.4"  height="14"/>
+    <circle class="cen" cy="0" r="3.1" fill="#2a1f1c"/>`;
+}
+
+function divisionScene(mode){
+  const isMei = mode === 'mei';
+
+  const MIT = [
+    { k:'inter', n:'الطور البيني', chrom:'الخلية الأم: 4 كروموسومات (2n)',
+      d:'الخلية تنمو وتؤدي نشاطاتها، وتتضاعف المادة الوراثية (DNA) داخل النواة. الكروموسومات غير ظاهرة، وتُرى شبكة كروماتينية ونوية.' },
+    { k:'pro', n:'الطور التمهيدي', chrom:'4 كروموسومات · كل كروموسوم بكروماتيدتين',
+      d:'تتكاثف الشبكة الكروماتينية فتظهر الكروموسومات واضحة، كل كروموسوم بكروماتيدتين متصلتين بالسنترومير. يتضاعف الجسم المركزي ويتحرك جسيماه نحو القطبين، وتختفي النوية ويتلاشى الغلاف النووي، وتتكوّن خيوط المغزل.' },
+    { k:'meta', n:'الطور الاستوائي', chrom:'4 كروموسومات على خط الاستواء',
+      d:'تصطف الكروموسومات في مستوى استواء الخلية، وترتبط خيوط المغزل بالسنترومير في كل كروموسوم.' },
+    { k:'ana', n:'الطور الانفصالي', chrom:'8 كروماتيدات تتحرك · 4 لكل قطب',
+      d:'ينشقّ السنترومير فتنفصل الكروماتيدتان وتتحرك كل واحدة نحو قطب، بسحب خيوط المغزل.' },
+    { k:'telo', n:'الطور النهائي والانقسام السايتوبلازمي', chrom:'خليتان · كل خلية 4 كروموسومات (2n)',
+      d:'تتجمع الكروموسومات عند القطبين ويعاد تكوين الغلاف النووي والنوية، وتختفي خيوط المغزل، ثم ينقسم السايتوبلازم فتنتج خليتان مماثلتان للخلية الأم.' }
+  ];
+  const MEI = [
+    { k:'inter', n:'الطور البيني', chrom:'الخلية الأم: 4 كروموسومات (2n)',
+      d:'تتضاعف المادة الوراثية قبل بدء الانقسام، والكروموسومات غير ظاهرة.' },
+    { k:'pro1', n:'الطور التمهيدي الأول', chrom:'4 كروموسومات · زوجان متماثلان',
+      d:'تظهر الكروموسومات ويتزاوج كل كروموسومين متماثلين (أحدهما أبوي والآخر أمي)، ويحدث بينهما التصالب (العبور): تبادل قطع بين الكروماتيدات فتتنوع الصفات الوراثية. يتلاشى الغلاف النووي وتتكوّن خيوط المغزل.' },
+    { k:'meta1', n:'الطور الاستوائي الأول', chrom:'زوجان متماثلان على خط الاستواء',
+      d:'تصطف أزواج الكروموسومات المتماثلة على خط استواء الخلية، كل كروموسوم من الزوج في جهة.' },
+    { k:'ana1', n:'الطور الانفصالي الأول', chrom:'كل قطب يستلم 2 كروموسومات (اختزال العدد)',
+      d:'ينفصل الكروموسومان المتماثلان — لا الكروماتيدتان — ويتحرك كل واحد نحو قطب، فيُختزل العدد إلى النصف. وتوزّع الأزواج على القطبين توزيعاً حراً.' },
+    { k:'telo1', n:'الطور النهائي الأول', chrom:'خليتان · كل خلية 2 كروموسومات (n)',
+      d:'ينقسم السايتوبلازم فتنتج خليتان، في كل واحدة نصف عدد كروموسومات الخلية الأم، وكل كروموسوم ما زال بكروماتيدتين.' },
+    { k:'pro2', n:'الطور التمهيدي الثاني', chrom:'كل خلية: 2 كروموسومات بكروماتيدتين',
+      d:'يبدأ الانقسام الثاني في كل خلية بلا تضاعف جديد للـ DNA: يتلاشى الغلاف النووي وتتكوّن خيوط مغزل جديدة.' },
+    { k:'meta2', n:'الطور الاستوائي الثاني', chrom:'2 كروموسومات على استواء كل خلية',
+      d:'تصطف الكروموسومات على خط استواء كل خلية وترتبط بها خيوط المغزل.' },
+    { k:'ana2', n:'الطور الانفصالي الثاني', chrom:'الكروماتيدات تنفصل نحو الأقطاب',
+      d:'ينشقّ السنترومير فتنفصل الكروماتيدتان في كل كروموسوم وتتحرك كل واحدة نحو قطب.' },
+    { k:'telo2', n:'الطور النهائي الثاني', chrom:'أربع خلايا · كل خلية 2 كروموسومات (n)',
+      d:'ينقسم السايتوبلازم في كل خلية فتنتج أربع خلايا، في كل واحدة نصف عدد كروموسومات الخلية الأم — وهي الأمشاج.' }
+  ];
+  const PH = isMei ? MEI : MIT;
+
+  return {
+    title: isMei ? 'الانقسام الاختزالي' : 'الانقسام الخيطي المتساوي',
+    hint: isMei
+      ? 'انقسامان متعاقبان ينتجان أربع خلايا بنصف عدد الكروموسومات. اسحب الشريط أو شغّل الحركة، وراقب التصالب (العبور) في الطور التمهيدي الأول.'
+      : 'مرّ على الأطوار بالتسلسل: سحب الشريط أو زر التشغيل. اسم الطور ووصفه وعدد الكروموسومات يتحدثون تلقائياً.',
+    build(){
+      const CX = 500, CY = 350, RX = 250, RY = 208;
+      const body = `
+        <g id="divCells"></g>
+        <path id="spindle" fill="none" stroke="#dfe7ee" stroke-width="1.3" opacity="0"/>
+        <g id="plates"></g>
+        <g id="envs"></g>
+        <g id="chromatinG" opacity="0"></g>
+        <g id="centrs"></g>
+        <g id="chrs"></g>
+        <g id="xover"></g>`;
+
+      return {
+        body, stream: null, flows: [], parts: [],
+        tools: isMei ? [
+          { id: 'slider', slider: true },
+          { id: 'showX', label: 'أبرز التصالب', toggle: true, on: true },
+          { id: 'tableMM', label: 'جدول: خيطي / اختزالي' }
+        ] : [
+          { id: 'slider', slider: true },
+          { id: 'plant', label: 'خلية نباتية', toggle: true },
+          { id: 'tableMM', label: 'جدول: خيطي / اختزالي' }
+        ],
+        isDivision: true, phases: PH,
+        state: { T: 0 },
+        init(api){
+          /* تجميع العناصر مرة واحدة ثم تحديث خصائصها كل إطار */
+          const cells = api.el('#divCells'), envs = api.el('#envs'), chrs = api.el('#chrs'),
+                cent = api.el('#centrs'), pl = api.el('#plates'), chn = api.el('#chromatinG');
+          cells.innerHTML = [0, 1, 2, 3].map(i =>
+            `<path class="dcell" data-i="${i}" fill="url(#gCyto)" stroke="url(#gMemb)" stroke-width="5" opacity="0"/>`).join('');
+          envs.innerHTML = [0, 1, 2, 3].map(i =>
+            `<g class="denv" data-i="${i}" opacity="0">
+               <circle class="ec" fill="url(#gNucl)" stroke="#cbbcf6" stroke-width="2.4" opacity=".85"/>
+               <circle class="en" fill="url(#gNucleolus)" stroke="#b6a3ef" stroke-width="1.6"/>
+             </g>`).join('');
+          chrs.innerHTML = [0, 1, 2, 3, 4, 5, 6, 7].map(i =>
+            `<g class="chd" data-i="${i}" opacity="0">${chromatidMarkup()}</g>`).join('');
+          cent.innerHTML = [0, 1, 2, 3].map(i =>
+            `<g class="dcen" data-i="${i}" opacity="0">${centroShape()}</g>`).join('');
+          pl.innerHTML = [0, 1].map(i => `<rect class="dplate" data-i="${i}" fill="#cbb98a" stroke="#f0e2bb" stroke-width="1.4" opacity="0"/>`).join('');
+          const rr = rng(23), sq = [];
+          for (let i = 0; i < 10; i++){
+            const pts = []; let a = rr() * 6.283, d = 14 + rr() * 60;
+            for (let j = 0; j < 5; j++){
+              a += (rr() - .5) * 2.2; d = Math.min(88, Math.max(10, d + (rr() - .5) * 40));
+              pts.push([Math.cos(a) * d, Math.sin(a) * d]);
+            }
+            sq.push(`<path d="${smoothOpen(pts)}" fill="none" stroke="#3b2d70" stroke-width="2.2" opacity=".9" stroke-linecap="round"/>`);
+          }
+          chn.innerHTML = sq.join('');
+          this.state.T = 0;
+          api.setSlider(0);
+        },
+
+        /* حساب الحالة الهندسية عند تقدّم T ∈ [0,1] */
+        compute(T, plant){
+          const nP = PH.length, raw = Math.min(nP - 0.0001, T * nP);
+          const pi = Math.floor(raw), u = raw - pi, e = ease(u), ph = PH[pi].k;
+          const S = { cells: [], envs: [], chr: [], cent: [], plates: [], spindle: [], cap: '', xo: 0 };
+          const mk = (cx, cy, rx, ry, waist, axis) => ({ cx, cy, rx, ry, waist: waist || 0, axis: axis || 'x' });
+          /* الكروماتيدات: 8 = 4 كروموسومات × 2 */
+          const CH = i => ({ i, col: i < 4 ? CLR.a : CLR.b });
+          const put = (i, x, y, rot, op, main, tip, sc) =>
+            S.chr[i] = { x, y, rot: rot || 0, op: op === undefined ? 1 : op, main, tip: tip || main, sc: sc || 1 };
+
+          /* لون الكروماتيدات: الزوج الأول (0،1 أمي) و(2،3 أبوي) — لكل كروموسوم كروماتيدتان */
+          const colOf = c => (c === 0 || c === 2) ? CLR.a : CLR.b;
+          const tipOf = c => (c === 0 || c === 2) ? CLR.aT : CLR.bT;
+
+          if (ph === 'inter'){
+            S.cells.push(mk(CX, CY, RX, RY, 0));
+            S.envs.push({ cx: CX, cy: CY, r: 112, op: 1, nx: CX - 30, ny: CY + 22, nr: 34 });
+            S.chromatin = { x: CX, y: CY, op: 1 };
+            S.cap = 'تضاعف المادة الوراثية داخل النواة';
+            for (let i = 0; i < 8; i++) put(i, CX, CY, 0, 0, colOf(i >> 1));
+            if (!plant) { S.cent.push({ x: CX + 70, y: CY - 78, op: .9, s: .8 }); }
+          }
+          else if (ph === 'pro' || ph === 'pro1'){
+            S.cells.push(mk(CX, CY, RX, RY, 0));
+            S.envs.push({ cx: CX, cy: CY, r: 112, op: 1 - e, nx: CX - 30, ny: CY + 22, nr: 34 });
+            S.chromatin = { x: CX, y: CY, op: 1 - Math.min(1, e * 2) };
+            const homePos = isMei
+              ? [[CX - 54, CY - 58], [CX - 16, CY - 58], [CX + 18, CY + 52], [CX + 56, CY + 52]]
+              : [[CX - 62, CY - 52], [CX + 44, CY - 66], [CX - 30, CY + 58], [CX + 68, CY + 30]];
+            for (let c = 0; c < 4; c++){
+              const [hx, hy] = homePos[c];
+              for (let s = 0; s < 2; s++){
+                const i = c * 2 + s;
+                let tip = tipOf(c);
+                /* التصالب: تبادل أطراف الكروماتيدات بين المتماثلين */
+                if (isMei && u > 0.62 && s === 1) tip = (c === 0 || c === 2) ? CLR.bT : CLR.aT;
+                put(i, hx + (s ? 7 : -7), hy, isMei ? 0 : (c * 37 % 60 - 30), Math.min(1, e * 2.2), colOf(c), tip);
+              }
+            }
+            if (isMei && u > 0.45){ S.xo = Math.min(1, (u - 0.45) * 4); }
+            if (!plant){
+              S.cent.push({ x: lerp(CX + 60, CX - RX + 52, e), y: lerp(CY - 70, CY, e), op: 1, s: .85 });
+              S.cent.push({ x: lerp(CX + 80, CX + RX - 52, e), y: lerp(CY - 70, CY, e), op: 1, s: .85 });
+            }
+            S.spindleOp = e * 0.7;
+            S.poles = [[CX - RX + 52, CY], [CX + RX - 52, CY]];
+            S.cap = isMei ? 'تزاوج الكروموسومات المتماثلة وحدوث التصالب' : 'تكاثف الكروموسومات وتلاشي الغلاف النووي';
+          }
+          else if (ph === 'meta' || ph === 'meta1'){
+            S.cells.push(mk(CX, CY, RX, RY, 0));
+            const ys = isMei ? [CY - 84, CY - 84, CY + 84, CY + 84] : [CY - 105, CY - 35, CY + 35, CY + 105];
+            for (let c = 0; c < 4; c++){
+              for (let s = 0; s < 2; s++){
+                const i = c * 2 + s;
+                let tip = tipOf(c);
+                if (isMei && s === 1) tip = (c === 0 || c === 2) ? CLR.bT : CLR.aT;
+                /* الاختزالي: كل متماثل بجهة من خط الاستواء · الخيطي: الكروماتيدتان جانب بعض */
+                const homSide = isMei ? ((c === 0 || c === 3) ? -1 : 1) : 0;
+                const baseX = isMei ? CX + homSide * 26 : CX;
+                put(i, baseX + (s ? 7 : -7), ys[c], 0, 1, colOf(c), tip);
+              }
+            }
+            if (!plant){ S.cent.push({ x: CX - RX + 52, y: CY, op: 1, s: .85 }); S.cent.push({ x: CX + RX - 52, y: CY, op: 1, s: .85 }); }
+            S.spindleOp = 0.85; S.poles = [[CX - RX + 52, CY], [CX + RX - 52, CY]];
+            S.cap = 'اصطفاف على خط الاستواء وارتباط خيوط المغزل';
+          }
+          else if (ph === 'ana' || ph === 'ana1'){
+            S.cells.push(mk(CX, CY, RX, RY, 0));
+            const ys = isMei ? [CY - 84, CY - 84, CY + 84, CY + 84] : [CY - 105, CY - 35, CY + 35, CY + 105];
+            for (let c = 0; c < 4; c++){
+              for (let s = 0; s < 2; s++){
+                const i = c * 2 + s;
+                let tip = tipOf(c);
+                if (isMei && s === 1) tip = (c === 0 || c === 2) ? CLR.bT : CLR.aT;
+                let x0, x1, y1;
+                if (isMei){
+                  /* ينفصل المتماثلان: توزيع حر — الزوج الأول (0 يسار،1 يمين) والثاني (3 يسار،2 يمين) */
+                  const dir = (c === 0 || c === 3) ? -1 : 1;
+                  x0 = CX + dir * 26 + (s ? 7 : -7);
+                  x1 = CX + dir * (RX - 86) + (s ? 7 : -7);
+                  y1 = lerp(ys[c], CY + (c < 2 ? -36 : 36), e);
+                } else {
+                  const dir = s ? 1 : -1;
+                  x0 = CX + dir * 7; x1 = CX + dir * (RX - 86);
+                  y1 = lerp(ys[c], CY + (c - 1.5) * 42, e);
+                }
+                put(i, lerp(x0, x1, e), y1, 0, 1, colOf(c), tip);
+              }
+            }
+            if (!plant){ S.cent.push({ x: CX - RX + 52, y: CY, op: 1, s: .85 }); S.cent.push({ x: CX + RX - 52, y: CY, op: 1, s: .85 }); }
+            S.spindleOp = 0.85 * (1 - e * 0.4); S.poles = [[CX - RX + 52, CY], [CX + RX - 52, CY]];
+            S.cap = isMei ? 'انفصال الكروموسومات المتماثلة نحو القطبين' : 'انفصال الكروماتيدتين نحو القطبين';
+          }
+          else if (ph === 'telo' || ph === 'telo1'){
+            const w = plant ? 0 : e * 0.92;
+            S.cells.push(mk(CX, CY, RX, RY, w, 'x'));
+            if (plant) S.plates.push({ x: CX - 3, y: CY - RY * (0.15 + e * 0.85), w: 6, h: RY * 2 * (0.15 + e * 0.85), op: 1 });
+            const L = [CX - 150, CY], R = [CX + 150, CY];
+            S.envs.push({ cx: L[0], cy: L[1], r: 46 + e * 34, op: e, nx: L[0] - 18, ny: L[1] + 14, nr: 16 + e * 8 });
+            S.envs.push({ cx: R[0], cy: R[1], r: 46 + e * 34, op: e, nx: R[0] - 18, ny: R[1] + 14, nr: 16 + e * 8 });
+            for (let c = 0; c < 4; c++){
+              for (let s = 0; s < 2; s++){
+                const i = c * 2 + s;
+                let tip = tipOf(c);
+                if (isMei && s === 1) tip = (c === 0 || c === 2) ? CLR.bT : CLR.aT;
+                let side, yy;
+                if (isMei){ side = (c === 0 || c === 3) ? -1 : 1; yy = CY + (c < 2 ? -34 : 34); }
+                else { side = s ? 1 : -1; yy = CY + (c - 1.5) * 42; }
+                const P = side < 0 ? L : R;
+                put(i, lerp(CX + side * (RX - 86) + (isMei ? (s ? 7 : -7) : 0), P[0] + (isMei ? (s ? 7 : -7) : (c - 1.5) * 15), e),
+                    lerp(yy, P[1] + (isMei ? (c < 2 ? -20 : 20) : (c - 1.5) * 22), e),
+                    0, 1 - e * 0.35, colOf(c), tip, 1 - e * 0.2);
+              }
+            }
+            S.spindleOp = 0.4 * (1 - e); S.poles = [[CX - RX + 52, CY], [CX + RX - 52, CY]];
+            S.cap = plant ? 'تكوّن الصفيحة الخلوية بين الخليتين' : 'انخماص السايتوبلازم وتكوّن خليتين';
+          }
+          /* ── الانقسام الثاني (الاختزالي فقط) ── */
+          else {
+            const CL = [CX - 190, CY], CR = [CX + 190, CY], CR2 = 150;
+            const halves = [{ c: CL, left: true }, { c: CR, left: false }];
+            const chOf = left => left ? [0, 3] : [1, 2];   /* الكروموسومات بكل خلية */
+            if (ph === 'telo2'){
+              halves.forEach(h => {
+                S.cells.push(mk(h.c[0], h.c[1] - 96 - e * 18, CR2 * 0.78, CR2 * 0.62, 0));
+                S.cells.push(mk(h.c[0], h.c[1] + 96 + e * 18, CR2 * 0.78, CR2 * 0.62, 0));
+              });
+            } else {
+              halves.forEach(h => S.cells.push(mk(h.c[0], h.c[1], CR2, CR2 * 1.16,
+                ph === 'ana2' ? 0 : 0, 'y')));
+            }
+            halves.forEach((h, hi) => {
+              const [c1, c2] = chOf(h.left), poleT = [h.c[0], h.c[1] - CR2 * 0.78], poleB = [h.c[0], h.c[1] + CR2 * 0.78];
+              S.poles2 = S.poles2 || []; S.poles2.push(poleT, poleB);
+              [c1, c2].forEach((c, ci) => {
+                for (let s = 0; s < 2; s++){
+                  const i = c * 2 + s;
+                  let tip = tipOf(c); if (s === 1) tip = (c === 0 || c === 2) ? CLR.bT : CLR.aT;
+                  const baseY = h.c[1] + (ci ? 30 : -30);
+                  if (ph === 'pro2'){
+                    put(i, h.c[0] + (ci ? 46 : -46) + (s ? 7 : -7), baseY, 0, 1, colOf(c), tip);
+                  } else if (ph === 'meta2'){
+                    const fx = h.c[0] + (ci ? 44 : -44);
+                    put(i, lerp(h.c[0] + (ci ? 46 : -46) + (s ? 7 : -7), fx, e),
+                        lerp(baseY, h.c[1] + (s ? 7 : -7), e), 90, 1, colOf(c), tip);
+                  } else if (ph === 'ana2'){
+                    const dir = s ? 1 : -1;
+                    put(i, h.c[0] + (ci ? 44 : -44),
+                        lerp(h.c[1] + dir * 7, h.c[1] + dir * (CR2 * 0.62), e), 90, 1, colOf(c), tip);
+                  } else { /* telo2 */
+                    const dir = s ? 1 : -1;
+                    put(i, lerp(h.c[0] + (ci ? 44 : -44), h.c[0] + (ci ? 22 : -22), e),
+                        lerp(h.c[1] + dir * (CR2 * 0.62), h.c[1] + dir * (96 + e * 18), e), 90, 1 - e * 0.3,
+                        colOf(c), tip, 1 - e * 0.22);
+                  }
+                }
+              });
+              if (ph === 'telo2'){
+                S.envs.push({ cx: h.c[0], cy: h.c[1] - 96 - e * 18, r: 34 + e * 30, op: e, nx: h.c[0] - 14, ny: h.c[1] - 96 - e * 18 + 14, nr: 11 + e * 7 });
+                S.envs.push({ cx: h.c[0], cy: h.c[1] + 96 + e * 18, r: 34 + e * 30, op: e, nx: h.c[0] - 14, ny: h.c[1] + 96 + e * 18 + 14, nr: 11 + e * 7 });
+              } else if (ph === 'pro2'){
+                S.envs.push({ cx: h.c[0], cy: h.c[1], r: 84, op: 1 - e, nx: h.c[0] - 22, ny: h.c[1] + 16, nr: 24 });
+              }
+            });
+            if (ph === 'telo2'){
+              halves.forEach(h => S.plates.push({ x: h.c[0] - CR2 * 0.8, y: h.c[1] - 3, w: CR2 * 1.6, h: 6, op: 0 }));
+            }
+            S.spindleOp = ph === 'pro2' ? e * 0.7 : (ph === 'telo2' ? 0 : 0.8);
+            S.cap = ph === 'telo2' ? 'أربع خلايا ناتجة، كل واحدة بنصف عدد الكروموسومات (n)'
+                  : (ph === 'pro2' ? 'يبدأ الانقسام الثاني بلا تضاعف جديد للـ DNA' : 'انفصال الكروماتيدات في كل خلية');
+          }
+          S.phaseIdx = pi; S.u = u;
+          return S;
+        },
+
+        apply(S, api, plant){
+          const setA = (el, o) => { for (const k in o) el.setAttribute(k, String(o[k])); };
+          api.all('.dcell').forEach((el, i) => {
+            const c = S.cells[i];
+            if (!c){ el.setAttribute('opacity', '0'); return; }
+            setA(el, { d: cellShape(Object.assign({}, c, { rect: plant })), opacity: 1 });
+            el.setAttribute('stroke-width', plant ? '11' : '5');
+            el.setAttribute('stroke', plant ? 'url(#gWall)' : 'url(#gMemb)');
+          });
+          api.all('.denv').forEach((g, i) => {
+            const e = S.envs[i];
+            if (!e){ g.setAttribute('opacity', '0'); return; }
+            g.setAttribute('opacity', String(Math.max(0, e.op)));
+            setA(g.querySelector('.ec'), { cx: n2(e.cx), cy: n2(e.cy), r: n2(e.r) });
+            setA(g.querySelector('.en'), { cx: n2(e.nx === undefined ? e.cx - 20 : e.nx), cy: n2(e.ny === undefined ? e.cy + 14 : e.ny), r: n2(e.nr || 18) });
+          });
+          const chn = api.el('#chromatinG');
+          if (chn){
+            const c = S.chromatin;
+            chn.setAttribute('opacity', String(c ? c.op : 0));
+            if (c) chn.setAttribute('transform', `translate(${n2(c.x)},${n2(c.y)})`);
+          }
+          api.all('.chd').forEach((g, i) => {
+            const c = S.chr[i];
+            if (!c){ g.setAttribute('opacity', '0'); return; }
+            g.setAttribute('opacity', String(c.op));
+            g.setAttribute('transform', `translate(${n2(c.x)},${n2(c.y)}) rotate(${n2(c.rot)}) scale(${n2(c.sc)})`);
+            g.querySelector('.armM').setAttribute('fill', c.main);
+            g.querySelector('.armT').setAttribute('fill', c.tip);
+            g.querySelector('.armC').setAttribute('fill', c.main);
+          });
+          api.all('.dcen').forEach((g, i) => {
+            const c = S.cent[i];
+            if (!c || plant){ g.setAttribute('opacity', '0'); return; }
+            g.setAttribute('opacity', String(c.op));
+            g.setAttribute('transform', `translate(${n2(c.x)},${n2(c.y)}) scale(${c.s})`);
+          });
+          api.all('.dplate').forEach((el, i) => {
+            const p = S.plates[i];
+            if (!p || !plant){ el.setAttribute('opacity', '0'); return; }
+            setA(el, { x: n2(p.x), y: n2(p.y), width: n2(p.w), height: n2(p.h), opacity: 1 });
+          });
+          const sp = api.el('#spindle');
+          if (sp){
+            const poles = S.poles2 || S.poles;
+            let d = '';
+            if (poles && S.spindleOp > 0.02){
+              S.chr.forEach(c => {
+                if (!c || c.op < 0.2) return;
+                poles.forEach(p => {
+                  if (S.poles2 && Math.abs(p[0] - c.x) > 170) return;
+                  d += `M${n2(p[0])},${n2(p[1])} L${n2(c.x)},${n2(c.y)}`;
+                });
+              });
+            }
+            sp.setAttribute('d', d || 'M0,0');
+            sp.setAttribute('opacity', String(Math.max(0, S.spindleOp || 0)));
+          }
+          const xo = api.el('#xover');
+          if (xo){
+            if (S.xo > 0.02 && api.tool('showX')){
+              xo.innerHTML = [[465, 292], [537, 402]].map(([x, y]) =>
+                `<g transform="translate(${x},${y})" opacity="${n2(S.xo)}">
+                   <circle r="20" fill="none" stroke="#ffd166" stroke-width="2.4" stroke-dasharray="4 3"/>
+                   <path d="M-11,-11 L11,11 M11,-11 L-11,11" stroke="#ffd166" stroke-width="2.6" stroke-linecap="round"/>
+                   <text class="lbl sm" x="26" y="5" fill="#ffd166" text-anchor="end">تصالب</text>
+                 </g>`).join('');
+            } else xo.innerHTML = '';
+          }
+          api.setCap(S.cap || '');
+          api.setPhase(PH[S.phaseIdx], this.state.T);
+        },
+
+        tick(dt, t, api){
+          const plant = !isMei && api.tool('plant');
+          if (api.playing && !api.dragSlider){
+            this.state.T += dt * 0.055;
+            if (this.state.T >= 1) this.state.T = 0;
+            api.setSlider(this.state.T);
+          } else if (api.sliderVal !== undefined && api.dragSlider){
+            this.state.T = api.sliderVal;
+          }
+          this.apply(this.compute(this.state.T, plant), api, plant);
+        },
+        onSlider(v){ this.state.T = v; },
+        onReset(){ this.state.T = 0; }
+      };
+    }
+  };
+}
+SCENES.mitosis = divisionScene('mit');
+SCENES.meiosis = divisionScene('mei');
+
+/* ══════════════════════════════════════════════════════════════════════════
+   6 · المحرك: التبويبات، الأسماء، لوحة المعلومات، الحركة، أدوات التحكم
+   ══════════════════════════════════════════════════════════════════════════ */
+
+const TABS = [
+  { k: 'animal',   t: 'الخلية الحيوانية' },
+  { k: 'plant',    t: 'الخلية النباتية' },
+  { k: 'pro',      t: 'بدائية وحقيقية النواة' },
+  { k: 'membrane', t: 'الغشاء البلازمي مكبّراً' },
+  { k: 'nucleus',  t: 'النواة مكبّرة' },
+  { k: 'mitosis',  t: 'الانقسام الخيطي' },
+  { k: 'meiosis',  t: 'الانقسام الاختزالي' },
+  { k: 'exam',     t: 'وضع الامتحان' }
+];
+
+const $  = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const svgHost = $('#svgHost'), fx = $('#fx'), stage = $('#stage');
+const REDUCE = window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+let cur = null, curKey = null, playing = !REDUCE, speedMul = 1, tAcc = 0;
+let focusOwner = null, focusUntil = 0, selPart = null;
+const toolState = {}, radioState = {};
+let flows = [], stream = null, streamParts = [];
+
+const api = {
+  playing: playing, sliderVal: 0, dragSlider: false,
+  el: s => svgHost.querySelector(s),
+  all: s => Array.from(svgHost.querySelectorAll(s)),
+  g(id, markup){
+    if (!svgHost.querySelector('#' + id)){
+      const t = document.createElementNS(SVGNS, 'g');
+      t.innerHTML = markup;
+      while (t.firstChild) svgHost.appendChild(t.firstChild);
+    }
+  },
+  tool: id => !!toolState[id],
+  setTool(id, v){ toolState[id] = !!v; syncTools(); },
+  radio: g => radioState[g],
+  setRadio(g, id){ radioState[g] = id; syncTools(); },
+  setSlider(v){ api.sliderVal = v; const s = $('#pslider'); if (s && !api.dragSlider) s.value = String(v); },
+  setCap(t){ const e = $('#phaseCap'); if (e) e.textContent = t; },
+  setPhase(ph, T){
+    if (!ph) return;
+    $('#phaseName').textContent = ph.n;
+    $('#phaseDesc').textContent = ph.d;
+    $('#phaseChrom').innerHTML = 'عدد الكروموسومات: <b>' + ph.chrom + '</b>';
+  },
+  flowEnabled(owner, on){ flows.forEach(f => { if (f.owner === owner) f.off = !on; }); }
+};
+
+/* ───────────── طبقة الأسماء والتأشيرات ───────────── */
+function wrapName(s, max){
+  const w = s.split(' '), out = []; let line = '';
+  w.forEach(x => {
+    if ((line + ' ' + x).trim().length > max){ if (line) out.push(line); line = x; }
+    else line = (line + ' ' + x).trim();
+  });
+  if (line) out.push(line);
+  return out;
+}
+function nameOf(p){ return p.short || (INFO[p.id] ? INFO[p.id].name : p.id); }
+
+function labelLayer(parts){
+  const g = parts.map(p => {
+    const nm = nameOf(p), lines = wrapName(nm, 15);
+    const anch = p.side === 'R' ? 'end' : p.side === 'L' ? 'start' : 'middle';
+    const tx = p.side === 'R' ? p.label[0] + 8 : p.side === 'L' ? p.label[0] - 8 : p.label[0];
+    const y0 = p.label[1] - (lines.length - 1) * 8;
+    const tsp = lines.map((l, i) => `<tspan x="${n2(tx)}" dy="${i ? 16 : 0}">${l}</tspan>`).join('');
+    return `<g class="lblG" data-for="${p.id}">
+      <line class="lead" x1="${n2(p.label[0])}" y1="${n2(p.label[1])}" x2="${n2(p.anchor[0])}" y2="${n2(p.anchor[1])}"/>
+      <circle class="lblDot" cx="${n2(p.anchor[0])}" cy="${n2(p.anchor[1])}" r="3.4"/>
+      <text class="lbl" x="${n2(tx)}" y="${n2(y0)}" text-anchor="${anch}">${tsp}</text>
+    </g>`;
+  }).join('');
+  return `<g id="labelLayer">${g}</g>`;
+}
+
+/* ───────────── بناء المشهد ───────────── */
+function loadScene(key){
+  curKey = key;
+  $$('.tab').forEach(b => b.classList.toggle('on', b.dataset.k === key));
+  closeSheet(); clearInfo();
+  const isExam = key === 'exam';
+  $('#exam').classList.toggle('on', isExam);
+  $('#info').style.display = isExam ? 'none' : '';
+  $('#bar').style.display = isExam ? 'none' : '';
+  $('#phaseBar').classList.remove('on');
+  if (isExam){ cur = null; flows = []; stream = null; $('#sceneName').textContent = 'وضع الامتحان'; $('#sceneHint').textContent = ''; initExam(); return; }
+
+  const def = SCENES[key];
+  cur = def.build();
+  cur.key = key;
+  $('#sceneName').textContent = def.title;
+  $('#sceneHint').textContent = def.hint;
+
+  for (const k in toolState) delete toolState[k];
+  (cur.tools || []).forEach(t => { if (t.toggle) toolState[t.id] = !!t.on; });
+
+  svgHost.innerHTML = DEFS + cur.body + labelLayer(cur.parts || []) + '<g id="fxLayer"></g>';
+  buildTools(cur.tools || []);
+  bindParts();
+  flows = cur.flows || [];
+  flows.forEach(f => { f.items.forEach(i => i.el && i.el.remove()); f.items = []; f.off = false; });
+  stream = cur.stream || null;
+  initStream();
+  if (cur.isDivision) $('#phaseBar').classList.add('on');
+  if (cur.init) cur.init(api);
+  applyLabelToggle();
+}
+
+function bindParts(){
+  svgHost.querySelectorAll('.part').forEach(el => {
+    el.addEventListener('click', ev => { ev.stopPropagation(); selectPart(el.dataset.part); });
+  });
+  svgHost.addEventListener('click', () => clearInfo());
+}
+
+/* ───────────── لوحة المعلومات ───────────── */
+function selectPart(id){
+  const d = INFO[id]; if (!d) return;
+  selPart = id;
+  svgHost.classList.add('dim');
+  svgHost.querySelectorAll('.part').forEach(e => e.classList.toggle('sel', e.dataset.part === id));
+  $('#infoName').textContent = d.name;
+  $('#infoEmpty').hidden = true;
+  const body = $('#infoBody'); body.hidden = false;
+  $('#infoFoot').hidden = false;
+  $('#info').classList.remove('closed');
+  body.innerHTML = `
+    <div class="fld"><h5>الموقع</h5><p>${d.loc}</p></div>
+    <div class="fld"><h5>التركيب</h5><p>${d.struct}</p></div>
+    <div class="fld"><h5>الوظيفة</h5><p>${d.fn}</p></div>
+    <div class="fld note"><h5>ملاحظة مهمة للامتحان</h5><p>${d.note}</p></div>`;
+  body.scrollTop = 0;
+  const hasFn = flows.some(f => f.owner === id) || ['lyso', 'pm', 'mito', 'chloro', 'nuc', 'pore', 'golgi', 'rer', 'vesicle', 'ribo'].includes(id);
+  $('#seeFn').disabled = !hasFn;
+}
+function clearInfo(){
+  selPart = null;
+  svgHost.classList.remove('dim');
+  svgHost.querySelectorAll('.part').forEach(e => e.classList.remove('sel'));
+  $('#infoName').textContent = 'لوحة المعلومات';
+  $('#infoEmpty').hidden = false;
+  $('#infoBody').hidden = true;
+  $('#infoFoot').hidden = true;
+}
+$('#infoClose').addEventListener('click', () => clearInfo());
+$('#seeFn').addEventListener('click', () => {
+  if (!selPart) return;
+  focusOwner = selPart; focusUntil = tAcc + 11;
+  if (!playing) togglePlay(true);
+  $('#sceneHint').textContent = 'إعادة وظيفة: ' + (INFO[selPart] ? INFO[selPart].name : '') + ' — بحركة أبطأ، وباقي العضيات خافتة.';
+});
+
+/* ───────────── أدوات المشهد ───────────── */
+function buildTools(tools){
+  const host = $('#sceneTools');
+  host.innerHTML = tools.map(t => {
+    if (t.slider) return `<input id="pslider" class="stool" type="range" min="0" max="0.999" step="0.001" value="0"
+      style="width:min(300px,52vw);padding:6px 10px;accent-color:var(--ember)" aria-label="أطوار الانقسام">`;
+    return `<button class="stool" data-tool="${t.id}"${t.radio ? ` data-radio="${t.radio}"` : ''}${t.toggle ? ' data-toggle="1"' : ''}>${t.label}</button>`;
+  }).join('');
+  host.querySelectorAll('[data-tool]').forEach(b => b.addEventListener('click', () => onTool(b.dataset.tool, b)));
+  const sl = $('#pslider');
+  if (sl){
+    const st = () => { api.dragSlider = true; };
+    const mv = () => { api.sliderVal = parseFloat(sl.value); if (cur && cur.onSlider) cur.onSlider(api.sliderVal); };
+    const en = () => { api.dragSlider = false; };
+    sl.addEventListener('pointerdown', st); sl.addEventListener('input', () => { st(); mv(); });
+    sl.addEventListener('pointerup', en); sl.addEventListener('pointercancel', en);
+    sl.addEventListener('change', () => { mv(); en(); });
+  }
+  syncTools();
+}
+function syncTools(){
+  $$('#sceneTools [data-tool]').forEach(b => {
+    const id = b.dataset.tool;
+    if (b.dataset.radio) b.classList.toggle('on', radioState[b.dataset.radio] === id);
+    else if (b.dataset.toggle) b.classList.toggle('on', !!toolState[id]);
+  });
+}
+function onTool(id, btn){
+  if (btn.dataset.radio){ radioState[btn.dataset.radio] = id; syncTools(); return; }
+  if (btn.dataset.toggle){ toolState[id] = !toolState[id]; syncTools(); }
+  if (id === 'tableAP') openSheet(TABLES.animalPlant);
+  if (id === 'tablePE') openSheet(TABLES.proEu);
+  if (id === 'tableMM') openSheet(TABLES.mitMei);
+  if (id === 'compare'){
+    if (toolState.compare){ highlightDiff(['wall', 'chloro', 'vacuole', 'nuc', 'nonliving']); openSheet(TABLES.animalPlant); }
+    else { clearDiff(); closeSheet(); }
+  }
+  if (id === 'diff'){
+    if (toolState.diff){ highlightDiff(cur.diffParts || []); openSheet(TABLES.proEu); }
+    else { clearDiff(); closeSheet(); }
+  }
+  if (id === 'protRoute'){
+    highlightDiff(['nuc', 'ribo', 'rer', 'golgi', 'vesicle', 'pm']);
+    focusOwner = null; focusUntil = tAcc + 14;
+    if (!playing) togglePlay(true);
+    $('#sceneHint').textContent = 'مسار البروتين: النواة (رسالة RNA) ← الرايبوسوم ← الشبكة البلازمية الخشنة ← جهاز كولجي ← حويصلة إفرازية ← خارج الخلية عبر الغشاء البلازمي.';
+    setTimeout(() => { clearDiff(); $('#sceneHint').textContent = SCENES[curKey].hint; }, 14000);
+  }
+}
+function highlightDiff(ids){
+  svgHost.classList.add('dim');
+  svgHost.querySelectorAll('.part').forEach(e => e.classList.toggle('sel', ids.includes(e.dataset.part)));
+}
+function clearDiff(){
+  if (selPart) return;
+  svgHost.classList.remove('dim');
+  svgHost.querySelectorAll('.part').forEach(e => e.classList.remove('sel'));
+}
+
+/* ───────────── جدول المقارنة ───────────── */
+function openSheet(tb){
+  $('#sheetTitle').textContent = tb.title;
+  $('#sheetBody').innerHTML = `<table><thead><tr>${tb.head.map(h => `<th>${h}</th>`).join('')}</tr></thead>
+    <tbody>${tb.rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+  $('#sheet').classList.add('on');
+}
+function closeSheet(){ $('#sheet').classList.remove('on'); }
+$('#sheetClose').addEventListener('click', closeSheet);
+
+/* ───────────── تيارات الجزيئات ───────────── */
+function updateFlows(dt){
+  const host = svgHost.querySelector('#fxLayer'); if (!host) return;
+  flows.forEach(f => {
+    const blocked = f.off || (focusOwner && f.owner && f.owner !== focusOwner);
+    if (!blocked){
+      f.acc += dt;
+      if (f.acc >= f.every && f.items.length < f.max){
+        f.acc = 0;
+        const p = f.paths[Math.floor(Math.random() * f.paths.length)];
+        const el = document.createElementNS(SVGNS, 'g');
+        el.setAttribute('class', 'fxp');
+        el.innerHTML = (f.halo ? `<circle r="${n2(f.r * 2.3)}" fill="${f.fill}" opacity=".22"/>` : '')
+          + `<circle r="${n2(f.r)}" fill="${f.fill}"${f.ring ? ' stroke="#ffd9ee" stroke-width="1.6" fill-opacity=".45"' : ''}/>`;
+        host.appendChild(el);
+        f.items.push({ p, d: 0, el });
+      }
+    }
+    for (let i = f.items.length - 1; i >= 0; i--){
+      const it = f.items[i];
+      if (!blocked) it.d += f.speed * dt;
+      const pos = alongPath(it.p, it.d);
+      it.el.setAttribute('transform', `translate(${n2(pos[0])},${n2(pos[1])})`);
+      const rest = it.p.len - it.d;
+      it.el.setAttribute('opacity', String(rest < 26 ? Math.max(0, rest / 26) : (it.d < 12 ? it.d / 12 : 1)));
+      if (it.d >= it.p.len){ it.el.remove(); f.items.splice(i, 1); }
+    }
+  });
+}
+
+/* ───────────── جريان السايتوبلازم (Canvas) ───────────── */
+const ctx = fx.getContext('2d');
+let dpr = Math.min(2, window.devicePixelRatio || 1);
+function fitCanvas(){
+  const r = stage.getBoundingClientRect();
+  dpr = Math.min(2, window.devicePixelRatio || 1);
+  fx.width = Math.max(1, Math.round(r.width * dpr));
+  fx.height = Math.max(1, Math.round(r.height * dpr));
+}
+function initStream(){
+  streamParts = [];
+  if (!stream) return;
+  const rr = rng(101), fMin = stream.fMin === undefined ? 0.12 : stream.fMin,
+        fMax = stream.fMax === undefined ? 0.94 : stream.fMax;
+  for (let i = 0; i < stream.count; i++){
+    streamParts.push({
+      a: rr() * 6.283, f: fMin + rr() * (fMax - fMin),
+      w: (0.06 + rr() * 0.1) * (rr() < 0.5 ? -1 : 1),
+      ph: rr() * 6.283, sz: 1.4 + rr() * 2.6, al: 0.16 + rr() * 0.3
+    });
+  }
+}
+function drawStream(dt, t){
+  const r = stage.getBoundingClientRect();
+  if (fx.width !== Math.round(r.width * dpr)) fitCanvas();
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, fx.width, fx.height);
+  if (!stream || !streamParts.length) return;
+  const s = Math.min(r.width / 1000, r.height / 700);
+  ctx.setTransform(dpr * s, 0, 0, dpr * s, dpr * (r.width - 1000 * s) / 2, dpr * (r.height - 700 * s) / 2);
+  streamParts.forEach(p => {
+    p.a += p.w * dt;
+    const f = p.f + Math.sin(t * 0.7 + p.ph) * 0.03;
+    const x = stream.cx + Math.cos(p.a) * stream.rx * f;
+    const y = stream.cy + Math.sin(p.a) * stream.ry * f;
+    const g = ctx.createRadialGradient(x, y, 0, x, y, p.sz * 3);
+    g.addColorStop(0, `rgba(190,240,220,${p.al})`);
+    g.addColorStop(1, 'rgba(190,240,220,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(x, y, p.sz * 3, 0, 6.283); ctx.fill();
+  });
+}
+
+/* ───────────── الحلقة الرئيسية ───────────── */
+let last = performance.now();
+function frame(now){
+  let dt = (now - last) / 1000; last = now;
+  dt = Math.min(dt, 0.05);
+  const slow = (focusOwner || tAcc < focusUntil) ? 0.45 : 1;
+  if (tAcc >= focusUntil && focusOwner){ focusOwner = null; clearDiff(); }
+  const eff = playing ? dt * speedMul * slow : 0;
+  tAcc += eff;
+  api.playing = playing;
+  if (cur){
+    updateFlows(eff);
+    drawStream(eff, tAcc);
+    if (cur.tick) cur.tick(eff, tAcc, api);
+  }
+  requestAnimationFrame(frame);
+}
+
+/* ───────────── أدوات التحكم العامة ───────────── */
+function togglePlay(v){
+  playing = v === undefined ? !playing : v;
+  $('#playBtn').textContent = playing ? 'إيقاف ⏸' : 'تشغيل ▶';
+}
+$('#playBtn').addEventListener('click', () => togglePlay());
+$('#spd').addEventListener('input', e => {
+  speedMul = parseFloat(e.target.value);
+  $('#spdOut').textContent = speedMul.toFixed(1) + '×';
+});
+function applyLabelToggle(){
+  const on = $('#lblTgl').checked;
+  const l = svgHost.querySelector('#labelLayer');
+  if (l) l.classList.toggle('off', !on);
+}
+$('#lblTgl').addEventListener('change', applyLabelToggle);
+$('#glowTgl').addEventListener('change', e => svgHost.classList.toggle('flat', !e.target.checked));
+$('#resetBtn').addEventListener('click', () => {
+  if (curKey === 'exam') initExam();
+  else { if (cur && cur.onReset) cur.onReset(); loadScene(curKey); }
+});
+window.addEventListener('resize', fitCanvas);
+
+/* ══════════════════════════════════════════════════════════════════════════
+   7 · وضع الامتحان: «أشّر الأجزاء» + «اختبر نفسك»
+   ══════════════════════════════════════════════════════════════════════════ */
+
+const EXAM_DIAGRAMS = [
+  { k: 'animal',   t: 'الخلية الحيوانية' },
+  { k: 'plant',    t: 'الخلية النباتية' },
+  { k: 'pro',      t: 'بدائية وحقيقية النواة' },
+  { k: 'membrane', t: 'الغشاء البلازمي' },
+  { k: 'nucleus',  t: 'النواة' }
+];
+const dragHost = $('#dragSvgHost');
+let exMode = 'label', exDiag = 'animal';
+let exParts = [], exDone = 0, exWrong = 0;
+
+function shuffle(a){
+  const r = a.slice();
+  for (let i = r.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [r[i], r[j]] = [r[j], r[i]]; }
+  return r;
+}
+
+function initExam(){
+  $('#pickRow').innerHTML = '<span>اختر الرسم:</span>' + EXAM_DIAGRAMS.map(d =>
+    `<button class="stool" data-dg="${d.k}">${d.t}</button>`).join('')
+    + '<button class="stool" id="reDraw">إعادة المحاولة</button>';
+  $('#pickRow').querySelectorAll('[data-dg]').forEach(b =>
+    b.addEventListener('click', () => loadDiagram(b.dataset.dg)));
+  $('#reDraw').addEventListener('click', () => loadDiagram(exDiag));
+  setExMode(exMode);
+  loadDiagram(exDiag);
+  buildQuiz();
+}
+function setExMode(m){
+  exMode = m;
+  $('#mLabel').classList.toggle('on', m === 'label');
+  $('#mQuiz').classList.toggle('on', m === 'quiz');
+  $('#dragWrap').style.display = m === 'label' ? 'flex' : 'none';
+  $('#quiz').classList.toggle('on', m === 'quiz');
+  updateScore();
+}
+$('#mLabel').addEventListener('click', () => setExMode('label'));
+$('#mQuiz').addEventListener('click', () => setExMode('quiz'));
+
+function updateScore(){
+  $('#score').innerHTML = exMode === 'label'
+    ? `صحيح <b>${exDone}</b> / ${exParts.length} &nbsp;·&nbsp; أخطاء <b>${exWrong}</b>`
+    : `الدرجة <b>${qScore}</b> / ${qList.length} &nbsp;·&nbsp; سؤال ${Math.min(qIdx + 1, qList.length)}`;
+}
+
+/* ── أشّر الأجزاء ── */
+function loadDiagram(k){
+  exDiag = k; exDone = 0; exWrong = 0;
+  $('#pickRow').querySelectorAll('[data-dg]').forEach(b => b.classList.toggle('on', b.dataset.dg === k));
+  $('#dragDone').classList.remove('on');
+
+  const s = SCENES[k].build();
+  exParts = (s.parts || []).filter(p => INFO[p.id]);
+  const slots = exParts.map((p, i) => {
+    /* عرض ثابت يتّسع داخل هامش الرسم، والاسم يُلفّ على سطرين عند الحاجة */
+    const w = p.side === 'C' ? 190 : 126, h = 34;
+    const x = p.side === 'R' ? p.label[0] + 8 : p.side === 'L' ? p.label[0] - 8 - w : p.label[0] - w / 2;
+    const y = p.label[1] - h / 2 - 4;
+    return `<g class="slotG" data-id="${p.id}" data-i="${i}">
+      <line class="lead" x1="${n2(p.label[0])}" y1="${n2(p.label[1])}" x2="${n2(p.anchor[0])}" y2="${n2(p.anchor[1])}"/>
+      <circle class="lblDot" cx="${n2(p.anchor[0])}" cy="${n2(p.anchor[1])}" r="3.4"/>
+      <rect class="slot" x="${n2(x)}" y="${n2(y)}" width="${n2(w)}" height="${h}" rx="6"/>
+      <text class="slotTxt" x="${n2(x + w / 2)}" y="${n2(y + h / 2 + 4)}" text-anchor="middle"></text>
+    </g>`;
+  }).join('');
+  dragHost.innerHTML = DEFS + s.body + `<g id="slotLayer">${slots}</g>`;
+
+  $('#tray').innerHTML = shuffle(exParts).map(p =>
+    `<button class="chip" data-id="${p.id}">${nameOf(p)}</button>`).join('');
+  $('#tray').querySelectorAll('.chip').forEach(c => c.addEventListener('pointerdown', chipDown));
+  updateScore();
+}
+
+let dragEl = null, dragSrc = null, dragId = null;
+function chipDown(ev){
+  const src = ev.currentTarget;
+  if (src.classList.contains('done')) return;
+  ev.preventDefault();
+  dragSrc = src; dragId = src.dataset.id;
+  dragEl = src.cloneNode(true);
+  dragEl.classList.add('drag');
+  document.body.appendChild(dragEl);
+  moveDrag(ev);
+  window.addEventListener('pointermove', moveDrag);
+  window.addEventListener('pointerup', endDrag);
+  window.addEventListener('pointercancel', endDrag);
+}
+function moveDrag(ev){
+  if (!dragEl) return;
+  dragEl.style.left = (ev.clientX - dragEl.offsetWidth / 2) + 'px';
+  dragEl.style.top = (ev.clientY - dragEl.offsetHeight / 2) + 'px';
+  const hit = slotAt(ev.clientX, ev.clientY);
+  dragHost.querySelectorAll('.slot').forEach(s => s.classList.remove('hot'));
+  if (hit && !hit.classList.contains('done')) hit.querySelector('.slot').classList.add('hot');
+}
+function slotAt(x, y){
+  let best = null, bd = 1e9;
+  dragHost.querySelectorAll('.slotG').forEach(g => {
+    const r = g.querySelector('.slot').getBoundingClientRect();
+    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    const inside = x > r.left - 22 && x < r.right + 22 && y > r.top - 22 && y < r.bottom + 22;
+    const d = Math.hypot(x - cx, y - cy);
+    if (inside && d < bd){ bd = d; best = g; }
+  });
+  return best;
+}
+function endDrag(ev){
+  window.removeEventListener('pointermove', moveDrag);
+  window.removeEventListener('pointerup', endDrag);
+  window.removeEventListener('pointercancel', endDrag);
+  dragHost.querySelectorAll('.slot').forEach(s => s.classList.remove('hot'));
+  const hit = slotAt(ev.clientX, ev.clientY);
+  if (dragEl){ dragEl.remove(); dragEl = null; }
+  if (!hit || hit.classList.contains('done')){ wrongShake(); return; }
+  if (hit.dataset.id === dragId){
+    hit.classList.add('done');
+    hit.querySelector('.slot').classList.add('done');
+    fillSlotText(hit.querySelector('.slotTxt'), dragSrc.textContent);
+    dragSrc.classList.add('done');
+    exDone++;
+    if (exDone === exParts.length){
+      const pct = Math.round(exDone / (exDone + exWrong) * 100);
+      $('#dragDone').innerHTML = `أحسنت — أكملت تأشير الرسم. صحيح ${exDone} من ${exParts.length}، والأخطاء ${exWrong}. دقتك ${pct}%.`;
+      $('#dragDone').classList.add('on');
+    }
+  } else {
+    exWrong++;
+    wrongShake();
+  }
+  updateScore();
+}
+function fillSlotText(el, name){
+  const lines = wrapName(name, 19), x = el.getAttribute('x');
+  const y0 = parseFloat(el.getAttribute('y')) - (lines.length - 1) * 5.5;
+  el.innerHTML = lines.map((l, i) => `<tspan x="${x}" dy="${i ? 11 : 0}">${l}</tspan>`).join('');
+  el.setAttribute('y', String(y0));
+}
+function wrongShake(){
+  if (!dragSrc) return;
+  dragSrc.classList.add('wrong');
+  setTimeout(() => dragSrc && dragSrc.classList.remove('wrong'), 340);
+}
+
+/* ── اختبر نفسك ── */
+let qList = [], qIdx = 0, qScore = 0;
+function buildQuiz(){
+  qList = shuffle(QUIZ); qIdx = 0; qScore = 0;
+  renderQ();
+}
+function renderQ(){
+  if (qIdx >= qList.length){
+    $('#qMeta').textContent = 'انتهى الاختبار';
+    $('#qText').textContent = `درجتك النهائية: ${qScore} من ${qList.length}.`;
+    $('#qOpts').innerHTML = '<button class="opt" id="qAgain">أعد الاختبار بأسئلة مخلوطة</button>';
+    $('#qAgain').addEventListener('click', buildQuiz);
+    $('#qWhy').classList.remove('on');
+    $('#qNext').classList.remove('on');
+    updateScore();
+    return;
+  }
+  const q = qList[qIdx];
+  $('#qMeta').textContent = `سؤال ${qIdx + 1} من ${qList.length}`;
+  $('#qText').textContent = q.q;
+  $('#qOpts').innerHTML = q.o.map((o, i) => `<button class="opt" data-i="${i}">${o}</button>`).join('');
+  $('#qOpts').querySelectorAll('.opt').forEach(b => b.addEventListener('click', () => answer(parseInt(b.dataset.i, 10))));
+  $('#qWhy').classList.remove('on');
+  $('#qNext').classList.remove('on');
+  updateScore();
+}
+function answer(i){
+  const q = qList[qIdx];
+  $$('#qOpts .opt').forEach((b, j) => {
+    b.disabled = true;
+    if (j === q.c) b.classList.add('good');
+    else if (j === i) b.classList.add('bad');
+  });
+  if (i === q.c) qScore++;
+  $('#qWhy').innerHTML = `<b>${i === q.c ? 'إجابة صحيحة.' : 'الإجابة الصحيحة: ' + q.o[q.c] + '.'}</b><br>${q.why}`;
+  $('#qWhy').classList.add('on');
+  $('#qNext').classList.add('on');
+  updateScore();
+}
+$('#qNext').addEventListener('click', () => { qIdx++; renderQ(); });
+
+/* ══════════════════════════════════════════════════════════════════════════
+   8 · التشغيل
+   ══════════════════════════════════════════════════════════════════════════ */
+$('#tabs').innerHTML = TABS.map((t, i) =>
+  `<button class="tab${i === 0 ? ' on' : ''}" data-k="${t.k}">${t.t}</button>`).join('');
+$$('.tab').forEach(b => b.addEventListener('click', () => loadScene(b.dataset.k)));
+
+fitCanvas();
+togglePlay(!REDUCE);
+loadScene('animal');
+requestAnimationFrame(frame);
+</script>
+
+<!--
+════════════════════════════════════════════════════════════════════════════
+  قائمة TODO — ما يحتاج مطابقة مع الملزمة
+════════════════════════════════════════════════════════════════════════════
+  الملزمة (PDF أو صور الفصل الأول) لم تكن موجودة في الفولدر وقت بناء هذا
+  الملف، فبُنيت كل المشاهد والنصوص بمصطلحات المنهج العراقي للسادس الإعدادي
+  كما وردت في طلب العمل («الشبكة البلازمية الداخلية»، «الجسيمات الحالة»،
+  «النوية»، «الشبكة الكروماتينية»، «الغلاف النووي»، «البلازم النووي»،
+  «السايتوبلازم»). عند رفع الملزمة يجب مطابقة النقاط الآتية:
+
+  1) جرد رسومات الملزمة: رقم الصفحة + اسم الرسم + الأجزاء المؤشرة على كل
+     رسم. أي رسم في الملزمة غير مغطى بالمشاهد الحالية يُضاف كمشهد جديد،
+     وأي مشهد هنا بلا رسم في الملزمة يُحذف.
+  2) الصياغة الحرفية للتعاريف والوظائف والتراكيب في لوحة المعلومات
+     (كائن INFO) — الآن مكتوبة بصياغة المنهج لا منقولة حرفياً من الملزمة.
+  3) ترتيب الأجزاء المؤشرة ومواضع الأسماء على كل رسم (حقل parts في كل
+     مشهد) ليطابق تأشيرات الملزمة نفسها.
+  4) جداول المقارنة (TABLES): عدد الصفوف ووجوه المقارنة كما وردت في
+     الملزمة بالضبط.
+  5) الأسئلة: أسئلة «اختبر نفسك» (كائن QUIZ) الآن مصوغة من محتوى المنهج.
+     تُستبدل بالأسئلة الوزارية وأسئلة الملزمة إن وُجدت، بنصّها.
+  6) تفاصيل لم تُؤكَّد من الملزمة (مؤشَّرة داخل INFO بعبارة «راجع الملزمة»):
+     • المحفظة والبلازميد والسوط في رسم الخلية البكتيرية: هل هي مؤشَّرة؟
+       وكم عدد الأسواط وموقعها؟
+     • الكولسترول في تركيب الغشاء البلازمي: هل ذُكر؟
+     • الأهداب/الزوائد (pili) للبكتريا: غير مرسومة حالياً.
+  7) الانقسام الخيطي والاختزالي: مبنيان على أساس 2n = 4 كروموسومات لتوضيح
+     الحركة. يُطابق العدد ومسميات الأطوار ووصفها مع الملزمة، ويُتحقق هل
+     الانقسام أصلاً داخل الفصل الأول أم فصل منفصل — إن لم يكن في الفصل
+     الأول، يُحذف التبويبان.
+  8) أجزاء لم تُرسم لعدم تأكيد وجودها في رسومات الملزمة: الأنيبيبات
+     الدقيقة والخيوط الدقيقة (الهيكل الخلوي)، الأهداب والأسواط في الخلية
+     الحيوانية، الفجوات المنقبضة، البلاستيدات الملونة وغير الملونة،
+     النقاط الأولية (القنوات السايتوبلازمية) في الجدار الخلوي النباتي.
+  9) المحتويات غير الحية: التصنيف الرباعي المستخدم (غذائية مخزونة /
+     إفرازية / إطراحية / صبغات) يُطابق مع تصنيف الملزمة وأمثلتها.
+════════════════════════════════════════════════════════════════════════════
+-->
+</body>
+</html>
