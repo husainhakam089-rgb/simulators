@@ -12,6 +12,11 @@ android {
             storePassword 'albaraka'
             keyAlias 'albaraka'
             keyPassword 'albaraka'
+            // v1 إلى جانب v2/v3: بعض مثبّتات الشركات المصنّعة ما زالت
+            // تتحقق من توقيع JAR القديم وترفض الحزمة بدونه.
+            enableV1Signing true
+            enableV2Signing true
+            enableV3Signing true
         }
     }
 

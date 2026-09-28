@@ -10,7 +10,9 @@ import { fileURLToPath } from 'node:url';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const extra = join(root, 'android-extra');
 const android = join(root, 'android');
-const PKG = 'iq.albaraka.contracts';
+// يُقرأ من إعدادات Capacitor لا يُثبَّت هنا: تغيير اسم الحزمة في مكان واحد
+// كان يترك ملفات الملحق في حزمة قديمة فلا تُصرَّف.
+const PKG = JSON.parse(readFileSync(join(root, 'capacitor.config.json'), 'utf8')).appId;
 const pkgPath = join(android, 'app/src/main/java', ...PKG.split('.'));
 
 if (!existsSync(android)) {
@@ -24,7 +26,8 @@ const skipped = [];
 /* 1) ملفات الملحق */
 mkdirSync(pkgPath, { recursive: true });
 for (const file of ['NativePrintPlugin.java', 'IppClient.java']) {
-  copyFileSync(join(extra, file), join(pkgPath, file));
+  const source = readFileSync(join(extra, file), 'utf8').replace(/^package\s+[\w.]+;/m, `package ${PKG};`);
+  writeFileSync(join(pkgPath, file), source);
   done.push(`نُسخ ${file}`);
 }
 
