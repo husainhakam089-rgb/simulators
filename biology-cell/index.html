@@ -67,16 +67,19 @@
   #tabs{display:flex;gap:6px;overflow-x:auto;overflow-y:hidden;padding:0 4px 7px;
     scrollbar-width:none}
   #tabs::-webkit-scrollbar{display:none}
-  .tab{position:relative;cursor:pointer;white-space:nowrap;font-size:12.5px;letter-spacing:.6px;
-    padding:9px 15px;border-radius:999px;color:var(--steel);
-    background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.015));
+  .tab{position:relative;cursor:pointer;white-space:nowrap;font-size:12.5px;font-weight:600;letter-spacing:.3px;
+    padding:10px 16px;border-radius:999px;color:var(--steel);min-height:36px;
+    background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.015));
     border:1px solid rgba(255,255,255,.08);
-    transition:color .2s,border-color .2s,background .2s,transform .16s,box-shadow .2s}
-  .tab:hover{color:var(--bone);border-color:rgba(224,174,76,.4);transform:translateY(-1px)}
-  .tab.on{color:#1a1208;font-weight:700;border-color:transparent;
-    background:linear-gradient(180deg,var(--gold2),var(--gold) 55%,#c9963a);
-    box-shadow:0 6px 18px rgba(224,174,76,.3), inset 0 1px 0 rgba(255,255,255,.5)}
-  .tab:focus-visible{outline:2px solid var(--bone);outline-offset:2px}
+    box-shadow:0 2px 6px rgba(0,0,0,.3), 0 1px 0 rgba(255,255,255,.05) inset;
+    transition:color .2s,border-color .2s,background .2s,transform .16s,box-shadow .22s}
+  .tab:hover{color:var(--bone);border-color:rgba(224,174,76,.45);transform:translateY(-2px);
+    box-shadow:0 7px 16px rgba(0,0,0,.4)}
+  .tab.on{color:#221607;font-weight:700;border-color:rgba(255,255,255,.38);
+    background:linear-gradient(180deg,#ffe2a6,var(--gold) 55%,#c2902f);
+    box-shadow:0 7px 20px rgba(224,174,76,.36), inset 0 1px 0 rgba(255,255,255,.62),
+               inset 0 -6px 12px rgba(120,80,10,.25)}
+  .tab:focus-visible{outline:none;box-shadow:0 0 0 2px #0e0c11,0 0 0 4px var(--gold2)}
 
   /* ═══════════ الجسم ═══════════ */
   #wrap{flex:1 1 auto;display:flex;flex-direction:row-reverse;min-height:0}
@@ -110,30 +113,103 @@
     background:rgba(12,10,15,.5);border:1px solid rgba(255,255,255,.06);border-radius:10px;
     padding:7px 11px;backdrop-filter:blur(6px)}
 
-  /* ═══════════ الأزرار ═══════════ */
-  .btn,.stool{position:relative;cursor:pointer;font-size:12px;letter-spacing:.4px;color:var(--bone);
-    padding:9px 14px;border-radius:9px;
-    background:linear-gradient(180deg,rgba(58,48,66,.92),rgba(24,20,28,.92));
+  /* ═══════════ نظام الأزرار ═══════════ */
+  .ic{width:15px;height:15px;flex:0 0 auto;stroke:currentColor;fill:none;
+    stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+  .ic.fill{fill:currentColor;stroke:none}
+
+  .btn,.stool{
+    position:relative;overflow:hidden;isolation:isolate;
+    display:inline-flex;align-items:center;justify-content:center;gap:7px;
+    cursor:pointer;font-size:12.5px;font-weight:600;letter-spacing:.2px;line-height:1;
+    color:#d9d2c6;min-height:38px;padding:10px 15px;border-radius:11px;
+    background:linear-gradient(180deg,#39303f 0%,#241d2b 55%,#1b1622 100%);
     border:1px solid rgba(255,255,255,.1);
-    box-shadow:0 5px 14px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.09);
-    transition:transform .15s,border-color .18s,box-shadow .2s,color .18s,background .2s}
-  .btn:hover,.stool:hover{transform:translateY(-1.5px);color:#fff;border-color:rgba(224,174,76,.55);
-    box-shadow:0 9px 22px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.14)}
-  .btn:active,.stool:active{transform:translateY(0)}
-  .stool.on{color:#1a1208;font-weight:700;border-color:rgba(255,255,255,.35);
-    background:linear-gradient(180deg,var(--gold2),var(--gold) 58%,#c2902f);
-    box-shadow:0 7px 20px rgba(224,174,76,.34), inset 0 1px 0 rgba(255,255,255,.55)}
-  .btn:focus-visible,.stool:focus-visible{outline:2px solid var(--gold2);outline-offset:2px}
-  .btn.primary{color:#20140a;font-weight:700;border-color:rgba(255,255,255,.28);
-    background:linear-gradient(180deg,var(--ember2),var(--ember) 60%,#d9541a);
-    box-shadow:0 8px 22px rgba(255,122,47,.34), inset 0 1px 0 rgba(255,255,255,.45)}
-  .btn.ghost{background:rgba(255,255,255,.03);box-shadow:none;color:var(--steel)}
+    box-shadow:0 4px 12px rgba(0,0,0,.45), 0 1px 0 rgba(255,255,255,.05) inset,
+               0 -8px 14px rgba(0,0,0,.22) inset;
+    transition:transform .14s cubic-bezier(.3,1.4,.5,1),border-color .18s,box-shadow .2s,color .18s,background .22s}
+  /* خط ضوء علوي رفيع */
+  .btn::after,.stool::after{content:'';position:absolute;inset-inline:12%;top:0;height:1px;z-index:2;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent);opacity:.7}
+  /* لمعة تمر عند المرور */
+  .btn::before,.stool::before{content:'';position:absolute;inset:-1px;z-index:1;border-radius:inherit;
+    background:linear-gradient(115deg,transparent 34%,rgba(255,255,255,.16) 48%,transparent 62%);
+    transform:translateX(130%);transition:transform .62s ease}
+  .btn > *,.stool > *{position:relative;z-index:3}
+  .btn:hover,.stool:hover{transform:translateY(-2px);color:#fff;
+    border-color:rgba(224,174,76,.55);
+    box-shadow:0 10px 24px rgba(0,0,0,.55), 0 0 0 1px rgba(224,174,76,.14),
+               0 1px 0 rgba(255,255,255,.1) inset}
+  .btn:hover::before,.stool:hover::before{transform:translateX(-130%)}
+  .btn:active,.stool:active{transform:translateY(0) scale(.985);
+    box-shadow:0 2px 8px rgba(0,0,0,.5), 0 3px 10px rgba(0,0,0,.4) inset}
+  .btn:focus-visible,.stool:focus-visible{outline:none;
+    box-shadow:0 0 0 2px var(--ash), 0 0 0 4px var(--gold2), 0 8px 20px rgba(0,0,0,.5)}
+  .btn .ic,.stool .ic{opacity:.85}
+  .btn:hover .ic,.stool:hover .ic{opacity:1}
+
+  /* مفعّل */
+  .stool.on{color:#221607;
+    background:linear-gradient(180deg,#ffe2a6 0%,var(--gold) 52%,#bd8b2c 100%);
+    border-color:rgba(255,255,255,.4);
+    box-shadow:0 6px 18px rgba(224,174,76,.4), 0 1px 0 rgba(255,255,255,.65) inset,
+               0 -6px 12px rgba(120,80,10,.28) inset}
+  .stool.on .ic{opacity:1}
+  .stool.on::after{background:linear-gradient(90deg,transparent,rgba(255,255,255,.85),transparent)}
+
+  /* أساسي */
+  .btn.primary{color:#2a1503;
+    background:linear-gradient(180deg,#ffc978 0%,var(--ember) 55%,#cf5615 100%);
+    border-color:rgba(255,255,255,.34);
+    box-shadow:0 8px 22px rgba(255,122,47,.36), 0 1px 0 rgba(255,255,255,.55) inset,
+               0 -7px 14px rgba(150,50,0,.3) inset}
+  .btn.primary:hover{box-shadow:0 12px 30px rgba(255,122,47,.48), 0 1px 0 rgba(255,255,255,.6) inset}
+  .btn.ghost{background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.02));
+    color:var(--steel);box-shadow:0 2px 8px rgba(0,0,0,.3), 0 1px 0 rgba(255,255,255,.04) inset}
   .btn.ghost:hover{color:var(--bone)}
 
+  /* زر أيقونة دائري */
+  .iconBtn{display:inline-flex;align-items:center;justify-content:center;cursor:pointer;
+    width:30px;height:30px;border-radius:9px;color:var(--steel);
+    background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
+    border:1px solid rgba(255,255,255,.12);transition:.18s}
+  .iconBtn:hover{color:#fff;border-color:var(--gold);background:rgba(224,174,76,.16);transform:translateY(-1px)}
+  .iconBtn:focus-visible{outline:none;box-shadow:0 0 0 2px var(--ash),0 0 0 4px var(--gold2)}
+  .iconBtn .ic{width:14px;height:14px}
+
+  /* ═══ مجموعة اختيار (segmented) ═══ */
+  .segbar{display:inline-flex;flex-wrap:wrap;gap:3px;padding:4px;border-radius:14px;max-width:100%;
+    background:linear-gradient(180deg,rgba(0,0,0,.5),rgba(0,0,0,.24));
+    border:1px solid rgba(255,255,255,.07);
+    box-shadow:inset 0 3px 9px rgba(0,0,0,.6), 0 1px 0 rgba(255,255,255,.04)}
+  .segbar .stool,.segb{position:relative;overflow:hidden;display:inline-flex;align-items:center;gap:6px;
+    cursor:pointer;font-size:12px;font-weight:600;letter-spacing:.2px;
+    min-height:34px;padding:8px 13px;border-radius:10px;color:var(--steel);
+    background:transparent;border:1px solid transparent;box-shadow:none;transition:.18s}
+  .segbar .stool::after,.segb::after{display:none}
+  .segbar .stool::before,.segb::before{display:none}
+  .segbar .stool:hover,.segb:hover{background:rgba(255,255,255,.07);color:var(--bone);
+    transform:none;box-shadow:none;border-color:transparent}
+  .segbar .stool.on,.segb.on{color:#221607;
+    background:linear-gradient(180deg,#ffe2a6,var(--gold) 58%,#c2902f);
+    border-color:rgba(255,255,255,.35);
+    box-shadow:0 5px 14px rgba(224,174,76,.35), 0 1px 0 rgba(255,255,255,.6) inset}
+  .segbar .stool:focus-visible,.segb:focus-visible{outline:none;
+    box-shadow:0 0 0 2px rgba(0,0,0,.6),0 0 0 4px var(--gold2)}
+
+  /* ═══ شريط أدوات المشهد ═══ */
   #sceneTools{position:absolute;bottom:12px;right:12px;left:12px;z-index:2;
-    display:flex;flex-wrap:wrap;gap:7px;justify-content:flex-end;align-items:center}
-  #sceneTools .grp{display:flex;gap:6px;flex-wrap:wrap;padding:6px;border-radius:12px;
-    background:rgba(12,10,15,.55);border:1px solid rgba(255,255,255,.07);backdrop-filter:blur(8px)}
+    display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-start;align-items:center}
+  #sceneTools .grp{display:flex;gap:7px;flex-wrap:wrap;align-items:center;padding:7px;border-radius:16px;
+    background:linear-gradient(180deg,rgba(26,21,32,.82),rgba(12,10,16,.78));
+    border:1px solid rgba(255,255,255,.09);backdrop-filter:blur(10px) saturate(130%);
+    box-shadow:0 14px 34px rgba(0,0,0,.5), 0 1px 0 rgba(255,255,255,.05) inset}
+
+  .sliderWrap{display:inline-flex;align-items:center;gap:10px;min-height:38px;padding:8px 14px;border-radius:11px;
+    background:linear-gradient(180deg,#39303f,#1b1622);border:1px solid rgba(255,255,255,.1);
+    box-shadow:0 4px 12px rgba(0,0,0,.45), 0 1px 0 rgba(255,255,255,.05) inset}
+  .sliderWrap span{font-size:11.5px;font-weight:600;color:var(--gold2);letter-spacing:.3px}
+  .sliderWrap input[type=range]{width:min(280px,46vw)}
 
   /* شريط الأطوار */
   #phaseBar{position:absolute;top:52px;left:14px;width:min(262px,46vw);padding:11px 13px;display:none;z-index:2}
@@ -156,10 +232,12 @@
     background:linear-gradient(180deg,rgba(255,122,47,.07),transparent)}
   #infoName{font-size:15.5px;color:var(--gold2);letter-spacing:.4px;font-weight:700;line-height:1.5}
   #infoSrc{font-size:10px;color:var(--steel);margin-top:3px;letter-spacing:.3px}
-  #infoClose{margin-inline-start:auto;cursor:pointer;background:rgba(255,255,255,.04);
-    border:1px solid rgba(255,255,255,.12);border-radius:8px;
-    color:var(--steel);font-size:13px;width:28px;height:28px;flex:0 0 auto;transition:.18s}
-  #infoClose:hover{color:#fff;border-color:var(--gold);background:rgba(224,174,76,.14)}
+  #infoClose{margin-inline-start:auto;display:inline-flex;align-items:center;justify-content:center;
+    cursor:pointer;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
+    border:1px solid rgba(255,255,255,.12);border-radius:9px;
+    color:var(--steel);width:30px;height:30px;flex:0 0 auto;transition:.18s}
+  #infoClose:hover{color:#fff;border-color:var(--gold);background:rgba(224,174,76,.16);transform:translateY(-1px)}
+  #infoClose .ic{width:14px;height:14px}
   #infoBody{flex:1 1 auto;overflow-y:auto;padding:13px 16px 18px;
     scrollbar-width:thin;scrollbar-color:rgba(224,174,76,.4) transparent}
   #infoBody::-webkit-scrollbar{width:7px}
@@ -192,13 +270,16 @@
   #playBtn{min-width:104px;text-align:center}
 
   /* منزلق مخصص */
-  input[type=range]{-webkit-appearance:none;appearance:none;background:transparent;height:20px;cursor:pointer}
-  input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:99px;
-    background:linear-gradient(90deg,rgba(255,122,47,.75),rgba(255,255,255,.14));
-    box-shadow:inset 0 1px 2px rgba(0,0,0,.6)}
-  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;
-    margin-top:-5px;background:radial-gradient(circle at 35% 30%,#fff2d8,var(--gold));
-    border:1px solid rgba(0,0,0,.4);box-shadow:0 2px 8px rgba(0,0,0,.6)}
+  input[type=range]{-webkit-appearance:none;appearance:none;background:transparent;height:22px;cursor:pointer;--p:50%}
+  input[type=range]::-webkit-slider-runnable-track{height:7px;border-radius:99px;
+    background:linear-gradient(90deg,#ff9a4d 0%,var(--ember) var(--p),rgba(255,255,255,.12) var(--p));
+    box-shadow:inset 0 2px 4px rgba(0,0,0,.7), 0 1px 0 rgba(255,255,255,.06)}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;
+    margin-top:-5.5px;background:radial-gradient(circle at 34% 28%,#fff8e8,var(--gold2) 45%,#c9963a);
+    border:1px solid rgba(0,0,0,.5);
+    box-shadow:0 3px 10px rgba(0,0,0,.65), 0 0 0 3px rgba(224,174,76,.16);transition:box-shadow .18s,transform .12s}
+  input[type=range]:hover::-webkit-slider-thumb{box-shadow:0 4px 14px rgba(0,0,0,.7), 0 0 0 5px rgba(224,174,76,.24)}
+  input[type=range]:active::-webkit-slider-thumb{transform:scale(1.08)}
   input[type=range]::-moz-range-track{height:6px;border-radius:99px;background:rgba(255,255,255,.16)}
   input[type=range]::-moz-range-progress{height:6px;border-radius:99px;background:rgba(255,122,47,.75)}
   input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;border:1px solid rgba(0,0,0,.4);
@@ -207,17 +288,26 @@
   #spd{width:110px}
 
   /* مفتاح تبديل */
-  .tgl{cursor:pointer;display:flex;align-items:center;gap:8px;color:var(--steel);
-    padding:5px 10px;border-radius:10px;background:rgba(255,255,255,.035);
-    border:1px solid rgba(255,255,255,.07);transition:.18s;white-space:nowrap}
-  .tgl:hover{color:var(--bone);border-color:rgba(224,174,76,.35)}
-  .tgl input{appearance:none;-webkit-appearance:none;width:34px;height:18px;border-radius:99px;cursor:pointer;
-    background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.12);position:relative;transition:.2s;flex:0 0 auto}
-  .tgl input::after{content:'';position:absolute;top:1.5px;right:1.5px;width:13px;height:13px;border-radius:50%;
-    background:#cfc7bb;transition:.2s}
-  .tgl input:checked{background:linear-gradient(90deg,#c9662a,var(--ember));border-color:rgba(255,122,47,.5)}
-  .tgl input:checked::after{right:calc(100% - 14.5px);background:#fff3e2}
-  .tgl input:focus-visible{outline:2px solid var(--gold2);outline-offset:2px}
+  .tgl{cursor:pointer;display:flex;align-items:center;gap:8px;color:var(--steel);font-weight:600;
+    min-height:38px;padding:6px 12px 6px 10px;border-radius:11px;
+    background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.015));
+    border:1px solid rgba(255,255,255,.09);transition:.18s;white-space:nowrap;
+    box-shadow:0 2px 8px rgba(0,0,0,.3), 0 1px 0 rgba(255,255,255,.04) inset}
+  .tgl:hover{color:var(--bone);border-color:rgba(224,174,76,.4);transform:translateY(-1px)}
+  .tgl:has(input:checked){color:var(--bone);border-color:rgba(255,122,47,.38);
+    background:linear-gradient(180deg,rgba(255,122,47,.13),rgba(255,122,47,.04))}
+  .tgl .ic{width:14px;height:14px;opacity:.8}
+  .tgl input{appearance:none;-webkit-appearance:none;width:38px;height:21px;border-radius:99px;cursor:pointer;
+    background:linear-gradient(180deg,rgba(0,0,0,.5),rgba(255,255,255,.08));
+    border:1px solid rgba(255,255,255,.14);position:relative;transition:.22s;flex:0 0 auto;
+    box-shadow:inset 0 2px 5px rgba(0,0,0,.6)}
+  .tgl input::after{content:'';position:absolute;top:2px;right:2px;width:15px;height:15px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#fff,#c6bdb1);transition:.22s cubic-bezier(.3,1.5,.5,1);
+    box-shadow:0 2px 5px rgba(0,0,0,.55)}
+  .tgl input:checked{background:linear-gradient(90deg,#b8551f,var(--ember));border-color:rgba(255,122,47,.55);
+    box-shadow:inset 0 1px 4px rgba(0,0,0,.35), 0 0 12px rgba(255,122,47,.32)}
+  .tgl input:checked::after{right:calc(100% - 17px);background:radial-gradient(circle at 35% 30%,#fff,#ffe2c4)}
+  .tgl input:focus-visible{outline:none;box-shadow:0 0 0 2px var(--ash),0 0 0 4px var(--gold2)}
   #barSpacer{margin-inline-start:auto}
 
   /* ═══════════ الرسم: حالات التفاعل ═══════════ */
@@ -247,9 +337,11 @@
   #sheetHead{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:11px 14px;
     border-bottom:1px solid var(--line);background:linear-gradient(180deg,rgba(255,122,47,.1),transparent)}
   #sheetHead h4{font-size:12.5px;color:var(--gold2);letter-spacing:.4px;font-weight:700}
-  #sheetClose{margin-inline-start:auto;cursor:pointer;background:rgba(255,255,255,.05);
-    border:1px solid rgba(255,255,255,.12);border-radius:7px;color:var(--steel);width:26px;height:26px;font-size:12px}
-  #sheetClose:hover{color:#fff;border-color:var(--gold)}
+  #sheetClose{margin-inline-start:auto;display:inline-flex;align-items:center;justify-content:center;
+    cursor:pointer;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);
+    border-radius:9px;color:var(--steel);width:28px;height:28px;transition:.18s}
+  #sheetClose:hover{color:#fff;border-color:var(--gold);background:rgba(224,174,76,.16)}
+  #sheetClose .ic{width:13px;height:13px}
   #sheetBody{flex:1 1 auto;overflow:auto;padding:0 0 6px;
     scrollbar-width:thin;scrollbar-color:rgba(224,174,76,.4) transparent}
   #sheetBody::-webkit-scrollbar{width:7px;height:7px}
@@ -319,11 +411,20 @@
   #qMeta{font-size:11px;color:var(--steel);letter-spacing:1px;margin-bottom:9px}
   #qText{font-size:15px;line-height:1.95;color:var(--bone);margin-bottom:15px;max-width:820px;font-weight:600}
   #qOpts{display:flex;flex-direction:column;gap:9px;max-width:820px}
-  .opt{cursor:pointer;text-align:right;font-size:13px;line-height:1.8;color:var(--bone);
-    padding:12px 14px;border-radius:10px;
-    background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.015));
-    border:1px solid rgba(255,255,255,.09);transition:.18s}
-  .opt:hover:not(:disabled){border-color:var(--gold);transform:translateX(-3px)}
+  .opt{cursor:pointer;text-align:right;font-size:13.5px;line-height:1.75;color:var(--bone);
+    display:flex;align-items:center;gap:12px;
+    padding:13px 14px;border-radius:12px;
+    background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.015));
+    border:1px solid rgba(255,255,255,.09);transition:.18s;
+    box-shadow:0 3px 10px rgba(0,0,0,.28), 0 1px 0 rgba(255,255,255,.04) inset}
+  .optKey{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;
+    width:28px;height:28px;border-radius:9px;font-size:13px;font-weight:700;color:var(--gold2);
+    background:linear-gradient(180deg,rgba(224,174,76,.18),rgba(224,174,76,.06));
+    border:1px solid rgba(224,174,76,.32)}
+  .opt:hover:not(:disabled){border-color:var(--gold);transform:translateX(-4px);
+    box-shadow:0 8px 20px rgba(0,0,0,.4)}
+  .opt.good .optKey{color:#c8f2d8;background:rgba(63,191,111,.22);border-color:rgba(63,191,111,.5)}
+  .opt.bad .optKey{color:#f6c9c4;background:rgba(212,72,60,.2);border-color:rgba(212,72,60,.5)}
   .opt:disabled{cursor:default}
   .opt.good{border-color:var(--ok);background:linear-gradient(180deg,rgba(63,191,111,.2),rgba(63,191,111,.06));color:#c8f2d8}
   .opt.bad{border-color:var(--bad);background:linear-gradient(180deg,rgba(212,72,60,.18),rgba(212,72,60,.05));color:#f6c9c4}
@@ -355,11 +456,25 @@
     .cap{font-size:22px;stroke-width:4px}
     .cap.sm{font-size:18px}
     .slotTxt{font-size:15px}
-    #sceneTools{bottom:8px;right:8px;left:8px}
+    /* أشرطة الأدوات: صف واحد قابل للسحب أفقياً بدل الالتفاف */
+    #sceneTools{bottom:8px;right:8px;left:8px;flex-wrap:nowrap;overflow-x:auto;
+      scrollbar-width:none;padding-bottom:2px}
+    #sceneTools::-webkit-scrollbar{display:none}
+    #sceneTools .grp{flex-wrap:nowrap;flex:0 0 auto}
+    .segbar{flex-wrap:nowrap;flex:0 0 auto}
+    .segbar .stool,.segb,.stool,.btn,.tgl,.sliderWrap{flex:0 0 auto}
+    #bar{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+    #bar::-webkit-scrollbar{display:none}
+    #barSpacer{display:none}
+    .btn,.stool{min-height:40px;font-size:12.5px;padding:10px 14px}
+    .segbar .stool,.segb{min-height:36px}
+    .tgl{min-height:40px}
   }
   @media (max-width:430px){
     #titleRow h1{font-size:15px;letter-spacing:1px}
-    #bar label{display:none}
+    #bar .ctl > label{display:none}
+    .tgl > span{display:none}
+    .tgl{padding:6px 10px;gap:7px}
     #spd{width:62px}
     .tab{padding:8px 12px;font-size:12px}
     #playBtn{min-width:86px;padding:9px 10px}
@@ -371,6 +486,29 @@
 </style>
 </head>
 <body>
+
+<!-- ═══ أيقونات الواجهة (SVG داخلي) ═══ -->
+<svg id="icons" aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden">
+  <symbol id="ic-play" viewBox="0 0 24 24"><path d="M7 4.5v15l13-7.5z"/></symbol>
+  <symbol id="ic-pause" viewBox="0 0 24 24"><path d="M8 4.5v15M16 4.5v15"/></symbol>
+  <symbol id="ic-reset" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 3.5V9h-5.5"/></symbol>
+  <symbol id="ic-table" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M3.5 14.5h17M9.5 9.5v10"/></symbol>
+  <symbol id="ic-route" viewBox="0 0 24 24"><path d="M5 19c6 0 4-7 9-7"/><circle cx="5" cy="19" r="2.2"/><path d="M14 8.5 18 12l-4 3.5"/></symbol>
+  <symbol id="ic-drop" viewBox="0 0 24 24"><path d="M12 3.5s6 6.4 6 10.2A6 6 0 0 1 6 13.7C6 9.9 12 3.5 12 3.5z"/></symbol>
+  <symbol id="ic-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"/></symbol>
+  <symbol id="ic-leaf" viewBox="0 0 24 24"><path d="M4 20c0-8 5-14 16-14 0 10-6 15-13 15"/><path d="M8 17c3-4 6-6 10-7"/></symbol>
+  <symbol id="ic-cross" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/><circle cx="12" cy="12" r="9"/></symbol>
+  <symbol id="ic-flask" viewBox="0 0 24 24"><path d="M9.5 3v6.2L4.6 18a2 2 0 0 0 1.7 3h11.4a2 2 0 0 0 1.7-3l-4.9-8.8V3"/><path d="M8 3h8M7 15h10"/></symbol>
+  <symbol id="ic-mol" viewBox="0 0 24 24"><circle cx="6" cy="17" r="2.6"/><circle cx="18" cy="16" r="2.2"/><circle cx="12" cy="6" r="2.8"/><path d="M8.2 15.4 10.3 8.4M14.2 7.7 17 13.9"/></symbol>
+  <symbol id="ic-cell" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="10" cy="10.5" r="3.2"/><path d="M15.5 15.5c1.2-.6 2-1.4 2.5-2.4"/></symbol>
+  <symbol id="ic-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="ic-spark" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M18.5 16.5l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z"/></symbol>
+  <symbol id="ic-close" viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></symbol>
+  <symbol id="ic-check" viewBox="0 0 24 24"><path d="M4.5 12.5l5 5 10-11"/></symbol>
+  <symbol id="ic-list" viewBox="0 0 24 24"><path d="M4 6.5h16M4 12h16M4 17.5h10"/></symbol>
+  <symbol id="ic-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3"/></symbol>
+  <symbol id="ic-layers" viewBox="0 0 24 24"><path d="M12 3.5 21 8l-9 4.5L3 8z"/><path d="M3 12.5 12 17l9-4.5M3 16.5 12 21l9-4.5"/></symbol>
+</svg>
 
 <header id="top">
   <div id="titleRow">
@@ -405,7 +543,7 @@
     <div id="sheet" class="panel">
       <div id="sheetHead">
         <h4 id="sheetTitle"></h4>
-        <button id="sheetClose" title="إغلاق">✕</button>
+        <button id="sheetClose" title="إغلاق" aria-label="إغلاق"><svg class="ic"><use href="#ic-close"/></svg></button>
       </div>
       <div id="sheetBody"></div>
     </div>
@@ -413,9 +551,9 @@
     <!-- ═══════════ وضع الامتحان ═══════════ -->
     <div id="exam">
       <div id="examTop">
-        <div class="seg">
-          <button id="mLabel" class="on">أشّر الأجزاء</button>
-          <button id="mQuiz">اختبر نفسك</button>
+        <div class="segbar">
+          <button id="mLabel" class="segb on"><svg class="ic"><use href="#ic-target"/></svg><span>أشّر الأجزاء</span></button>
+          <button id="mQuiz" class="segb"><svg class="ic"><use href="#ic-list"/></svg><span>اختبر نفسك</span></button>
         </div>
         <div id="score"></div>
       </div>
@@ -436,7 +574,7 @@
           <div id="qText"></div>
           <div id="qOpts"></div>
           <div id="qWhy" class="panel"></div>
-          <button id="qNext" class="btn primary">السؤال التالي</button>
+          <button id="qNext" class="btn primary"><span>السؤال التالي</span><svg class="ic"><use href="#ic-route"/></svg></button>
         </div>
       </div>
     </div>
@@ -448,7 +586,7 @@
         <div id="infoName">لوحة المعلومات</div>
         <div id="infoSrc"></div>
       </div>
-      <button id="infoClose" title="إغلاق">✕</button>
+      <button id="infoClose" title="إغلاق" aria-label="إغلاق"><svg class="ic"><use href="#ic-close"/></svg></button>
     </div>
     <div id="infoEmpty">
       اضغط على أي <b>عضية</b> أو جزء داخل الرسم، وتطلعلك هنا: الموقع والتركيب
@@ -457,22 +595,22 @@
     </div>
     <div id="infoBody" hidden></div>
     <div id="infoFoot" hidden>
-      <button id="seeFn" class="btn primary">شوف الوظيفة</button>
+      <button id="seeFn" class="btn primary"><svg class="ic"><use href="#ic-play"/></svg><span>شوف الوظيفة</span></button>
     </div>
   </aside>
 </main>
 
 <div id="bar">
-  <button id="playBtn" class="btn">إيقاف ⏸</button>
+  <button id="playBtn" class="btn"><svg class="ic"><use href="#ic-pause" id="playIcon"/></svg><span id="playTxt">إيقاف</span></button>
   <div class="ctl">
     <label for="spd">السرعة</label>
     <input id="spd" type="range" min="0.2" max="2.5" step="0.1" value="1">
     <output id="spdOut">1.0×</output>
   </div>
-  <label class="tgl"><input id="lblTgl" type="checkbox" checked>الأسماء</label>
-  <label class="tgl"><input id="glowTgl" type="checkbox" checked>تأثيرات</label>
+  <label class="tgl"><input id="lblTgl" type="checkbox" checked><svg class="ic"><use href="#ic-eye"/></svg><span>الأسماء</span></label>
+  <label class="tgl"><input id="glowTgl" type="checkbox" checked><svg class="ic"><use href="#ic-spark"/></svg><span>تأثيرات</span></label>
   <div id="barSpacer"></div>
-  <button id="resetBtn" class="btn ghost">إعادة المشهد</button>
+  <button id="resetBtn" class="btn ghost"><svg class="ic"><use href="#ic-reset"/></svg><span>إعادة المشهد</span></button>
 </div>
 
 <script>
@@ -2747,10 +2885,10 @@ PROC.diffusion = {
           <text class="cap sm" x="500" y="204" text-anchor="middle" opacity=".7">ماء</text>`)}
         <g id="crystals">
           <ellipse cx="500" cy="560" rx="52" ry="20" fill="#7a3c8c" opacity=".9"/>
-          <text class="lbl sm" x="500" y="596" text-anchor="middle">بلورات برمنغنات البوتاسيوم أو كبريتات النحاس</text>
+          <text class="lbl sm" x="588" y="562" text-anchor="end">بلورات ملوّنة</text>
         </g>
         <g id="diffLayer"></g>
-        <text class="cap sm" x="500" y="596" text-anchor="middle" opacity=".85">تنتشر المادة الملوّنة حتى تملأ كل أجزاء الماء</text>`,
+        <text class="cap sm" x="500" y="614" text-anchor="middle" opacity=".85">تنتشر المادة الملوّنة حتى تملأ كل أجزاء الماء</text>`,
       stream: null, flows: [],
       parts: [{ id: 'diffusion', anchor: [330, 300], label: [142, 200], side: 'L' }],
       tools: PROC_TOOLS,
@@ -2908,29 +3046,30 @@ PROC.activeT = {
   title: 'النقل النشط (الفعال)', src: 'رسم ملزمة ص43 (وزاري)',
   hint: 'تمتص الخلية مواد من محيطها رغم أن تركيزها داخل الخلية أعلى، بوساطة مواد حاملة في الغشاء، وتحتاج العملية إلى صرف طاقة تستمد من ATP.',
   build(){
-    const Y = 350;
+    const Y = 330;
     return {
       body: `
-        <rect x="0" y="0" width="1000" height="${Y - 40}" fill="#16232b" opacity=".45"/>
-        <rect x="0" y="${Y + 40}" width="1000" height="${700 - Y - 40}" fill="#241c2b" opacity=".5"/>
-        <text class="cap" x="500" y="70" text-anchor="middle">تركيز واطئ للأيونات — خارج الخلية</text>
-        <text class="cap" x="500" y="640" text-anchor="middle">تركيز أعلى للأيونات — داخل الخلية</text>
-        ${part('lipidBundle', `<g>${memStrip(Y, 40, 960, 430, 590)}</g>`)}
-        ${wrap('translate(510,350)', part('activeT', `
-          <path d="M-58,-52 C-74,-24 -74,22 -58,50 C-20,64 24,64 58,50 C74,22 74,-24 58,-52 C22,-66 -22,-66 -58,-52 Z"
+        <rect x="0" y="0" width="1000" height="${Y - 46}" fill="#16232b" opacity=".45"/>
+        <rect x="0" y="${Y + 46}" width="1000" height="${700 - Y - 46}" fill="#241c2b" opacity=".5"/>
+        <text class="cap sm" x="500" y="124" text-anchor="middle">تركيز واطئ للأيونات — خارج الخلية</text>
+        <text class="cap sm" x="500" y="556" text-anchor="middle">تركيز أعلى للأيونات — داخل الخلية</text>
+        ${part('lipidBundle', `<g>${memStrip(Y, 40, 960, 424, 596)}</g>`)}
+        ${wrap('translate(510,330)', part('activeT', `
+          <path d="M-62,-66 C-80,-32 -80,30 -62,64 C-22,80 24,80 62,64 C80,30 80,-32 62,-66 C24,-82 -22,-82 -62,-66 Z"
                 fill="#e79a5e" stroke="#ffd9b8" stroke-width="2.4" filter="url(#fSoft)"/>
-          <path class="apGate" d="M-16,-46 L16,-46 L16,46 L-16,46 Z" fill="rgba(255,245,200,.22)"/>
-          <text class="lbl sm" y="4" text-anchor="middle" fill="#3a2410">بروتين حامل</text>`))}
+          <path class="apGate" d="M-17,-58 L17,-58 L17,58 L-17,58 Z" fill="rgba(255,245,200,.22)"/>
+          <path d="M-40,-44 C-52,-14 -52,22 -40,48" fill="none" stroke="#fff0e0" stroke-width="1.6" opacity=".5"/>`))}
+        <text class="lbl sm" x="600" y="422" text-anchor="end">بروتين حامل</text>
         <g id="apLayer"></g>
         <g id="apEnergy" opacity="0">
-          <path d="M660,250 L700,300 L672,300 L706,352" fill="none" stroke="#ffd166" stroke-width="4" stroke-linecap="round"/>
-          <text class="cap sm" x="716" y="300" text-anchor="start" fill="#ffd166">طاقة ATP</text>
+          <path d="M700,232 L742,282 L714,282 L748,334" fill="none" stroke="#ffd166" stroke-width="4.5" stroke-linecap="round"/>
+          <text class="cap sm" x="760" y="292" text-anchor="start" fill="#ffd166">طاقة ATP</text>
         </g>`,
       stream: null, flows: [],
       parts: [
-        { id: 'activeT',      anchor: [510, 350], label: [858, 250], side: 'R' },
-        { id: 'lipidBundle',  anchor: [240, 328], label: [142, 250], side: 'L' },
-        { id: 'atp',          anchor: [690, 300], label: [858, 430], side: 'R' }
+        { id: 'activeT',      anchor: [552, 392], label: [858, 220], side: 'R' },
+        { id: 'lipidBundle',  anchor: [232, 308], label: [142, 230], side: 'L' },
+        { id: 'atp',          anchor: [726, 282], label: [858, 430], side: 'R' }
       ],
       tools: PROC_TOOLS,
       state: { ions: [], acc: 0 },
@@ -2944,7 +3083,7 @@ PROC.activeT = {
           el.innerHTML = `<circle r="11" fill="#9fd8f0" stroke="#e6f7ff" stroke-width="1.4"/>
                           <text y="4" text-anchor="middle" font-size="10" fill="#0d1b22">أيون</text>`;
           host.appendChild(el);
-          S.ions.push({ el, k: 0, lane: 510 + (Math.random() - .5) * 26 });
+          S.ions.push({ el, k: 0, lane: 510 + (Math.random() - .5) * 22 });
         }
         api.all('.apGate').forEach(e => e.setAttribute('opacity', String(0.12 + 0.3 * (0.5 + 0.5 * Math.sin(t * 3)))));
         const en = api.el('#apEnergy');
@@ -2953,8 +3092,8 @@ PROC.activeT = {
           const o = S.ions[i];
           o.k += dt * 0.22;
           if (o.k > 1){ o.el.remove(); S.ions.splice(i, 1); continue; }
-          const y = 140 + o.k * 420;
-          if (y > 300 && y < 400) pumping = true;
+          const y = 150 + o.k * 380;
+          if (y > 280 && y < 385) pumping = true;
           o.el.setAttribute('transform', `translate(${n2(o.lane)},${n2(y)})`);
           o.el.setAttribute('opacity', String(o.k > .9 ? (1 - o.k) * 10 : 1));
         }
@@ -3364,7 +3503,11 @@ const api = {
   setTool(id, v){ toolState[id] = !!v; syncTools(); },
   radio: g => radioState[g],
   setRadio(g, id){ radioState[g] = id; syncTools(); },
-  setSlider(v){ api.sliderVal = v; const s = $('#pslider'); if (s && !api.dragSlider) s.value = String(v); },
+  setSlider(v){
+    api.sliderVal = v;
+    const s = $('#pslider');
+    if (s && !api.dragSlider){ s.value = String(v); s.style.setProperty('--p', (v / 0.999 * 100) + '%'); }
+  },
   setCap(t){ const e = $('#phaseCap'); if (e) e.textContent = t; },
   setPhase(ph, T){
     if (!ph) return;
@@ -3495,23 +3638,60 @@ $('#seeFn').addEventListener('click', () => {
 });
 
 /* ───────────── أدوات المشهد ───────────── */
+const TOOL_ICON = {
+  protRoute: 'route', membTest: 'drop', light: 'sun', plant: 'leaf', showX: 'cross',
+  diffusion: 'mol', osmosis: 'drop', solutions: 'flask', activeT: 'route',
+  phago: 'cell', pino: 'drop', exo: 'route',
+  glyco: 'flask', aerobic: 'mol', anaer: 'flask',
+  o2: 'mol', co2: 'mol', alc: 'drop', h2o: 'drop', big: 'cell'
+};
+const icon = n => n ? `<svg class="ic"><use href="#ic-${n}"/></svg>` : '';
+function toolIcon(id){ return id.indexOf('tbl:') === 0 ? 'table' : (TOOL_ICON[id] || null); }
+function toolBtn(t, withIcon){
+  return `<button class="stool" data-tool="${t.id}"${t.radio ? ` data-radio="${t.radio}"` : ''}` +
+    `${t.toggle ? ' data-toggle="1"' : ''}>${withIcon ? icon(toolIcon(t.id)) : ''}<span>${t.label}</span></button>`;
+}
+
 function buildTools(tools){
   const host = $('#sceneTools');
-  if (!tools.length){ host.innerHTML = ''; return; }
-  host.innerHTML = '<div class="grp">' + tools.map(t => {
-    if (t.slider) return `<input id="pslider" class="stool" type="range" min="0" max="0.999" step="0.001" value="0"
-      style="width:min(300px,52vw);padding:6px 10px;accent-color:var(--ember)" aria-label="أطوار الانقسام">`;
-    return `<button class="stool" data-tool="${t.id}"${t.radio ? ` data-radio="${t.radio}"` : ''}${t.toggle ? ' data-toggle="1"' : ''}>${t.label}</button>`;
-  }).join('') + '</div>';
+  if (!tools || !tools.length){ host.innerHTML = ''; return; }
+  /* عدّ عناصر كل مجموعة اختيار لتقرير إظهار الأيقونات */
+  const gc = {};
+  tools.forEach(t => { if (t.radio) gc[t.radio] = (gc[t.radio] || 0) + 1; });
+
+  let html = '', openSeg = null;
+  const closeSeg = () => { if (openSeg){ html += '</div>'; openSeg = null; } };
+  tools.forEach(t => {
+    if (t.slider){
+      closeSeg();
+      html += `<label class="sliderWrap"><span>الطور</span>
+        <input id="pslider" type="range" min="0" max="0.999" step="0.001" value="0" aria-label="أطوار الانقسام"></label>`;
+      return;
+    }
+    if (t.radio){
+      if (openSeg !== t.radio){ closeSeg(); html += '<div class="segbar">'; openSeg = t.radio; }
+      html += toolBtn(t, gc[t.radio] <= 5);
+      return;
+    }
+    closeSeg();
+    html += toolBtn(t, true);
+  });
+  closeSeg();
+  host.innerHTML = '<div class="grp">' + html + '</div>';
+
   host.querySelectorAll('[data-tool]').forEach(b => b.addEventListener('click', () => onTool(b.dataset.tool, b)));
   const sl = $('#pslider');
   if (sl){
+    const paint = () => sl.style.setProperty('--p', (parseFloat(sl.value) / 0.999 * 100) + '%');
     const st = () => { api.dragSlider = true; };
-    const mv = () => { api.sliderVal = parseFloat(sl.value); if (cur && cur.onSlider) cur.onSlider(api.sliderVal); };
+    const mv = () => { api.sliderVal = parseFloat(sl.value); paint(); if (cur && cur.onSlider) cur.onSlider(api.sliderVal); };
     const en = () => { api.dragSlider = false; };
-    sl.addEventListener('pointerdown', st); sl.addEventListener('input', () => { st(); mv(); });
-    sl.addEventListener('pointerup', en); sl.addEventListener('pointercancel', en);
+    sl.addEventListener('pointerdown', st);
+    sl.addEventListener('input', () => { st(); mv(); });
+    sl.addEventListener('pointerup', en);
+    sl.addEventListener('pointercancel', en);
     sl.addEventListener('change', () => { mv(); en(); });
+    paint();
   }
   syncTools();
 }
@@ -3659,13 +3839,22 @@ function frame(now){
 /* ───────────── أدوات التحكم العامة ───────────── */
 function togglePlay(v){
   playing = v === undefined ? !playing : v;
-  $('#playBtn').textContent = playing ? 'إيقاف ⏸' : 'تشغيل ▶';
+  const t = $('#playTxt'), u = $('#playBtn').querySelector('use');
+  if (t) t.textContent = playing ? 'إيقاف' : 'تشغيل';
+  if (u) u.setAttribute('href', playing ? '#ic-pause' : '#ic-play');
+  $('#playBtn').classList.toggle('primary', !playing);
 }
 $('#playBtn').addEventListener('click', () => togglePlay());
+function paintSpd(){
+  const e = $('#spd');
+  e.style.setProperty('--p', ((parseFloat(e.value) - 0.2) / 2.3 * 100) + '%');
+}
 $('#spd').addEventListener('input', e => {
   speedMul = parseFloat(e.target.value);
   $('#spdOut').textContent = speedMul.toFixed(1) + '×';
+  paintSpd();
 });
+paintSpd();
 function applyLabelToggle(){
   const on = $('#lblTgl').checked;
   const l = svgHost.querySelector('#labelLayer');
@@ -3705,8 +3894,8 @@ function shuffle(a){
 
 function initExam(){
   $('#pickRow').innerHTML = '<span>اختر الرسم:</span>' + EXAM_DIAGRAMS.map(d =>
-    `<button class="stool" data-dg="${d.k}">${d.t}</button>`).join('')
-    + '<button class="stool" id="reDraw">إعادة المحاولة</button>';
+    `<button class="stool" data-dg="${d.k}"><svg class="ic"><use href="#ic-cell"/></svg><span>${d.t}</span></button>`).join('')
+    + '<button class="stool" id="reDraw"><svg class="ic"><use href="#ic-reset"/></svg><span>إعادة المحاولة</span></button>';
   $('#pickRow').querySelectorAll('[data-dg]').forEach(b =>
     b.addEventListener('click', () => loadDiagram(b.dataset.dg)));
   $('#reDraw').addEventListener('click', () => loadDiagram(exDiag));
@@ -3840,7 +4029,7 @@ function renderQ(){
   if (qIdx >= qList.length){
     $('#qMeta').textContent = 'انتهى الاختبار';
     $('#qText').textContent = `درجتك النهائية: ${qScore} من ${qList.length}.`;
-    $('#qOpts').innerHTML = '<button class="opt" id="qAgain">أعد الاختبار بأسئلة مخلوطة</button>';
+    $('#qOpts').innerHTML = '<button class="opt" id="qAgain"><b class="optKey">↻</b><span>أعد الاختبار بأسئلة مخلوطة</span></button>';
     $('#qAgain').addEventListener('click', buildQuiz);
     $('#qWhy').classList.remove('on');
     $('#qNext').classList.remove('on');
@@ -3850,7 +4039,9 @@ function renderQ(){
   const q = qList[qIdx];
   $('#qMeta').textContent = `سؤال ${qIdx + 1} من ${qList.length}`;
   $('#qText').textContent = q.q;
-  $('#qOpts').innerHTML = q.o.map((o, i) => `<button class="opt" data-i="${i}">${o}</button>`).join('');
+  const AR = ['أ', 'ب', 'ج', 'د'];
+  $('#qOpts').innerHTML = q.o.map((o, i) =>
+    `<button class="opt" data-i="${i}"><b class="optKey">${AR[i] || (i + 1)}</b><span>${o}</span></button>`).join('');
   $('#qOpts').querySelectorAll('.opt').forEach(b => b.addEventListener('click', () => answer(parseInt(b.dataset.i, 10))));
   $('#qWhy').classList.remove('on');
   $('#qNext').classList.remove('on');
