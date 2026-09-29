@@ -1467,6 +1467,16 @@ const DEFS = `
     <stop offset="100%" stop-color="#2a3627"/>
   </radialGradient>
 
+  <radialGradient id="gAtp" cx="34%" cy="28%" r="78%">
+    <stop offset="0%"  stop-color="#fff3cf"/>
+    <stop offset="52%" stop-color="#ffd166"/>
+    <stop offset="100%" stop-color="#c98f1e"/>
+  </radialGradient>
+  <radialGradient id="gAtpUsed" cx="34%" cy="28%" r="78%">
+    <stop offset="0%"  stop-color="#cfc6b8"/>
+    <stop offset="55%" stop-color="#8b8175"/>
+    <stop offset="100%" stop-color="#4e473f"/>
+  </radialGradient>
   <filter id="fGlow" x="-40%" y="-40%" width="180%" height="180%">
     <feGaussianBlur stdDeviation="5" result="b"/>
     <feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
@@ -3339,11 +3349,36 @@ SCENES.transport = {
    4.9 · الأيض الخلوي (ملزمة ص46–55)
    ══════════════════════════════════════════════════════════════════════════ */
 let pathSel = 'glyco';
+
+/* ── عدّاد الطاقة: خانات فارغة تمتلئ بقطع ATP فعلية ── */
+function atpMeter(x, y, n, title, per, R, gap, tone){
+  const slots = [], cells = [];
+  const rows = Math.ceil(n / per);
+  const w = Math.max(Math.min(per, n) * gap + 26, title.length * 7.4 + 26), h = rows * (gap - 4) + 60;
+  for (let i = 0; i < n; i++){
+    const r = Math.floor(i / per), c = i % per;
+    const cnt = Math.min(per, n - r * per);
+    const sx = x + (w - cnt * gap) / 2 + gap / 2 + c * gap;
+    const sy = y + 46 + r * (gap - 4);
+    slots.push([sx, sy]);
+    cells.push(`<circle cx="${n2(sx)}" cy="${n2(sy)}" r="${R}" fill="rgba(255,255,255,.04)"
+      stroke="${tone || 'rgba(255,209,102,.45)'}" stroke-width="1.6" stroke-dasharray="4 3"/>`);
+  }
+  const markup = `
+    <g>
+      <rect x="${x}" y="${y}" width="${n2(w)}" height="${n2(h)}" rx="13"
+            fill="rgba(255,209,102,.07)" stroke="rgba(255,209,102,.32)" stroke-width="1.6"/>
+      <text class="lbl sm" x="${n2(x + w / 2)}" y="${y + 20}" text-anchor="middle" fill="#ffd166">${title}</text>
+      ${cells.join('')}
+    </g>`;
+  return { markup, slots, w, h, x, y };
+}
+
 SCENES.metabolism = {
   title: 'الأيض الخلوي',
   src: 'ملزمة ص46–55',
   tint: ['rgba(150,90,50,.24)', 'rgba(90,70,140,.16)'],
-  hint: 'الأيض الخلوي: مجموع التحولات الكيميائية في الخلية بمساعدة الانزيمات — عملية الهدم (تحلل المواد وتحرر طاقة) وعملية البناء (بناء نواتج جديدة واستهلاك طاقة).',
+  hint: 'الأيض الخلوي: عملية الهدم (تحلل المواد وتحرر طاقة) وعملية البناء (بناء نواتج جديدة واستهلاك طاقة). راقب عدّاد الطاقة: كل جزيئة ATP تُنتَج أو تُستهلَك تظهر كقطعة تدخل خانتها.',
   build(){
     const box = (x, y, w, h, fill, stroke, txt, sub, cls) => `
       <g class="${cls || ''}">
@@ -3353,7 +3388,6 @@ SCENES.metabolism = {
       </g>`;
     const arrow = (x1, y1, x2, y2, lbl) => {
       const vert = Math.abs(x2 - x1) < 3;
-      /* الكتابة بجانب السهم العمودي وفوق الأفقي حتى لا يغطيها */
       const tx = vert ? x1 + 11 : (x1 + x2) / 2;
       const ty = vert ? y1 + 15 : (y1 + y2) / 2 - 13;
       const anc = vert ? 'end' : 'middle';
@@ -3375,97 +3409,105 @@ SCENES.metabolism = {
           </g>`)}
         `;
 
+    let coins = [], cycle = 16, parts = [], flows = [];
+
     if (pathSel === 'glyco'){
+      const mProd = atpMeter(752, 126, 4, 'تُنتج خلال التحول', 4, 15, 46, null);
+      const mCons = atpMeter(752, 250, 2, 'تُستهلك في الفسفرة', 2, 15, 46, 'rgba(200,190,175,.45)');
+      const mNet  = atpMeter(752, 374, 2, 'الربح الصافي', 2, 15, 46, null);
       body += `
-                ${part('glycolysis', `
-          ${box(390, 96, 220, 58, 'rgba(120,190,110,.2)', '#bff08a', 'سكر الكلوكوز (6C)', 'مادة التنفس الرئيسية')}
-          ${arrow(500, 154, 500, 190, 'فسفرة — تستهلك ATP')}
-          ${box(370, 190, 260, 50, 'rgba(120,190,220,.16)', '#a9dcf2', 'كلوكوز أحادي الفوسفات')}
-          ${arrow(500, 240, 500, 276, '')}
-          ${box(370, 276, 260, 50, 'rgba(120,190,220,.16)', '#a9dcf2', 'فركتوز أحادي الفوسفات')}
-          ${arrow(500, 326, 500, 364, 'فسفرة ثانية — تستهلك ATP')}
-          ${box(360, 364, 280, 50, 'rgba(120,190,220,.2)', '#a9dcf2', 'فركتوز ثنائي الفوسفات')}
-          ${arrow(500, 414, 500, 450, 'انشطار')}
-          ${box(250, 450, 230, 50, 'rgba(230,180,120,.18)', '#f0c68a', 'كليسرالديهايد مفسفر (3C)')}
-          ${box(520, 450, 230, 50, 'rgba(230,180,120,.18)', '#f0c68a', 'كليسرالديهايد مفسفر (3C)')}
-          ${arrow(365, 500, 365, 534, '')}
-          ${arrow(635, 500, 635, 534, '')}
-          ${box(245, 534, 240, 54, 'rgba(240,140,120,.2)', '#f0a49a', 'حامض بايروفي', '')}
-          ${box(515, 534, 240, 54, 'rgba(240,140,120,.2)', '#f0a49a', 'حامض بايروفي', '')}`)}
-        ${part('atp', `
-          <g transform="translate(838,280)">
-            <rect x="-90" y="-70" width="180" height="140" rx="14" fill="rgba(255,209,102,.14)" stroke="#ffd166" stroke-width="2.2"/>
-            <text class="lbl" y="-34" text-anchor="middle" fill="#ffd166">حصيلة الطاقة</text>
-            <text class="lbl sm" y="-6" text-anchor="middle">تنتج 4ATP</text>
-            <text class="lbl sm" y="16" text-anchor="middle">تستهلك 2ATP</text>
-            <text class="lbl" y="46" text-anchor="middle" fill="#bff08a">الربح 2ATP</text>
-          </g>`)}
-        <g id="mtLayer"></g>`;
+        ${part('glycolysis', `
+          ${box(360, 96, 220, 58, 'rgba(120,190,110,.2)', '#bff08a', 'سكر الكلوكوز (6C)', 'مادة التنفس الرئيسية')}
+          ${arrow(470, 154, 470, 190, 'فسفرة — تستهلك ATP')}
+          ${box(340, 190, 260, 50, 'rgba(120,190,220,.16)', '#a9dcf2', 'كلوكوز أحادي الفوسفات')}
+          ${arrow(470, 240, 470, 276, '')}
+          ${box(340, 276, 260, 50, 'rgba(120,190,220,.16)', '#a9dcf2', 'فركتوز أحادي الفوسفات')}
+          ${arrow(470, 326, 470, 364, 'فسفرة ثانية — تستهلك ATP')}
+          ${box(330, 364, 280, 50, 'rgba(120,190,220,.2)', '#a9dcf2', 'فركتوز ثنائي الفوسفات')}
+          ${arrow(470, 414, 470, 450, 'انشطار')}
+          ${box(228, 450, 230, 50, 'rgba(230,180,120,.18)', '#f0c68a', 'كليسرالديهايد مفسفر (3C)')}
+          ${box(482, 450, 230, 50, 'rgba(230,180,120,.18)', '#f0c68a', 'كليسرالديهايد مفسفر (3C)')}
+          ${arrow(343, 500, 343, 534, '')}
+          ${arrow(597, 500, 597, 534, '')}
+          ${box(228, 534, 230, 54, 'rgba(240,140,120,.2)', '#f0a49a', 'حامض بايروفي', '')}
+          ${box(482, 534, 230, 54, 'rgba(240,140,120,.2)', '#f0a49a', 'حامض بايروفي', '')}`)}
+        ${part('atp', mProd.markup + mCons.markup + mNet.markup)}
+        <g id="atpPool"></g>`;
+      coins = [
+        { to: mCons.slots[0], from: [470, 172], at: 0.6, used: 1 },
+        { to: mCons.slots[1], from: [470, 346], at: 2.4, used: 1 },
+        { to: mProd.slots[0], from: [343, 516], at: 5.0 },
+        { to: mProd.slots[1], from: [343, 516], at: 5.8 },
+        { to: mProd.slots[2], from: [597, 516], at: 6.6 },
+        { to: mProd.slots[3], from: [597, 516], at: 7.4 },
+        { to: mNet.slots[0],  from: mProd.slots[2], at: 10.2 },
+        { to: mNet.slots[1],  from: mProd.slots[3], at: 10.9 }
+      ];
+      parts = [
+        { id: 'glycolysis', anchor: [342, 301], label: [142, 210], side: 'L' },
+        { id: 'atp',        anchor: [mProd.x + mProd.w / 2, mProd.y + mProd.h - 16], label: [858, 112], side: 'R' },
+        { id: 'metabolism', anchor: [150, 120], label: [142, 300], side: 'L' }
+      ];
     } else if (pathSel === 'aerobic'){
+      const m = atpMeter(330, 494, 12, 'تحرير 12 ATP لكل دورة كريبس', 6, 11, 35, null);
       body += `
-                ${part('glycolysis', box(60, 300, 200, 70, 'rgba(240,140,120,.2)', '#f0a49a', 'حامض بايروفي', 'من التحلل السكري'))}
-        ${arrow(260, 335, 330, 335, 'أكسدة')}
+        ${part('glycolysis', box(60, 285, 200, 70, 'rgba(240,140,120,.2)', '#f0a49a', 'حامض بايروفي', 'من التحلل السكري'))}
+        ${arrow(260, 320, 326, 320, 'أكسدة')}
         ${part('krebs', `
-          <ellipse cx="620" cy="348" rx="280" ry="212" fill="rgba(210,120,70,.12)" stroke="#e79a5e" stroke-width="3" stroke-dasharray="8 6"/>
-          <text class="cap sm" x="620" y="168" text-anchor="middle">المايتوكوندريا</text>
-          ${box(330, 300, 190, 70, 'rgba(255,209,102,.2)', '#ffd166', 'استيل كو–A (2C)', 'مفتاح دورة كريبس')}
-          ${arrow(520, 335, 576, 335, '')}
-          <circle cx="680" cy="350" r="120" fill="none" stroke="#ffd166" stroke-width="3" stroke-dasharray="6 6"/>
-          <text class="lbl" x="680" y="344" text-anchor="middle">دورة كريبس</text>
-          <text class="lbl sm" x="680" y="368" text-anchor="middle" opacity=".9">اتحاد مع حامض اوكزالوخليك (4C)</text>
-          <text class="lbl sm" x="680" y="390" text-anchor="middle" opacity=".9">← حامض الليمون (6C)</text>`)}
-        ${part('atp', `
-          <g transform="translate(680,596)">
-            <rect x="-120" y="-34" width="240" height="60" rx="14" fill="rgba(255,209,102,.16)" stroke="#ffd166" stroke-width="2.2"/>
-            <text class="lbl" y="4" text-anchor="middle" fill="#ffd166">تحرير 12ATP لكل دورة</text>
-          </g>`)}
-        <g id="mtLayer"></g>`;
+          <ellipse cx="560" cy="318" rx="258" ry="172" fill="rgba(210,120,70,.12)" stroke="#e79a5e" stroke-width="3" stroke-dasharray="8 6"/>
+          <text class="cap sm" x="560" y="172" text-anchor="middle">المايتوكوندريا</text>
+          ${box(334, 285, 186, 70, 'rgba(255,209,102,.2)', '#ffd166', 'استيل كو–A (2C)', 'مفتاح دورة كريبس')}
+          ${arrow(520, 320, 552, 320, '')}
+          <circle cx="672" cy="320" r="112" fill="none" stroke="#ffd166" stroke-width="3" stroke-dasharray="6 6"/>
+          <text class="lbl" x="672" y="306" text-anchor="middle">دورة كريبس</text>
+          <text class="lbl sm" x="672" y="330" text-anchor="middle" opacity=".9">اتحاد مع حامض اوكزالوخليك (4C)</text>
+          <text class="lbl sm" x="672" y="352" text-anchor="middle" opacity=".9">← حامض الليمون (6C)</text>`)}
+        ${part('atp', m.markup)}
+        <g id="atpPool"></g>`;
+      cycle = 15;
+      coins = m.slots.map((sl, i) => ({ to: sl, from: [672, 400], at: 1.2 + i * 0.62 }));
+      parts = [
+        { id: 'metabolism', anchor: [150, 120], label: [142, 240], side: 'L' },
+        { id: 'krebs',      anchor: [672, 320], label: [858, 150], side: 'R' },
+        { id: 'glycolysis', anchor: [160, 320], label: [142, 170], side: 'L' },
+        { id: 'atp',        anchor: [m.x + m.w / 2, m.y + m.h - 14], label: [142, 560], side: 'L' }
+      ];
     } else {
+      const mL = atpMeter(252, 452, 2, 'الناتج 2ATP', 2, 13, 40, null);
+      const mR = atpMeter(622, 452, 2, 'الناتج 2ATP', 2, 13, 40, null);
       body += `
-                ${part('glycolysis', box(390, 100, 220, 62, 'rgba(240,140,120,.2)', '#f0a49a', 'حامض بايروفي', 'من التحلل السكري'))}
-        ${arrow(440, 162, 360, 236, '')}
-        ${arrow(560, 162, 720, 236, '')}
+        ${part('glycolysis', box(390, 96, 220, 58, 'rgba(240,140,120,.2)', '#f0a49a', 'حامض بايروفي', 'من التحلل السكري'))}
+        ${arrow(440, 154, 360, 228, '')}
+        ${arrow(560, 154, 720, 228, '')}
         ${part('fermentation', `
-          ${box(190, 236, 330, 72, 'rgba(190,140,220,.16)', '#d7b0f0', 'التخمر الكحولي', 'الخميرة والنباتات الخضر وبعض البكتريا')}
-          ${arrow(355, 308, 355, 356, 'نزع CO₂ ثم اختزال بـ 2H')}
-          ${box(190, 356, 330, 82, 'rgba(190,140,220,.2)', '#d7b0f0', 'كحول اثيلي + CO₂', '2ATP')}
-          ${box(560, 236, 330, 72, 'rgba(140,200,200,.16)', '#9fe0dd', 'التخمر اللبني', 'العضلات وبعض أنواع البكتريا')}
-          ${arrow(725, 308, 725, 356, 'اختزال بـ 2H')}
-          ${box(560, 356, 330, 82, 'rgba(140,200,200,.2)', '#9fe0dd', 'الحامض اللبني', '2ATP · لا يتحرر CO₂')}`)}
-        ${part('atp', `
-          <g transform="translate(500,520)">
-            <rect x="-260" y="-36" width="520" height="66" rx="14" fill="rgba(255,209,102,.14)" stroke="#ffd166" stroke-width="2.2"/>
-            <text class="lbl" y="-4" text-anchor="middle" fill="#ffd166">كلاهما ينتج طاقة قليلة مقدارها 2ATP</text>
-            <text class="lbl sm" y="18" text-anchor="middle">وكلاهما يستخدم الحامض البايروفي وهيدروجين التحلل السكري</text>
-          </g>`)}
-        <g id="mtLayer"></g>`;
+          ${box(190, 228, 330, 66, 'rgba(190,140,220,.16)', '#d7b0f0', 'التخمر الكحولي', 'الخميرة والنباتات الخضر وبعض البكتريا')}
+          ${arrow(355, 294, 355, 340, 'نزع CO₂ ثم اختزال بـ 2H')}
+          ${box(190, 340, 330, 74, 'rgba(190,140,220,.2)', '#d7b0f0', 'كحول اثيلي + CO₂', '')}
+          ${box(560, 228, 330, 66, 'rgba(140,200,200,.16)', '#9fe0dd', 'التخمر اللبني', 'العضلات وبعض أنواع البكتريا')}
+          ${arrow(725, 294, 725, 340, 'اختزال بـ 2H')}
+          ${box(560, 340, 330, 74, 'rgba(140,200,200,.2)', '#9fe0dd', 'الحامض اللبني', 'لا يتحرر CO₂')}`)}
+        ${part('atp', mL.markup + mR.markup)}
+        <g id="co2Layer"></g>
+        <g id="atpPool"></g>
+        <text class="cap sm" x="500" y="604" text-anchor="middle" opacity=".85">كلاهما يحدث في السايتوبلازم بغياب الاوكسجين أو نقصه، وكلاهما ينتج طاقة قليلة مقدارها 2ATP</text>`;
+      cycle = 13;
+      coins = [
+        { to: mL.slots[0], from: [355, 396], at: 3.2 },
+        { to: mL.slots[1], from: [355, 396], at: 4.0 },
+        { to: mR.slots[0], from: [725, 396], at: 3.6 },
+        { to: mR.slots[1], from: [725, 396], at: 4.4 }
+      ];
+      parts = [
+        { id: 'metabolism',   anchor: [150, 120], label: [142, 470], side: 'L' },
+        { id: 'fermentation', anchor: [355, 261], label: [142, 268], side: 'L' },
+        { id: 'glycolysis',   anchor: [500, 125], label: [858, 150], side: 'R' },
+        { id: 'atp',          anchor: [mR.x + mR.w / 2, mR.y + mR.h - 14], label: [858, 520], side: 'R' }
+      ];
     }
 
-    const paths = pathSel === 'glyco'
-      ? [[[500, 126], [500, 300], [500, 420], [365, 500], [365, 560]],
-         [[500, 126], [500, 300], [500, 420], [635, 500], [635, 560]]]
-      : pathSel === 'aerobic'
-      ? [[[160, 335], [420, 335], [600, 335], [680, 250], [760, 350], [680, 450], [600, 350]]]
-      : [[[500, 132], [355, 270], [355, 396]], [[500, 132], [725, 270], [725, 396]]];
-
     return {
-      body, stream: null,
-      flows: [flow({ paths, speed: 90, every: 1.1, max: 5, r: 5, fill: '#ffe066' })],
-      parts: pathSel === 'glyco' ? [
-        { id: 'glycolysis', anchor: [372, 301], label: [142, 210], side: 'L' },
-        { id: 'atp',        anchor: [838, 280], label: [858, 132], side: 'R' },
-        { id: 'metabolism', anchor: [150, 120], label: [142, 232], side: 'L' }
-      ] : pathSel === 'aerobic' ? [
-        { id: 'metabolism', anchor: [150, 120], label: [142, 240], side: 'L' },
-        { id: 'krebs',      anchor: [680, 350], label: [858, 150], side: 'R' },
-        { id: 'glycolysis', anchor: [160, 340], label: [142, 170], side: 'L' },
-        { id: 'atp',        anchor: [680, 596], label: [142, 560], side: 'L' }
-      ] : [
-        { id: 'metabolism',   anchor: [150, 120], label: [142, 470], side: 'L' },
-        { id: 'fermentation', anchor: [355, 272], label: [142, 268], side: 'L' },
-        { id: 'glycolysis',   anchor: [500, 128], label: [858, 150], side: 'R' },
-        { id: 'atp',          anchor: [700, 512], label: [858, 600], side: 'R' }
-      ],
+      body, stream: null, flows,
+      parts,
       tools: [
         { id: 'glyco',   label: 'التحلل السكري', radio: 'path', on: pathSel === 'glyco' },
         { id: 'aerobic', label: 'التنفس الهوائي', radio: 'path', on: pathSel === 'aerobic' },
@@ -3475,7 +3517,51 @@ SCENES.metabolism = {
         { id: 'tbl:ferment', label: 'اللبني × الكحولي' }
       ],
       rebuildOnRadio: 'path',
-      tick(){}
+      state: { t: 0, built: false },
+      init(api){
+        const co2 = api.el('#co2Layer');
+        if (co2) co2.innerHTML = [0, 1, 2].map(i => `
+          <g class="co2B" data-i="${i}" opacity="0">
+            <circle r="15" fill="rgba(180,220,235,.18)" stroke="#a9dcf2" stroke-width="1.8"/>
+            <text y="4" text-anchor="middle" font-size="11" fill="#dff2fb" style="direction:ltr">CO₂</text>
+          </g>`).join('');
+        const host = api.el('#atpPool');
+        if (!host) return;
+        host.innerHTML = coins.map((c, i) => `
+          <g class="atpC" data-i="${i}" opacity="0">
+            <circle r="${c.used ? 14 : 15}" fill="url(#${c.used ? 'gAtpUsed' : 'gAtp'})"
+                    stroke="${c.used ? '#d8d0c4' : '#fff0c2'}" stroke-width="2"/>
+            <text y="4" text-anchor="middle" font-size="11" font-weight="700"
+                  fill="${c.used ? '#24211d' : '#3a2410'}" style="direction:ltr">ATP</text>
+            <text class="atpSign" y="-20" text-anchor="middle" font-size="15" font-weight="700"
+                  fill="${c.used ? '#d4483c' : '#8fe07a'}" opacity="0">${c.used ? '−' : '+'}</text>
+          </g>`).join('');
+        this.state.t = 0;
+      },
+      tick(dt, t, api){
+        const S = this.state;
+        S.t = (S.t + dt) % cycle;
+        api.all('.co2B').forEach((el, i) => {
+          const k = ((S.t + i * 1.4) % 4.2) / 4.2;
+          el.setAttribute('transform', `translate(${n2(300 + Math.sin(k * 7) * 12)},${n2(392 - k * 96)})`);
+          el.setAttribute('opacity', String(Math.sin(k * Math.PI) * 0.9));
+        });
+        const els = api.all('.atpC');
+        els.forEach((el, i) => {
+          const c = coins[i];
+          const k = (S.t - c.at) / 1.15;
+          if (k < 0){ el.setAttribute('opacity', '0'); return; }
+          const p = Math.min(1, k), e = p < 1 ? (1 - Math.pow(1 - p, 3)) : 1;
+          const mx = (c.from[0] + c.to[0]) / 2, my = Math.min(c.from[1], c.to[1]) - 70;
+          const x = (1 - e) * (1 - e) * c.from[0] + 2 * (1 - e) * e * mx + e * e * c.to[0];
+          const y = (1 - e) * (1 - e) * c.from[1] + 2 * (1 - e) * e * my + e * e * c.to[1];
+          el.setAttribute('transform', `translate(${n2(x)},${n2(y)}) scale(${n2(0.5 + 0.5 * Math.min(1, k * 2.5))})`);
+          el.setAttribute('opacity', String(Math.min(1, k * 3)));
+          const sg = el.querySelector('.atpSign');
+          if (sg) sg.setAttribute('opacity', String(p < 1 ? 1 : Math.max(0, 1 - (k - 1) * 2)));
+        });
+      },
+      onReset(){ this.state.t = 0; }
     };
   }
 };
