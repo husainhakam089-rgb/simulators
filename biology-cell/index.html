@@ -1992,7 +1992,7 @@ SCENES.pro = {
   title: 'الخلية بدائية النواة',
   src: 'رسم وزاري · ملزمة ص5',
   tint: ['rgba(120,110,60,.26)', 'rgba(80,110,80,.16)'],
-  hint: 'الخلية البكتيرية كما في رسم الملزمة الوزاري: محفظة وجدار خلية وغشاء بلازمي وسايتوبلازم فيه منطقة نووية، مع اللواحق — شعيرات أو أهداب وهلب جنسي وسوط. لا يوجد غلاف نووي ولا نوية ولا عضيات غشائية.',
+  hint: 'الخلية البكتيرية كما في رسم الملزمة الوزاري. اللواحق (الأسواط والأهداب) هي أعضاء الحركة — اضغط «تجربة الحركة» لتشاهد الخلية تسبح بضربات الأهداب وخفق السوط.',
   build(){
     const BX = 470, BY = 350, BW = 210, BH = 400;
     const capsule = (x0, y0, x1, y1, r) =>
@@ -2002,7 +2002,6 @@ SCENES.pro = {
     const cPm = capsule(BX - BW / 2 + 22, BY - BH / 2 + 22, BX + BW / 2 - 22, BY + BH / 2 - 22, BW / 2 - 22);
     const cIn = capsule(BX - BW / 2 + 28, BY - BH / 2 + 28, BX + BW / 2 - 28, BY + BH / 2 - 28, BW / 2 - 28);
 
-    /* المنطقة النووية: مادة نووية بلا غلاف نووي */
     const rr = rng(91), dna = [];
     for (let i = 0; i < 20; i++){
       const a = i / 20 * 6.283;
@@ -2013,72 +2012,180 @@ SCENES.pro = {
       const a = rr() * 6.283, d = Math.sqrt(rr());
       ribo.push([BX + Math.cos(a) * d * (BW / 2 - 40), BY + 60 + Math.sin(a) * d * (BH / 2 - 130)]);
     }
-    /* الشعيرات أو الأهداب: زوائد قصيرة كثيرة حول الخلية */
-    /* الشعيرات أو الأهداب: زوائد قصيرة تحيط بالخلية من كل الجهات */
+
+    /* الشعيرات أو الأهداب: موزّعة على 10 قطاعات تضرب بموجة متتابعة */
     let hairPt = [BX - 118, BY + 40];
-    const hairs = [];
+    const SECT = 10, sect = Array.from({ length: SECT }, () => []);
     const RXb = BW / 2, RYb = BH / 2, pw = 0.42;
-    for (let i = 0; i < 96; i++){
-      const a = i / 96 * 6.283, cs = Math.cos(a), sn = Math.sin(a);
+    for (let i = 0; i < 90; i++){
+      const a = i / 90 * 6.283, cs = Math.cos(a), sn = Math.sin(a);
       const px = BX + Math.sign(cs) * Math.pow(Math.abs(cs), pw) * RXb;
       const py = BY + Math.sign(sn) * Math.pow(Math.abs(sn), pw) * RYb;
       let nx = (px - BX) / (RXb * RXb), ny = (py - BY) / (RYb * RYb);
       const nl = Math.hypot(nx, ny) || 1; nx /= nl; ny /= nl;
-      const L = 10 + rr() * 9;
-      if (i === 48) hairPt = [px + nx * L * 0.6, py + ny * L * 0.6];
-      hairs.push(`<line x1="${n2(px)}" y1="${n2(py)}" x2="${n2(px + nx * L)}" y2="${n2(py + ny * L)}"
-        stroke="#e6d6a4" stroke-width="1.6" opacity=".72" stroke-linecap="round"/>`);
+      const L = 11 + rr() * 9;
+      if (i === 45) hairPt = [px + nx * L * 0.6, py + ny * L * 0.6];
+      sect[Math.floor(i / 9) % SECT].push(
+        `<line x1="${n2(px)}" y1="${n2(py)}" x2="${n2(px + nx * L)}" y2="${n2(py + ny * L)}"
+           stroke="#e6d6a4" stroke-width="1.6" opacity=".72" stroke-linecap="round"/>`);
     }
-    const flag = [];
-    for (let i = 0; i <= 30; i++){
-      const t = i / 30;
-      flag.push([BX + 14 + Math.sin(t * 7) * 44 * t, BY + BH / 2 - 4 + t * 104]);
-    }
+    const hairs = sect.map((g, i) =>
+      `<g class="ciliaS" data-i="${i}">${g.join('')}</g>`).join('');
+
+    /* السوط: موجة تنتقل على طوله */
+    const flagPath = ph => {
+      const p = [];
+      for (let i = 0; i <= 30; i++){
+        const t = i / 30;
+        p.push([BX + 14 + Math.sin(t * 7 - ph) * 44 * t, BY + BH / 2 - 4 + t * 104]);
+      }
+      return smoothOpen(p);
+    };
+    const flagStart = flagPath(0);
+    const flagAnchor = [484, 600];
     const pili = [[BX - BW / 2 + 6, BY - 110, -1], [BX + BW / 2 - 6, BY + 40, 1]];
 
     const body = `
-      ${part('flagel', `
-        <path d="${smoothOpen(flag)}" fill="none" stroke="#d8c68e" stroke-width="5" stroke-linecap="round"/>
-        <path d="${smoothOpen(flag)}" fill="none" stroke="#fff3cf" stroke-width="1.8" stroke-linecap="round" opacity=".55"/>`)}
-      ${part('cilia', `<g>${hairs.join('')}</g>`)}
-      ${part('pilus', pili.map(([x, y, s]) =>
-        `<g><line x1="${x}" y1="${y}" x2="${n2(x + s * 86)}" y2="${n2(y - 26)}" stroke="#f0dcae" stroke-width="3.4" stroke-linecap="round"/>
-         <circle cx="${n2(x + s * 86)}" cy="${n2(y - 26)}" r="4.4" fill="#f0dcae"/></g>`).join(''))}
-      ${part('capsule', `
-        <path d="${cOut}" fill="rgba(226,205,150,.2)" stroke="#e8d9a8" stroke-width="2.2" stroke-dasharray="8 5"/>`)}
-      ${part('bwall', `<path d="${cWall}" fill="url(#gBact)" stroke="#f0e0ac" stroke-width="2" filter="url(#fSoft)"/>`)}
-      ${part('bpm', `<path d="${cPm}" fill="none" stroke="#ffe6b4" stroke-width="4"/>`)}
-      ${part('cyto', `
-        <path d="${cIn}" fill="url(#gBactCyto)"/>
-        <path d="${cIn}" fill="#bfe6c0" opacity=".05" filter="url(#fGrain)"/>`)}
-      ${part('nucleoid', `
-        <path d="${smoothClosed(dna)}" fill="rgba(143,119,224,.16)" stroke="#8f77e0" stroke-width="8" opacity=".38"/>
-        <path d="${smoothClosed(dna)}" fill="none" stroke="#e2d0ff" stroke-width="3.4"/>`)}
-      ${part('ribo', ribo.map(p =>
-        `<circle cx="${n2(p[0])}" cy="${n2(p[1])}" r="3.2" fill="#22304a" stroke="#accbe8" stroke-width=".9"/>`).join(''))}
+      <g id="medium"></g>
+      <g id="bactAll">
+        ${part('flagel', `
+          <rect x="424" y="538" width="120" height="124" fill="rgba(0,0,0,0)"/>
+          <path id="flagA" d="${flagStart}" fill="none" stroke="#d8c68e" stroke-width="5" stroke-linecap="round"/>
+          <path id="flagB" d="${flagStart}" fill="none" stroke="#fff3cf" stroke-width="1.8" stroke-linecap="round" opacity=".55"/>`)}
+        ${part('cilia', `<circle cx="${n2(hairPt[0])}" cy="${n2(hairPt[1])}" r="17" fill="rgba(0,0,0,0)"/>
+          <g id="ciliaAll">${hairs}</g>`)}
+        ${part('pilus', pili.map(([x, y, sg]) =>
+          `<g><line x1="${x}" y1="${y}" x2="${n2(x + sg * 86)}" y2="${n2(y - 26)}" stroke="#f0dcae" stroke-width="3.4" stroke-linecap="round"/>
+           <circle cx="${n2(x + sg * 86)}" cy="${n2(y - 26)}" r="4.4" fill="#f0dcae"/></g>`).join(''))}
+        ${part('capsule', `
+          <path d="${cOut}" fill="rgba(226,205,150,.2)" stroke="#e8d9a8" stroke-width="2.2" stroke-dasharray="8 5"/>`)}
+        ${part('bwall', `<path d="${cWall}" fill="url(#gBact)" stroke="#f0e0ac" stroke-width="2" filter="url(#fSoft)"/>`)}
+        ${part('bpm', `<path d="${cPm}" fill="none" stroke="#ffe6b4" stroke-width="4"/>`)}
+        ${part('cyto', `
+          <path d="${cIn}" fill="url(#gBactCyto)"/>
+          <path d="${cIn}" fill="#bfe6c0" opacity=".05" filter="url(#fGrain)"/>`)}
+        ${part('nucleoid', `
+          <path d="${smoothClosed(dna)}" fill="rgba(143,119,224,.16)" stroke="#8f77e0" stroke-width="8" opacity=".38"/>
+          <path d="${smoothClosed(dna)}" fill="none" stroke="#e2d0ff" stroke-width="3.4"/>`)}
+        ${part('ribo', ribo.map(p =>
+          `<circle cx="${n2(p[0])}" cy="${n2(p[1])}" r="3.2" fill="#22304a" stroke="#accbe8" stroke-width=".9"/>`).join(''))}
+      </g>
+      <g id="swimCapG" opacity="0" pointer-events="none">
+        <rect x="650" y="188" width="336" height="158" rx="12" fill="rgba(14,12,10,.76)" stroke="rgba(230,200,140,.28)"/>
+        <text class="cap sm" x="818" y="222" text-anchor="middle">تجربة الحركة: اللواحق أعضاء الحركة</text>
+        <text class="cap sm" x="818" y="252" text-anchor="middle" opacity=".82">السوط يدفع الخلية للأمام</text>
+        <text class="cap sm" x="818" y="282" text-anchor="middle" opacity=".82">والأهداب تضرب بموجة متتابعة</text>
+        <text id="swimCap2" class="cap sm" x="818" y="322" text-anchor="middle"></text>
+      </g>
     `;
 
     return {
       body,
       stream: { cx: BX, cy: BY, rx: BW * 0.36, ry: BH * 0.42, count: 22 },
       flows: [],
-      /* التأشيرات نفسها الموجودة على رسم الملزمة ص5 */
       parts: [
         { id: 'cyto',     anchor: [BX + 46, BY + 150],  label: [858, 130], side: 'R', short: 'سايتوبلازم' },
-        { id: 'nucleoid', anchor: [BX + 40, BY - 70],  label: [858, 226], side: 'R' },
+        { id: 'nucleoid', anchor: [BX + 40, BY - 70],   label: [858, 226], side: 'R' },
         { id: 'bpm',      anchor: [BX + BW / 2 - 22, BY + 10],  label: [858, 322], side: 'R' },
-        { id: 'bwall',    anchor: [BX + BW / 2 - 12, BY + 60], label: [858, 418], side: 'R' },
-        { id: 'capsule',  anchor: [BX + BW / 2, BY + 110], label: [858, 514], side: 'R' },
+        { id: 'bwall',    anchor: [BX + BW / 2 - 12, BY + 60],  label: [858, 418], side: 'R' },
+        { id: 'capsule',  anchor: [BX + BW / 2, BY + 110],      label: [858, 514], side: 'R' },
         { id: 'pilus',    anchor: [BX - BW / 2 + 6 - 86, BY - 136], label: [142, 150], side: 'L' },
         { id: 'cilia',    anchor: hairPt, label: [142, 300], side: 'L' },
-        { id: 'flagel',   anchor: flag[16], label: [142, 470], side: 'L' },
+        { id: 'flagel',   anchor: flagAnchor, label: [142, 470], side: 'L' },
         { id: 'ribo',     anchor: [ribo[0][0], ribo[0][1]], label: [142, 600], side: 'L', short: 'رايبوسومات' }
       ],
       tools: [
+        { id: 'swim', label: 'تجربة الحركة بالسوط والأهداب', toggle: true },
         { id: 'tbl:proEu', label: 'جدول الفروقات (ص6)' },
         { id: 'tbl:organelles', label: 'جدول العضيات (ص71)' }
       ],
-      tick(){}
+      state: { t: 0, swimT: 0, px: 0, py: 0, rot: 0, zoom: 1 },
+      init(api){
+        this.state = { t: 0, swimT: 0, px: 0, py: 0, rot: 0, zoom: 1 };
+        const med = api.el('#medium');
+        if (med){
+          const r2 = rng(303);
+          med.innerHTML = Array.from({ length: 22 }, () => {
+            const x = 60 + r2() * 880, y = r2() * 700, s = 1.6 + r2() * 2.6;
+            return `<circle class="medP" cx="${n2(x)}" cy="${n2(y)}" r="${n2(s)}"
+                      fill="#bfe6f5" opacity="${n2(0.12 + r2() * 0.2)}"/>`;
+          }).join('');
+        }
+      },
+      tick(dt, t, api){
+        const S = this.state;
+        S.t += dt;
+        const swim = api.tool('swim');
+
+        /* خفق السوط: موجة تنتقل من قاعدته إلى نهايته */
+        const ph = S.t * (swim ? 9 : 5.2);
+        const d = flagPath(ph);
+        const fa = api.el('#flagA'), fb = api.el('#flagB');
+        if (fa) fa.setAttribute('d', d);
+        if (fb) fb.setAttribute('d', d);
+
+        /* ضربات الأهداب: موجة متتابعة حول الخلية */
+        const amp = swim ? 5.5 : 2.6, sp = swim ? 7 : 3.4;
+        api.all('.ciliaS').forEach((g, i) => {
+          const a = Math.sin(S.t * sp - i * 0.62) * amp;
+          g.setAttribute('transform', `rotate(${n2(a)} ${BX} ${BY})`);
+        });
+
+        /* السباحة: «جري وتقلّب» — الخلية تتقدّم بدفع السوط ثم تغيّر اتجاهها */
+        const bact = api.el('#bactAll'), capG = api.el('#swimCapG'), cap2 = api.el('#swimCap2');
+        api.hideLabels(swim);
+        const fxc = document.getElementById('fx');
+        if (fxc) fxc.style.opacity = swim ? '0' : '1';
+
+        let tx = 0, ty = 0, trot = 0, tz = 1, dir = 0, tumbling = false;
+        if (swim){
+          S.swimT += dt;
+          const RUN = 5.6, TUM = 1.9, u = S.swimT % (RUN * 2 + TUM * 2);
+          if (u < RUN){                                   /* جري للأمام (للأعلى) */
+            trot = 0; ty = 86 - (u / RUN) * 142; dir = -1;
+          } else if (u < RUN + TUM){                      /* تقلّب: تغيير الاتجاه */
+            trot = ((u - RUN) / TUM) * 180; ty = -56; tumbling = true;
+          } else if (u < RUN * 2 + TUM){                  /* جري بالاتجاه المعاكس */
+            trot = 180; ty = -56 + ((u - RUN - TUM) / RUN) * 142; dir = 1;
+          } else {                                        /* تقلّب ثانٍ ليكتمل الدوران */
+            trot = 180 + ((u - RUN * 2 - TUM) / TUM) * 180; ty = 86; tumbling = true;
+          }
+          tx = Math.sin(S.swimT * 2.1) * (tumbling ? 5 : 26);
+          trot += Math.cos(S.swimT * 2.1) * (tumbling ? 13 : 5);
+          tz = 0.55;
+        } else if (S.swimT){
+          /* رجوع سلس إلى الوضع الأصلي عند إطفاء التجربة */
+          S.swimT = 0;
+          let r = S.rot % 360; if (r > 180) r -= 360; if (r < -180) r += 360;
+          S.rot = r;
+        }
+
+        const L = Math.min(1, dt * 3.4);
+        S.px += (tx - S.px) * L; S.py += (ty - S.py) * L;
+        S.rot += (trot - S.rot) * L; S.zoom += (tz - S.zoom) * L;
+        if (bact) bact.setAttribute('transform',
+          `translate(${n2(S.px)},${n2(S.py)}) rotate(${n2(S.rot)} ${BX} ${BY}) ` +
+          `translate(${BX},${BY}) scale(${n2(S.zoom)}) translate(${-BX},${-BY})`);
+
+        /* الوسط يمرّ بعكس اتجاه الحركة فيظهر تقدّم الخلية */
+        api.all('.medP').forEach((p, i) => {
+          if (dir){
+            let cy = parseFloat(p.getAttribute('cy')) - dir * dt * (58 + (i % 5) * 12);
+            if (cy > 706) cy -= 712;
+            if (cy < -6) cy += 712;
+            p.setAttribute('cy', n2(cy));
+          }
+          p.setAttribute('opacity', swim ? '0.3' : '0.14');
+        });
+
+        if (capG){
+          capG.setAttribute('opacity', swim ? '1' : '0');
+          if (swim && cap2) cap2.textContent = tumbling
+            ? '↻ تقلّب: تغيّر الخلية اتجاهها'
+            : '← جري: الجسيم الحركي يدير السوط';
+        }
+      },
+      onReset(){ const S = this.state; S.swimT = 0; S.px = S.py = S.rot = 0; S.zoom = 1; }
     };
   }
 };
@@ -3635,7 +3742,12 @@ const api = {
     const sp = $('#phaseSrc');
     if (sp) sp.textContent = (cur && SCENES[curKey] && SCENES[curKey].src) ? SCENES[curKey].src : '';
   },
-  flowEnabled(owner, on){ flows.forEach(f => { if (f.owner === owner) f.off = !on; }); }
+  flowEnabled(owner, on){ flows.forEach(f => { if (f.owner === owner) f.off = !on; }); },
+  /* إخفاء مؤقت للأسماء (مثلاً أثناء تجربة الحركة) دون تغيير اختيار المستخدم */
+  hideLabels(v){
+    const l = svgHost.querySelector('#labelLayer');
+    if (l) l.classList.toggle('off', !!v || !$('#lblTgl').checked);
+  }
 };
 
 /* ───────────── طبقة الأسماء والتأشيرات ───────────── */
