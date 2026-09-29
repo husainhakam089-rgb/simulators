@@ -547,17 +547,157 @@
     .btn3d{padding:12px 20px;font-size:13.5px}
     .welTag{font-size:11px}
     #bar .ctl > label{display:none}
-    #tblBtn span{display:none}
+    #tblBtn span,#themeBtn span,#fsBtn span{display:none}
     .tgl > span{display:none}
     .tgl{padding:6px 10px;gap:7px}
     #spd{width:62px}
     .tab{padding:8px 12px;font-size:12px}
     #playBtn{min-width:86px;padding:9px 10px}
   }
+  /* موبايل بالعرض: الرسم كبير أصلاً فلا نكبّر الأسماء حتى لا تتراكب */
+  @media (orientation:landscape) and (max-height:520px){
+    .lbl{font-size:19px;stroke-width:4px}
+    .lbl.sm{font-size:16px}
+    .cap{font-size:18px;stroke-width:3.6px}
+    .cap.sm{font-size:15px}
+    .lead{stroke-width:1.4}
+    .lblDot{r:4.2}
+    .slotTxt{font-size:13px}
+  }
   @media (prefers-reduced-motion:reduce){
     *{animation-duration:.001ms!important;transition-duration:.001ms!important}
     #stage::before{animation:none}
   }
+
+  /* ═══════════ ملء الشاشة: الرسم وحده ═══════════ */
+  #fsExit{display:none;position:fixed;top:calc(10px + env(safe-area-inset-top));left:10px;z-index:40;
+    width:40px;height:40px;border-radius:12px;color:var(--bone);
+    background:linear-gradient(180deg,rgba(40,33,46,.92),rgba(18,15,22,.92));
+    border:1px solid var(--line);box-shadow:0 6px 18px rgba(0,0,0,.45)}
+  #fsExit .ic{width:18px;height:18px}
+  body.fs #top,body.fs #bar{display:none}
+  body.fs #fsExit{display:inline-flex}
+  body.fs #sceneHead{left:62px}
+  /* لوحة المعلومات تطفو فوق الرسم ولا تظهر إلا عند اختيار جزء */
+  body.fs #wrap{position:relative}
+  body.fs #info{position:absolute;top:10px;right:10px;bottom:10px;z-index:30;
+    width:min(340px,86vw);max-height:none;border-radius:14px;
+    box-shadow:0 18px 44px rgba(0,0,0,.5)}
+  body.fs #info.closed{display:none}
+  /* تنبيه لف الموبايل: يظهر بملء الشاشة على الشاشات العمودية الضيقة فقط */
+  #rotHint{display:none;position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));
+    transform:translateX(-50%);z-index:40;padding:9px 16px;border-radius:999px;font-size:12.5px;
+    color:#221607;font-weight:700;white-space:nowrap;pointer-events:none;
+    background:linear-gradient(180deg,#ffe2a6,#e0ae4c);box-shadow:0 8px 22px rgba(0,0,0,.35);
+    animation:rotFade 5s ease forwards}
+  @keyframes rotFade{0%,75%{opacity:1}100%{opacity:0}}
+  @media (orientation:portrait) and (max-width:700px){ body.fs #rotHint{display:block} }
+
+  /* ═══════════ الوضع النهاري ═══════════ */
+  html[data-theme=day]{
+    --ash:#eef0f3;--ash2:#e5e8ed;--smoke:#dde2e8;--bone:#1e2530;
+    --ember:#d0561b;--ember2:#c96a12;--gold:#a8781c;--gold2:#7c5712;
+    --steel:#5a6574;--line:rgba(130,100,40,.26);--glass:rgba(255,255,255,.86)}
+  html[data-theme=day] ::selection{background:rgba(208,86,27,.22)}
+  html[data-theme=day] .panel{
+    background:linear-gradient(165deg,rgba(255,255,255,.95),rgba(244,246,249,.92));
+    box-shadow:0 12px 30px rgba(30,40,60,.16), inset 0 1px 0 #fff}
+  html[data-theme=day] #top{background:linear-gradient(180deg,#ffffff,#f2f4f7);
+    box-shadow:0 6px 20px rgba(30,40,60,.10)}
+  html[data-theme=day] #titleRow h1{background:linear-gradient(180deg,#b3822a,#6e4c0e);
+    -webkit-background-clip:text;background-clip:text;text-shadow:none}
+  html[data-theme=day] #titleRow .src{background:linear-gradient(180deg,#fff7e6,#f7ecd4);
+    box-shadow:0 3px 10px rgba(120,90,30,.14), inset 0 1px 0 #fff}
+  html[data-theme=day] #titleRow .src b{text-shadow:0 1px 0 #fff}
+  html[data-theme=day] #tabsWrap::before{background:linear-gradient(270deg,#f5f6f8,transparent)}
+  html[data-theme=day] #tabsWrap::after{background:linear-gradient(90deg,#f5f6f8,transparent)}
+  html[data-theme=day] .tab{color:#4a5563;background:linear-gradient(180deg,#ffffff,#eef1f5);
+    border-color:rgba(40,50,70,.14);box-shadow:0 2px 6px rgba(30,40,60,.08)}
+  html[data-theme=day] .tab:hover{color:#1e2530}
+  html[data-theme=day] .tab.on{color:#221607;border-color:rgba(160,110,20,.4);
+    background:linear-gradient(180deg,#ffe2a6,#e0ae4c 55%,#c2902f);
+    box-shadow:0 6px 16px rgba(190,140,40,.34), inset 0 1px 0 rgba(255,255,255,.62)}
+  html[data-theme=day] .btn.ghost:hover{color:#111820}
+
+  html[data-theme=day] #stage{background:
+      radial-gradient(1000px 620px at 50% 42%, var(--tint1,rgba(70,120,104,.30)), transparent 68%),
+      radial-gradient(700px 500px at 82% 88%, var(--tint2,rgba(60,90,130,.18)), transparent 70%),
+      linear-gradient(180deg,#f7f8fa,#e9edf1)}
+  html[data-theme=day] #stage::before{opacity:.5}
+  html[data-theme=day] #stage::after{background:radial-gradient(120% 100% at 50% 45%, transparent 60%, rgba(40,50,70,.12) 100%)}
+  html[data-theme=day] #sceneName{background:rgba(255,255,255,.86)}
+  html[data-theme=day] #sceneHint{color:#3b4452;background:rgba(255,255,255,.82);border-color:rgba(40,50,70,.1)}
+
+  html[data-theme=day] .btn,html[data-theme=day] .stool{color:#2c3542;
+    background:linear-gradient(180deg,#ffffff 0%,#f1f3f6 60%,#e6eaef 100%);
+    border-color:rgba(40,50,70,.16);
+    box-shadow:0 3px 9px rgba(30,40,60,.12), 0 1px 0 #fff inset, 0 -6px 12px rgba(30,40,60,.05) inset}
+  html[data-theme=day] .btn:hover,html[data-theme=day] .stool:hover{color:#111820;border-color:rgba(168,120,28,.6)}
+  html[data-theme=day] .btn::after,html[data-theme=day] .stool::after{background:linear-gradient(90deg,transparent,#fff,transparent)}
+  html[data-theme=day] .btn.ghost{color:#3f4a58;background:linear-gradient(180deg,#ffffff,#f0f2f5)}
+  html[data-theme=day] .btn.primary{color:#2a1503;
+    background:linear-gradient(180deg,#ffc978 0%,var(--ember) 55%,#b34a12 100%)}
+  html[data-theme=day] .stool.on,html[data-theme=day] .segbar .stool.on{color:#221607;
+    background:linear-gradient(180deg,#ffe2a6 0%,#e0ae4c 52%,#bd8b2c 100%)}
+  html[data-theme=day] .segbar,html[data-theme=day] #sceneTools .grp{
+    background:rgba(255,255,255,.82);border-color:rgba(40,50,70,.12);
+    box-shadow:0 8px 22px rgba(30,40,60,.12)}
+  html[data-theme=day] .segbar .stool{background:transparent;box-shadow:none;color:#4a5563}
+  html[data-theme=day] .iconBtn,html[data-theme=day] #infoClose,html[data-theme=day] #sheetClose{
+    color:#4a5563;background:#fff;border-color:rgba(40,50,70,.16)}
+  html[data-theme=day] #fsExit{color:#2c3542;background:linear-gradient(180deg,#ffffff,#eef1f5)}
+  html[data-theme=day] .sliderWrap{background:rgba(255,255,255,.9);border-color:rgba(40,50,70,.12)}
+
+  html[data-theme=day] #phaseBar .pdesc{color:#3b4452}
+  html[data-theme=day] #info{background:linear-gradient(180deg,#ffffff,#f3f5f8);border-color:rgba(40,50,70,.12)}
+  html[data-theme=day] .fld{background:#f6f7f9;border-color:rgba(40,50,70,.08)}
+  html[data-theme=day] .fld p{color:#28303b}
+  html[data-theme=day] .fld.note{background:linear-gradient(180deg,#fff3e8,#fdeee0)}
+  html[data-theme=day] .fld.note p{color:#7a3a0c}
+  html[data-theme=day] #infoEmpty .hintCard{background:#fbf6ea;color:#4a4436;border-color:rgba(168,120,28,.4)}
+  html[data-theme=day] .slot:not(.done):not(.hot){stroke:rgba(168,120,28,.75);fill:rgba(255,255,255,.9)}
+  html[data-theme=day] #phaseBar .pchrom,html[data-theme=day] #phaseBar .psrc{color:#4a5563}
+  html[data-theme=day] #seeFn:disabled{background:#eef0f3;color:#8a94a2}
+
+  html[data-theme=day] #bar{background:linear-gradient(0deg,#ffffff,#f3f5f8);
+    box-shadow:0 -6px 18px rgba(30,40,60,.08)}
+  html[data-theme=day] #bar .ctl{background:#f5f6f8;border-color:rgba(40,50,70,.12)}
+  html[data-theme=day] .tgl{background:linear-gradient(180deg,#ffffff,#f0f2f5);border-color:rgba(40,50,70,.14);color:#4a5563}
+  html[data-theme=day] .tgl:has(input:checked){color:#1e2530;border-color:rgba(208,86,27,.4);
+    background:linear-gradient(180deg,#fff5ec,#fde9d8)}
+  html[data-theme=day] .tgl input:not(:checked){background:linear-gradient(180deg,#d3d8df,#e9ecf0);
+    border-color:rgba(40,50,70,.18);box-shadow:inset 0 2px 4px rgba(30,40,60,.25)}
+  html[data-theme=day] input[type=range]::-webkit-slider-runnable-track{
+    background:linear-gradient(90deg,#ff9a4d 0%,var(--ember) var(--p),#d6dbe2 var(--p));
+    box-shadow:inset 0 1px 3px rgba(30,40,60,.3)}
+  html[data-theme=day] input[type=range]::-moz-range-track{background:#d8dde4}
+
+  html[data-theme=day] #sheetHead{background:linear-gradient(180deg,rgba(208,86,27,.08),transparent)}
+  html[data-theme=day] th,html[data-theme=day] td{border-bottom-color:rgba(40,50,70,.1)}
+  html[data-theme=day] td{color:#28303b}
+  html[data-theme=day] th{background:linear-gradient(180deg,#fdf0e2,#f8e9d8)}
+  html[data-theme=day] tbody tr:nth-child(odd){background:rgba(40,50,70,.03)}
+
+  /* أسماء الرسوم: حبر غامق بهالة بيضاء */
+  html[data-theme=day] .lbl{fill:#18202b;stroke:rgba(255,255,255,.92)}
+  html[data-theme=day] .lead{stroke:rgba(30,40,55,.55)}
+  html[data-theme=day] .lblDot{fill:#c96a12}
+  html[data-theme=day] .cap{fill:#6e4c0e;stroke:rgba(255,255,255,.9)}
+
+  html[data-theme=day] #exam{background:
+      radial-gradient(900px 560px at 50% 36%, rgba(70,120,104,.16), transparent 66%),
+      linear-gradient(180deg,#f7f8fa,#e9edf1)}
+  html[data-theme=day] #examTop{background:linear-gradient(180deg,#ffffff,transparent)}
+  html[data-theme=day] .seg,html[data-theme=day] #score{background:#fff;border-color:rgba(40,50,70,.12)}
+  html[data-theme=day] #tray{background:linear-gradient(0deg,#ffffff,rgba(255,255,255,.8))}
+  html[data-theme=day] .chip{color:#1e2530;background:linear-gradient(180deg,#ffffff,#eef1f5);
+    border-color:rgba(40,50,70,.16);box-shadow:0 3px 9px rgba(30,40,60,.12)}
+  html[data-theme=day] .chip.done{color:#1f7a45;background:linear-gradient(180deg,#e3f6ea,#d3efdd)}
+  html[data-theme=day] .slotTxt{fill:#1f7a45}
+  html[data-theme=day] .opt{color:#1e2530;background:linear-gradient(180deg,#ffffff,#f3f5f8);
+    border-color:rgba(40,50,70,.12);box-shadow:0 3px 9px rgba(30,40,60,.08)}
+  html[data-theme=day] .opt.good{color:#1f6b3e}
+  html[data-theme=day] .opt.bad{color:#9a2a20}
 </style>
 </head>
 <body>
@@ -582,6 +722,9 @@
   <symbol id="ic-check" viewBox="0 0 24 24"><path d="M4.5 12.5l5 5 10-11"/></symbol>
   <symbol id="ic-list" viewBox="0 0 24 24"><path d="M4 6.5h16M4 12h16M4 17.5h10"/></symbol>
   <symbol id="ic-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3"/></symbol>
+  <symbol id="ic-moon" viewBox="0 0 24 24"><path d="M20.5 14.8A8.6 8.6 0 0 1 9.2 3.5a8.6 8.6 0 1 0 11.3 11.3z"/></symbol>
+  <symbol id="ic-expand" viewBox="0 0 24 24"><path d="M9 3.5H3.5V9M15 3.5h5.5V9M9 20.5H3.5V15M15 20.5h5.5V15"/></symbol>
+  <symbol id="ic-shrink" viewBox="0 0 24 24"><path d="M3.5 9H9V3.5M20.5 9H15V3.5M3.5 15H9v5.5M20.5 15H15v5.5"/></symbol>
   <symbol id="ic-layers" viewBox="0 0 24 24"><path d="M12 3.5 21 8l-9 4.5L3 8z"/><path d="M3 12.5 12 17l9-4.5M3 16.5 12 21l9-4.5"/></symbol>
 </svg>
 
@@ -612,6 +755,9 @@
   </div>
   <div id="tabsWrap"><nav id="tabs"></nav></div>
 </header>
+
+<button id="fsExit" class="iconBtn" title="خروج من ملء الشاشة"><svg class="ic"><use href="#ic-shrink"/></svg></button>
+<div id="rotHint">لفّ الموبايل بالعرض حتى يكبر الرسم ⟲</div>
 
 <main id="wrap">
   <section id="stage">
@@ -704,6 +850,8 @@
   <label class="tgl"><input id="lblTgl" type="checkbox" checked><svg class="ic"><use href="#ic-eye"/></svg><span>الأسماء</span></label>
   <label class="tgl"><input id="glowTgl" type="checkbox" checked><svg class="ic"><use href="#ic-spark"/></svg><span>تأثيرات</span></label>
   <div id="barSpacer"></div>
+  <button id="themeBtn" class="btn ghost" title="تبديل الوضع نهاري/ليلي"><svg class="ic"><use id="themeIcon" href="#ic-sun"/></svg><span id="themeTxt">نهاري</span></button>
+  <button id="fsBtn" class="btn ghost" title="ملء الشاشة للرسم"><svg class="ic"><use id="fsIcon" href="#ic-expand"/></svg><span id="fsTxt">ملء الشاشة</span></button>
   <button id="tblBtn" class="btn ghost"><svg class="ic"><use href="#ic-table"/></svg><span>كل الجداول</span></button>
   <button id="resetBtn" class="btn ghost"><svg class="ic"><use href="#ic-reset"/></svg><span>إعادة المشهد</span></button>
 </div>
@@ -4195,6 +4343,7 @@ function clearInfo(){
   $('#infoEmpty').hidden = false;
   $('#infoBody').hidden = true;
   $('#infoFoot').hidden = true;
+  if (document.body.classList.contains('fs')) $('#info').classList.add('closed');
 }
 $('#infoClose').addEventListener('click', () => clearInfo());
 $('#seeFn').addEventListener('click', () => {
@@ -4694,6 +4843,61 @@ $('#brandBtn').addEventListener('keydown', e => {
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && !welBox.classList.contains('off')) showWelcome(false);
 });
+
+/* ── الوضع النهاري / الليلي (يُحفظ في المتصفح) ── */
+function setTheme(day){
+  document.documentElement.dataset.theme = day ? 'day' : 'night';
+  $('#themeIcon').setAttribute('href', day ? '#ic-moon' : '#ic-sun');
+  $('#themeTxt').textContent = day ? 'ليلي' : 'نهاري';
+  try { localStorage.setItem('cellTheme', day ? 'day' : 'night'); } catch (e) {}
+}
+let savedTheme = null;
+try { savedTheme = localStorage.getItem('cellTheme'); } catch (e) {}
+setTheme(savedTheme === 'day');
+$('#themeBtn').addEventListener('click', () =>
+  setTheme(document.documentElement.dataset.theme !== 'day'));
+
+/* ── ملء الشاشة: يُخفى الرأس والشريط ويكبر الرسم ── */
+const fsApi = document.documentElement.requestFullscreen ? 'std'
+            : document.documentElement.webkitRequestFullscreen ? 'webkit' : null;
+const fsActive = () => document.fullscreenElement || document.webkitFullscreenElement;
+function refit(){ requestAnimationFrame(() => { fitCanvas(); fitViewBox(); }); }
+function setFs(on){
+  document.body.classList.toggle('fs', on);
+  /* في ملء الشاشة تختفي اللوحة الجانبية حتى يُختار جزء */
+  $('#info').classList.toggle('closed', on && $('#infoBody').hidden);
+  $('#fsIcon').setAttribute('href', on ? '#ic-shrink' : '#ic-expand');
+  $('#fsTxt').textContent = on ? 'خروج' : 'ملء الشاشة';
+  if (on && !fsActive()){
+    const el = document.documentElement;
+    try {
+      const p = fsApi === 'std' ? el.requestFullscreen() : fsApi === 'webkit' ? el.webkitRequestFullscreen() : null;
+      /* على الموبايل: يلف الشاشة بالعرض حتى يكبر الرسم (أندرويد يدعمها) */
+      if (p && p.then) p.then(() => {
+        if (window.innerWidth < 900 && screen.orientation && screen.orientation.lock)
+          screen.orientation.lock('landscape').catch(() => {});
+      }).catch(() => {});
+    } catch (e) {}
+  } else if (!on && fsActive()){
+    try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (e) {}
+    try {
+      const p = document.exitFullscreen ? document.exitFullscreen() : document.webkitExitFullscreen();
+      if (p && p.catch) p.catch(() => {});
+    } catch (e) {}
+  }
+  refit();
+}
+$('#fsBtn').addEventListener('click', () => setFs(!document.body.classList.contains('fs')));
+$('#fsExit').addEventListener('click', () => setFs(false));
+/* الخروج بزر المتصفح أو Esc يرجّع الواجهة كما كانت */
+['fullscreenchange', 'webkitfullscreenchange'].forEach(ev =>
+  document.addEventListener(ev, () => {
+    if (!fsActive() && document.body.classList.contains('fs')) setFs(false);
+    else refit();
+  }));
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.body.classList.contains('fs') && !fsActive()) setFs(false);
+});
 </script>
 
 <!--
@@ -4730,6 +4934,9 @@ document.addEventListener('keydown', e => {
     الامتحان» بلون البوستر، وتُفتح ثانيةً بالضغط على عنوان «الخلية».
     (الصورة مضمّنة داخل الملف نفسه base64 فيبقى المحاكي ملفاً واحداً يعمل
     بلا إنترنت.)
+  · زرّ «نهاري/ليلي» يبدّل الواجهة كلها إلى وضع فاتح (ويُحفظ الاختيار)،
+    وزرّ «ملء الشاشة» يُخفي الرأس والشريط فيكبر الرسم، ولوحة المعلومات
+    تطفو فوقه عند اختيار جزء فقط، وعلى الموبايل يلف الشاشة بالعرض.
   · كل شيء يعمل باللمس: الأزرار والتبويبات وأجزاء الرسوم ومفاتيح الشريط
     وشريط الأطوار وسحب الأسماء في وضع الامتحان — بلا تأخير نقرة، وبلا
     سحب الصفحة أثناء السحب، ومع مراعاة الحافة السفلى في الهواتف.
