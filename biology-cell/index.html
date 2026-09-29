@@ -3076,13 +3076,12 @@ SCENES.mitosis = divisionScene('mit');
 SCENES.meiosis = divisionScene('mei');
 
 /* ══════════════════════════════════════════════════════════════════════════
-   4.11 · شاشات مدمجة: الخليتان في شاشة واحدة، والانقسامان في شاشة واحدة
+   4.11 · شاشات مدمجة: الخليتان معاً، والانقسامان معاً (مقارنة برسمين)
    ══════════════════════════════════════════════════════════════════════════ */
 let eukSel = 'animal', divSel = 'mit';
 
 /* يبني المشهد المختار ويضع أزراره داخل شريط اختيار واحد */
-function mergeScene(map, sel, group, choices){
-  const base = map[sel];
+function mergeScene(base, sel, group, choices){
   const s = base.build();
   s.rebuildOnRadio = group;
   s.subTitle = base.title;
@@ -3095,33 +3094,145 @@ function mergeScene(map, sel, group, choices){
   return s;
 }
 
-const EUK = { animal: SCENES.animal, plant: SCENES.plant };
+/* نسخة مصغّرة من api تبحث داخل مجموعة واحدة فقط (لتشغيل مشهدين معاً) */
+function scopedApi(api, root, extra){
+  const o = Object.create(api);
+  o.el  = sel => root.querySelector(sel);
+  o.all = sel => Array.from(root.querySelectorAll(sel));
+  if (extra) Object.assign(o, extra);
+  return o;
+}
+
+/* ── مقارنة الخليتين: الرسمان جنباً إلى جنب مع فروقات ملزمة ص35 ── */
+function cellCompare(){
+  const A = SCENES.animal.build(), P = SCENES.plant.build();
+  const S = 0.62, LCX = 523, LCY = 352;
+  const place = (X, Y) => `translate(${n2(X - LCX * S)},${n2(Y - LCY * S)}) scale(${S})`;
+  const list = (x, lines, y0) => lines.map((t, i) =>
+    `<text class="cap sm" x="${x}" y="${y0 + i * 26}" text-anchor="middle" opacity=".88">${t}</text>`).join('');
+
+  /* أشعة الضوء تخص مشهد النبات وحده — تُخفى في المقارنة */
+  const pBody = P.body.replace('<g id="lightRays" opacity=".8">', '<g id="lightRays" opacity="0">');
+
+  const body = `
+    <g transform="${place(712, 306)}">${pBody}</g>
+    <g transform="${place(268, 306)}">${A.body}</g>
+    <line x1="490" y1="118" x2="490" y2="600" stroke="rgba(224,174,76,.22)" stroke-width="1.4" stroke-dasharray="7 7"/>
+    <text class="cap" x="712" y="126" text-anchor="middle">الخلية النباتية</text>
+    <text class="cap" x="268" y="126" text-anchor="middle">الخلية الحيوانية</text>
+    ${list(712, ['جدار سيليلوزي سميك فوق الغشاء',
+                 'بلاستيدات خضراء',
+                 'فجوة مركزية كبيرة واحدة',
+                 'بلا جسيمات مركزية غالباً',
+                 'تنقسم بتكوين صفيحة خلوية'], 470)}
+    ${list(268, ['غشاء بلازمي رقيق فقط',
+                 'بلا بلاستيدات',
+                 'فجوات صغيرة كثيرة',
+                 'جسيمات مركزية لها دور بالانقسام',
+                 'تنقسم بتخصّر السايتوبلازم'], 470)}`;
+
+  return {
+    body, stream: null, flows: [], parts: [],
+    subTitle: 'الخلية النباتية والخلية الحيوانية',
+    subSrc: 'مقارنة · ملزمة ص8 وص35 (وزاري)',
+    hint: 'الرسمان جنباً إلى جنب كما في الملزمة، وتحت كل رسم صفاته من جدول ص35 الوزاري. اضغط أي عضية في أي رسم لتظهر معلوماتها — والعضية نفسها تُبرز في الرسمين معاً.',
+    rebuildOnRadio: 'euk'
+  };
+}
+
+/* ── مقارنة الانقسامين: المشهدان يعملان معاً على نفس الشريط الزمني ── */
+function divCompare(){
+  const A = divisionScene('mit').build(), B = divisionScene('mei').build();
+  const S = 0.72, LCX = 500, LCY = 350;
+  const place = (X, Y) => `translate(${n2(X - LCX * S)},${n2(Y - LCY * S)}) scale(${S})`;
+
+  const body = `
+    <g id="cmpMit" transform="${place(268, 336)}">${A.body}</g>
+    <g id="cmpMei" transform="${place(712, 336)}">${B.body}</g>
+    <line x1="490" y1="118" x2="490" y2="600" stroke="rgba(224,174,76,.22)" stroke-width="1.4" stroke-dasharray="7 7"/>
+    <text class="cap" x="268" y="126" text-anchor="middle">الانقسام غير المباشر (الخيطي)</text>
+    <text class="cap" x="712" y="126" text-anchor="middle">الانقسام الاختزالي</text>
+    <text id="phMit" class="cap sm" x="268" y="556" text-anchor="middle"></text>
+    <text id="phMit2" class="cap sm" x="268" y="582" text-anchor="middle" opacity=".82"></text>
+    <text id="phMei" class="cap sm" x="712" y="556" text-anchor="middle"></text>
+    <text id="phMei2" class="cap sm" x="712" y="582" text-anchor="middle" opacity=".82"></text>`;
+
+  const phaseTo = (api, a, b) => ph => {
+    if (!ph) return;
+    const e1 = api.el(a), e2 = api.el(b);
+    if (e1) e1.textContent = ph.n;
+    if (e2) e2.textContent = ph.chrom + (ph.time ? ' · المدة ' + ph.time : '');
+  };
+
+  return {
+    body, stream: null, flows: [], parts: [],
+    subTitle: 'الانقسام الخيطي والانقسام الاختزالي',
+    subSrc: 'مقارنة · ملزمة ص56–65 وص66 (وزاري)',
+    hint: 'المشهدان يمشيان على نفس الشريط الزمني: الخيطي ينتج خليتين مطابقتين للأم، والاختزالي ينتج أربع خلايا بنصف العدد. اسحب الشريط لتوقف عند أي طور وقارن.',
+    rebuildOnRadio: 'div',
+    tools: [],
+    state: { a: null, b: null },
+    init(api){
+      this.state.a = scopedApi(api, api.el('#cmpMit'), {
+        setPhase: phaseTo(api, '#phMit', '#phMit2'), setCap(){},
+        tool: k => k === 'plant' ? false : api.tool(k)
+      });
+      this.state.b = scopedApi(api, api.el('#cmpMei'), {
+        setPhase: phaseTo(api, '#phMei', '#phMei2'), setCap(){}, setSlider(){},
+        tool: k => k === 'showX' ? true : api.tool(k)
+      });
+      A.init(this.state.a); B.init(this.state.b);
+    },
+    tick(dt, t){
+      A.tick(dt, t, this.state.a);
+      B.state.T = A.state.T;
+      B.tick(0, t, this.state.b);
+    },
+    onSlider(v){ A.onSlider(v); B.onSlider(v); },
+    onReset(){ A.state.T = 0; B.state.T = 0; }
+  };
+}
+
+const EUK_CH = [
+  { id: 'animal', label: 'الخلية الحيوانية' },
+  { id: 'plant',  label: 'الخلية النباتية' },
+  { id: 'both',   label: 'الاثنتان معاً' }
+];
 SCENES.euk = {
-  get title(){ return EUK[eukSel].title; },
-  get src(){ return EUK[eukSel].src; },
-  get tint(){ return EUK[eukSel].tint; },
-  get hint(){ return EUK[eukSel].hint; },
+  get title(){ return eukSel === 'both' ? 'مقارنة الخليتين' : SCENES[eukSel].title; },
+  get src(){ return eukSel === 'both' ? 'ملزمة ص8 وص35' : SCENES[eukSel].src; },
+  get tint(){ return eukSel === 'both' ? ['rgba(70,120,104,.28)', 'rgba(60,90,130,.18)'] : SCENES[eukSel].tint; },
+  get hint(){ return eukSel === 'both' ? '' : SCENES[eukSel].hint; },
   build(){
-    const s = mergeScene(EUK, eukSel, 'euk', [
-      { id: 'animal', label: 'الخلية الحيوانية' },
-      { id: 'plant',  label: 'الخلية النباتية' }
-    ]);
-    s.tools.push({ id: 'tbl:plantAnimal', label: 'نباتية × حيوانية' });
+    const s = eukSel === 'both' ? cellCompare()
+            : mergeScene(SCENES[eukSel], eukSel, 'euk', []);
+    const base = s.tools || [];
+    s.rebuildOnRadio = 'euk';
+    s.tools = EUK_CH.map(c => ({ id: c.id, label: c.label, radio: 'euk', on: c.id === eukSel }))
+      .concat(base, eukSel === 'both' ? [{ id: 'tbl:plantAnimal', label: 'جدول الفروقات (ص35)' }] : []);
     return s;
   }
 };
 
-const DIV = { mit: SCENES.mitosis, mei: SCENES.meiosis };
+const DIV_CH = [
+  { id: 'mit',  label: 'الانقسام الخيطي' },
+  { id: 'mei',  label: 'الانقسام الاختزالي' },
+  { id: 'both', label: 'الاثنان معاً' }
+];
 SCENES.division = {
-  get title(){ return DIV[divSel].title; },
-  get src(){ return DIV[divSel].src; },
-  get tint(){ return DIV[divSel].tint; },
-  get hint(){ return DIV[divSel].hint; },
+  get title(){ return divSel === 'both' ? 'مقارنة الانقسامين' : (divSel === 'mei' ? SCENES.meiosis : SCENES.mitosis).title; },
+  get src(){ return divSel === 'both' ? 'ملزمة ص56–66' : (divSel === 'mei' ? SCENES.meiosis : SCENES.mitosis).src; },
+  get tint(){ return divSel === 'mei' ? SCENES.meiosis.tint : SCENES.mitosis.tint; },
+  get hint(){ return divSel === 'both' ? '' : (divSel === 'mei' ? SCENES.meiosis : SCENES.mitosis).hint; },
   build(){
-    const s = mergeScene(DIV, divSel, 'div', [
-      { id: 'mit', label: 'الانقسام الخيطي' },
-      { id: 'mei', label: 'الانقسام الاختزالي' }
-    ]);
+    const s = divSel === 'both' ? divCompare()
+            : mergeScene(divSel === 'mei' ? SCENES.meiosis : SCENES.mitosis, divSel, 'div', []);
+    const base = s.tools || [];
+    const slider = base.filter(t => t.slider), rest = base.filter(t => !t.slider);
+    s.rebuildOnRadio = 'div';
+    s.isDivision = divSel !== 'both';
+    s.tools = DIV_CH.map(c => ({ id: c.id, label: c.label, radio: 'div', on: c.id === divSel }))
+      .concat(divSel === 'both' ? [{ id: 'slider', slider: true }] : slider, rest);
     return s;
   }
 };
@@ -4571,6 +4682,9 @@ document.addEventListener('keydown', e => {
     وزرّ «وضع الامتحان»، وتُفتح ثانيةً بالضغط على عنوان «الخلية».
   · الخليتان الحيوانية والنباتية في شاشة واحدة بمفتاح تبديل، وكذلك
     الانقسامان الخيطي والاختزالي.
+  · وضع «الاثنان معاً»: الرسمان جنباً إلى جنب على الشاشة نفسها —
+    الخليتان مع صفاتهما من جدول ص35 الوزاري، والانقسامان يعملان على
+    الشريط الزمني نفسه مع اسم الطور وعدد الكروموسومات تحت كل رسم.
   · زرّ «كل الجداول» في الشريط السفلي يفتح فهرس جداول الملزمة الـ21.
 
   ── ما يبقى للمراجعة ──
