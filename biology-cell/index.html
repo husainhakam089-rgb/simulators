@@ -311,6 +311,7 @@
   #barSpacer{margin-inline-start:auto}
 
   /* ═══════════ الرسم: حالات التفاعل ═══════════ */
+  #fxLayer,#molLayer,#diffLayer,#osmoLayer,#apLayer,#atpLayer,#sugarLayer,#membMol,#solArrows{pointer-events:none}
   .part{cursor:pointer;transition:opacity .28s,transform .3s}
   .part.sel{transform-box:fill-box;transform-origin:center;transform:scale(1.06)}
   .part.sel[data-part=cyto],.part.sel[data-part=pm],.part.sel[data-part=wall],
@@ -1578,10 +1579,10 @@ function nucleusShape(r, seed, showParts){
     <circle r="${n2(r - 5)}" fill="none" stroke="#e2d8ff" stroke-width="1.2" opacity=".55"/>`;
   if (!showParts) return body + `<g>${chrom.join('')}</g><g>${pores.join('')}</g>
     <circle cx="${n2(-r * 0.22)}" cy="${n2(r * 0.16)}" r="${n2(r * 0.3)}" fill="url(#gNucleolus)" stroke="#b6a3ef" stroke-width="1.4"/>`;
-  /* نسخة بأجزاء قابلة للضغط (مشهد النواة المكبّرة) */
+  /* داخل الخلايا: النوية وحدها جزء قابل للضغط، والباقي زخرفة لا تحجب النواة */
   return body
-    + part('chromatin', `<g>${chrom.join('')}</g><circle r="${n2(r - 8)}" fill="transparent"/>`)
-    + part('pore', `<g>${pores.join('')}</g>`)
+    + `<g pointer-events="none">${chrom.join('')}</g>`
+    + `<g pointer-events="none">${pores.join('')}</g>`
     + part('nucleolus', `<circle cx="${n2(-r * 0.22)}" cy="${n2(r * 0.16)}" r="${n2(r * 0.3)}"
         fill="url(#gNucleolus)" stroke="#b6a3ef" stroke-width="1.6"/>`);
 }
@@ -1650,13 +1651,16 @@ SCENES.animal = {
         freeRibo.push([bx + (rr() - 0.5) * 60, by + (rr() - 0.5) * 42]);
     });
     /* النبيبات الدقيقة: تشع من الجسيمات المركزية وتنتشر في السايتوبلازم */
-    const tubes = [];
+    const tubes = []; let tubeMid = [647, 264];
     for (let i = 0; i < 11; i++){
       const a = -0.4 + i * 0.58, L = 120 + rr() * 130;
       const x2 = CENTRO[0] + Math.cos(a) * L, y2 = CENTRO[1] + Math.sin(a) * L;
       const k = Math.min(1, 0.97 / Math.max(1e-3, Math.hypot((x2 - CX) / RX, (y2 - CY) / RY)));
-      tubes.push(`<path d="M${CENTRO[0]},${CENTRO[1]} Q${n2((CENTRO[0] + x2) / 2 + (rr() - .5) * 40)},${n2((CENTRO[1] + y2) / 2 + (rr() - .5) * 40)} ${n2(CX + (x2 - CX) * k)},${n2(CY + (y2 - CY) * k)}"
-        fill="none" stroke="#b9c6d6" stroke-width="1.7" opacity=".42" stroke-linecap="round"/>`);
+      const ex = CX + (x2 - CX) * k, ey = CY + (y2 - CY) * k;
+      const qx = (CENTRO[0] + x2) / 2 + (rr() - .5) * 40, qy = (CENTRO[1] + y2) / 2 + (rr() - .5) * 40;
+      if (i === 2) tubeMid = [0.25 * CENTRO[0] + 0.5 * qx + 0.25 * ex, 0.25 * CENTRO[1] + 0.5 * qy + 0.25 * ey];
+      tubes.push(`<path d="M${CENTRO[0]},${CENTRO[1]} Q${n2(qx)},${n2(qy)} ${n2(ex)},${n2(ey)}"
+        fill="none" stroke="#b9c6d6" stroke-width="2" opacity=".5" stroke-linecap="round"/>`);
     }
     const dotsOf = pts => pts.map(p =>
       `<circle cx="${n2(p[0])}" cy="${n2(p[1])}" r="3.1" fill="#26354a" stroke="#a9c6e4" stroke-width=".8"/>`).join('');
@@ -1741,19 +1745,19 @@ SCENES.animal = {
       ],
       /* الأسماء والترتيب مطابقة لتأشيرات رسم الملزمة ص8 */
       parts: [
-        { id: 'pm',        anchor: [694, 176], label: [858, 104], side: 'R' },
+        { id: 'pm',        anchor: cell.pts[2], label: [858, 104], side: 'R' },
         { id: 'mito',      anchor: [680, 225], label: [858, 176], side: 'R' },
-        { id: 'rer',       anchor: [600, 366], label: [858, 248], side: 'R' },
+        { id: 'rer',       anchor: rer1.pts[12], label: [858, 248], side: 'R' },
         { id: 'lyso',      anchor: [720, 320], label: [858, 330], side: 'R', short: 'جسيم حال' },
         { id: 'golgi',     anchor: [640, 440], label: [858, 402], side: 'R' },
-        { id: 'golgiVes',  anchor: [694, 480], label: [858, 474], side: 'R' },
-        { id: 'ribo',      anchor: [620, 570], label: [858, 546], side: 'R' },
-        { id: 'microtub',  anchor: [647, 264], label: [858, 618], side: 'R' },
+        { id: 'golgiVes',  anchor: [683, 463], label: [858, 474], side: 'R' },
+        { id: 'ribo',      anchor: [freeRibo[0][0], freeRibo[0][1]], label: [858, 546], side: 'R' },
+        { id: 'microtub',  anchor: tubeMid, label: [858, 618], side: 'R' },
         { id: 'centro',    anchor: [575, 195], label: [142, 104], side: 'L' },
-        { id: 'nuc',       anchor: [430, 250], label: [142, 176], side: 'L' },
+        { id: 'nuc',       anchor: [NUC[0] + 44, NUC[1] - 52], label: [142, 176], side: 'L' },
         { id: 'nucleolus', anchor: [395, 300], label: [142, 248], side: 'L' },
-        { id: 'ser',       anchor: [300, 268], label: [142, 320], side: 'L' },
-        { id: 'cyto',      anchor: [330, 370], label: [142, 392], side: 'L', short: 'السايتوبلازم' }
+        { id: 'ser',       anchor: ser2.pts[9], label: [142, 320], side: 'L' },
+        { id: 'cyto',      anchor: [452, 540], label: [142, 392], side: 'L', short: 'السايتوبلازم' }
       ],
       tools: [
         { id: 'protRoute', label: 'تتبّع مسار البروتين' },
@@ -1939,19 +1943,19 @@ SCENES.plant = {
       /* الأسماء مطابقة لتأشيرات رسم الملزمة ص8 */
       parts: [
         { id: 'wall',      anchor: [500, 140],  label: [858, 104], side: 'R' },
-        { id: 'pm',        anchor: [640, 156],  label: [858, 168], side: 'R', short: 'الغشاء الخلوي' },
+        { id: 'pm',        anchor: [480, 152],  label: [858, 168], side: 'R', short: 'الغشاء الخلوي' },
         { id: 'chloro',    anchor: [644, 500],  label: [858, 240], side: 'R', short: 'بلاستيدة خضراء' },
         { id: 'vacuole',   anchor: [600, 300],  label: [858, 312], side: 'R' },
-        { id: 'ser',       anchor: [728, 272],  label: [858, 384], side: 'R' },
+        { id: 'ser',       anchor: ser.pts[9],  label: [858, 384], side: 'R' },
         { id: 'mito',      anchor: [728, 452],  label: [858, 456], side: 'R' },
-        { id: 'rer',       anchor: [530, 466],  label: [858, 528], side: 'R' },
+        { id: 'rer',       anchor: rer.pts[10],  label: [858, 528], side: 'R' },
         { id: 'starch',    anchor: [520, 520],  label: [858, 600], side: 'R' },
-        { id: 'nuc',       anchor: [280, 240],  label: [142, 112], side: 'L' },
+        { id: 'nuc',       anchor: [NUC[0] + 22, NUC[1] - 26],  label: [142, 112], side: 'L' },
         { id: 'nucleolus', anchor: [268, 272],  label: [142, 186], side: 'L' },
-        { id: 'cyto',      anchor: [300, 330],  label: [142, 260], side: 'L', short: 'سايتوبلازم' },
+        { id: 'cyto',      anchor: [266, 332],  label: [142, 260], side: 'L', short: 'سايتوبلازم' },
         { id: 'golgiVes',  anchor: [338, 512],  label: [142, 334], side: 'L' },
         { id: 'golgi',     anchor: [390, 492],  label: [142, 408], side: 'L' },
-        { id: 'ribo',      anchor: [330, 178],  label: [142, 482], side: 'L', short: 'رايبوسوم' }
+        { id: 'ribo',      anchor: [ribo[0][0], ribo[0][1]],  label: [142, 482], side: 'L', short: 'رايبوسوم' }
       ],
       tools: [
         { id: 'light', label: 'أدخل الضوء', toggle: true, on: true },
@@ -2001,6 +2005,7 @@ SCENES.pro = {
     }
     /* الشعيرات أو الأهداب: زوائد قصيرة كثيرة حول الخلية */
     /* الشعيرات أو الأهداب: زوائد قصيرة تحيط بالخلية من كل الجهات */
+    let hairPt = [BX - 118, BY + 40];
     const hairs = [];
     const RXb = BW / 2, RYb = BH / 2, pw = 0.42;
     for (let i = 0; i < 96; i++){
@@ -2010,8 +2015,9 @@ SCENES.pro = {
       let nx = (px - BX) / (RXb * RXb), ny = (py - BY) / (RYb * RYb);
       const nl = Math.hypot(nx, ny) || 1; nx /= nl; ny /= nl;
       const L = 10 + rr() * 9;
+      if (i === 48) hairPt = [px + nx * L * 0.6, py + ny * L * 0.6];
       hairs.push(`<line x1="${n2(px)}" y1="${n2(py)}" x2="${n2(px + nx * L)}" y2="${n2(py + ny * L)}"
-        stroke="#e6d6a4" stroke-width="1.5" opacity=".7" stroke-linecap="round"/>`);
+        stroke="#e6d6a4" stroke-width="1.6" opacity=".72" stroke-linecap="round"/>`);
     }
     const flag = [];
     for (let i = 0; i <= 30; i++){
@@ -2048,15 +2054,15 @@ SCENES.pro = {
       flows: [],
       /* التأشيرات نفسها الموجودة على رسم الملزمة ص5 */
       parts: [
-        { id: 'cyto',     anchor: [BX + 60, BY + 70],  label: [858, 130], side: 'R', short: 'سايتوبلازم' },
+        { id: 'cyto',     anchor: [BX + 46, BY + 150],  label: [858, 130], side: 'R', short: 'سايتوبلازم' },
         { id: 'nucleoid', anchor: [BX + 40, BY - 70],  label: [858, 226], side: 'R' },
-        { id: 'bpm',      anchor: [BX + 84, BY + 10],  label: [858, 322], side: 'R' },
-        { id: 'bwall',    anchor: [BX + 96, BY + 120], label: [858, 418], side: 'R' },
-        { id: 'capsule',  anchor: [BX + 104, BY + 190],label: [858, 514], side: 'R' },
-        { id: 'pilus',    anchor: [BX - 90, BY - 132], label: [142, 150], side: 'L' },
-        { id: 'cilia',    anchor: [BX - 112, BY + 60], label: [142, 300], side: 'L' },
-        { id: 'flagel',   anchor: [BX + 30, BY + 250], label: [142, 470], side: 'L' },
-        { id: 'ribo',     anchor: [BX - 40, BY + 110], label: [142, 600], side: 'L', short: 'رايبوسومات' }
+        { id: 'bpm',      anchor: [BX + BW / 2 - 22, BY + 10],  label: [858, 322], side: 'R' },
+        { id: 'bwall',    anchor: [BX + BW / 2 - 12, BY + 60], label: [858, 418], side: 'R' },
+        { id: 'capsule',  anchor: [BX + BW / 2, BY + 110], label: [858, 514], side: 'R' },
+        { id: 'pilus',    anchor: [BX - BW / 2 + 6 - 86, BY - 136], label: [142, 150], side: 'L' },
+        { id: 'cilia',    anchor: hairPt, label: [142, 300], side: 'L' },
+        { id: 'flagel',   anchor: flag[16], label: [142, 470], side: 'L' },
+        { id: 'ribo',     anchor: [ribo[0][0], ribo[0][1]], label: [142, 600], side: 'L', short: 'رايبوسومات' }
       ],
       tools: [
         { id: 'tbl:proEu', label: 'جدول الفروقات (ص6)' },
@@ -2147,7 +2153,7 @@ SCENES.membrane = {
       body, stream: null, flows: [],
       /* التأشيرات نفسها الموجودة على رسم الملزمة ص10 */
       parts: [
-        { id: 'head',        anchor: [112, 300], label: [150, 168], side: 'C' },
+        { id: 'head',        anchor: [112, 288], label: [150, 168], side: 'C' },
         { id: 'tail',        anchor: [143, 350], label: [96, 486],  side: 'C' },
         { id: 'lipidBundle', anchor: [232, 288], label: [300, 140], side: 'C' },
         { id: 'carrier',     anchor: [306, 350], label: [330, 512], side: 'C' },
@@ -2220,12 +2226,14 @@ SCENES.mitoZoom = {
     const CX = 470, CY = 320, RX = 305, RY = 168;
     const outer = blobPath(CX, CY, RX, RY, 0.035, 12, 26);
     const rr = rng(8), cr = [];
+    let cristaPt = [CX - RX * .55, CY - RY * .55];
     /* الأعراف: انثناءات الغشاء الداخلي */
     for (let i = -5; i <= 5; i++){
       const x = CX + i * (RX * 0.155) + (rr() - .5) * 10;
       const h = (RY - 30) * Math.sqrt(Math.max(0.05, 1 - Math.pow((x - CX) / (RX * 0.95), 2)));
       const up = i % 2 === 0;
       const y0 = up ? CY - h : CY + h, y1 = up ? CY + h * 0.35 : CY - h * 0.35;
+      if (i === -3) cristaPt = [x - 13, y0 + (y1 - y0) * 0.06];
       cr.push(`<path d="M${n2(x - 17)},${n2(y0)} C${n2(x - 21)},${n2((y0 + y1) / 2)} ${n2(x + 21)},${n2((y0 + y1) / 2)} ${n2(x + 17)},${n2(y0)}
         L${n2(x + 9)},${n2(y0)} C${n2(x + 12)},${n2((y0 + y1) / 2)} ${n2(x - 12)},${n2((y0 + y1) / 2)} ${n2(x - 9)},${n2(y0)} Z"
         fill="url(#gMito)" stroke="#ffd9ac" stroke-width="2"/>`);
@@ -2261,10 +2269,10 @@ SCENES.mitoZoom = {
       body, stream: null,
       flows: [flow({ paths: atpPaths, speed: 60, every: 0.55, max: 9, r: 4, fill: '#ffe066' })],
       parts: [
-        { id: 'outerM', anchor: [CX + RX * .72, CY - RY * .72], label: [858, 150], side: 'R' },
-        { id: 'innerM', anchor: [CX + RX * .62, CY + RY * .62], label: [858, 300], side: 'R' },
-        { id: 'crista', anchor: [CX - RX * .55, CY - RY * .55], label: [142, 150], side: 'L' },
-        { id: 'matrix', anchor: [CX - RX * .3, CY + RY * .45],  label: [142, 320], side: 'L' }
+        { id: 'outerM', anchor: outer.pts[3], label: [858, 150], side: 'R' },
+        { id: 'innerM', anchor: [CX + (outer.pts[11][0] - CX) * .93, CY + (outer.pts[11][1] - CY) * .93], label: [858, 300], side: 'R' },
+        { id: 'crista', anchor: cristaPt, label: [142, 150], side: 'L' },
+        { id: 'matrix', anchor: [CX - RX * .62, CY + RY * .12],  label: [142, 320], side: 'L' }
       ],
       tools: [
         { id: 'tbl:chloroMito', label: 'البلاستيدة × المايتوكوندريا' },
@@ -2295,7 +2303,8 @@ SCENES.chloroZoom = {
       for (let i = 0; i < 6; i++)
         discs.push(`<rect x="-24" y="${-15 + i * 5.2}" width="48" height="4" rx="2"
           fill="#2f8035" stroke="#8fe07a" stroke-width=".7"/>`);
-      return `<g transform="translate(${CX + x},${CY + y}) rotate(${rot})">${discs.join('')}</g>`;
+      return `<g transform="translate(${CX + x},${CY + y}) rotate(${rot})">
+        <rect x="-27" y="-19" width="54" height="40" fill="rgba(0,0,0,0)"/>${discs.join('')}</g>`;
     }).join('');
     /* صفائح الكرانا: أغشية تصل بين الأكوام */
     const lam = [];
@@ -2332,12 +2341,12 @@ SCENES.chloroZoom = {
       body, stream: null,
       flows: [flow({ paths: sugarPaths, speed: 44, every: 1.0, max: 6, r: 4.4, fill: '#d2f58e' })],
       parts: [
-        { id: 'starch', anchor: [CX + 110, CY + 92],  label: [858, 150], side: 'R' },
-        { id: 'stroma', anchor: [CX + 150, CY - 60],  label: [858, 300], side: 'R' },
-        { id: 'granum', anchor: [CX + 95, CY + 25],   label: [858, 440], side: 'R' },
-        { id: 'grana',  anchor: [CX - 55, CY - 72],   label: [142, 150], side: 'L' },
-        { id: 'outerM', anchor: [CX - R * .95, CY - 40], label: [142, 320], side: 'L' },
-        { id: 'innerM', anchor: [CX - R * .8, CY + 70],  label: [142, 470], side: 'L' }
+        { id: 'starch', anchor: [CX + starchG[1][0], CY + starchG[1][1]],  label: [858, 150], side: 'R' },
+        { id: 'stroma', anchor: [CX + 140, CY - 20],  label: [858, 300], side: 'R' },
+        { id: 'granum', anchor: [CX + grana[3][0], CY + grana[3][1]],   label: [858, 440], side: 'R' },
+        { id: 'grana',  anchor: [CX + (grana[0][0] + grana[1][0]) / 2, CY + (grana[0][1] + grana[1][1]) / 2], label: [142, 150], side: 'L' },
+        { id: 'outerM', anchor: outer.pts[13], label: [142, 320], side: 'L' },
+        { id: 'innerM', anchor: [CX + (outer.pts[16][0] - CX) * .945, CY + (outer.pts[16][1] - CY) * .945],  label: [142, 470], side: 'L' }
       ],
       tools: [
         { id: 'tbl:chloroMito', label: 'البلاستيدة × المايتوكوندريا' },
@@ -2362,12 +2371,18 @@ SCENES.nucleus = {
   build(){
     const CX = 470, CY = 350, R = 214;
     const rr = rng(5), chrom = [], pores = [], poreAngles = [];
+    let chromPt = [CX + 96, CY - 84, undefined];
     for (let i = 0; i < 14; i++){
       const pts = []; let a = rr() * 6.283, d = 22 + rr() * R * 0.6;
       for (let j = 0; j < 6; j++){
         a += (rr() - 0.5) * 2.1; d = Math.min(R * 0.8, Math.max(16, d + (rr() - 0.5) * 70));
         pts.push([CX + Math.cos(a) * d, CY + Math.sin(a) * d]);
       }
+      pts.forEach(q => {
+        const dn = Math.hypot(q[0] - (CX - 62), q[1] - (CY + 46));
+        const dc = Math.hypot(q[0] - CX, q[1] - CY);
+        if (dn > 95 && dc < R - 40 && chromPt[2] === undefined) chromPt = [q[0], q[1], 1];
+      });
       chrom.push(`<path class="chrm" d="${smoothOpen(pts)}" fill="none" stroke="#3b2d70" stroke-width="${n2(2.4 + rr() * 2.4)}"
         opacity=".9" stroke-linecap="round"/>`);
     }
@@ -2399,7 +2414,7 @@ SCENES.nucleus = {
       ${part('env', `
         <circle cx="${CX}" cy="${CY}" r="${R}" fill="none" stroke="#e8dcff" stroke-width="5"/>
         <circle cx="${CX}" cy="${CY}" r="${R - 13}" fill="none" stroke="#c4b0f0" stroke-width="4.4"/>
-        <circle cx="${CX}" cy="${CY}" r="${R - 6.5}" fill="rgba(200,180,255,.12)"/>`)}
+        <circle cx="${CX}" cy="${CY}" r="${R - 6.5}" fill="rgba(200,180,255,.12)" pointer-events="none"/>`)}
       ${part('pore', `<g>${pores.join('')}</g>`)}
     `;
     const rnaPaths = [0, 3, 7, 11, 14].map(i => {
@@ -2413,9 +2428,9 @@ SCENES.nucleus = {
       flows: [flow({ paths: rnaPaths, speed: 54, every: 0.7, max: 8, r: 3.6, fill: '#cbb6ff', owner: 'pore' })],
       parts: [
         { id: 'env',         anchor: [CX + Math.cos(-1.1) * R, CY + Math.sin(-1.1) * R], label: [858, 116], side: 'R' },
-        { id: 'pore',        anchor: [CX + Math.cos(-0.35) * R, CY + Math.sin(-0.35) * R], label: [858, 236], side: 'R' },
+        { id: 'pore',        anchor: [CX + Math.cos(poreAngles[16]) * R, CY + Math.sin(poreAngles[16]) * R], label: [858, 236], side: 'R' },
         { id: 'rer',         anchor: [770, 300], label: [858, 400], side: 'R' },
-        { id: 'chromatin',   anchor: [CX + 96, CY - 84], label: [142, 116], side: 'L' },
+        { id: 'chromatin',   anchor: chromPt, label: [142, 116], side: 'L' },
         { id: 'nucleoplasm', anchor: [CX + 30, CY + 150], label: [142, 250], side: 'L' },
         { id: 'nucleolus',   anchor: [CX - 62, CY + 46], label: [142, 380], side: 'L' }
       ],
@@ -3061,14 +3076,15 @@ PROC.activeT = {
           <path d="M-40,-44 C-52,-14 -52,22 -40,48" fill="none" stroke="#fff0e0" stroke-width="1.6" opacity=".5"/>`))}
         <text class="lbl sm" x="600" y="422" text-anchor="end">بروتين حامل</text>
         <g id="apLayer"></g>
-        <g id="apEnergy" opacity="0">
-          <path d="M700,232 L742,282 L714,282 L748,334" fill="none" stroke="#ffd166" stroke-width="4.5" stroke-linecap="round"/>
-          <text class="cap sm" x="760" y="292" text-anchor="start" fill="#ffd166">طاقة ATP</text>
-        </g>`,
+        ${part('atp', `<g id="apEnergy" opacity=".35">
+          <path d="M700,232 L742,282 L714,282 L748,334" fill="none" stroke="#ffd166" stroke-width="5" stroke-linecap="round"/>
+          <circle cx="726" cy="283" r="34" fill="rgba(255,209,102,.1)" stroke="rgba(255,209,102,.4)" stroke-width="1.6"/>
+          <text class="cap sm" x="768" y="292" text-anchor="start" fill="#ffd166">طاقة ATP</text>
+        </g>`)}`,
       stream: null, flows: [],
       parts: [
         { id: 'activeT',      anchor: [552, 392], label: [858, 220], side: 'R' },
-        { id: 'lipidBundle',  anchor: [232, 308], label: [142, 230], side: 'L' },
+        { id: 'lipidBundle',  anchor: [222, 308], label: [142, 230], side: 'L' },
         { id: 'atp',          anchor: [726, 282], label: [858, 430], side: 'R' }
       ],
       tools: PROC_TOOLS,
@@ -3111,8 +3127,8 @@ PROC.phago = {
     return {
       body: `
                 <rect x="0" y="0" width="1000" height="700" fill="none"/>
-        <path id="phagoCell" d="" fill="url(#gCyto)" stroke="url(#gMemb)" stroke-width="6"/>
-        ${part('phago', `<rect x="120" y="120" width="760" height="460" fill="transparent"/>`)}
+        ${part('phago', `<rect x="60" y="90" width="880" height="500" fill="transparent"/>`)}
+        ${part('pm', `<path id="phagoCell" d="" fill="url(#gCyto)" stroke="url(#gMemb)" stroke-width="7"/>`)}
         <g id="phagoFood">
           <path d="${blobPath(0, 0, 26, 21, .28, 51, 10).d}" fill="#6b5b4a" stroke="#b9a58c" stroke-width="2"/>
         </g>
@@ -3126,9 +3142,9 @@ PROC.phago = {
         <text class="cap sm" x="500" y="600" text-anchor="middle" opacity=".85">غذاء ← جيب من غشاء الخلية ← فجوة غذائية داخل السايتوبلازم</text>`,
       stream: null, flows: [],
       parts: [
-        { id: 'phago', anchor: [636, 250], label: [858, 170], side: 'R' },
+        { id: 'phago', anchor: [828, 196], label: [858, 150], side: 'R' },
         { id: 'lyso',  anchor: [300, 470], label: [142, 430], side: 'L', short: 'جسيم حال' },
-        { id: 'pm',    anchor: [372, 300], label: [142, 190], side: 'L', short: 'غشاء بلازمي' }
+        { id: 'pm',    anchor: [520, 178], label: [142, 190], side: 'L', short: 'غشاء بلازمي' }
       ],
       tools: PROC_TOOLS,
       state: { t: 0 },
@@ -3179,8 +3195,8 @@ PROC.pino = {
       body: `
                 <rect x="0" y="0" width="1000" height="${Y - 30}" fill="#16232b" opacity=".4"/>
         <rect x="0" y="${Y + 30}" width="1000" height="${700 - Y - 30}" fill="#241c2b" opacity=".5"/>
-        <path id="pinoMem" d="" fill="none" stroke="#e8d59a" stroke-width="7" stroke-linecap="round"/>
-        ${part('pino', `<rect x="60" y="${Y - 120}" width="880" height="240" fill="transparent"/>`)}
+        ${part('pino', `<rect x="60" y="${Y - 140}" width="880" height="280" fill="transparent"/>`)}
+        ${part('pm', `<path id="pinoMem" d="" fill="none" stroke="#e8d59a" stroke-width="7" stroke-linecap="round"/>`)}
         <g id="pinoDrops"></g>
         <g id="pinoVes" opacity="0">
           <circle r="34" fill="rgba(120,190,220,.2)" stroke="#a9dcf2" stroke-width="3"/>
@@ -3192,7 +3208,7 @@ PROC.pino = {
       stream: null, flows: [],
       parts: [
         { id: 'pino', anchor: [500, 260], label: [858, 170], side: 'R' },
-        { id: 'pm',   anchor: [220, 300], label: [142, 170], side: 'L', short: 'غشاء الخلية' }
+        { id: 'pm',   anchor: [200, 300], label: [142, 170], side: 'L', short: 'غشاء الخلية' }
       ],
       tools: PROC_TOOLS,
       state: { t: 0 },
@@ -3246,20 +3262,20 @@ PROC.exo = {
         <rect x="0" y="${Y + 30}" width="1000" height="${700 - Y - 30}" fill="#241c2b" opacity=".5"/>
         <text class="cap sm" x="840" y="${Y - 80}" text-anchor="end">خارج الخلية</text>
         <text class="cap sm" x="840" y="${Y + 120}" text-anchor="end">داخل الخلية</text>
-        <path id="exoMem" d="" fill="none" stroke="#e8d59a" stroke-width="7" stroke-linecap="round"/>
-        ${part('exo', `<rect x="60" y="${Y - 120}" width="880" height="260" fill="transparent"/>`)}
-        <g id="exoVes">
+        ${part('exo', `<rect x="60" y="${Y - 140}" width="880" height="300" fill="transparent"/>`)}
+        ${part('pm', `<path id="exoMem" d="" fill="none" stroke="#e8d59a" stroke-width="7" stroke-linecap="round"/>`)}
+        ${part('golgiVes', `<circle cx="500" cy="470" r="46" fill="rgba(0,0,0,0)"/><g id="exoVes">
           <circle r="36" fill="rgba(236,160,196,.28)" stroke="#f7c0da" stroke-width="3"/>
           <g id="exoVesDots"></g>
           <text class="lbl sm" y="52" text-anchor="middle">حويصلة افرازية</text>
-        </g>
+        </g>`)}
         <g id="exoOut"></g>
         <text class="cap sm" x="500" y="602" text-anchor="middle" opacity=".85">تلتحم الحويصلة بالغشاء البلازمي وتفرّغ محتواها خارج الخلية</text>`,
       stream: null, flows: [],
       parts: [
         { id: 'exo',      anchor: [500, 360], label: [858, 180], side: 'R' },
         { id: 'golgiVes', anchor: [500, 470], label: [142, 470], side: 'L', short: 'حويصلة افرازية' },
-        { id: 'pm',       anchor: [200, 320], label: [142, 180], side: 'L', short: 'غشاء بلازمي' }
+        { id: 'pm',       anchor: [180, 320], label: [142, 180], side: 'L', short: 'غشاء بلازمي' }
       ],
       tools: PROC_TOOLS,
       state: { t: 0 },
@@ -3343,7 +3359,13 @@ SCENES.metabolism = {
 
     let body = `
       <defs><marker id="arrH" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
-        <path d="M0,0 L10,5 L0,10 z" fill="#e0ae4c"/></marker></defs>`;
+        <path d="M0,0 L10,5 L0,10 z" fill="#e0ae4c"/></marker></defs>
+      ${part('metabolism', `
+          <g transform="translate(150,120)">
+            <rect x="-96" y="-24" width="192" height="48" rx="13" fill="rgba(224,174,76,.12)" stroke="rgba(224,174,76,.45)" stroke-width="2"/>
+            <text class="lbl" y="6" text-anchor="middle" fill="#f5d089">الأيض الخلوي</text>
+          </g>`)}
+        `;
 
     if (pathSel === 'glyco'){
       body += `
@@ -3424,15 +3446,17 @@ SCENES.metabolism = {
       parts: pathSel === 'glyco' ? [
         { id: 'glycolysis', anchor: [372, 301], label: [142, 210], side: 'L' },
         { id: 'atp',        anchor: [838, 280], label: [858, 132], side: 'R' },
-        { id: 'metabolism', anchor: [420, 125], label: [142, 420], side: 'L' }
+        { id: 'metabolism', anchor: [150, 120], label: [142, 232], side: 'L' }
       ] : pathSel === 'aerobic' ? [
+        { id: 'metabolism', anchor: [150, 120], label: [142, 240], side: 'L' },
         { id: 'krebs',      anchor: [680, 350], label: [858, 150], side: 'R' },
-        { id: 'glycolysis', anchor: [160, 335], label: [142, 170], side: 'L' },
+        { id: 'glycolysis', anchor: [160, 340], label: [142, 170], side: 'L' },
         { id: 'atp',        anchor: [680, 596], label: [142, 560], side: 'L' }
       ] : [
+        { id: 'metabolism',   anchor: [150, 120], label: [142, 470], side: 'L' },
         { id: 'fermentation', anchor: [300, 272], label: [142, 160], side: 'L' },
-        { id: 'glycolysis',   anchor: [500, 120], label: [858, 150], side: 'R' },
-        { id: 'atp',          anchor: [700, 400], label: [858, 560], side: 'R' }
+        { id: 'glycolysis',   anchor: [500, 128], label: [858, 150], side: 'R' },
+        { id: 'atp',          anchor: [700, 512], label: [858, 600], side: 'R' }
       ],
       tools: [
         { id: 'glyco',   label: 'التحلل السكري', radio: 'path', on: pathSel === 'glyco' },
@@ -3580,6 +3604,7 @@ function loadScene(key){
   fitViewBox();
   svgHost.innerHTML = DEFS + cur.body + labelLayer(cur.parts || []) + '<g id="fxLayer"></g>';
   buildTools(cur.tools || []);
+  addHitAreas(svgHost);
   bindParts();
   flows = cur.flows || [];
   flows.forEach(f => { f.items.forEach(i => i.el && i.el.remove()); f.items = []; f.off = false; });
@@ -3588,6 +3613,46 @@ function loadScene(key){
   if (cur.isDivision) $('#phaseBar').classList.add('on');
   if (cur.init) cur.init(api);
   applyLabelToggle();
+}
+
+/* مناطق ضغط سخية: الأجزاء ذات الخطوط الرفيعة أو النقاط الصغيرة
+   يُضاف لها نسخة شفافة عريضة حتى يسهل الضغط عليها باللمس والماوس */
+function addHitAreas(root){
+  root.querySelectorAll('.part').forEach(g => {
+    const add = [];
+    g.querySelectorAll('path,line,polyline,circle,ellipse,rect').forEach(el => {
+      if (el.dataset.hit) return;
+      const fill = el.getAttribute('fill'), stroke = el.getAttribute('stroke');
+      const sw = parseFloat(el.getAttribute('stroke-width') || '0');
+      const noFill = !fill || fill === 'none';
+      const small = (() => {
+        if (el.tagName === 'circle') return parseFloat(el.getAttribute('r') || '999') < 30;
+        if (el.tagName === 'ellipse') return Math.max(parseFloat(el.getAttribute('rx') || '999'),
+                                                     parseFloat(el.getAttribute('ry') || '999')) < 34;
+        if (el.tagName === 'rect') return Math.max(parseFloat(el.getAttribute('width') || '999'),
+                                                  parseFloat(el.getAttribute('height') || '999')) < 60;
+        return false;
+      })();
+      if (stroke && stroke !== 'none' && noFill && sw < 18){
+        add.push([el, Math.min(18, Math.max(10, sw * 4)), small]);
+      } else if (small && noFill){
+        add.push([el, 12, true]);
+      }
+    });
+    add.forEach(([el, w, small]) => {
+      const c = el.cloneNode(false);
+      c.setAttribute('stroke', 'rgba(0,0,0,0)');
+      c.setAttribute('stroke-width', String(w));
+      c.setAttribute('fill', small ? 'rgba(0,0,0,0)' : 'none');
+      c.setAttribute('opacity', '1');
+      c.removeAttribute('id');
+      c.removeAttribute('filter');
+      c.removeAttribute('class');
+      c.removeAttribute('stroke-dasharray');
+      c.dataset.hit = '1';
+      el.parentNode.insertBefore(c, el);
+    });
+  });
 }
 
 function bindParts(){
