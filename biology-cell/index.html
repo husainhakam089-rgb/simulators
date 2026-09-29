@@ -59,6 +59,48 @@
   #titleRow .src{margin-inline-start:auto;font-size:10.5px;color:var(--gold);letter-spacing:1px;
     padding:4px 10px;border:1px solid var(--line);border-radius:999px;background:rgba(224,174,76,.07)}
 
+  #titleRow h1{cursor:pointer}
+  #titleRow h1:hover{filter:brightness(1.12)}
+
+  /* ── فهرس الجداول ── */
+  .tblIdx{display:grid;gap:8px}
+  .tblIdx .idxBtn{justify-content:flex-start;text-align:start;font-size:12px;
+    min-height:36px;padding:10px 13px;line-height:1.5;white-space:normal}
+
+  /* ── الواجهة الترحيبية ── */
+  #welcome{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:22px;
+    background:radial-gradient(120% 90% at 50% 0%,rgba(255,122,47,.17),transparent 62%),
+               radial-gradient(90% 70% at 50% 100%,rgba(224,174,76,.10),transparent 62%),
+               linear-gradient(180deg,#151119,var(--ash));
+    opacity:1;transition:opacity .42s ease,visibility .42s}
+  #welcome.off{opacity:0;visibility:hidden;pointer-events:none}
+  .welCard{width:min(620px,100%);max-height:100%;overflow:auto;text-align:center;
+    padding:32px 28px 26px;border-radius:22px;position:relative;
+    background:linear-gradient(180deg,rgba(40,32,48,.94),rgba(16,13,20,.97));
+    border:1px solid var(--line);
+    box-shadow:0 30px 80px rgba(0,0,0,.62), 0 0 0 1px rgba(255,255,255,.04) inset}
+  .welCard::after{content:'';position:absolute;inset-inline:18%;top:0;height:1px;
+    background:linear-gradient(90deg,transparent,rgba(255,209,138,.75),transparent)}
+  .welMark{width:62px;height:62px;margin:0 auto 12px;color:var(--gold2);
+    filter:drop-shadow(0 0 18px rgba(255,122,47,.45))}
+  .welMark svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.2;
+    stroke-linecap:round;stroke-linejoin:round}
+  .welKicker{font-size:11.5px;letter-spacing:2px;color:var(--steel)}
+  .welTitle{font-size:clamp(30px,7vw,50px);font-weight:700;letter-spacing:clamp(4px,1.4vw,12px);
+    margin:6px 0 5px;background:linear-gradient(180deg,#fff6e6,var(--gold));
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .welSub{font-size:13px;color:var(--bone);opacity:.86;line-height:1.8}
+  .welTeacher{margin:20px auto;display:inline-flex;flex-direction:column;align-items:center;gap:4px;
+    padding:12px 30px;border-radius:16px;border:1px solid var(--line);
+    background:linear-gradient(180deg,rgba(224,174,76,.15),rgba(224,174,76,.05));
+    box-shadow:0 8px 22px rgba(0,0,0,.4), 0 1px 0 rgba(255,255,255,.07) inset}
+  .welTeacher span{font-size:11px;color:var(--steel);letter-spacing:1px}
+  .welTeacher b{font-size:clamp(17px,3.4vw,21px);color:var(--gold2);letter-spacing:.5px;
+    text-shadow:0 0 22px rgba(255,177,77,.35)}
+  .welBtns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  .btn.lg{min-height:46px;padding:13px 26px;font-size:14px;border-radius:13px}
+  .welNote{margin-top:18px;font-size:11px;color:var(--steel);line-height:2}
+
   /* ── شريط التبويبات ── */
   #tabsWrap{position:relative;margin-top:9px}
   #tabsWrap::before,#tabsWrap::after{content:'';position:absolute;top:0;bottom:6px;width:26px;pointer-events:none;z-index:2}
@@ -448,7 +490,8 @@
     #bar{gap:7px;padding:8px 10px;font-size:11.5px}
     #bar .ctl{padding:4px 8px}
     #spd{width:76px}
-    #titleRow .src{display:none}
+    #titleRow .sub{display:none}
+    #titleRow .src{font-size:9.5px;padding:3px 8px}
     th,td{padding:8px 9px;font-size:11.5px}
     .lbl{font-size:28px;stroke-width:5px}
     .lbl.sm{font-size:23px}
@@ -473,7 +516,11 @@
   }
   @media (max-width:430px){
     #titleRow h1{font-size:15px;letter-spacing:1px}
+    .welCard{padding:24px 18px 20px}
+    .welTeacher{padding:9px 14px}
+    .btn.lg{padding:12px 18px;font-size:13px}
     #bar .ctl > label{display:none}
+    #tblBtn span{display:none}
     .tgl > span{display:none}
     .tgl{padding:6px 10px;gap:7px}
     #spd{width:62px}
@@ -511,11 +558,27 @@
   <symbol id="ic-layers" viewBox="0 0 24 24"><path d="M12 3.5 21 8l-9 4.5L3 8z"/><path d="M3 12.5 12 17l9-4.5M3 16.5 12 21l9-4.5"/></symbol>
 </svg>
 
+<!-- ═══ الواجهة الترحيبية ═══ -->
+<div id="welcome">
+  <div class="welCard">
+    <div class="welMark"><svg viewBox="0 0 24 24"><use href="#ic-cell"/></svg></div>
+    <div class="welKicker">أحياء السادس العلمي · الفصل الأول</div>
+    <h2 class="welTitle">الخلية</h2>
+    <div class="welSub">محاكي تفاعلي: رسوم الملزمة وتجاربها بلمسة واحدة</div>
+    <div class="welTeacher"><span>إعداد وشرح الأستاذ</span><b>م.م. أحمد محجوب</b></div>
+    <div class="welBtns">
+      <button id="welGo" class="btn primary lg">ابدأ التجارب</button>
+      <button id="welExam" class="btn ghost lg">وضع الامتحان</button>
+    </div>
+    <div class="welNote">يشتغل بلا إنترنت · اضغط أي جزء في الرسم لتظهر معلوماته من الملزمة</div>
+  </div>
+</div>
+
 <header id="top">
   <div id="titleRow">
-    <h1>الخلية</h1>
+    <h1 id="brandBtn" title="الواجهة الترحيبية" role="button" tabindex="0">الخلية</h1>
     <div class="sub">الفصل الأول · أحياء السادس العلمي · محاكي تفاعلي</div>
-    <div class="src">المصدر: ملزمة م.م. أحمد محجوب</div>
+    <div class="src">إعداد المادة: م.م. أحمد محجوب</div>
   </div>
   <div id="tabsWrap"><nav id="tabs"></nav></div>
 </header>
@@ -611,6 +674,7 @@
   <label class="tgl"><input id="lblTgl" type="checkbox" checked><svg class="ic"><use href="#ic-eye"/></svg><span>الأسماء</span></label>
   <label class="tgl"><input id="glowTgl" type="checkbox" checked><svg class="ic"><use href="#ic-spark"/></svg><span>تأثيرات</span></label>
   <div id="barSpacer"></div>
+  <button id="tblBtn" class="btn ghost"><svg class="ic"><use href="#ic-table"/></svg><span>كل الجداول</span></button>
   <button id="resetBtn" class="btn ghost"><svg class="ic"><use href="#ic-reset"/></svg><span>إعادة المشهد</span></button>
 </div>
 
@@ -1048,6 +1112,50 @@ const INFO = {
 
 /* ══════════ جداول المقارنة (نصّها من الملزمة) ══════════ */
 const TABLES = {
+  rerGolgi: {
+    title: 'الشبكة البلازمية الداخلية وجهاز كولجي — ملزمة ص16',
+    head: ['الشبكة البلازمية الداخلية', 'جهاز كولجي'],
+    rows: [
+      ['يوجد في سايتوبلازم الخلايا النباتية والحيوانية، ويرتبط بالغشاء البلازمي في مناطق معينة ومع الغشاء النووي في مناطق أخرى', 'يوجد في سايتوبلازم الخلايا النباتية والحيوانية بين النواة والغشاء البلازمي، ومن الصعوبة تمييز حدوده بشكل دقيق'],
+      ['تعتبر مواقع لصنع الدهون والكاربوهيدرات والبروتينات', 'جهاز إفرازي يقوم بإفراز البروتينات والسكريات المعقدة والهورمونات والانزيمات في الخلايا الحيوانية، أما في الخلايا النباتية فيقوم ببناء السليلوز وبعض مكونات الجدار الخلوي'],
+      ['الخشنة فقط تحتوي على الرايبوسومات', 'خالٍ من الرايبوسومات'],
+      ['تتكون من نوعين: خشنة وملساء', 'يتكون من نوع واحد'],
+      ['عبارة عن نظام شبكي مترابط من نبيبات وحويصلات ملساء', 'عبارة عن جهاز إفرازي خلوي يتألف من ثلاث ردهات محددة بأغشية هي: الصهاريج، الحويصلات، الفجوات الكبيرة']
+    ]
+  },
+  centroCentromere: {
+    title: 'الجسيم المركزي والجزء المركزي — ملزمة ص35 (وزاري)',
+    head: ['الجسيم المركزي', 'الجزء المركزي'],
+    rows: [
+      ['ينشأ من النبيبات الدقيقة', 'ينشأ من الشبكة الكروماتينية'],
+      ['يوجد في السايتوبلازم بالقرب من النواة', 'يوجد في وسط أو طرف الكروموسوم'],
+      ['يوجد في الخلايا الحيوانية والأحياء الواطئة كالطحالب والفطريات', 'يوجد في جميع الخلايا ثنائية المجموعة الكروموسومية'],
+      ['له دور في حركة الكروموسومات نحو قطبي الخلية أثناء عملية الانقسام الخلوي', 'يقوم بربط الكروماتيدين الشقيقين مع بعضهما، وترتبط به خيوط المغزل عند الانقسام الخلوي']
+    ]
+  },
+  aerAnaer: {
+    title: 'التنفس الهوائي والتنفس اللاهوائي — ملزمة ص53 (وزاري)',
+    head: ['التنفس الهوائي', 'التنفس اللاهوائي'],
+    rows: [
+      ['يتطلب وجود الأوكسجين لإتمام التفاعلات', 'لا يتطلب وجود الأوكسجين لإتمام التفاعلات'],
+      ['تتم التفاعلات داخل المايتوكوندريا', 'تتم التفاعلات داخل السايتوبلازم'],
+      ['كمية الطاقة المنتجة لكل جزيء كلوكوز 38 ATP لأن أكسدته تامة', 'كمية الطاقة المنتجة لكل جزيء كلوكوز 2 ATP لأن أكسدته غير تامة'],
+      ['يحصل عموماً في الكائنات الراقية', 'يحصل عموماً في الكائنات الواطئة مثل البكتريا'],
+      ['يحدث فيه التحلل السكري ودورة كريبس', 'يحدث فيه التحلل السكري فقط'],
+      ['النواتج النهائية CO₂ وماء وطاقة عالية (38 ATP)', 'النواتج إما كحول إثيلي وطاقة قليلة (2 ATP) و(CO₂)، أو حامض لبني وطاقة قليلة (2 ATP)']
+    ]
+  },
+  plantAnimal: {
+    title: 'الخلية النباتية والخلية الحيوانية — ملزمة ص35 (وزاري)',
+    head: ['الصفة', 'الخلية النباتية', 'الخلية الحيوانية'],
+    rows: [
+      ['الغلاف الخلوي', 'غشاء بلازمي رقيق بالإضافة إلى جدار سيليلوزي سميك يحوي الخشبين أو اللكنين أحياناً، مما يعطي الخلية شكلاً ثابتاً', 'غشاء بلازمي رقيق'],
+      ['البلاستيدات', 'توجد بلاستيدات خضراء ترتبط غالباً بالتمثيل الضوئي، ويوجد منها عديمة اللون والملونة', 'لا توجد بلاستيدات'],
+      ['الجسيمات المركزية', 'لا توجد جسيمات مركزية إلا في بعض النباتات البدائية', 'توجد في معظم الخلايا الحيوانية ولها دور في انقسام الخلية'],
+      ['الفجوات الخلوية', 'قليلة العدد، كبيرة الحجم، وقد تشغل معظم حجم الخلية النباتية البالغة', 'كثيرة العدد، صغيرة الحجم، منتشرة في السايتوبلازم'],
+      ['انقسام الخلية', 'تتكون الصفيحة الخلوية التي تنمو من المركز إلى الخارج، حيث يكوّنها بروتوبلاست الخلية', 'يحصل تخصر في السايتوبلازم يمتد من الخارج نحو الداخل']
+    ]
+  },
   proEu: {
     title: 'الفروق بين الخلية بدائية النواة والخلية حقيقية النواة — ملزمة ص6 (وزاري)',
     head: ['الخلية بدائية النواة', 'الخلية حقيقية النواة'],
@@ -1770,10 +1878,9 @@ SCENES.animal = {
         { id: 'cyto',      anchor: [452, 540], label: [142, 392], side: 'L', short: 'السايتوبلازم' }
       ],
       tools: [
-        { id: 'protRoute', label: 'تتبّع مسار البروتين' },
-        { id: 'membTest', label: 'اختبر النفوذية الاختيارية', toggle: true },
-        { id: 'tbl:organelles', label: 'جدول العضيات (ص71)' },
-        { id: 'tbl:golgiLyso', label: 'كولجي × الجسيمات الحالة' }
+        { id: 'protRoute', label: 'مسار البروتين' },
+        { id: 'membTest', label: 'النفوذية الاختيارية', toggle: true },
+        { id: 'info:microfil', label: 'الخيوط الدقيقة' }
       ],
       state: { lyso: { ph: 'wait', t: 0 }, memb: [] },
       init(api){
@@ -1969,8 +2076,7 @@ SCENES.plant = {
       ],
       tools: [
         { id: 'light', label: 'أدخل الضوء', toggle: true, on: true },
-        { id: 'tbl:proEu', label: 'بدائية × حقيقية النواة' },
-        { id: 'tbl:chloroMito', label: 'البلاستيدة × المايتوكوندريا' }
+        { id: 'info:nonliving', label: 'محتويات غير حية' }
       ],
       init(api){ api.setTool('light', true); },
       tick(dt, t, api){
@@ -2095,9 +2201,8 @@ SCENES.pro = {
         { id: 'ribo',     anchor: [ribo[0][0], ribo[0][1]], label: [142, 600], side: 'L', short: 'رايبوسومات' }
       ],
       tools: [
-        { id: 'swim', label: 'تجربة الحركة بالسوط والأهداب', toggle: true },
-        { id: 'tbl:proEu', label: 'جدول الفروقات (ص6)' },
-        { id: 'tbl:organelles', label: 'جدول العضيات (ص71)' }
+        { id: 'swim', label: 'تجربة الحركة', toggle: true },
+        { id: 'tbl:proEu', label: 'جدول الفروقات (ص6)' }
       ],
       state: { t: 0, swimT: 0, px: 0, py: 0, rot: 0, zoom: 1 },
       init(api){
@@ -2652,19 +2757,17 @@ function divisionScene(mode){
         <g id="envs"></g>
         <g id="chromatinG" opacity="0"></g>
         <g id="centrs"></g>
-        <g id="chrs"></g>
+        <g id="chrs" class="part" data-part="chromosome"></g>
         <g id="xover"></g>`;
 
       return {
         body, stream: null, flows: [], parts: [],
         tools: isMei ? [
           { id: 'slider', slider: true },
-          { id: 'showX', label: 'أبرز التصالب', toggle: true, on: true },
-          { id: 'tbl:mitMei', label: 'جدول: خيطي / اختزالي' }
+          { id: 'showX', label: 'أبرز التصالب', toggle: true, on: true }
         ] : [
           { id: 'slider', slider: true },
-          { id: 'plant', label: 'خلية نباتية', toggle: true },
-          { id: 'tbl:mitMei', label: 'جدول: خيطي / اختزالي' }
+          { id: 'plant', label: 'خلية نباتية', toggle: true }
         ],
         isDivision: true, phases: PH,
         state: { T: 0 },
@@ -2973,6 +3076,57 @@ SCENES.mitosis = divisionScene('mit');
 SCENES.meiosis = divisionScene('mei');
 
 /* ══════════════════════════════════════════════════════════════════════════
+   4.11 · شاشات مدمجة: الخليتان في شاشة واحدة، والانقسامان في شاشة واحدة
+   ══════════════════════════════════════════════════════════════════════════ */
+let eukSel = 'animal', divSel = 'mit';
+
+/* يبني المشهد المختار ويضع أزراره داخل شريط اختيار واحد */
+function mergeScene(map, sel, group, choices){
+  const base = map[sel];
+  const s = base.build();
+  s.rebuildOnRadio = group;
+  s.subTitle = base.title;
+  s.subSrc = base.src;
+  s.hint = base.hint;
+  const tools = s.tools || [];
+  const slider = tools.filter(t => t.slider), rest = tools.filter(t => !t.slider);
+  s.tools = choices.map(c => ({ id: c.id, label: c.label, radio: group, on: c.id === sel }))
+                   .concat(slider, rest);
+  return s;
+}
+
+const EUK = { animal: SCENES.animal, plant: SCENES.plant };
+SCENES.euk = {
+  get title(){ return EUK[eukSel].title; },
+  get src(){ return EUK[eukSel].src; },
+  get tint(){ return EUK[eukSel].tint; },
+  get hint(){ return EUK[eukSel].hint; },
+  build(){
+    const s = mergeScene(EUK, eukSel, 'euk', [
+      { id: 'animal', label: 'الخلية الحيوانية' },
+      { id: 'plant',  label: 'الخلية النباتية' }
+    ]);
+    s.tools.push({ id: 'tbl:plantAnimal', label: 'نباتية × حيوانية' });
+    return s;
+  }
+};
+
+const DIV = { mit: SCENES.mitosis, mei: SCENES.meiosis };
+SCENES.division = {
+  get title(){ return DIV[divSel].title; },
+  get src(){ return DIV[divSel].src; },
+  get tint(){ return DIV[divSel].tint; },
+  get hint(){ return DIV[divSel].hint; },
+  build(){
+    const s = mergeScene(DIV, divSel, 'div', [
+      { id: 'mit', label: 'الانقسام الخيطي' },
+      { id: 'mei', label: 'الانقسام الاختزالي' }
+    ]);
+    return s;
+  }
+};
+
+/* ══════════════════════════════════════════════════════════════════════════
    4.8 · الأنشطة الخلوية — عبور المواد عبر الأغشية (ملزمة ص36–45)
    ══════════════════════════════════════════════════════════════════════════ */
 
@@ -3263,7 +3417,7 @@ PROC.phago = {
         { id: 'lyso',  anchor: [300, 470], label: [142, 430], side: 'L', short: 'جسيم حال' },
         { id: 'pm',    anchor: [520, 178], label: [142, 190], side: 'L', short: 'غشاء بلازمي' }
       ],
-      tools: PROC_TOOLS,
+      tools: PROC_TOOLS.concat([{ id: 'tbl:phagoPino', label: 'أكل × شرب خلوي' }]),
       state: { t: 0 },
       init(){ this.state.t = 0; },
       tick(dt, t, api){
@@ -3327,7 +3481,7 @@ PROC.pino = {
         { id: 'pino', anchor: [500, 260], label: [858, 170], side: 'R' },
         { id: 'pm',   anchor: [200, 300], label: [142, 170], side: 'L', short: 'غشاء الخلية' }
       ],
-      tools: PROC_TOOLS,
+      tools: PROC_TOOLS.concat([{ id: 'tbl:phagoPino', label: 'أكل × شرب خلوي' }]),
       state: { t: 0 },
       init(api){
         this.state.t = 0;
@@ -3619,9 +3773,12 @@ SCENES.metabolism = {
         { id: 'glyco',   label: 'التحلل السكري', radio: 'path', on: pathSel === 'glyco' },
         { id: 'aerobic', label: 'التنفس الهوائي', radio: 'path', on: pathSel === 'aerobic' },
         { id: 'anaer',   label: 'التنفس اللاهوائي', radio: 'path', on: pathSel === 'anaer' },
-        { id: 'tbl:anaCata', label: 'الهدم × البناء' },
-        { id: 'tbl:glycoKrebs', label: 'التحلل السكري × كريبس' },
-        { id: 'tbl:ferment', label: 'اللبني × الكحولي' }
+        pathSel === 'aerobic' ? { id: 'info:krebs', label: 'دورة كريبس' }
+          : pathSel === 'anaer' ? { id: 'info:fermentation', label: 'التخمر' }
+          : { id: 'info:glycolysis', label: 'التحلل السكري' },
+        pathSel === 'aerobic' ? { id: 'tbl:aerAnaer', label: 'هوائي × لاهوائي' }
+          : pathSel === 'anaer' ? { id: 'tbl:ferment', label: 'لبني × كحولي' }
+          : { id: 'tbl:glycoKrebs', label: 'سكري × كريبس' }
       ],
       rebuildOnRadio: 'path',
       state: { t: 0, built: false },
@@ -3678,8 +3835,7 @@ SCENES.metabolism = {
    ══════════════════════════════════════════════════════════════════════════ */
 
 const TABS = [
-  { k: 'animal',     t: 'الخلية الحيوانية' },
-  { k: 'plant',      t: 'الخلية النباتية' },
+  { k: 'euk',        t: 'الخلية الحيوانية والنباتية' },
   { k: 'pro',        t: 'بدائية النواة' },
   { k: 'membrane',   t: 'الغشاء البلازمي' },
   { k: 'mitoZoom',   t: 'المايتوكوندريا' },
@@ -3687,8 +3843,7 @@ const TABS = [
   { k: 'nucleus',    t: 'النواة' },
   { k: 'transport',  t: 'عبور المواد' },
   { k: 'metabolism', t: 'الأيض الخلوي' },
-  { k: 'mitosis',    t: 'الانقسام الخيطي' },
-  { k: 'meiosis',    t: 'الانقسام الاختزالي' },
+  { k: 'division',   t: 'الانقسام الخلوي' },
   { k: 'exam',       t: 'وضع الامتحان' }
 ];
 
@@ -3911,13 +4066,18 @@ $('#seeFn').addEventListener('click', () => {
 /* ───────────── أدوات المشهد ───────────── */
 const TOOL_ICON = {
   protRoute: 'route', membTest: 'drop', light: 'sun', plant: 'leaf', showX: 'cross',
+  animal: 'cell', mit: 'cell', mei: 'layers',
   diffusion: 'mol', osmosis: 'drop', solutions: 'flask', activeT: 'route',
   phago: 'cell', pino: 'drop', exo: 'route',
   glyco: 'flask', aerobic: 'mol', anaer: 'flask',
   o2: 'mol', co2: 'mol', alc: 'drop', h2o: 'drop', big: 'cell'
 };
 const icon = n => n ? `<svg class="ic"><use href="#ic-${n}"/></svg>` : '';
-function toolIcon(id){ return id.indexOf('tbl:') === 0 ? 'table' : (TOOL_ICON[id] || null); }
+function toolIcon(id){
+  if (id.indexOf('tbl:') === 0) return 'table';
+  if (id.indexOf('info:') === 0) return 'eye';
+  return TOOL_ICON[id] || null;
+}
 function toolBtn(t, withIcon){
   return `<button class="stool" data-tool="${t.id}"${t.radio ? ` data-radio="${t.radio}"` : ''}` +
     `${t.toggle ? ' data-toggle="1"' : ''}>${withIcon ? icon(toolIcon(t.id)) : ''}<span>${t.label}</span></button>`;
@@ -3981,11 +4141,14 @@ function onTool(id, btn){
     if (cur && cur.rebuildOnRadio === grp){
       if (grp === 'proc') procSel = id;
       if (grp === 'path') pathSel = id;
+      if (grp === 'euk')  eukSel  = id;
+      if (grp === 'div')  divSel  = id;
       loadScene(curKey);
     }
     return;
   }
   if (id.indexOf('tbl:') === 0){ const t = TABLES[id.slice(4)]; if (t) openSheet(t); return; }
+  if (id.indexOf('info:') === 0){ selectPart(id.slice(5)); return; }
   if (btn.dataset.toggle){ toolState[id] = !toolState[id]; syncTools(); }
   if (id === 'protRoute'){
     highlightDiff(['nuc', 'ribo', 'rer', 'golgi', 'golgiVes', 'pm']);
@@ -4006,6 +4169,18 @@ function clearDiff(){
 }
 
 /* ───────────── جدول المقارنة ───────────── */
+/* فهرس كل جداول الملزمة — متاح من أي مشهد */
+function openTableIndex(){
+  $('#sheetTitle').textContent = 'جداول الملزمة — اضغط أي جدول لفتحه';
+  const body = $('#sheetBody');
+  body.innerHTML = '<div class="tblIdx">' + Object.keys(TABLES).map(k =>
+    `<button class="btn ghost idxBtn" data-tbl="${k}">${TABLES[k].title}</button>`).join('') + '</div>';
+  body.querySelectorAll('[data-tbl]').forEach(b =>
+    b.addEventListener('click', () => openSheet(TABLES[b.dataset.tbl])));
+  body.scrollTop = 0;
+  $('#sheet').classList.add('on');
+}
+
 function openSheet(tb){
   $('#sheetTitle').textContent = tb.title;
   $('#sheetBody').innerHTML = `<table><thead><tr>${tb.head.map(h => `<th>${h}</th>`).join('')}</tr></thead>
@@ -4342,8 +4517,25 @@ $$('.tab').forEach(b => b.addEventListener('click', () => loadScene(b.dataset.k)
 
 fitCanvas();
 togglePlay(!REDUCE);
-loadScene('animal');
+loadScene('euk');
 requestAnimationFrame(frame);
+
+/* ── الواجهة الترحيبية ── */
+const welBox = $('#welcome');
+function showWelcome(v){
+  welBox.classList.toggle('off', !v);
+  if (!v) { fitCanvas(); fitViewBox(); }
+}
+$('#tblBtn').addEventListener('click', openTableIndex);
+$('#welGo').addEventListener('click', () => showWelcome(false));
+$('#welExam').addEventListener('click', () => { loadScene('exam'); showWelcome(false); });
+$('#brandBtn').addEventListener('click', () => showWelcome(true));
+$('#brandBtn').addEventListener('keydown', e => {
+  if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); showWelcome(true); }
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && !welBox.classList.contains('off')) showWelcome(false);
+});
 </script>
 
 <!--
@@ -4373,6 +4565,13 @@ requestAnimationFrame(frame);
   9) ص44 الشرب الخلوي (وزاري) · ص45 الإخراج الخلوي (وزاري).
  10) ص61 أطوار الانقسام · ص56–65 الانقسام الخيطي والاختزالي.
  11) ص40–42 المحاليل الثلاثة والبلزمة (من نص الملزمة، بلا رسم فيها).
+
+  ── الواجهة ──
+  · واجهة ترحيبية باسم الأستاذ (م.م. أحمد محجوب) وزرّ «ابدأ التجارب»
+    وزرّ «وضع الامتحان»، وتُفتح ثانيةً بالضغط على عنوان «الخلية».
+  · الخليتان الحيوانية والنباتية في شاشة واحدة بمفتاح تبديل، وكذلك
+    الانقسامان الخيطي والاختزالي.
+  · زرّ «كل الجداول» في الشريط السفلي يفتح فهرس جداول الملزمة الـ21.
 
   ── ما يبقى للمراجعة ──
   أ) النواة: الملزمة تشرحها نصّياً (ص31–33) بلا رسم مستقل لها؛ رسم النواة
