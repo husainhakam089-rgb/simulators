@@ -557,15 +557,30 @@
     #stage::before{animation:none}
   }
 
+  /* ═══════════ الامتحان: الشريط يبقى بدون أدوات الحركة ═══════════ */
+  body.examMode #playBtn,body.examMode #bar .ctl,body.examMode #bar .tgl,body.examMode #resetBtn{display:none}
+  #sheet{z-index:6}
+
+  /* ═══════════ لوحة المفاتيح: حلقة تركيز على الجزء المختار ═══════════ */
+  #svgHost .part:focus{outline:none}
+  #svgHost .part:focus-visible{outline:none;filter:drop-shadow(0 0 5px #ffd166) drop-shadow(0 0 2px #ffd166)}
+
   /* ═══════════ ملء الشاشة: الرسم وحده ═══════════ */
-  #fsExit{display:none;position:fixed;top:calc(10px + env(safe-area-inset-top));left:10px;z-index:40;
+  #fsExit,#fsTabsBtn{display:none;position:fixed;top:calc(10px + env(safe-area-inset-top));left:10px;z-index:40;
     width:40px;height:40px;border-radius:12px;color:var(--bone);
     background:linear-gradient(180deg,rgba(40,33,46,.92),rgba(18,15,22,.92));
     border:1px solid var(--line);box-shadow:0 6px 18px rgba(0,0,0,.45)}
-  #fsExit .ic{width:18px;height:18px}
+  #fsTabsBtn{left:58px}
+  #fsExit .ic,#fsTabsBtn .ic{width:18px;height:18px}
   body.fs #top,body.fs #bar{display:none}
-  body.fs #fsExit{display:inline-flex}
-  body.fs #sceneHead{left:62px}
+  body.fs #fsExit,body.fs #fsTabsBtn{display:inline-flex}
+  body.fs.fsTabs #fsTabsBtn{color:#221607;background:linear-gradient(180deg,#ffe2a6,#e0ae4c)}
+  body.fs #sceneHead{left:110px}
+  /* «المواضيع» بملء الشاشة: شريط التبويبات يطفو فوق الرسم */
+  body.fs.fsTabs #top{display:block;position:fixed;top:0;left:0;right:0;z-index:38;
+    padding:calc(10px + env(safe-area-inset-top)) 16px 0 108px}
+  body.fs.fsTabs #titleRow{display:none}
+  body.fs.fsTabs #sceneHead{visibility:hidden}
   /* لوحة المعلومات تطفو فوق الرسم ولا تظهر إلا عند اختيار جزء */
   body.fs #wrap{position:relative}
   body.fs #info{position:absolute;top:10px;right:10px;bottom:10px;z-index:30;
@@ -633,7 +648,8 @@
   html[data-theme=day] .segbar .stool{background:transparent;box-shadow:none;color:#4a5563}
   html[data-theme=day] .iconBtn,html[data-theme=day] #infoClose,html[data-theme=day] #sheetClose{
     color:#4a5563;background:#fff;border-color:rgba(40,50,70,.16)}
-  html[data-theme=day] #fsExit{color:#2c3542;background:linear-gradient(180deg,#ffffff,#eef1f5)}
+  html[data-theme=day] #fsExit,html[data-theme=day] #fsTabsBtn{color:#2c3542;background:linear-gradient(180deg,#ffffff,#eef1f5)}
+  html[data-theme=day] body.fs.fsTabs #fsTabsBtn{color:#221607;background:linear-gradient(180deg,#ffe2a6,#e0ae4c)}
   html[data-theme=day] .sliderWrap{background:rgba(255,255,255,.9);border-color:rgba(40,50,70,.12)}
 
   html[data-theme=day] #phaseBar .pdesc{color:#3b4452}
@@ -665,6 +681,10 @@
   html[data-theme=day] td{color:#28303b}
   html[data-theme=day] th{background:linear-gradient(180deg,#fdf0e2,#f8e9d8)}
   html[data-theme=day] tbody tr:nth-child(odd){background:rgba(40,50,70,.03)}
+
+  /* مخطط الأيض بالنهاري: بطاقات بيضاء بحواف ملوّنة بدل المربعات الباهتة */
+  html[data-theme=day] #svgHost[data-scene=metabolism] rect[filter]{
+    fill:#ffffff;fill-opacity:.94;stroke-width:2.8;filter:drop-shadow(0 3px 6px rgba(30,40,60,.16))}
 
   /* أسماء الرسوم: حبر غامق بهالة بيضاء */
   html[data-theme=day] .lbl{fill:#18202b;stroke:rgba(255,255,255,.92)}
@@ -736,7 +756,8 @@
   <div id="tabsWrap"><nav id="tabs"></nav></div>
 </header>
 
-<button id="fsExit" class="iconBtn" title="خروج من ملء الشاشة"><svg class="ic"><use href="#ic-shrink"/></svg></button>
+<button id="fsExit" class="iconBtn" title="خروج من ملء الشاشة" aria-label="خروج من ملء الشاشة"><svg class="ic"><use href="#ic-shrink"/></svg></button>
+<button id="fsTabsBtn" class="iconBtn" title="المواضيع" aria-label="المواضيع"><svg class="ic"><use href="#ic-list"/></svg></button>
 <div id="rotHint">لفّ الموبايل بالعرض حتى يكبر الرسم ⟲</div>
 
 <main id="wrap">
@@ -4121,7 +4142,7 @@ const $$ = s => Array.from(document.querySelectorAll(s));
 const svgHost = $('#svgHost'), fx = $('#fx'), stage = $('#stage');
 const REDUCE = window.matchMedia('(prefers-reduced-motion:reduce)').matches;
 
-let cur = null, curKey = null, playing = !REDUCE, speedMul = 1, tAcc = 0;
+let cur = null, curKey = null, playing = !REDUCE, speedMul = 1, tAcc = 0, routeTimer = 0;
 let focusOwner = null, focusUntil = 0, selPart = null;
 const toolState = {}, radioState = {};
 let flows = [], stream = null, streamParts = [];
@@ -4206,12 +4227,18 @@ function labelLayer(parts){
 /* ───────────── بناء المشهد ───────────── */
 function loadScene(key){
   curKey = key;
+  /* لا يبقى شيء من المشهد السابق: مؤقت «مسار البروتين»، التبطيء، وإخفاء جريان السايتوبلازم */
+  clearTimeout(routeTimer); routeTimer = 0;
+  focusOwner = null; focusUntil = 0;
+  fx.style.opacity = '';
+  svgHost.dataset.scene = key;
   $$('.tab').forEach(b => b.classList.toggle('on', b.dataset.k === key));
   closeSheet(); clearInfo();
   const isExam = key === 'exam';
   $('#exam').classList.toggle('on', isExam);
   $('#info').style.display = isExam ? 'none' : '';
-  $('#bar').style.display = isExam ? 'none' : '';
+  /* في الامتحان يبقى الشريط (نهاري/ملء الشاشة/الجداول) وتختفي أدوات الحركة فقط */
+  document.body.classList.toggle('examMode', isExam);
   $('#phaseBar').classList.remove('on');
   if (isExam){ cur = null; flows = []; stream = null; $('#sceneName').textContent = 'وضع الامتحان'; $('#sceneHint').textContent = ''; initExam(); return; }
 
@@ -4288,9 +4315,19 @@ function addHitAreas(root){
 function bindParts(){
   svgHost.querySelectorAll('.part').forEach(el => {
     el.addEventListener('click', ev => { ev.stopPropagation(); selectPart(el.dataset.part); });
+    /* لوحة المفاتيح: Tab للتنقل بين الأجزاء، و Enter أو المسافة للاختيار */
+    const d = INFO[el.dataset.part];
+    if (!d) return;
+    el.setAttribute('tabindex', '0');
+    el.setAttribute('role', 'button');
+    el.setAttribute('aria-label', d.name);
+    el.addEventListener('keydown', ev => {
+      if (ev.key === 'Enter' || ev.key === ' '){ ev.preventDefault(); selectPart(el.dataset.part); }
+    });
   });
-  svgHost.addEventListener('click', () => clearInfo());
 }
+/* الضغط على فراغ الرسم يغلق اللوحة — مستمع واحد فقط طوال عمل البرنامج */
+svgHost.addEventListener('click', () => clearInfo());
 
 /* ───────────── لوحة المعلومات ───────────── */
 function selectPart(id){
@@ -4425,7 +4462,12 @@ function onTool(id, btn){
     focusOwner = null; focusUntil = tAcc + 14;
     if (!playing) togglePlay(true);
     $('#sceneHint').textContent = 'الرايبوسومات تبني البروتين، والشبكة الخشنة تنقله داخل الخلية وبشكل خاص إلى جهاز كولجي، وكولجي يفرزه في حويصلات إلى خارج الخلية — ملزمة ص12 وص15.';
-    setTimeout(() => { clearDiff(); $('#sceneHint').textContent = (cur && cur.hint) || SCENES[curKey].hint; }, 14000);
+    clearTimeout(routeTimer);
+    routeTimer = setTimeout(() => {
+      routeTimer = 0;
+      clearDiff();
+      $('#sceneHint').textContent = (cur && cur.hint) || (SCENES[curKey] && SCENES[curKey].hint) || '';
+    }, 14000);
   }
 }
 function highlightDiff(ids){
@@ -4536,9 +4578,12 @@ function drawStream(dt, t){
 
 /* ───────────── الحلقة الرئيسية ───────────── */
 let last = performance.now();
+const welcomeEl = document.getElementById('welcome');
 function frame(now){
   let dt = (now - last) / 1000; last = now;
   dt = Math.min(dt, 0.05);
+  /* ورا واجهة البداية ما نرسم شي — توفير بطارية الموبايل */
+  if (welcomeEl && !welcomeEl.classList.contains('off')){ requestAnimationFrame(frame); return; }
   const slow = (focusOwner || tAcc < focusUntil) ? 0.45 : 1;
   if (tAcc >= focusUntil && focusOwner){ focusOwner = null; clearDiff(); }
   const eff = playing ? dt * speedMul * slow : 0;
@@ -4853,6 +4898,7 @@ const fsActive = () => document.fullscreenElement || document.webkitFullscreenEl
 function refit(){ requestAnimationFrame(() => { fitCanvas(); fitViewBox(); }); }
 function setFs(on){
   document.body.classList.toggle('fs', on);
+  document.body.classList.remove('fsTabs');
   /* في ملء الشاشة تختفي اللوحة الجانبية حتى يُختار جزء */
   $('#info').classList.toggle('closed', on && $('#infoBody').hidden);
   $('#fsIcon').setAttribute('href', on ? '#ic-shrink' : '#ic-expand');
@@ -4878,6 +4924,9 @@ function setFs(on){
 }
 $('#fsBtn').addEventListener('click', () => setFs(!document.body.classList.contains('fs')));
 $('#fsExit').addEventListener('click', () => setFs(false));
+/* «المواضيع» بملء الشاشة: يفتح شريط التبويبات، واختيار تبويب يغلقه */
+$('#fsTabsBtn').addEventListener('click', () => document.body.classList.toggle('fsTabs'));
+$$('.tab').forEach(b => b.addEventListener('click', () => document.body.classList.remove('fsTabs')));
 /* الخروج بزر المتصفح أو Esc يرجّع الواجهة كما كانت */
 ['fullscreenchange', 'webkitfullscreenchange'].forEach(ev =>
   document.addEventListener(ev, () => {
@@ -4926,6 +4975,8 @@ document.addEventListener('keydown', e => {
   · زرّ «نهاري/ليلي» يبدّل الواجهة كلها إلى وضع فاتح (ويُحفظ الاختيار)،
     وزرّ «ملء الشاشة» يُخفي الرأس والشريط فيكبر الرسم، ولوحة المعلومات
     تطفو فوقه عند اختيار جزء فقط، وعلى الموبايل يلف الشاشة بالعرض.
+  · بملء الشاشة زرّ «المواضيع» يفتح شريط التبويبات فوق الرسم.
+  · أجزاء الرسوم تُختار بلوحة المفاتيح أيضاً (Tab ثم Enter).
   · كل شيء يعمل باللمس: الأزرار والتبويبات وأجزاء الرسوم ومفاتيح الشريط
     وشريط الأطوار وسحب الأسماء في وضع الامتحان — بلا تأخير نقرة، وبلا
     سحب الصفحة أثناء السحب، ومع مراعاة الحافة السفلى في الهواتف.
