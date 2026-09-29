@@ -4794,9 +4794,33 @@ requestAnimationFrame(frame);
 const welBox = $('#welcome');
 /* الخلفية المغبّشة من الصورة نفسها (بلا تكرار الصورة داخل الملف) */
 $('.welBg').style.backgroundImage = 'url(' + $('#welImg').src + ')';
+
+/* تكبير الصورة: تُقصّ الزخارف على الحواف فقط، ويبقى «المهم» ظاهراً دائماً:
+   الشعار والاسم والاقتباس وزرّ البداية والسطر الأخير (نِسَب من الصورة) */
+const WEL = { w: 896, h: 1195, safe: { x0: .03, x1: .95, y0: .11, y1: .97 } };
+function sizeWelcome(){
+  const st = $('.welStage'); if (!st) return;
+  const vw = window.innerWidth, vh = window.innerHeight, S = WEL.safe;
+  const cover = Math.max(vw / WEL.w, vh / WEL.h);
+  const k = Math.min(cover, vw / ((S.x1 - S.x0) * WEL.w), vh / ((S.y1 - S.y0) * WEL.h));
+  const w = WEL.w * k, h = WEL.h * k;
+  /* وسط المنطقة المهمة في وسط الشاشة، بلا فراغ إذا الصورة أعرض/أطول من الشاشة */
+  const place = (view, size, c) => size <= view ? (view - size) / 2
+    : Math.min(0, Math.max(view - size, view / 2 - c * size));
+  st.style.width = w + 'px';
+  st.style.height = h + 'px';
+  st.style.left = place(vw, w, (S.x0 + S.x1) / 2) + 'px';
+  st.style.top = place(vh, h, (S.y0 + S.y1) / 2) + 'px';
+  st.style.transform = 'none';
+}
+sizeWelcome();
+window.addEventListener('resize', sizeWelcome);
+window.addEventListener('orientationchange', () => setTimeout(sizeWelcome, 250));
+
 function showWelcome(v){
   welBox.classList.toggle('off', !v);
-  if (!v) { fitCanvas(); fitViewBox(); }
+  if (v) sizeWelcome();
+  else { fitCanvas(); fitViewBox(); }
 }
 $('#tblBtn').addEventListener('click', openTableIndex);
 $('#welGo').addEventListener('click', () => showWelcome(false));
