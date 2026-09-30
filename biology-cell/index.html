@@ -594,6 +594,19 @@
   @media (max-width:700px){ #lbl3d .lbl{font-size:10.5px;stroke-width:2.6px} }
   /* نقطة التأشير فوق المجسم لا تحجز اللمس: السحب منها يدوّر المجسم، والنقر عليها يلتقط الجزء نفسه من المجسم */
   #lbl3d .dotHit{pointer-events:none}
+  /* الموبايل بالمجسّم: لوحة الطور مختصرة (الاسم والعدد) ويُفتح وصفها بالضغط عليها حتى لا تغطي المجسّم */
+  @media (max-width:700px){
+    body.v3 #phaseBar{cursor:pointer}
+    body.v3 #phaseBar:not(.open) .pdesc,body.v3 #phaseBar:not(.open) .psrc{display:none}
+    body.v3 #phaseBar:not(.open) .pname::after{content:' ▾';font-size:10px;opacity:.7}
+  }
+  #lbl3d .cap3d{fill:var(--bone);paint-order:stroke;stroke:rgba(10,12,18,.75);stroke-width:3px;pointer-events:none}
+  #lbl3d .cap3d .c1{font-size:14px;font-weight:700;fill:var(--gold2)}
+  #lbl3d .cap3d .c2{font-size:11.5px;opacity:.9}
+  #lbl3d.compact .cap3d .c1{font-size:11px}
+  #lbl3d.compact .cap3d .c2{font-size:9.5px}
+  html[data-theme=day] #lbl3d .cap3d{stroke:rgba(255,255,255,.85)}
+  html[data-theme=day] #lbl3d .cap3d .c1{fill:#8a5a10}
   #lbl3d.tiny .lblG{display:none}
   #lbl3d.compact .lbl{font-size:9.6px;stroke-width:2.4px}
   #lbl3d.compact .lblDot{r:2.8px}
@@ -4596,7 +4609,8 @@ function syncTools(){
 }
 function onTool(id, btn){
   /* أدوات الحركة والتجارب مرسومة في المشهد المسطّح: نرجع إليه حتى يظهر أثرها */
-  const keeps3d = id.indexOf('tbl:') === 0 || id.indexOf('info:') === 0 || btn.dataset.radio === 'euk';
+  const keeps3d = id.indexOf('tbl:') === 0 || id.indexOf('info:') === 0 || ['euk', 'div', 'proc'].indexOf(btn.dataset.radio) >= 0 ||
+    (curKey === 'division' && (id === 'plant' || id === 'showX'));
   if (!keeps3d && window.__v3 && window.__v3.active()) window.__v3.setOn(false);
   if (btn.dataset.radio){
     const grp = btn.dataset.radio;
@@ -4742,7 +4756,7 @@ function frame(now){
   /* ورا واجهة البداية ما نرسم شي — توفير بطارية الموبايل */
   if (welcomeEl && !welcomeEl.classList.contains('off')){ requestAnimationFrame(frame); return; }
   /* بالعرض ثلاثي الأبعاد الرسم المسطّح مخفي فلا نحرّكه */
-  if (document.body.classList.contains('v3')){ requestAnimationFrame(frame); return; }
+  if (document.body.classList.contains('v3') && !(window.__v3 && window.__v3.live())){ requestAnimationFrame(frame); return; }
   const slow = (focusOwner || tAcc < focusUntil) ? 0.45 : 1;
   if (tAcc >= focusUntil && focusOwner){ focusOwner = null; clearDiff(); }
   const eff = playing ? dt * speedMul * slow : 0;
@@ -4782,6 +4796,8 @@ function applyLabelToggle(){
   if (on) sizeLabelHits();
 }
 $('#lblTgl').addEventListener('change', applyLabelToggle);
+/* على الموبايل بالمجسّم: الضغط على لوحة الطور يفتح/يطوي وصف الطور */
+$('#phaseBar').addEventListener('click', () => $('#phaseBar').classList.toggle('open'));
 $('#glowTgl').addEventListener('change', e => svgHost.classList.toggle('flat', !e.target.checked));
 $('#resetBtn').addEventListener('click', () => {
   if (curKey === 'exam') initExam();
@@ -5049,7 +5065,7 @@ void main(){
 
 let gl = null, prog = null, U = {}, A = {}, ext32 = null, fbo = null, fboTex = null, fboDepth = null, fboW = 0, fboH = 0;
 let canvas = null, svg = null, labG = null, supported = null;
-let objs = [], labels = [], partIds = [], cfg = null, modelKey = null;
+let objs = [], labels = [], partIds = [], cfg = null, modelKey = null, caps = [];
 let yaw = 0.6, pitch = 0.32, dist = 7, yawV = 0, pitchV = 0, lastUser = 0, animT = 0;
 let selId = null, hovId = null, running = false, W = 0, H = 0, dpr = 1;
 let viewM = null, projM = null, eye = [0, 0, 7], cam = null;
@@ -5137,23 +5153,28 @@ function makeBuilder(){
     },
     /* لتحريك مجسم (مثل السوط): نعيد رفع بياناته */
     update(rec, mesh){
-      if (rec.buf.sw){ rec.buf.p = Float32Array.from(mesh.p); rec.buf.n = Float32Array.from(mesh.n); return; }
+      if (rec.buf.sw){ rec.buf.p = Float32Array.from(mesh.p); rec.buf.n = Float32Array.from(mesh.n); rec.buf.l = Float32Array.from(mesh.l); return; }
       const nv = mesh.p.length / 3, data = new Float32Array(nv * 9);
       for (let v = 0; v < nv; v++) data.set([mesh.p[v * 3], mesh.p[v * 3 + 1], mesh.p[v * 3 + 2], mesh.n[v * 3], mesh.n[v * 3 + 1], mesh.n[v * 3 + 2], mesh.l[v * 3], mesh.l[v * 3 + 1], mesh.l[v * 3 + 2]], v * 9);
       gl.bindBuffer(gl.ARRAY_BUFFER, rec.buf.vbo); gl.bufferSubData(gl.ARRAY_BUFFER, 0, data);
     },
-    label(part, at, n){ labels.push({ part, at, n: n ? norm(n) : null }); }
+    /* vis: دالة اختيارية تُخفي الاسم عندما يختفي جزؤه (مثل الغلاف النووي أثناء الانقسام) */
+    label(part, at, n, vis){ labels.push({ part, at, n: n ? norm(n) : null, vis }); },
+    /* تسجيل جزء يظهر لاحقاً (أو يتبدّل اسمه أثناء الحركة) حتى يُلتقط بالضغط */
+    reg(id){ if (id && partIds.indexOf(id) < 0) partIds.push(id); },
+    /* عنوان أو سطر نصي ثابت فوق/تحت مجسّم (مثل اسم الطور تحت كل خلية في المقارنة) */
+    caption(at, fn){ caps.push({ at, fn }); }
   };
 }
 
 function loadModel(key){
   if (modelKey === key && objs.length) return;
-  freeObjs(); labels = []; partIds = []; selId = null; hovId = null;
+  freeObjs(); labels = []; caps = []; partIds = []; selId = null; hovId = null;
   const B = makeBuilder();
   cfg = G3.models[key](B) || {};
   modelKey = key;
   resetView();
-  buildLabels();
+  buildLabels(); buildCaps();
 }
 function resetView(){
   yaw = cfg.yaw === undefined ? 0.55 : cfg.yaw; pitch = cfg.pitch === undefined ? 0.3 : cfg.pitch;
@@ -5222,15 +5243,15 @@ function render(){
   gl.enable(gl.DEPTH_TEST); gl.depthFunc(gl.LEQUAL);
   /* الأجسام المعتمة */
   gl.disable(gl.BLEND); gl.depthMask(true); gl.enable(gl.CULL_FACE); gl.cullFace(gl.BACK);
-  objs.forEach(o => { if (!o.shell && o.alpha >= 0.99) drawObj(o); });
+  objs.forEach(o => { if (!o.hide && !o.shell && o.alpha >= 0.99) drawObj(o); });
   /* الأغشية الشفافة: الوجوه الخلفية من الخارج للداخل، ثم الأمامية من الداخل للخارج */
   gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); gl.depthMask(false);
-  const shells = objs.filter(o => o.shell || o.alpha < 0.99);
+  const shells = objs.filter(o => !o.hide && (o.shell || o.alpha < 0.99));
   const sz = o => (o.shell && o.shell.size) || 1;
   gl.cullFace(gl.FRONT); shells.slice().sort((a, b) => sz(b) - sz(a)).forEach(o => drawObj(o));
   gl.cullFace(gl.BACK);  shells.slice().sort((a, b) => sz(a) - sz(b)).forEach(o => drawObj(o));
   gl.depthMask(true);
-  placeLabels();
+  placeLabels(); placeCaps();
 }
 
 /* ── اختيار الجزء تحت الإصبع (لون لكل جزء في إطار مخفي) ── */
@@ -5267,13 +5288,14 @@ function pickAt(cx, cy){
   gl.disable(gl.BLEND); gl.enable(gl.DEPTH_TEST); gl.depthMask(true); gl.enable(gl.CULL_FACE); gl.cullFace(gl.BACK);
   let found = null;
   /* 1) الأجزاء المعتمة: ما تحت الإصبع بالضبط يفوز */
-  objs.forEach(o => { if (!o.shell && o.alpha >= 0.99 && o.part) drawObj(o, idCol(o.part)); });
+  /* كل جزء ليس غشاءً يُعدّ صلباً عند الالتقاط حتى لو كان يظهر أو يختفي تدريجياً */
+  objs.forEach(o => { if (!o.hide && !o.shell && o.alpha > 0.15 && o.part) drawObj(o, idCol(o.part)); });
   const buf = new Uint8Array(w * h * 4); gl.readPixels(x0, y0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, buf);
   const ck = ((py - y0) * w + (px - x0)) * 4;
   if (ck >= 0 && ck < buf.length) found = colId(buf[ck], buf[ck + 1]);
   /* 2) ثم الأغشية تحت الإصبع، من الأصغر للأكبر (الداخل له الأولوية) */
   if (!found){
-    const shells = objs.filter(o => (o.shell || o.alpha < 0.99) && o.part).sort((a, b) => ((a.shell && a.shell.size) || 1) - ((b.shell && b.shell.size) || 1));
+    const shells = objs.filter(o => !o.hide && o.shell && o.part).sort((a, b) => ((a.shell && a.shell.size) || 1) - ((b.shell && b.shell.size) || 1));
     const one = new Uint8Array(4);
     gl.scissor(px, py, 1, 1);
     for (const o of shells){
@@ -5324,6 +5346,7 @@ function renderSW(){
     swT = { cap: c, xy: new Float32Array(c * 6), z: new Float32Array(c), a: new Float32Array(c), fac: new Float32Array(c), o: new Int32Array(c), col: new Array(c), idx: new Uint32Array(c) }; }
   const T = swT; let nt = 0;
   objs.forEach((o, oi) => {
+    if (o.hide) return;
     const b = o.buf, p = b.p, nn = b.n, lc = b.l, I = b.i, nv = p.length / 3, k = o.k, c = o.c;
     const sx = new Float32Array(nv), sy = new Float32Array(nv), sw = new Float32Array(nv), wx = new Float32Array(nv * 3);
     for (let v = 0; v < nv; v++){
@@ -5389,7 +5412,7 @@ function renderSW(){
     if (solid && objs[T.o[i]].alpha >= 0.99){ ctx.strokeStyle = T.col[i]; ctx.stroke(); }
   }
   ctx.globalAlpha = 1;
-  placeLabels();
+  placeLabels(); placeCaps();
 }
 /* الالتقاط في الرسم البديل: نفس ترتيب WebGL (المعتم تحت الإصبع، ثم الأغشية من الأصغر، ثم أقرب جزء صغير) */
 function pickSW(cx, cy){
@@ -5398,10 +5421,10 @@ function pickSW(cx, cy){
   const inTri = j => { const ax = T.xy[j], ay = T.xy[j + 1], bx = T.xy[j + 2], by = T.xy[j + 3], qx = T.xy[j + 4], qy = T.xy[j + 5];
     const d1 = (px - bx) * (ay - by) - (ax - bx) * (py - by), d2 = (px - qx) * (by - qy) - (bx - qx) * (py - qy), d3 = (px - ax) * (qy - ay) - (qx - ax) * (py - ay);
     return !((d1 < 0 || d2 < 0 || d3 < 0) && (d1 > 0 || d2 > 0 || d3 > 0)); };
-  const isShell = o => !!o.shell || o.alpha < 0.99;
+  const isShell = o => !!o.shell;
   let best = -1, bz = 1e9; const shellHit = new Map();
   for (let i = 0; i < nt; i++){
-    const o = objs[T.o[i]]; if (!o.part || !inTri(i * 6)) continue;
+    const o = objs[T.o[i]]; if (!o.part || (!isShell(o) && o.alpha <= 0.15) || !inTri(i * 6)) continue;
     if (!isShell(o)){ if (T.z[i] < bz){ bz = T.z[i]; best = i; } }
     else { const h = shellHit.get(o); if (!h || T.z[i] < T.z[h]) shellHit.set(o, i); }
   }
@@ -5418,6 +5441,28 @@ function pickSW(cx, cy){
   return found;
 }
 
+/* ── العناوين تحت المجسّمات وفوقها ── */
+function buildCaps(){
+  let g = svg.querySelector('#cap3dG');
+  if (!g){ g = document.createElementNS(SVGNS, 'g'); g.id = 'cap3dG'; svg.insertBefore(g, svg.firstChild); }
+  g.innerHTML = '';
+  caps.forEach(c => { c.el = document.createElementNS(SVGNS, 'text'); c.el.setAttribute('class', 'cap3d'); c.el.setAttribute('text-anchor', 'middle'); c.last = null; g.appendChild(c.el); });
+}
+function placeCaps(){
+  if (!caps.length) return;
+  const cmp = compact();
+  caps.forEach(c => {
+    const s = project(c.at), lines = c.fn() || [], key = lines.join('|');
+    if (key !== c.last){
+      c.el.innerHTML = lines.map((t, i) => `<tspan class="${i ? 'c2' : 'c1'}" dy="${i ? (cmp ? 13 : 17) : 0}">${t}</tspan>`).join('');
+      c.last = key;
+    }
+    const x = s[0].toFixed(1);
+    c.el.setAttribute('x', x); c.el.setAttribute('y', s[1].toFixed(1));
+    c.el.querySelectorAll('tspan').forEach(t => t.setAttribute('x', x));
+  });
+}
+
 /* ── الأسماء: عمودان جانبيان وخطوط تأشير تتبع الدوران ── */
 let labState = {};
 /* شاشة الموبايل الضيقة: أسماء أصغر على الحافتين، والمجسم يبتعد قليلاً ليبقى بين العمودين */
@@ -5427,7 +5472,10 @@ const fitK = () => {
   if (!W || !H) return 1;
   const lab = labels.length && !svg.classList.contains('off') && !svg.classList.contains('tiny');
   const avail = W - (lab ? (compact() ? 160 : 300) : 0);
-  return Math.max(1, Math.min(4, H / Math.max(120, avail)));
+  let k = Math.max(1, Math.min(4, H / Math.max(120, avail)));
+  /* مجسّمان جنباً إلى جنب مع عناوين: نبعد الكاميرا قليلاً على الموبايل حتى لا تنقطع العناوين */
+  if (compact() && cfg && cfg.compactK) k = Math.max(k, cfg.compactK);
+  return k;
 };
 function project(p){
   const v = m4mul(projM, m4mul(viewM, [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, p[0], p[1], p[2], 1])).slice(12, 16);
@@ -5467,12 +5515,24 @@ function placeLabels(){
   svg.classList.toggle('tiny', tiny);
   if (tiny) return;
   if (cmp !== svg.classList.contains('compact')){ buildLabels(); }
+  /* لوحة الطور (الانقسام) تشغل أعلى اليسار: عمود اليسار يبدأ تحتها، وإن لم يبقَ له مكان تذهب أسماؤه لليمين */
+  let topL = top;
+  const pb = document.getElementById('phaseBar');
+  if (pb && pb.classList.contains('on') && pb.offsetHeight){
+    const r = pb.getBoundingClientRect(), c = canvas.getBoundingClientRect();
+    if (r.left - c.left < W / 2) topL = Math.max(top, r.bottom - c.top + 8);
+  }
+  const noL = bottom - topL < 110, topA = top;
   const cols = { L: [], R: [] };
   labels.forEach(L => {
     const st = labState[L.part]; if (!st) return;
+    const vis = !L.vis || L.vis();
+    if (st.g.style.display !== (vis ? '' : 'none')) st.g.style.display = vis ? '' : 'none';
+    if (!vis) return;
     const s = project(L.at);
     let side = s[0] < cx ? 'L' : 'R';
     if (st.side && Math.abs(s[0] - cx) < 40) side = st.side;
+    if (noL) side = 'R';
     st.side = side;
     let face = 1;
     if (L.n){ face = dot(L.n, norm(sub(eye, L.at))); }
@@ -5480,7 +5540,7 @@ function placeLabels(){
   });
   /* موازنة العمودين: إن زاد أحدهما كثيراً ننقل أقرب أسمائه للوسط إلى العمود الآخر */
   const lineSum = c => c.reduce((a, o) => a + o.st.lines, 0);
-  for (let guard = 0; guard < 12; guard++){
+  for (let guard = 0; guard < 12 && !noL; guard++){
     const big = lineSum(cols.L) > lineSum(cols.R) ? 'L' : 'R', sm = big === 'L' ? 'R' : 'L';
     if (!cols[big].length || lineSum(cols[big]) - lineSum(cols[sm]) <= 3) break;
     cols[big].sort((a, b) => Math.abs(a.sx - cx) - Math.abs(b.sx - cx));
@@ -5489,6 +5549,7 @@ function placeLabels(){
   const lh = cmp ? 12 : 17;
   Object.keys(cols).forEach(side => {
     const c = cols[side]; if (!c.length) return;
+    const top = side === 'L' ? topL : topA;
     c.sort((a, b) => a.sy - b.sy);
     /* كل اسم متمركز على y؛ نصف ارتفاعه حسب عدد أسطره، مع فراغ بين الأسماء */
     const room = bottom - top - c.reduce((a, o) => a + o.st.lines * lh, 0);
@@ -5631,6 +5692,8 @@ function loop(now){
 /* ══════════ الربط بالواجهة ══════════ */
 const SCENE_MODEL = () => {
   if (curKey === 'euk') return eukSel;
+  if (curKey === 'division') return divSel === 'both' ? 'divBoth' : divSel === 'mei' ? 'meiosis' : 'mitosis';
+  if (curKey === 'transport') return 'tr_' + procSel;
   return { pro: 'pro', mitoZoom: 'mito', chloroZoom: 'chloro', nucleus: 'nucleus', membrane: 'membrane' }[curKey] || null;
 };
 let on = false, hint2d = '';
@@ -5675,10 +5738,13 @@ function sync(){
 
 window.__v3 = {
   sync, onSelect: id => { if (on) onSelect(id); },
-  active: () => on, reset: () => { if (on) resetView(); },
+  active: () => on,
+  /* مشاهد الانقسام: يبقى المشهد المسطّح يحسب الزمن والطور والشريط، والمجسّم يرسم نفس الحالة */
+  live: () => on && !!(cfg && cfg.live2d),
+  reset: () => { if (on) resetView(); },
   pick: (x, y) => pickAt(x, y), proj: p => project(p), setOn,
   debug: () => ({ sw: SW, lw: Object.keys(labState).map(k => k + ":" + Math.round(labState[k].w) + "/" + labState[k].side), objs: objs.length, parts: partIds.slice(), labels: labels.map(l => l.part), key: modelKey, yaw, pitch, dist,
-    screen: labels.map(l => { const s = project(l.at); return { part: l.part, x: s[0], y: s[1] }; }) })
+    screen: labels.filter(l => !l.vis || l.vis()).map(l => { const s = project(l.at); return { part: l.part, x: s[0], y: s[1] }; }) })
 };
 $('#v3Btn').addEventListener('click', () => {
   setOn(!on);
@@ -5960,7 +6026,9 @@ function proModel(B){
 function bothModel(B){
   animalModel(B, { s: 0.78, at: [-2.55, 0, 0], noLabels: true });
   plantModel(B, { s: 0.78, at: [2.55, 0, 0], noLabels: true });
-  return { dist: 11.5, yaw: 0, pitch: 0.25, maxDist: 22 };
+  B.caption([-2.55, 2.05, 0], () => ['الخلية الحيوانية']);
+  B.caption([2.55, 2.05, 0], () => ['الخلية النباتية']);
+  return { dist: 11.5, yaw: 0, pitch: 0.25, maxDist: 22, compactK: 1.2 };
 }
 
 Object.assign(G3.models, { animal: animalModel, plant: plantModel, pro: proModel, both: bothModel });
@@ -6161,6 +6229,617 @@ function membraneModel(B){
 }
 
 Object.assign(G3.models, { mito: mitoModel, chloro: chloroModel, nucleus: nucleusModel, membrane: membraneModel });
+})();
+
+/* ══════════════════════════════════════════════════════════════════════════
+   9.4 · مجسّمات الانقسام (ملزمة ص56–66): نفس أطوار المشهد المسطّح وزمنه
+   المشهد المسطّح يبقى يحسب الطور والشريط، والمجسّم يقرأ نفس الحالة
+   (compute) ويحوّلها إلى خلايا ونوى وكروماتيدات ومغزل ثلاثية الأبعاد.
+   ══════════════════════════════════════════════════════════════════════════ */
+(function(){
+const { add, sub, mul, norm, rot3, ellipsoid, superEll, capsule, tube, place, merge, srng, computeNormals, hex } = G3;
+const { wavy, centrioles } = G3.parts;
+const hexC = {}; const HX = c => hexC[c] || (hexC[c] = hex(c));
+
+function divModel(B, O){
+  O = O || {};
+  const mode = O.mode, S0 = O.s || 1, T0 = O.at || [0, 0, 0], isMei = mode === 'mei';
+  const eng = divisionScene(mode).build();
+  const P3 = (x, y, z) => [T0[0] + (x - 500) / 100 * S0, T0[1] - (y - 350) / 100 * S0, T0[2] + (z || 0) * S0];
+  const U = v => v / 100 * S0;
+  const plantNow = () => !isMei && !O.noPlant && api.tool('plant');
+  const showX = () => O.noPlant || api.tool('showX');
+  ['pm', 'wall', 'cyto', 'nuc', 'nucleolus', 'chromatin', 'chromosome', 'centro'].forEach(B.reg);
+
+  /* ── الخلايا: قشرة شفافة، تتخصّر في الحيوانية وتكون مستطيلة بزوايا دائرية في النباتية ── */
+  const cellMesh = (c, plant) => {
+    const rz = Math.min(c.rx, c.ry) * 0.72;
+    const m = superEll({ h: [U(c.rx), U(c.ry), U(rz)], e: plant ? 0.42 : 1, rows: 22, cols: 36 });
+    if (c.waist > 0){
+      for (let k = 0; k < m.p.length; k += 3){
+        const x = m.p[k], y = m.p[k + 1];
+        const f = c.axis === 'y' ? Math.exp(-Math.pow(y / (U(c.ry) * 0.34), 2)) : Math.exp(-Math.pow(x / (U(c.rx) * 0.34), 2));
+        const q = 1 - c.waist * f;
+        if (c.axis === 'y') m.p[k] *= q; else m.p[k + 1] *= q;
+        m.p[k + 2] *= q;
+      }
+      computeNormals(m);
+    }
+    return place(m, { at: P3(c.cx, c.cy) });
+  };
+  const cells = [0, 1, 2, 3].map(() => B.add(cellMesh({ cx: 500, cy: 350, rx: 250, ry: 208, waist: 0 }, false),
+    { part: 'pm', color: '#4f8f64', alpha: 0.2, rim: 1.2, rimColor: '#ffe6b4', shell: { size: 3 * S0, inner: 'cyto', tau: 0.3 }, pat: 3, patK: 5 }));
+
+  /* ── النوى: غلاف شفاف + نوية ── */
+  const envs = [0, 1, 2, 3].map(() => B.add(ellipsoid({ r: 1, rows: 16, cols: 24 }),
+    { part: 'nuc', color: '#7f6fe0', alpha: 0.35, rim: 1.1, rimColor: '#dcd2ff', shell: { size: 1 * S0 } }));
+  const nls = [0, 1, 2, 3].map(() => B.add(ellipsoid({ r: 1, rows: 10, cols: 14 }),
+    { part: 'nucleolus', color: '#4b3a9e', rim: 0.7, rimColor: '#c8b8ff', pat: 3, patK: 14 }));
+
+  /* ── الشبكة الكروماتينية في الطور البيني ── */
+  const r = srng(23), chPaths = [];
+  for (let i = 0; i < 9; i++){
+    const a = [(r() - .5) * 1.5, (r() - .5) * 1.5, (r() - .5) * 1.1], b = [(r() - .5) * 1.5, (r() - .5) * 1.5, (r() - .5) * 1.1];
+    chPaths.push(wavy(a, b, 0.14, 3, 90 + i, 4));
+  }
+  /* نقطة على خيط كروماتين أمامي بعيدة عن النوية ليؤشّر عليها الاسم */
+  const chFront = [].concat(...chPaths).filter(q => q[0] > 0.1).sort((a, b) => b[2] - a[2])[0];
+  const chBase = merge(chPaths.map(p => tube({ pts: p, r: 0.022, sides: 5 })));
+  const chrom = B.add(chBase, { part: 'chromatin', color: '#b7a6f0', rim: 0.7, rimColor: '#ffffff', pop: false });
+
+  /* ── الكروماتيدات: ذراع علوية (لون الطرف) وسفلية (اللون الأصلي) وجزء مركزي داكن ── */
+  const R = 0.054, armLen = 0.25;
+  const armUp = capsule({ r: R, len: armLen - 2 * R, rows: 5, cols: 12 });
+  const armDn = merge([capsule({ r: R, len: armLen - 2 * R, rows: 5, cols: 12 }),
+    tube({ pts: [[0, -0.09, 0], [0, 0.09, 0]], r: 0.024, sides: 8, caps: false })]);
+  const cenB = ellipsoid({ r: 0.033, rows: 6, cols: 8 });
+  const chZ = [-0.16, 0.12, -0.06, 0.17];     // عمق خفيف لكل كروموسوم حتى يظهر المجسّم
+  const CHR = [0, 1, 2, 3, 4, 5, 6, 7].map(i => ({
+    up: B.add(place(armUp, { at: [0, 0.185, 0] }), { part: 'chromosome', color: '#e2574c', rim: 0.6, rimColor: '#ffe0dc', pop: false }),
+    dn: B.add(place(armDn, { at: [0, -0.185, 0] }), { part: 'chromosome', color: '#e2574c', rim: 0.6, rimColor: '#ffe0dc', pop: false }),
+    cen: B.add(cenB, { part: 'chromosome', color: '#2a1f1c', rim: 0.4, rimColor: '#8a6a60', pop: false }),
+    at: [0, 0, 0]
+  }));
+  const chrXf = (c, i) => {
+    const s = (c.sc || 1) * S0, Rm = rot3(0, 0, -(c.rot || 0) * Math.PI / 180);
+    const at = P3(c.x, c.y, chZ[i >> 1]);
+    return { Rm, s, at };
+  };
+
+  /* ── الجسيمات المركزية مع أشعة النجم ── */
+  const centBase = (() => {
+    const rays = [];
+    for (let i = 0; i < 12; i++){
+      const a = i / 12 * 6.283, b = (i % 3 - 1) * 0.5;
+      const d = norm([Math.cos(a), Math.sin(a), b]);
+      rays.push(tube({ pts: [mul(d, 0.2), mul(d, 0.38)], r: 0.008, sides: 4, caps: false }));
+    }
+    return merge([centrioles([0, 0, 0]), ...rays]);
+  })();
+  const cents = [0, 1, 2, 3].map(() => B.add(centBase, { part: 'centro', color: '#b9c6d6', rim: 0.8, rimColor: '#ffffff', pop: false }));
+
+  /* ── خيوط المغزل: 8 كروماتيدات × 4 أقطاب كحد أعلى (عدد ثابت للرؤوس) ── */
+  const spMesh = segs => merge(segs.map(([a, b]) => tube({ pts: [a, b], r: 0.009 * S0, sides: 4, caps: false })));
+  const dummy = []; for (let i = 0; i < 32; i++) dummy.push([[0, 0, 0], [0, 0.001, 0]]);
+  const spindle = B.add(spMesh(dummy), { part: null, color: '#dfe7ee', alpha: 0.5, rim: 0.3, rimColor: '#ffffff', pop: false });
+
+  /* ── الصفيحة الخلوية (النباتية) ── */
+  const plateB = superEll({ h: [1, 1, 1], e: 0.3, rows: 8, cols: 14 });
+  const plates = [0, 1].map(() => B.add(plateB, { part: 'wall', color: '#cbb98a', alpha: 0.55, rim: 0.8, rimColor: '#f0e2bb', shell: { size: 0.5 } }));
+
+  /* ── إبراز التصالب (الاختزالي) ── */
+  const ringB = (() => { const pts = []; for (let k = 0; k < 24; k++){ const a = k / 24 * 6.283; pts.push([Math.cos(a) * 0.2, Math.sin(a) * 0.2, 0]); }
+    return tube({ pts, r: 0.012, sides: 5, closed: true }); })();
+  const rings = [[465, 292], [537, 402]].map(() => B.add(ringB, { part: null, color: '#ffd166', alpha: 0.9, rim: 0.4, rimColor: '#fff3cf', pop: false }));
+
+  /* نقاط تأشير الأسماء (تتحرك مع الأجزاء) */
+  const L = { chr: [0, 0, 0], cen: [0, 0, 0], nuc: [0, 0, 0], nl: [0, 0, 0], chn: [0, 0, 0], pm: [0, 0, 0], cyto: [0, 0, 0] };
+  const V = { chr: false, cen: false, nuc: false, nl: false, chn: false, plant: false };
+  const cp = (d, s) => { d[0] = s[0]; d[1] = s[1]; d[2] = s[2]; };
+
+  let lastS = null;
+  function update(){
+    const T = Math.max(0, Math.min(0.999, api.sliderVal || 0)), plant = plantNow();
+    const S = eng.compute(T, plant); lastS = S;
+    V.plant = plant;
+    cells.forEach((o, i) => {
+      const c = S.cells[i];
+      o.hide = !c; if (!c) return;
+      B.update(o, cellMesh(c, plant));
+      o.part = plant ? 'wall' : 'pm';
+      o.col = HX(plant ? '#8fae4c' : '#4f8f64'); o.rimC = HX(plant ? '#f1e7a0' : '#ffe6b4');
+      o.alpha = plant ? 0.26 : 0.2;
+      o.c = P3(c.cx, c.cy);
+    });
+    const c0 = S.cells[0];
+    if (c0){ cp(L.pm, P3(c0.cx + c0.rx * 0.62, c0.cy - c0.ry * 0.74, 0.25)); cp(L.cyto, P3(c0.cx - c0.rx * 0.55, c0.cy + c0.ry * 0.5, 0.2)); }
+    envs.forEach((o, i) => {
+      const e = S.envs[i], ok = e && e.op > 0.03;
+      o.hide = !ok; nls[i].hide = !ok; if (!ok) return;
+      const rz = U(e.r) * 0.85;
+      B.update(o, place(ellipsoid({ r: [U(e.r), U(e.r), rz], rows: 16, cols: 24 }), { at: P3(e.cx, e.cy) }));
+      o.alpha = 0.32 * e.op; o.c = P3(e.cx, e.cy);
+      const nx = e.nx === undefined ? e.cx - 20 : e.nx, ny = e.ny === undefined ? e.cy + 14 : e.ny;
+      B.update(nls[i], place(ellipsoid({ r: U(e.nr || 18), rows: 10, cols: 14 }), { at: P3(nx, ny, -0.05) }));
+      nls[i].alpha = e.op > 0.85 ? 1 : e.op; nls[i].c = P3(nx, ny);
+    });
+    const e0 = S.envs.find(e => e.op > 0.3);
+    V.nuc = !!e0; V.nl = !!e0;
+    if (e0){ cp(L.nuc, P3(e0.cx - e0.r * 0.6, e0.cy - e0.r * 0.62, U(e0.r) * 0.35 / S0));
+      cp(L.nl, P3(e0.nx === undefined ? e0.cx - 20 : e0.nx, e0.ny === undefined ? e0.cy + 14 : e0.ny, 0.2)); }
+    const ch = S.chromatin;
+    chrom.hide = !(ch && ch.op > 0.03);
+    if (!chrom.hide){ B.update(chrom, place(chBase, { s: S0, at: P3(ch.x, ch.y) })); chrom.alpha = ch.op > 0.85 ? 1 : ch.op; chrom.c = P3(ch.x, ch.y); }
+    V.chn = !!(ch && ch.op > 0.3);
+    if (V.chn) cp(L.chn, add(P3(ch.x, ch.y), mul(chFront, S0)));
+    /* الكروماتيدات */
+    CHR.forEach((K, i) => {
+      const c = S.chr[i], ok = c && c.op > 0.03;
+      K.up.hide = K.dn.hide = K.cen.hide = !ok; if (!ok) return;
+      const { Rm, s, at } = chrXf(c, i);
+      B.update(K.up, place(place(armUp, { at: [0, 0.185, 0] }), { R: Rm, s, at }));
+      B.update(K.dn, place(place(armDn, { at: [0, -0.185, 0] }), { R: Rm, s, at }));
+      B.update(K.cen, place(cenB, { R: Rm, s, at }));
+      K.up.col = HX(c.tip); K.dn.col = HX(c.main);
+      const a = c.op > 0.85 ? 1 : c.op;
+      K.up.alpha = K.dn.alpha = K.cen.alpha = a;
+      K.up.c = K.dn.c = K.cen.c = at; K.at = at;
+    });
+    const vis0 = CHR.findIndex((K, i) => S.chr[i] && S.chr[i].op > 0.3);
+    V.chr = vis0 >= 0;
+    if (V.chr){ const K = CHR[vis0], c = S.chr[vis0]; const { Rm, s, at } = chrXf(c, vis0);
+      cp(L.chr, add(at, G3.ap3(Rm, [0, 0.2 * s, 0.05]))); }
+    /* الجسيمات المركزية */
+    cents.forEach((o, i) => {
+      const c = S.cent[i], ok = c && !plant && c.op > 0.03;
+      o.hide = !ok; if (!ok) return;
+      const at = P3(c.x, c.y);
+      B.update(o, place(centBase, { s: (c.s || 1) * S0 * 0.9, at, R: rot3(0, 0.4, -0.3) }));
+      o.alpha = c.op > 0.85 ? 1 : c.op; o.c = at;
+    });
+    V.cen = !plant && !!(S.cent[0] && S.cent[0].op > 0.3);
+    if (V.cen) cp(L.cen, P3(S.cent[0].x, S.cent[0].y));
+    /* المغزل */
+    const poles = S.poles2 || S.poles, segs = [];
+    if (poles && (S.spindleOp || 0) > 0.02){
+      S.chr.forEach((c, i) => {
+        if (!c || c.op < 0.2) return;
+        poles.forEach(p => {
+          if (S.poles2 && Math.abs(p[0] - c.x) > 170) return;
+          if (segs.length < 32) segs.push([P3(p[0], p[1]), P3(c.x, c.y, chZ[i >> 1])]);
+        });
+      });
+    }
+    spindle.hide = !segs.length;
+    if (segs.length){
+      while (segs.length < 32) segs.push([segs[0][0], add(segs[0][0], [0, 0.001, 0])]);
+      B.update(spindle, spMesh(segs)); spindle.alpha = Math.min(0.9, S.spindleOp);
+    }
+    /* الصفيحة الخلوية */
+    plates.forEach((o, i) => {
+      const p = S.plates[i], ok = plant && p && p.op > 0.03 && p.h > 2;
+      o.hide = !ok; if (!ok) return;
+      const at = P3(p.x + p.w / 2, p.y + p.h / 2), dz = Math.min(U(p.h / 2), U(208) * 0.72 * 0.9);
+      B.update(o, place(plateB, { s: [U(p.w / 2) + 0.012, U(p.h / 2), dz], at }));
+      o.c = at;
+    });
+    /* التصالب */
+    rings.forEach((o, i) => {
+      const ok = isMei && S.xo > 0.02 && showX();
+      o.hide = !ok; if (!ok) return;
+      const q = [[465, 292], [537, 402]][i], at = P3(q[0], q[1], 0.25);
+      B.update(o, place(ringB, { s: S0 * (0.9 + 0.1 * Math.sin(performance.now() / 300)), at }));
+      o.alpha = 0.95 * S.xo; o.c = at;
+    });
+  }
+  update();
+
+  if (!O.noLabels){
+    B.label('chromosome', L.chr, null, () => V.chr);
+    B.label('centro', L.cen, null, () => V.cen);
+    B.label('nuc', L.nuc, null, () => V.nuc);
+    B.label('nucleolus', L.nl, null, () => V.nl);
+    B.label('chromatin', L.chn, null, () => V.chn);
+    B.label('pm', L.pm, null, () => !V.plant);
+    B.label('wall', L.pm, null, () => V.plant);
+    B.label('cyto', L.cyto, null, () => true);
+  }
+  /* اسم الطور الحالي (مع أدوار الطور التمهيدي الأول في الاختزالي) — للعناوين في المقارنة */
+  const phase = () => {
+    if (!lastS) return ['', ''];
+    const ph = eng.phases[lastS.phaseIdx];
+    let n = ph.n;
+    if (isMei && ph.k === 'pro1'){
+      const sub = ['الدور القلادي', 'الدور الازدواجي', 'الدور التغلظي', 'الدور الانفراجي', 'الدور الحركي'];
+      n += ' · ' + sub[Math.min(4, Math.floor(lastS.u * 5))];
+    }
+    return [n, ph.chrom];
+  };
+  return { update, phase };
+}
+
+function mitosisModel(B){
+  const m = divModel(B, { mode: 'mit' });
+  return { dist: 8.4, yaw: 0.32, pitch: 0.22, live2d: true, anim(){ m.update(); } };
+}
+function meiosisModel(B){
+  const m = divModel(B, { mode: 'mei' });
+  return { dist: 8.8, yaw: 0.32, pitch: 0.22, live2d: true, anim(){ m.update(); } };
+}
+function divBothModel(B){
+  const a = divModel(B, { mode: 'mit', s: 0.64, at: [-2.75, 0, 0], noLabels: true, noPlant: true });
+  const b = divModel(B, { mode: 'mei', s: 0.64, at: [2.75, 0, 0], noLabels: true, noPlant: true });
+  const small = () => window.innerWidth < 600;
+  B.caption([-2.75, 1.78, 0], () => [small() ? 'الخيطي' : 'الانقسام غير المباشر (الخيطي)']);
+  B.caption([2.75, 1.78, 0], () => [small() ? 'الاختزالي' : 'الانقسام الاختزالي']);
+  B.caption([-2.75, -1.72, 0], () => small() ? [a.phase()[0]] : a.phase());
+  B.caption([2.75, -1.72, 0], () => small() ? [b.phase()[0]] : b.phase());
+  return { dist: 11.5, yaw: 0, pitch: 0.18, maxDist: 22, live2d: true, compactK: 1.3, anim(){ a.update(); b.update(); } };
+}
+
+Object.assign(G3.models, { mitosis: mitosisModel, meiosis: meiosisModel, divBoth: divBothModel });
+})();
+
+/* ══════════════════════════════════════════════════════════════════════════
+   9.5 · مجسّمات عبور المواد (ملزمة ص36–45): نفس تجارب الرسوم المسطّحة وحركتها
+   ══════════════════════════════════════════════════════════════════════════ */
+(function(){
+const { add, sub, mul, norm, rot3, ellipsoid, superEll, capsule, tube, place, merge, srng, computeNormals, mk } = G3;
+const { blobDisp } = G3.parts;
+
+/* سطح دوراني من مقطع [نصف قطر، ارتفاع] (كأس، قمع، عمود محلول) */
+function lathe(prof, cols){
+  const m = mk(), R = prof.length, C = cols || 32;
+  for (let i = 0; i < R; i++){
+    const [r, y] = prof[i];
+    for (let j = 0; j < C; j++){
+      const a = j / C * 6.2832, p = [r * Math.cos(a), y, r * Math.sin(a)];
+      m.p.push(p[0], p[1], p[2]); m.l.push(p[0], p[1], p[2]); m.n.push(0, 0, 0);
+    }
+  }
+  for (let i = 0; i < R - 1; i++) for (let j = 0; j < C; j++){
+    const a = i * C + j, b = i * C + (j + 1) % C, c = a + C, d = b + C;
+    m.i.push(a, b, c, b, d, c);
+  }
+  return computeNormals(m);
+}
+/* غشاء مرن بطبقتين (الأعلى والأسفل) يتبع دالة ارتفاع — للشرب والإخراج الخلوي */
+function sheet(fy, o){
+  const NX = o.nx || 40, NZ = o.nz || 24, X = o.x || 2.7, Z = o.z || 1.6, th = o.th || 0.055;
+  const one = off => {
+    const m = mk();
+    for (let i = 0; i <= NZ; i++) for (let j = 0; j <= NX; j++){
+      const x = -X + 2 * X * j / NX, z = -Z + 2 * Z * i / NZ, y = fy(x, z) + off;
+      m.p.push(x, y, z); m.l.push(x, off > 0 ? 1 : -1, z); m.n.push(0, 0, 0);
+    }
+    for (let i = 0; i < NZ; i++) for (let j = 0; j < NX; j++){
+      const a = i * (NX + 1) + j, b = a + 1, c = a + NX + 1, d = c + 1;
+      if (off > 0) m.i.push(a, c, b, b, c, d); else m.i.push(a, b, c, b, d, c);
+    }
+    return computeNormals(m);
+  };
+  return merge([one(th), one(-th)]);
+}
+/* مجموعة كرات صغيرة في مجسّم واحد (عدد ثابت؛ المخفية تُصغَّر لصفر) */
+const dotsMesh = (list, r, rows) => merge(list.map(p => place(ellipsoid({ r: 1, rows: rows || 6, cols: (rows || 6) + 2 }), { at: p ? p : [0, -50, 0], s: p ? (p.s || r) : 0.0001 })));
+const cp = (d, s) => { d[0] = s[0]; d[1] = s[1]; d[2] = s[2]; };
+const clamp01 = v => Math.max(0, Math.min(1, v));
+
+/* ═════════════ 1) الانتشار (ص37) ═════════════ */
+function diffusionModel(B){
+  const prof = []; for (let i = 0; i <= 10; i++){ const y = -1.8 + i * 0.34; prof.push([1.95 + (y + 1.8) * 0.08, y]); }
+  const glass = merge([lathe(prof, 40), lathe([[0.01, -1.8], [1.95, -1.8]], 40)]);
+  B.add(glass, { part: 'diffusion', color: '#a9dcf2', alpha: 0.14, rim: 1.1, rimColor: '#e6f7ff', shell: { size: 3 } });
+  const wprof = []; for (let i = 0; i <= 8; i++){ const y = -1.76 + i * 0.37; wprof.push([1.9 + (y + 1.8) * 0.08, y]); }
+  const wTop = wprof[8][1];
+  B.add(merge([lathe(wprof, 40), lathe([[0.01, wTop], [wprof[8][0], wTop]], 40)]), { part: 'diffusion', color: '#5fa9d0', alpha: 0.1, rim: 0.7, rimColor: '#cfeeff', shell: { size: 2.9 } });
+  B.add(place(ellipsoid({ r: [0.55, 0.16, 0.45], rows: 10, cols: 18, disp: blobDisp(7, 0.12) }), { at: [0, -1.66, 0] }),
+    { part: 'diffusion', color: '#7a3c8c', rim: 0.6, rimColor: '#e6c6f0' });
+  /* جزيئات المادة الملوّنة */
+  const rr = srng(77), N = 70, P = [];
+  const reset = () => { P.length = 0; for (let i = 0; i < N; i++) P.push({ x: (rr() - .5) * 0.7, y: -1.6, z: (rr() - .5) * 0.5,
+    vx: (rr() - .5) * 0.34, vy: 0.14 + rr() * 0.34, vz: (rr() - .5) * 0.26, born: rr() * 6, s: 0.03 + rr() * 0.03 }); };
+  reset();
+  const dots = B.add(dotsMesh(P.map(() => null), 0.04), { part: 'diffusion', color: '#b06bc4', rim: 0.8, rimColor: '#f0d6f7', pop: false, center: [0, 0, 0] });
+  let t0 = 0, last = 0;
+  const lbl = [1.2, 0.4, 1.55];
+  B.label('diffusion', lbl, [0.6, 0.2, 0.8]);
+  B.caption([0, wTop + 0.25, 0], () => ['ماء']);
+  B.caption([0, -1.25, 1.2], () => ['', 'بلورات ملوّنة']);
+  B.caption([0, -2.35, 0], () => ['', 'تنتشر المادة الملوّنة من التركيز العالي إلى الواطئ حتى تملأ كل أجزاء الماء']);
+  return {
+    dist: 10.6, yaw: 0.3, pitch: 0.3, target: [0, -0.25, 0],
+    anim(t){
+      let dt = Math.min(0.05, Math.max(0, t - last)); last = t;
+      if (t - t0 > 14){ t0 = t; reset(); }
+      const k = t - t0, rS = new Float64Array(0);
+      const list = P.map(o => {
+        if (k < o.born) return null;
+        o.x += o.vx * dt; o.y += o.vy * dt; o.z += o.vz * dt;
+        o.vx += (Math.random() - .5) * 0.26 * dt; o.vy += (Math.random() - .5) * 0.26 * dt; o.vz += (Math.random() - .5) * 0.26 * dt;
+        o.vx *= .995; o.vy *= .995; o.vz *= .995;
+        const rm = 1.75, rh = Math.hypot(o.x, o.z);
+        if (rh > rm){ o.x *= rm / rh; o.z *= rm / rh; o.vx = -o.vx; o.vz = -o.vz; }
+        if (o.y < -1.62){ o.y = -1.62; o.vy = Math.abs(o.vy); }
+        if (o.y > wTop - 0.08){ o.y = wTop - 0.08; o.vy = -Math.abs(o.vy); }
+        const p = [o.x, o.y, o.z]; p.s = o.s * Math.min(1, (k - o.born) * 2); return p;
+      });
+      B.update(dots, dotsMesh(list, 0.04));
+    }
+  };
+}
+
+/* ═════════════ 2) التناضح (ص39) ═════════════ */
+function osmosisModel(B){
+  /* الحوض والماء المقطر (غير قابلين للضغط، للسياق فقط) */
+  B.add(place(superEll({ h: [3.1, 1.15, 1.7], e: 0.25, rows: 16, cols: 32 }), { at: [0, -1.55, 0] }),
+    { part: null, color: '#a9dcf2', alpha: 0.12, rim: 1.0, rimColor: '#e6f7ff', shell: { size: 4 } });
+  B.add(place(superEll({ h: [3.0, 0.8, 1.6], e: 0.25, rows: 12, cols: 32 }), { at: [0, -1.88, 0] }),
+    { part: null, color: '#5fa9d0', alpha: 0.12, rim: 0.6, rimColor: '#cfeeff', shell: { size: 3.8 } });
+  /* القمع: فوهة واسعة مغمورة في الماء وأنبوبة طويلة */
+  const fprof = [[1.1, -1.35], [0.9, -1.1], [0.55, -0.72], [0.28, -0.38], [0.24, -0.2], [0.24, 0.6], [0.24, 1.4], [0.24, 2.3]];
+  B.add(lathe(fprof, 36), { part: 'osmosis', color: '#dff1fb', alpha: 0.24, rim: 1.4, rimColor: '#ffffff', shell: { size: 1.5 } });
+  /* الغشاء نصف الناضح عند فوهة القمع */
+  B.add(place(ellipsoid({ r: [1.12, 0.035, 1.12], rows: 6, cols: 32 }), { at: [0, -1.36, 0] }),
+    { part: 'permeability', color: '#ffd98a', rim: 0.8, rimColor: '#fff3cf', pat: 2, patColor: '#c9a24a', patK: 14 });
+  /* المحلول السكري: يملأ القمع ويرتفع في الأنبوبة */
+  const col = h => lathe([[1.06, -1.33], [0.87, -1.1], [0.52, -0.72], [0.25, -0.38], [0.2, -0.2], [0.2, -0.2 + h * 2.45], [0.01, -0.2 + h * 2.45]], 28);
+  const sugar = B.add(col(0), { part: 'osmosis', color: '#b56fd6', alpha: 0.62, rim: 0.7, rimColor: '#f0d6f7', shell: { size: 1.2 } });
+  /* جزيئات ماء تعبر الغشاء نحو المحلول */
+  const rr = srng(39), W = []; for (let i = 0; i < 16; i++) W.push({ t: rr(), a: rr() * 6.283, r0: 1.4 + rr() * 1.2 });
+  const water = B.add(dotsMesh(W.map(() => null), 0.07), { part: 'osmosis', color: '#7fc0e0', rim: 0.9, rimColor: '#e6f7ff', pop: false, center: [0, -1.4, 0] });
+  let h = 0, last = 0, t0 = 0;
+  const topAt = [0.2, -0.2, 0.05];
+  B.label('osmosis', [0.55, -0.72, 0.1], [0.8, 0.3, 0.5]);
+  B.label('permeability', [-0.9, -1.36, 0.55], [0, 0.4, 1]);
+  B.caption([-2.2, -0.75, 1.2], () => ['', 'ماء مقطر']);
+  B.caption(topAt, () => ['', 'محلول سكري']);
+  B.caption([0, -3.05, 0], () => ['', 'يمر الماء خلال الغشاء إلى محلول السكر فيرتفع مستواه في الأنبوبة (ضغط هيدروستاتيكي)']);
+  return {
+    dist: 10.4, yaw: 0.28, pitch: 0.2, target: [0, 0.1, 0],
+    anim(t){
+      const dt = Math.min(0.05, Math.max(0, t - last)); last = t;
+      if (t - t0 > 26){ t0 = t; h = 0; }
+      h = Math.min(1, h + dt * 0.075);
+      B.update(sugar, col(h));
+      topAt[1] = -0.2 + h * 2.45 + 0.12; topAt[0] = 0.3;
+      B.update(water, dotsMesh(W.map(o => {
+        o.t += dt * 0.32; if (o.t > 1) o.t -= 1;
+        const k = o.t, rad = o.r0 * (1 - k * 0.8), y = -2.1 + k * 0.95;
+        const p = [Math.cos(o.a) * rad, y, Math.sin(o.a) * rad * 0.8];
+        p.s = 0.07 * (k < .1 ? k * 10 : (k > .9 ? (1 - k) * 10 : 1)); return p;
+      }), 0.07));
+    }
+  };
+}
+
+/* ═════════════ 3) المحاليل الثلاثة والبلزمة (ص40–42) ═════════════ */
+function solutionsModel(B){
+  const X = [-3.2, 0, 3.2], ids = ['permeability', 'osmosis', 'plasmolysis'];
+  const bprof = []; for (let i = 0; i <= 6; i++){ const y = -1.3 + i * 0.43; bprof.push([1.25 + (y + 1.3) * 0.05, y]); }
+  const cells = [], nucs = [], waters = [], rr = srng(5);
+  X.forEach((x, i) => {
+    B.add(place(merge([lathe(bprof, 36), lathe([[0.01, -1.3], [1.25, -1.3]], 36)]), { at: [x, 0, 0] }),
+      { part: null, color: '#a9dcf2', alpha: 0.18, rim: 1.2, rimColor: '#e6f7ff', shell: { size: 2 } });
+    cells.push(B.add(place(ellipsoid({ r: 0.62, rows: 16, cols: 24, disp: blobDisp(11 + i, 0.04) }), { at: [x, -0.1, 0] }),
+      { part: ids[i], color: '#4f8f64', alpha: 0.3, rim: 1.2, rimColor: '#ffe6b4', shell: { size: 1, inner: ids[i], tau: 0.3 }, pat: 3, patK: 5 }));
+    nucs.push(B.add(place(ellipsoid({ r: 0.2, rows: 10, cols: 14 }), { at: [x - 0.08, -0.05, 0.1] }),
+      { part: ids[i], color: '#7f6fe0', rim: 0.9, rimColor: '#dcd2ff' }));
+    const W = []; for (let k = 0; k < 10; k++) W.push({ a: rr() * 6.283, b: (rr() - .5) * 2, t: rr() });
+    waters.push({ W, o: B.add(dotsMesh(W.map(() => null), 0.05), { part: ids[i], color: '#7fc0e0', rim: 0.9, rimColor: '#e6f7ff', pop: false, center: [x, 0, 0] }) });
+  });
+  const lb = [[-3.2, 0.52, 0.2], [0, 0.6, 0.2], [3.2, 0.45, 0.2]];
+  X.forEach((x, i) => B.label(ids[i], lb[i], [0, 0.6, 0.8]));
+  const small = () => window.innerWidth < 600;
+  B.caption([-3.2, -1.75, 0], () => small() ? ['متعادل', 'لا يتغير'] : ['محلول متعادل التركيز', 'لا تكتسب ولا تفقد الماء']);
+  B.caption([0, -1.75, 0], () => small() ? ['واطئ التركيز', 'يدخل الماء'] : ['محلول واطئ التركيز', 'يدخل الماء ← انتفاخ الخلية وتمزقها']);
+  B.caption([3.2, -1.75, 0], () => small() ? ['عالي التركيز', 'بلزمة'] : ['محلول عالي التركيز', 'يخرج الماء ← انكماش (بلزمة)']);
+  let last = 0;
+  return {
+    dist: 10.8, yaw: 0, pitch: 0.3, target: [0, -0.2, 0],
+    anim(t){
+      const dt = Math.min(0.05, Math.max(0, t - last)); last = t;
+      const k = 0.5 + 0.5 * Math.sin(t * 0.8);
+      const R = [0.62, 0.62 + k * 0.28, 0.62 - k * 0.24];
+      X.forEach((x, i) => {
+        const s = R[i] / 0.62;
+        B.update(cells[i], place(ellipsoid({ r: 0.62, rows: 16, cols: 24, disp: blobDisp(11 + i, 0.04) }), { at: [x, -0.1, 0], s }));
+        cells[i].c = [x, -0.1, 0];
+        cells[i].alpha = i === 1 && k > 0.96 ? 0.12 : 0.3;
+        lb[i][1] = -0.1 + R[i] * 0.8;
+        /* الماء: يدخل (الواطئ) أو يخرج (العالي) أو يتبادل بالتساوي (المتعادل) */
+        const dir = i === 1 ? -1 : i === 2 ? 1 : 0;
+        B.update(waters[i].o, dotsMesh(waters[i].W.map((o, j) => {
+          o.t += dt * 0.35; if (o.t > 1) o.t -= 1;
+          let u = dir < 0 ? 1 - o.t : o.t; if (dir === 0) u = 0.5 + 0.5 * Math.sin(o.t * 6.283 + j);
+          const rad = R[i] * 0.55 + u * 0.55;
+          const d = norm([Math.cos(o.a), o.b * 0.5, Math.sin(o.a)]);
+          const p = add([x, -0.1, 0], mul(d, rad)); p.s = 0.05 * Math.sin(Math.PI * o.t); return p;
+        }), 0.05));
+      });
+    }
+  };
+}
+
+/* ═════════════ 4) النقل النشط (ص43) ═════════════ */
+function activeTModel(B){
+  const Y = 0.56, HX = 3.0, HZ = 1.5, heads = [], tails = [], rr = srng(12);
+  for (let x = -HX; x <= HX + 1e-6; x += 0.3) for (let z = -HZ; z <= HZ + 1e-6; z += 0.3){
+    if (Math.hypot(x, z) < 1.0) continue;
+    [1, -1].forEach(s => {
+      const jx = x + (rr() - .5) * 0.05, jz = z + (rr() - .5) * 0.05;
+      heads.push(place(ellipsoid({ r: 0.125, rows: 5, cols: 8 }), { at: [jx, s * Y, jz] }));
+      [-0.055, 0.055].forEach(o => tails.push(tube({ pts: [[jx + o, s * (Y - 0.1), jz], [jx + o * 1.5, s * 0.06, jz]], r: 0.026, sides: 4, caps: false })));
+    });
+  }
+  B.add(merge(heads), { part: 'lipidBundle', color: '#e8a94a', rim: 0.8, rimColor: '#fff0c8', pop: false });
+  B.add(merge(tails), { part: 'lipidBundle', color: '#efe0bd', rim: 0.5, rimColor: '#ffffff', pop: false });
+  /* البروتين الحامل مع ممرّه */
+  B.add(ellipsoid({ r: [0.78, 1.0, 0.78], rows: 18, cols: 26, disp: blobDisp(21, 0.07) }),
+    { part: 'activeT', color: '#e79a5e', alpha: 0.72, rim: 1.0, rimColor: '#ffd9b8', pat: 3, patK: 6 });
+  const gate = B.add(tube({ pts: [[0, -0.95, 0], [0, 0.95, 0]], r: 0.2, sides: 16, caps: false }),
+    { part: 'activeT', color: '#fff5c8', alpha: 0.3, rim: 0.6, rimColor: '#ffffff', shell: { size: 0.4 } });
+  /* ATP: كرة طاقة مع شرارة، تتوهج عند الضخ */
+  const bolt = tube({ pts: [[1.35, -0.55, 0.9], [1.6, -0.85, 0.95], [1.42, -0.88, 0.95], [1.7, -1.25, 1.0]], r: 0.04, sides: 6 });
+  const atp = B.add(merge([place(ellipsoid({ r: 0.26, rows: 12, cols: 16 }), { at: [1.55, -0.9, 0.95] }), bolt]),
+    { part: 'atp', color: '#ffd166', rim: 1.0, rimColor: '#fff3cf', pop: false });
+  /* الأيونات: قليلة في الخارج (أعلى) وكثيرة في الداخل (أسفل)، وأيون يُضخ عبر الحامل */
+  const outI = [], inI = [];
+  for (let i = 0; i < 5; i++) outI.push([(rr() - .5) * 5.2, 1.3 + rr() * 0.9, (rr() - .5) * 2.4]);
+  for (let i = 0; i < 16; i++){ let p; do { p = [(rr() - .5) * 5.2, -1.3 - rr() * 0.9, (rr() - .5) * 2.4]; } while (Math.hypot(p[0] - 1.55, p[2] - 0.95) < 0.5); inI.push(p); }
+  const ionsStatic = B.add(dotsMesh(outI.concat(inI).map(p => Object.assign(p.slice(), { s: 0.11 })), 0.11), { part: 'transported', color: '#9fd8f0', rim: 0.9, rimColor: '#e6f7ff', pop: false, center: [0, 0, 0] });
+  const pumped = B.add(dotsMesh([null, null], 0.12), { part: 'transported', color: '#9fd8f0', rim: 1.0, rimColor: '#ffffff', pop: false, center: [0, 0, 0] });
+  const ionL = [0, 1.6, 0.1];
+  B.label('activeT', [0.3, 0.85, 0.3], [0.4, 0.8, 0.4]);
+  B.label('lipidBundle', [-2.4, Y, 1.5], [0, 1, 0.4]);
+  B.label('atp', [1.55, -0.9, 1.2], [0.4, -0.2, 1]);
+  B.label('transported', ionL, [0, 0.5, 1]);
+  B.caption([-1.2, 2.25, 0], () => ['خارج الخلية', 'تركيز واطئ للأيونات']);
+  B.caption([-1.2, -2.3, 0], () => ['داخل الخلية', 'تركيز أعلى للأيونات — تُضخ رغم ذلك بصرف طاقة ATP']);
+  const baseCol = G3.hex('#ffd166');
+  return {
+    dist: 10.2, yaw: 0.3, pitch: 0.18,
+    anim(t){
+      const list = [0, 1].map(j => {
+        const k = ((t * 0.22) + j * 0.5) % 1, y = 2.0 - k * 4.0;
+        const p = [Math.sin(k * 9 + j) * 0.05, y, 0]; p.s = 0.12 * (k > .9 ? (1 - k) * 10 : k < .08 ? k / .08 : 1); return p;
+      });
+      B.update(pumped, dotsMesh(list, 0.12));
+      cp(ionL, list[0]);
+      const pumping = list.some(p => Math.abs(p[1]) < 0.95);
+      const pulse = pumping ? 0.55 + 0.45 * (0.5 + 0.5 * Math.sin(t * 8)) : 0.25;
+      atp.col = baseCol.map(v => Math.min(1, v * (0.55 + pulse * 0.7)));
+      atp.rim = 0.4 + pulse * 1.4;
+      gate.alpha = 0.15 + 0.3 * (0.5 + 0.5 * Math.sin(t * 3));
+    }
+  };
+}
+
+/* ═════════════ 5) البلعمة (ص43) ═════════════ */
+function phagoModel(B){
+  const RX = 1.95, RY = 1.6, C = [0, -0.35, 0];
+  const cellM = depth => place(ellipsoid({ r: [RX, RY, RX * 0.8], rows: 30, cols: 44, disp: d => {
+    const ang = Math.acos(Math.max(-1, Math.min(1, d[1])));   // 0 عند القمة
+    const near = Math.max(0, 1 - ang / 0.62);
+    return 1 - near * near * (3 - 2 * near) * depth * 0.62;
+  } }), { at: C });
+  const cell = B.add(cellM(0), { part: 'pm', color: '#4f8f64', alpha: 0.24, rim: 1.2, rimColor: '#ffe6b4', shell: { size: 3, inner: 'cyto', tau: 0.35 }, pat: 3, patK: 5 });
+  B.add(place(ellipsoid({ r: 0.45, rows: 14, cols: 20 }), { at: [0.9, -0.75, -0.3] }), { part: 'nuc', color: '#7f6fe0', alpha: 0.6, rim: 1.0, rimColor: '#dcd2ff', shell: { size: 0.5 } });
+  const lyso = B.add(ellipsoid({ r: 0.22, rows: 10, cols: 14 }), { part: 'lyso', color: '#9b6fd6', rim: 0.9, rimColor: '#e4d2ff', pat: 2, patColor: '#f3e9ff', patK: 22 });
+  const foodB = ellipsoid({ r: [0.3, 0.24, 0.26], rows: 10, cols: 14, disp: blobDisp(51, 0.14) });
+  const food = B.add(foodB, { part: 'phago', color: '#6b5b4a', rim: 0.7, rimColor: '#b9a58c' });
+  const vac = B.add(ellipsoid({ r: 0.46, rows: 14, cols: 20 }), { part: 'phago', color: '#a9dcf2', alpha: 0.22, rim: 1.0, rimColor: '#e6f7ff', shell: { size: 0.6, inner: 'phago' } });
+  const L = { food: [0, 2, 0], lyso: [0, 0, 0], vac: [0, 0, 0] }, V = { vac: false };
+  B.label('phago', L.food, null);
+  B.label('lyso', L.lyso, null);
+  B.label('pm', [-RX * 0.72, C[1] + RY * 0.55, RX * 0.45], [-0.6, 0.5, 0.6]);
+  B.caption(L.vac, () => V.vac ? ['', 'فجوة غذائية'] : []);
+  B.caption([0, -2.45, 0], () => ['', 'غذاء ← جيب من غشاء الخلية ← فجوة غذائية تهضمها انزيمات الجسيمات الحالة']);
+  return {
+    dist: 8.4, yaw: 0.25, pitch: 0.42, target: [0, -0.1, 0],
+    anim(t){
+      const T = (t % 9) / 9;
+      const depth = T < .45 ? T / .45 : (T < .6 ? 1 - (T - .45) / .15 : 0);
+      B.update(cell, cellM(depth));
+      const top = C[1] + RY;
+      if (T < .5){
+        const k = T / .5, at = [0, top + 1.0 - k * 1.55, 0];
+        food.hide = false; vac.hide = true; V.vac = false;
+        B.update(food, place(foodB, { at })); food.c = at; cp(L.food, at);
+      } else {
+        const k = (T - .5) / .5, at = [-k * 1.0, top - 0.6 - k * 1.1, k * 0.2];
+        food.hide = false; vac.hide = false; V.vac = true;
+        B.update(food, place(foodB, { at, s: 0.8 })); food.c = at;
+        B.update(vac, place(ellipsoid({ r: 0.46, rows: 14, cols: 20 }), { at, s: 1 - k * 0.2 })); vac.c = at;
+        cp(L.food, at); cp(L.vac, add(at, [0, 0.62, 0]));
+      }
+      /* الجسيم الحال يقترب من الفجوة ويلتحم بها ليهضم محتواها */
+      const k2 = T < .6 ? 0 : (T - .6) / .4, home = [-1.25, -1.2, 0.35], goal = [-1.0, top - 1.7, 0.2];
+      const la = add(home, mul(sub(goal, home), k2 * k2));
+      B.update(lyso, place(ellipsoid({ r: 0.22, rows: 10, cols: 14 }), { at: la })); lyso.c = la; cp(L.lyso, la);
+    }
+  };
+}
+
+/* ═════════════ 6) الشرب الخلوي (ص44) ═════════════ */
+function pinoModel(B){
+  const fy = depth => (x, z) => -Math.exp(-(x * x + z * z) / (0.78 * 0.78)) * depth * 1.25;
+  const mem = B.add(sheet(fy(0), {}), { part: 'pm', color: '#e8d59a', alpha: 0.8, rim: 0.9, rimColor: '#fff3cf', pat: 2, patColor: '#c9a24a', patK: 9, shell: { size: 3 } });
+  const dropsB = [[-0.25, 0.15, 0.1], [0, 0.35, -0.1], [0.28, 0.1, 0.05], [-0.1, -0.1, -0.2], [0.15, -0.12, 0.22]];
+  const drops = B.add(dotsMesh(dropsB.map(p => Object.assign(p.slice(), { s: 0.1 })), 0.1), { part: 'pino', color: '#7fc0e0', rim: 0.9, rimColor: '#e6f7ff', pop: false, center: [0, 0, 0] });
+  const ves = B.add(ellipsoid({ r: 0.4, rows: 14, cols: 20 }), { part: 'pino', color: '#a9dcf2', alpha: 0.25, rim: 1.0, rimColor: '#e6f7ff', shell: { size: 0.5, inner: 'pino' } });
+  const L = { d: [0, 1, 0], v: [0, 0, 0] }, V = { v: false };
+  B.label('pino', L.d, null);
+  B.label('pm', [-1.9, 0.09, 1.0], [0, 1, 0.4]);
+  B.caption([-2.4, 1.3, 0], () => ['خارج الخلية', 'مادة سائلة']);
+  B.caption([-2.4, -1.6, 0], () => ['داخل الخلية']);
+  B.caption(L.v, () => V.v ? ['', 'حويصلة'] : []);
+  return {
+    dist: 8.8, yaw: 0.2, pitch: 0.26, target: [0, -0.5, 0],
+    anim(t){
+      const T = (t % 8) / 8;
+      const depth = T < .45 ? T / .45 : (T < .58 ? 1 - (T - .45) / .13 : 0);
+      B.update(mem, sheet(fy(depth), {}));
+      if (T < .5){
+        const off = [0, 1.0 - depth * 1.35, 0];
+        B.update(drops, dotsMesh(dropsB.map(p => Object.assign(add(p, off), { s: 0.1 })), 0.1));
+        ves.hide = true; V.v = false; cp(L.d, add(off, [0, 0.35, 0]));
+      } else {
+        const k = (T - .5) / .5, at = [k * 1.3, -1.05 - k * 1.1, k * 0.3];
+        B.update(drops, dotsMesh(dropsB.map(p => Object.assign(add(mul(p, 0.75), at), { s: 0.08 })), 0.1));
+        B.update(ves, place(ellipsoid({ r: 0.4, rows: 14, cols: 20 }), { at })); ves.c = at; ves.hide = false; V.v = true;
+        cp(L.d, at); cp(L.v, add(at, [0, 0.55, 0]));
+      }
+    }
+  };
+}
+
+/* ═════════════ 7) الإخراج الخلوي (ص45) ═════════════ */
+function exoModel(B){
+  const fy = bulge => (x, z) => Math.exp(-(x * x + z * z) / (0.7 * 0.7)) * bulge * 1.0;
+  const mem = B.add(sheet(fy(0), {}), { part: 'pm', color: '#e8d59a', alpha: 0.8, rim: 0.9, rimColor: '#fff3cf', pat: 2, patColor: '#c9a24a', patK: 9, shell: { size: 3 } });
+  const vesB = ellipsoid({ r: 0.4, rows: 14, cols: 20 });
+  const ves = B.add(vesB, { part: 'golgiVes', color: '#eca0c4', alpha: 0.35, rim: 1.0, rimColor: '#f7c0da', shell: { size: 0.5, inner: 'golgiVes' } });
+  const inB = [[-0.14, 0.06, 0.05], [0.08, 0.14, -0.08], [0, -0.1, 0.12], [-0.1, -0.14, -0.1], [0.16, -0.05, 0.1], [0.02, 0.02, -0.18]];
+  const inner = B.add(dotsMesh(inB.map(() => null), 0.08), { part: 'golgiVes', color: '#a9f0c4', rim: 0.9, rimColor: '#e6fff2', pop: false, center: [0, 0, 0] });
+  const out = B.add(dotsMesh(inB.map(() => null), 0.08), { part: 'exo', color: '#a9f0c4', rim: 1.0, rimColor: '#ffffff', pop: false, center: [0, 1, 0] });
+  const L = { v: [0, -1, 0], o: [0, 1, 0] }, V = { o: false };
+  B.label('golgiVes', L.v, null, () => !V.gone);
+  B.label('exo', L.o, null, () => V.o);
+  B.label('pm', [-1.9, 0.09, 1.0], [0, 1, 0.4]);
+  B.caption([-2.4, 1.3, 0], () => ['خارج الخلية']);
+  B.caption([-2.4, -1.5, 0], () => ['داخل الخلية']);
+  B.caption([0, -2.55, 0], () => ['', 'تلتحم الحويصلة بالغشاء البلازمي وتفرّغ محتواها خارج الخلية']);
+  return {
+    dist: 8.8, yaw: 0.2, pitch: 0.22, target: [0, -0.3, 0],
+    anim(t){
+      const T = (t % 8) / 8;
+      const bulge = T > .35 && T < .72 ? Math.sin((T - .35) / .37 * Math.PI) : 0;
+      B.update(mem, sheet(fy(bulge), {}));
+      const k = Math.min(1, T / .45), at = [0, -2.0 + k * 1.75, 0];
+      const vA = T > .62 ? Math.max(0, 1 - (T - .62) / .12) : 1;
+      ves.hide = vA < 0.03; V.gone = ves.hide;
+      if (!ves.hide){ B.update(ves, place(vesB, { at })); ves.c = at; ves.alpha = 0.35 * vA; }
+      B.update(inner, dotsMesh(inB.map(p => vA > 0.05 ? Object.assign(add(p, at), { s: 0.08 }) : null), 0.08));
+      cp(L.v, add(at, [0.3, 0.2, 0.25]));
+      let any = false;
+      B.update(out, dotsMesh(inB.map((p, i) => {
+        const u = (T - .6 - i * .02) / .34;
+        if (u <= 0 || u > 1) return null;
+        any = true;
+        const a = -2.2 + i * 0.55, q = [Math.cos(a) * u * 1.9, 0.25 + Math.abs(Math.sin(a)) * u * 1.5, Math.sin(a * 1.7) * u * 0.9];
+        if (i === 2) cp(L.o, q);
+        return Object.assign(q, { s: 0.08 * (1 - u * 0.5) });
+      }), 0.08));
+      V.o = any;
+    }
+  };
+}
+
+Object.assign(G3.models, {
+  tr_diffusion: diffusionModel, tr_osmosis: osmosisModel, tr_solutions: solutionsModel, tr_activeT: activeTModel,
+  tr_phago: phagoModel, tr_pino: pinoModel, tr_exo: exoModel
+});
 })();
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -6525,7 +7204,8 @@ document.addEventListener('keydown', e => {
     الأجزاء والأسماء (الخلية الحيوانية، النباتية، الاثنتان معاً، بدائية
     النواة، المايتوكوندريا، البلاستيدة، النواة، الغشاء البلازمي): تدوير
     بالسحب، تقريب بإصبعين أو بالعجلة، نقرتان للإرجاع، والضغط على الجزء أو
-    اسمه يضيئه ويفتح معلوماته. المخططات وحركات العمليات تبقى مسطّحة.
+    اسمه يضيئه ويفتح معلوماته. والانقسامان (مع الشريط ولوحة الطور) وتجارب
+    عبور المواد السبع مجسّمة ومتحركة أيضاً؛ مخططات الأيض وحدها تبقى مسطّحة.
     وإذا لم يدعم الجهاز WebGL تُرسم المجسّمات نفسها بـ Canvas 2D تلقائياً.
 
   ── ما يبقى للمراجعة ──
