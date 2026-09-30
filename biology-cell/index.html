@@ -5009,7 +5009,11 @@ uniform mat4 uProj; uniform mat4 uView; uniform mat4 uModel;
 varying vec3 vN; varying vec3 vW; varying vec3 vL;
 void main(){ vec4 w = uModel * vec4(aPos, 1.0); vW = w.xyz; vN = aNrm; vL = aLoc; gl_Position = uProj * uView * w; }`;
 const FS = `
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
 precision mediump float;
+#endif
 varying vec3 vN; varying vec3 vW; varying vec3 vL;
 uniform vec3 uEye; uniform vec3 uLight; uniform vec3 uColor; uniform float uAlpha;
 uniform float uRim; uniform vec3 uRimColor; uniform int uPat; uniform vec3 uPatColor; uniform float uPatK;
@@ -5491,6 +5495,11 @@ const SCENE_MODEL = () => {
   return { pro: 'pro', mitoZoom: 'mito', chloroZoom: 'chloro', nucleus: 'nucleus', membrane: 'membrane' }[curKey] || null;
 };
 let on = false, hint2d = '';
+/* المجسّم هو العرض الافتراضي لرسوم التراكيب؛ إذا اختار الطالب «مسطّح» يُحفظ اختياره */
+let want3d = true;
+try { want3d = localStorage.getItem('cell3d') !== 'flat'; } catch (e) {}
+const saveWant = () => { try { localStorage.setItem('cell3d', want3d ? '3d' : 'flat'); } catch (e) {} };
+const NO_GL = 'جهازك أو متصفحك لا يدعم العرض الثلاثي الأبعاد (WebGL)، فالرسوم تظهر مسطّحة. جرّب متصفح Chrome محدّثاً.';
 const HINT3D = 'مجسّم ثلاثي الأبعاد: اسحب بإصبعك أو بالماوس لتدويره، وقرّب وبعّد بإصبعين أو بعجلة الماوس، واضغط مرتين على المجسم لإرجاعه. اضغط أي جزء أو اسمه لتظهر معلوماته.';
 function setOn(v){
   const key = SCENE_MODEL();
@@ -5511,13 +5520,17 @@ function setOn(v){
   }
 }
 function sync(){
-  const key = SCENE_MODEL(), has = !!(key && G3.models[key]) && supported !== false;
+  const key = SCENE_MODEL(), model = !!(key && G3.models[key]), has = model && supported !== false;
   const b = $('#v3Btn');
   b.disabled = !has;
-  b.title = has ? 'عرض الرسم مجسّماً ثلاثي الأبعاد' : 'هذا المشهد مخطط أو حركة وليس له مجسّم';
+  b.title = has ? 'عرض الرسم مجسّماً ثلاثي الأبعاد' : supported === false && model ? NO_GL : 'هذا المشهد مخطط أو حركة وليس له مجسّم';
   if (on){
     if (!has) setOn(false);
     else { modelKey = null; loadModel(key); $('#sceneHint').textContent = HINT3D; }
+  } else if (has && want3d){
+    hint2d = '';
+    setOn(true);
+    if (!on && supported === false){ b.disabled = true; b.title = NO_GL; $('#sceneHint').textContent = NO_GL; }
   }
 }
 
@@ -5528,7 +5541,11 @@ window.__v3 = {
   debug: () => ({ lw: Object.keys(labState).map(k => k + ":" + Math.round(labState[k].w) + "/" + labState[k].side), objs: objs.length, parts: partIds.slice(), labels: labels.map(l => l.part), key: modelKey, yaw, pitch, dist,
     screen: labels.map(l => { const s = project(l.at); return { part: l.part, x: s[0], y: s[1] }; }) })
 };
-$('#v3Btn').addEventListener('click', () => setOn(!on));
+$('#v3Btn').addEventListener('click', () => {
+  setOn(!on);
+  want3d = on; saveWant();
+  if (!on && supported === false){ $('#v3Btn').disabled = true; $('#sceneHint').textContent = NO_GL; }
+});
 $('#lblTgl').addEventListener('change', () => { if (svg) svg.classList.toggle('off', !$('#lblTgl').checked); });
 })();
 
@@ -6362,7 +6379,8 @@ document.addEventListener('keydown', e => {
     الخليتان مع صفاتهما من جدول ص35 الوزاري، والانقسامان يعملان على
     الشريط الزمني نفسه مع اسم الطور وعدد الكروموسومات تحت كل رسم.
   · زرّ «كل الجداول» في الشريط السفلي يفتح فهرس جداول الملزمة الـ21.
-  · زرّ «ثلاثي الأبعاد» يحوّل رسوم التراكيب إلى مجسّمات WebGL حقيقية بنفس
+  · رسوم التراكيب تفتح مجسّمات WebGL ثلاثية الأبعاد مباشرة (وزرّ «مسطّح» يرجع
+    لرسم الملزمة، ويُحفظ الاختيار)، بنفس
     الأجزاء والأسماء (الخلية الحيوانية، النباتية، الاثنتان معاً، بدائية
     النواة، المايتوكوندريا، البلاستيدة، النواة، الغشاء البلازمي): تدوير
     بالسحب، تقريب بإصبعين أو بالعجلة، نقرتان للإرجاع، والضغط على الجزء أو
