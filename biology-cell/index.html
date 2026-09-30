@@ -378,6 +378,18 @@
   .part.sel[data-part=bpm],.part.sel[data-part=capsule]{transform:none}
   #svgHost.dim .part:not(.sel){opacity:.2}
   #svgHost.dim .part:not(.sel):has(.part.sel){opacity:1}
+  /* أسماء الأجزاء تنضغط مثل الجزء نفسه */
+  .lblHit{fill:transparent;stroke:none;pointer-events:all;cursor:pointer}
+  #labelLayer .lblG .lbl,#labelLayer .lblG .lead{transition:fill .18s,stroke .18s,opacity .25s}
+  #labelLayer .lblG{transition:opacity .25s}
+  #labelLayer .lblG.clk:hover .lbl{fill:var(--gold2)}
+  #labelLayer .lblG.clk:hover .lead{stroke:var(--gold2);opacity:1}
+  #labelLayer .lblG.sel .lbl{fill:var(--gold2);font-weight:700}
+  #labelLayer .lblG.sel .lead{stroke:var(--gold2);stroke-width:1.9;opacity:1}
+  #labelLayer .lblG.sel .lblDot{fill:#fff3cf;filter:drop-shadow(0 0 4px #ffd166) drop-shadow(0 0 2px #ffd166)}
+  #svgHost.dim #labelLayer .lblG:not(.sel){opacity:.32}
+  /* معاينة: المرور على الاسم يضيء جزءه */
+  .part.hov{filter:brightness(1.28) drop-shadow(0 0 7px rgba(255,209,102,.75))}
   #svgHost.flat *{filter:none!important}
   .lbl{pointer-events:none;font-size:13px;fill:var(--bone);direction:rtl;
     paint-order:stroke;stroke:rgba(8,7,10,.85);stroke-width:3.2px;stroke-linejoin:round}
@@ -497,7 +509,8 @@
   @media (max-width:880px),(orientation:portrait){
     #wrap{flex-direction:column}
     #stage{flex:1 1 auto}
-    #info{width:100%;flex:0 0 auto;max-height:44%;border-inline-end:0;
+    /* ارتفاع ثابت: الرسم ما يتحرك تحت إصبعك حين تمتلئ اللوحة بعد الضغط */
+    #info{width:100%;flex:0 0 44%;max-height:44%;border-inline-end:0;
       border-top:1px solid var(--line);box-shadow:0 -16px 34px rgba(0,0,0,.45);
       background:linear-gradient(0deg,rgba(17,14,20,.99),rgba(13,11,16,.97))}
     #sheet{inset:auto 8px 8px 8px;max-height:74%}
@@ -4211,7 +4224,9 @@ function nameOf(p){ return p.short || (INFO[p.id] ? INFO[p.id].name : p.id); }
 
 function labelLayer(parts){
   const g = parts.map(p => {
-    const nm = nameOf(p), lines = wrapName(nm, VB.x < 0 ? 13 : 15);
+    /* الموبايل: أسماء العمودين الجانبيين تلتف عند 15 حرفاً (3 أسطر كحد أقصى
+       فلا تركب على الاسم المجاور ولا تتجاوز حافة الشاشة)، والأسماء الوسطى عند 13 */
+    const nm = nameOf(p), lines = wrapName(nm, VB.x < 0 && p.side === 'C' ? 13 : 15);
     const anch = p.side === 'R' ? 'end' : p.side === 'L' ? 'start' : 'middle';
     const tx = p.side === 'R' ? p.label[0] + 8 : p.side === 'L' ? p.label[0] - 8 : p.label[0];
     const lh = VB.x < 0 ? 30 : 16;
@@ -4265,6 +4280,7 @@ function loadScene(key){
   buildTools(cur.tools || []);
   addHitAreas(svgHost);
   bindParts();
+  bindLabels();
   flows = cur.flows || [];
   flows.forEach(f => { f.items.forEach(i => i.el && i.el.remove()); f.items = []; f.off = false; });
   stream = cur.stream || null;
@@ -4331,12 +4347,111 @@ function bindParts(){
 /* الضغط على فراغ الرسم يغلق اللوحة — مستمع واحد فقط طوال عمل البرنامج */
 svgHost.addEventListener('click', () => clearInfo());
 
+/* الضغط على اسم الجزء (أو نقطة تأشيره) = الضغط على الجزء نفسه بالضبط،
+   فلا يُختار بالخطأ جزء آخر يقع تحت الاسم أو النقطة */
+function sizeLabelHits(){
+  svgHost.querySelectorAll('#labelLayer .lblG.clk').forEach(g => {
+    const t = g.querySelector('text.lbl'), h = g.querySelector('rect.lblHit');
+    if (!t || !h) return;
+    let bb; try { bb = t.getBBox(); } catch (e) { return; }
+    if (!bb.width) return;
+    const pad = 7;
+    h.setAttribute('x', n2(bb.x - pad)); h.setAttribute('y', n2(bb.y - pad));
+    h.setAttribute('width', n2(bb.width + pad * 2)); h.setAttribute('height', n2(bb.height + pad * 2));
+  });
+}
+/* أي اسم أقرب لمكان الضغط؟ (مناطق الضغط قد تتداخل حين تلتف الأسماء الطويلة
+   على الموبايل، فنحكم بالنص الفعلي لا بالمنطقة المحيطة به) */
+function labelAt(x, y){
+  let best = null, bd = Infinity, bc = Infinity;
+  svgHost.querySelectorAll('#labelLayer .lblG.clk').forEach(g => {
+    const r = g.querySelector('text.lbl').getBoundingClientRect();
+    if (!r.width) return;
+    const dx = Math.max(r.left - x, 0, x - r.right), dy = Math.max(r.top - y, 0, y - r.bottom);
+    const d = Math.hypot(dx, dy), c = Math.hypot(x - (r.left + r.right) / 2, y - (r.top + r.bottom) / 2);
+    if (d < bd - 0.5 || (Math.abs(d - bd) <= 0.5 && c < bc)){ best = g.dataset.for; bd = d; bc = c; }
+  });
+  return best;
+}
+function hoverPart(id, on){
+  svgHost.querySelectorAll('.part').forEach(e => e.classList.toggle('hov', on && e.dataset.part === id));
+}
+/* تباعد تلقائي: إذا تلامس اسمان في نفس العمود الجانبي (يصير بالموبايل حين
+   تلتف الأسماء الطويلة) يُزاح أحدهما قليلاً ويتبعه خط التأشير */
+function relaxLabels(){
+  const cols = { R: [], L: [] };
+  svgHost.querySelectorAll('#labelLayer .lblG').forEach(g => {
+    const t = g.querySelector('text.lbl'); if (!t) return;
+    const anch = t.getAttribute('text-anchor');
+    const side = anch === 'end' ? 'R' : anch === 'start' ? 'L' : null;
+    if (!side) return;
+    let bb; try { bb = t.getBBox(); } catch (e) { return; }
+    if (!bb.height) return;
+    cols[side].push({ g, t, line: g.querySelector('.lead'), y: bb.y, h: bb.height, dy: 0 });
+  });
+  const gap = VB.x < 0 ? 8 : 4, top = VB.y + 4, bottom = VB.y + VB.h - 4;
+  Object.values(cols).forEach(c => {
+    if (c.length < 2) return;
+    c.sort((a, b) => a.y - b.y);
+    for (let i = 1; i < c.length; i++){
+      const prev = c[i - 1], cur = c[i];
+      const need = (prev.y + prev.dy + prev.h + gap) - (cur.y + cur.dy);
+      if (need > 0) cur.dy += need;
+    }
+    /* إذا نزل آخر اسم تحت حافة الرسم نرفع العمود كله بمقدار الزيادة */
+    const last = c[c.length - 1], over = last.y + last.dy + last.h - bottom;
+    if (over > 0){
+      const room = (c[0].y + c[0].dy) - top;
+      c.forEach(o => { o.dy -= Math.min(over, Math.max(0, room)); });
+    }
+    c.forEach(o => {
+      if (Math.abs(o.dy) < 0.5) return;
+      o.t.setAttribute('y', n2(parseFloat(o.t.getAttribute('y')) + o.dy));
+      if (o.line) o.line.setAttribute('y1', n2(parseFloat(o.line.getAttribute('y1')) + o.dy));
+    });
+  });
+}
+function bindLabels(){
+  relaxLabels();
+  svgHost.querySelectorAll('#labelLayer .lblG').forEach(g => {
+    const id = g.dataset.for;
+    if (!INFO[id]) return;
+    g.classList.add('clk');
+    const hit = document.createElementNS(SVGNS, 'rect');
+    hit.setAttribute('class', 'lblHit'); hit.setAttribute('rx', '7');
+    g.insertBefore(hit, g.querySelector('text.lbl'));
+    const dot = g.querySelector('.lblDot');
+    if (dot){
+      const dh = document.createElementNS(SVGNS, 'circle');
+      dh.setAttribute('class', 'lblHit');
+      dh.setAttribute('cx', dot.getAttribute('cx')); dh.setAttribute('cy', dot.getAttribute('cy'));
+      dh.setAttribute('r', '9');
+      g.appendChild(dh);
+    }
+    g.addEventListener('click', ev => {
+      ev.stopPropagation();
+      /* نقطة التأشير تخص اسمها؛ منطقة النص يحكمها أقرب نص فعلي */
+      const onDot = ev.target.tagName === 'circle';
+      const pid = onDot ? id : (labelAt(ev.clientX, ev.clientY) || id);
+      hoverPart(pid, false); selectPart(pid);
+    });
+    g.addEventListener('mousemove', ev => {
+      const pid = ev.target.tagName === 'circle' ? id : (labelAt(ev.clientX, ev.clientY) || id);
+      hoverPart(pid, true);
+    });
+    g.addEventListener('mouseleave', () => hoverPart(id, false));
+  });
+  sizeLabelHits();
+}
+window.addEventListener('resize', () => requestAnimationFrame(sizeLabelHits));
+
 /* ───────────── لوحة المعلومات ───────────── */
 function selectPart(id){
   const d = INFO[id]; if (!d) return;
   selPart = id;
   svgHost.classList.add('dim');
   svgHost.querySelectorAll('.part').forEach(e => e.classList.toggle('sel', e.dataset.part === id));
+  svgHost.querySelectorAll('#labelLayer .lblG').forEach(g => g.classList.toggle('sel', g.dataset.for === id));
   $('#infoName').textContent = d.name;
   $('#infoSrc').textContent = d.src ? 'المصدر: ' + d.src : '';
   $('#infoEmpty').hidden = true;
@@ -4357,6 +4472,7 @@ function clearInfo(){
   selPart = null;
   svgHost.classList.remove('dim');
   svgHost.querySelectorAll('.part').forEach(e => e.classList.remove('sel'));
+  svgHost.querySelectorAll('#labelLayer .lblG').forEach(g => g.classList.remove('sel'));
   $('#infoName').textContent = 'لوحة المعلومات';
   $('#infoSrc').textContent = '';
   $('#infoEmpty').hidden = false;
@@ -4622,6 +4738,7 @@ function applyLabelToggle(){
   const on = $('#lblTgl').checked;
   const l = svgHost.querySelector('#labelLayer');
   if (l) l.classList.toggle('off', !on);
+  if (on) sizeLabelHits();
 }
 $('#lblTgl').addEventListener('change', applyLabelToggle);
 $('#glowTgl').addEventListener('change', e => svgHost.classList.toggle('flat', !e.target.checked));
