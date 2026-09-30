@@ -5061,7 +5061,7 @@ function initGL(){
     gl = canvas.getContext('webgl', { antialias: true, alpha: true, premultipliedAlpha: false, preserveDrawingBuffer: false })
       || canvas.getContext('experimental-webgl');
   } catch (e) { gl = null; }
-  if (!gl){ supported = false; return false; }
+  if (!gl || FORCE_SW) return initSW();
   ext32 = gl.getExtension('OES_element_index_uint');
   const sh = (t, s) => { const o = gl.createShader(t); gl.shaderSource(o, s); gl.compileShader(o);
     if (!gl.getShaderParameter(o, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(o)); return o; };
@@ -5070,18 +5070,34 @@ function initGL(){
     gl.attachShader(prog, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, FS));
     gl.linkProgram(prog);
     if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
-  } catch (e) { console.warn('3D disabled:', e.message); supported = false; return false; }
+  } catch (e) { console.warn('WebGL shader failed, using 2D fallback:', e.message); return initSW(); }
   gl.useProgram(prog);
   ['aPos', 'aNrm', 'aLoc'].forEach(n => { A[n] = gl.getAttribLocation(prog, n); });
   ['uProj', 'uView', 'uModel', 'uEye', 'uLight', 'uColor', 'uAlpha', 'uRim', 'uRimColor', 'uPat', 'uPatColor', 'uPatK',
    'uGlow', 'uHover', 'uDim', 'uDay', 'uPick', 'uPickColor', 'uPickColor2', 'uPickFacing', 'uTau']
     .forEach(n => { U[n] = gl.getUniformLocation(prog, n); });
+  /* إذا فقد الموبايل سياق WebGL (ذاكرة الرسوميات) نكمل بالرسم البديل بدل شاشة فارغة */
+  canvas.addEventListener('webglcontextlost', e => { e.preventDefault(); initSW(); modelKey = null; if (on) loadModel(SCENE_MODEL()); }, { once: true });
   bindInput();
   supported = true;
   return true;
 }
+/* ══ بديل بلا WebGL: نفس المجسّمات تُرسم بـ Canvas 2D (مثلثات مرتّبة من البعيد للقريب) ══
+   بعض المتصفحات وعارضات الملفات على الموبايل لا تدعم WebGL؛ هنا يبقى المجسّم يدور
+   ويُضغط، بإضاءة أبسط قليلاً. */
+const FORCE_SW = /[?&]sw\b/.test(location.search);
+let SW = false, ctx2 = null, swT = null;
+function initSW(){
+  if (gl){ const n = canvas.cloneNode(false); canvas.parentNode.replaceChild(n, canvas); canvas = n; gl = null; }
+  try { ctx2 = canvas.getContext('2d'); } catch (e) { ctx2 = null; }
+  if (!ctx2){ supported = false; return false; }
+  SW = true; supported = true;
+  bindInput();
+  return true;
+}
 
 function upload(m){
+  if (SW) return { sw: true, p: Float32Array.from(m.p), n: Float32Array.from(m.n), l: Float32Array.from(m.l), i: Uint32Array.from(m.i), count: m.i.length };
   const nv = m.p.length / 3, data = new Float32Array(nv * 9);
   for (let v = 0; v < nv; v++){
     data.set([m.p[v * 3], m.p[v * 3 + 1], m.p[v * 3 + 2], m.n[v * 3], m.n[v * 3 + 1], m.n[v * 3 + 2], m.l[v * 3], m.l[v * 3 + 1], m.l[v * 3 + 2]], v * 9);
@@ -5093,7 +5109,7 @@ function upload(m){
   return { vbo, ibo, count: m.i.length, type: big ? gl.UNSIGNED_INT : gl.UNSIGNED_SHORT };
 }
 function freeObjs(){
-  objs.forEach(o => { gl.deleteBuffer(o.buf.vbo); gl.deleteBuffer(o.buf.ibo); });
+  objs.forEach(o => { if (!o.buf.sw && gl){ gl.deleteBuffer(o.buf.vbo); gl.deleteBuffer(o.buf.ibo); } });
   objs = [];
 }
 function centerOf(m){
@@ -5121,6 +5137,7 @@ function makeBuilder(){
     },
     /* لتحريك مجسم (مثل السوط): نعيد رفع بياناته */
     update(rec, mesh){
+      if (rec.buf.sw){ rec.buf.p = Float32Array.from(mesh.p); rec.buf.n = Float32Array.from(mesh.n); return; }
       const nv = mesh.p.length / 3, data = new Float32Array(nv * 9);
       for (let v = 0; v < nv; v++) data.set([mesh.p[v * 3], mesh.p[v * 3 + 1], mesh.p[v * 3 + 2], mesh.n[v * 3], mesh.n[v * 3 + 1], mesh.n[v * 3 + 2], mesh.l[v * 3], mesh.l[v * 3 + 1], mesh.l[v * 3 + 2]], v * 9);
       gl.bindBuffer(gl.ARRAY_BUFFER, rec.buf.vbo); gl.bufferSubData(gl.ARRAY_BUFFER, 0, data);
@@ -5146,7 +5163,7 @@ function resetView(){
 /* ── الرسم ── */
 function resize(){
   const r = canvas.getBoundingClientRect();
-  dpr = Math.min(2, window.devicePixelRatio || 1);
+  dpr = Math.min(SW ? 1.5 : 2, window.devicePixelRatio || 1);
   const w = Math.max(1, Math.round(r.width * dpr)), h = Math.max(1, Math.round(r.height * dpr));
   if (canvas.width !== w || canvas.height !== h){ canvas.width = w; canvas.height = h; }
   W = r.width; H = r.height;
@@ -5196,6 +5213,7 @@ function drawObj(o, pickCol, pickCol2){
   gl.drawElements(gl.TRIANGLES, o.buf.count, o.buf.type, 0);
 }
 function render(){
+  if (SW) return renderSW();
   resize(); camera();
   gl.viewport(0, 0, canvas.width, canvas.height);
   gl.clearColor(0, 0, 0, 0);
@@ -5236,6 +5254,7 @@ function ensureFbo(){
 }
 function pickAt(cx, cy){
   if (!objs.length) return null;
+  if (SW) return pickSW(cx, cy);
   resize(); camera(); ensureFbo();
   const px = Math.round(cx * dpr), py = Math.round(canvas.height - cy * dpr), Rr = Math.round(9 * dpr);
   gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
@@ -5276,6 +5295,126 @@ function pickAt(cx, cy){
   }
   gl.disable(gl.SCISSOR_TEST);
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  return found;
+}
+
+
+/* ── الرسم البديل (Canvas 2D) ── */
+function hash1(x, y, z){ x = (x * 0.3183099 + 0.1) % 1; y = (y * 0.3183099 + 0.1) % 1; z = (z * 0.3183099 + 0.1) % 1;
+  if (x < 0) x += 1; if (y < 0) y += 1; if (z < 0) z += 1; x *= 17; y *= 17; z *= 17; const v = x * y * z * (x + y + z); return v - Math.floor(v); }
+function noise3(x, y, z){
+  const ix = Math.floor(x), iy = Math.floor(y), iz = Math.floor(z); let fx = x - ix, fy = y - iy, fz = z - iz;
+  fx = fx * fx * (3 - 2 * fx); fy = fy * fy * (3 - 2 * fy); fz = fz * fz * (3 - 2 * fz);
+  const h = (a, b, c) => hash1(ix + a, iy + b, iz + c), mx = (a, b, t) => a + (b - a) * t;
+  return mx(mx(mx(h(0,0,0), h(1,0,0), fx), mx(h(0,1,0), h(1,1,0), fx), fy), mx(mx(h(0,0,1), h(1,0,1), fx), mx(h(0,1,1), h(1,1,1), fx), fy), fz);
+}
+const smooth = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+const colCache = new Map();
+const rgbStr = (r, g, b) => { r = Math.max(0, Math.min(255, r * 255 | 0)); g = Math.max(0, Math.min(255, g * 255 | 0)); b = Math.max(0, Math.min(255, b * 255 | 0));
+  const k = (r << 16) | (g << 8) | b; let s = colCache.get(k); if (!s){ s = `rgb(${r},${g},${b})`; colCache.set(k, s); } return s; };
+function renderSW(){
+  resize(); camera();
+  const ctx = ctx2, cw = canvas.width, ch = canvas.height;
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cw, ch);
+  const P = m4mul(projM, viewM);
+  const lv = [-0.45, 0.75, 0.55], Lt = norm(add(add(mul(cam.x, lv[0]), mul(cam.y, lv[1])), mul(cam.z, lv[2])));
+  const Hv0 = Lt, day = document.documentElement.dataset.theme === 'day' ? 1 : 0;
+  let total = 0; objs.forEach(o => { total += o.buf.count / 3; });
+  if (!swT || swT.cap < total){ const c = Math.ceil(total * 1.2) + 16;
+    swT = { cap: c, xy: new Float32Array(c * 6), z: new Float32Array(c), a: new Float32Array(c), fac: new Float32Array(c), o: new Int32Array(c), col: new Array(c), idx: new Uint32Array(c) }; }
+  const T = swT; let nt = 0;
+  objs.forEach((o, oi) => {
+    const b = o.buf, p = b.p, nn = b.n, lc = b.l, I = b.i, nv = p.length / 3, k = o.k, c = o.c;
+    const sx = new Float32Array(nv), sy = new Float32Array(nv), sw = new Float32Array(nv), wx = new Float32Array(nv * 3);
+    for (let v = 0; v < nv; v++){
+      const x = c[0] + (p[v * 3] - c[0]) * k, y = c[1] + (p[v * 3 + 1] - c[1]) * k, z = c[2] + (p[v * 3 + 2] - c[2]) * k;
+      wx[v * 3] = x; wx[v * 3 + 1] = y; wx[v * 3 + 2] = z;
+      const X = P[0] * x + P[4] * y + P[8] * z + P[12], Y = P[1] * x + P[5] * y + P[9] * z + P[13], Wc = P[3] * x + P[7] * y + P[11] * z + P[15];
+      sw[v] = Wc; sx[v] = (X / Wc * 0.5 + 0.5) * cw; sy[v] = (1 - (Y / Wc * 0.5 + 0.5)) * ch;
+    }
+    const shell = !!o.shell || o.alpha < 0.99;
+    const lit = o.part === selId || (o.shell && o.shell.inner === selId), dim = selId && !lit ? 1 : 0;
+    const base0 = o.col, rimC = o.rimC, patC = o.patC;
+    for (let t = 0; t < I.length; t += 3){
+      const i0 = I[t], i1 = I[t + 1], i2 = I[t + 2];
+      if (sw[i0] < 0.15 || sw[i1] < 0.15 || sw[i2] < 0.15) continue;
+      const ax = sx[i0], ay = sy[i0], bx = sx[i1], by = sy[i1], qx = sx[i2], qy = sy[i2];
+      if ((ax < 0 && bx < 0 && qx < 0) || (ax > cw && bx > cw && qx > cw) || (ay < 0 && by < 0 && qy < 0) || (ay > ch && by > ch && qy > ch)) continue;
+      let Nx = nn[i0 * 3] + nn[i1 * 3] + nn[i2 * 3], Ny = nn[i0 * 3 + 1] + nn[i1 * 3 + 1] + nn[i2 * 3 + 1], Nz = nn[i0 * 3 + 2] + nn[i1 * 3 + 2] + nn[i2 * 3 + 2];
+      const nl = Math.hypot(Nx, Ny, Nz) || 1; Nx /= nl; Ny /= nl; Nz /= nl;
+      const Cx = (wx[i0 * 3] + wx[i1 * 3] + wx[i2 * 3]) / 3, Cy = (wx[i0 * 3 + 1] + wx[i1 * 3 + 1] + wx[i2 * 3 + 1]) / 3, Cz = (wx[i0 * 3 + 2] + wx[i1 * 3 + 2] + wx[i2 * 3 + 2]) / 3;
+      let Vx = eye[0] - Cx, Vy = eye[1] - Cy, Vz = eye[2] - Cz; const vl = Math.hypot(Vx, Vy, Vz) || 1; Vx /= vl; Vy /= vl; Vz /= vl;
+      let fac = Nx * Vx + Ny * Vy + Nz * Vz;
+      /* الوجه الخلفي حسب ترتيب رؤوس المثلث على الشاشة (مثل WebGL) */
+      const area = (bx - ax) * (qy - ay) - (by - ay) * (qx - ax);
+      if (!shell && area > 0) continue;
+      if (Math.abs(area) < 0.6) continue;   // مثلث أصغر من نقطة الشاشة
+      if (fac < 0){ Nx = -Nx; Ny = -Ny; Nz = -Nz; fac = -fac; }
+      /* اللون: نفس معادلة الإضاءة في WebGL */
+      let br = base0[0], bg = base0[1], bb = base0[2];
+      if (o.pat){
+        const lx = (lc[i0 * 3] + lc[i1 * 3] + lc[i2 * 3]) / 3, ly = (lc[i0 * 3 + 1] + lc[i1 * 3 + 1] + lc[i2 * 3 + 1]) / 3, lz = (lc[i0 * 3 + 2] + lc[i1 * 3 + 2] + lc[i2 * 3 + 2]) / 3;
+        let m = 0;
+        if (o.pat === 1) m = smooth(0.35, 0.9, Math.sin(ly * o.patK + noise3(lx * 4, ly * 4, lz * 4) * 2.2));
+        else if (o.pat === 2) m = smooth(0.55, 0.72, noise3(lx * o.patK, ly * o.patK, lz * o.patK));
+        else if (o.pat === 3){ const f = 0.86 + 0.28 * noise3(lx * o.patK, ly * o.patK, lz * o.patK); br *= f; bg *= f; bb *= f; }
+        if (m){ br += (patC[0] - br) * m; bg += (patC[1] - bg) * m; bb += (patC[2] - bb) * m; }
+      }
+      const diff = Math.max(0, Nx * Lt[0] + Ny * Lt[1] + Nz * Lt[2]), hemi = 0.5 + 0.5 * Ny;
+      let Hx = Lt[0] + Vx, Hy = Lt[1] + Vy, Hz = Lt[2] + Vz; const hl = Math.hypot(Hx, Hy, Hz) || 1;
+      const spec = Math.pow(Math.max(0, (Nx * Hx + Ny * Hy + Nz * Hz) / hl), 36) * 0.32, fres = Math.pow(1 - fac, 2.4);
+      const li = 0.30 + 0.24 * hemi + 0.62 * diff;
+      let r = br * li + spec + rimC[0] * fres * o.rim, g = bg * li + spec + rimC[1] * fres * o.rim, bl = bb * li + spec + rimC[2] * fres * o.rim;
+      if (o.glow){ const q = 0.18 + fres * 0.95; r += o.glow * (br * 0.35 + q); g += o.glow * (bg * 0.35 + 0.82 * q); bl += o.glow * (bb * 0.35 + 0.42 * q); }
+      if (o.hov){ const q = fres * 0.6; r += o.hov * (br * 0.22 + q); g += o.hov * (bg * 0.22 + 0.85 * q); bl += o.hov * (bb * 0.22 + 0.5 * q); }
+      let a = o.alpha;
+      if (o.alpha < 0.99) a = Math.max(0, Math.min(1, o.alpha * (0.55 + 1.9 * fres) + o.glow * 0.18));
+      if (dim){ const gr = r * 0.3 + g * 0.59 + bl * 0.11, tg = gr + (day - gr) * 0.25;
+        r += (tg - r) * 0.55; g += (tg - g) * 0.55; bl += (tg - bl) * 0.55; a *= 1 - 0.62; }
+      const j = nt * 6; T.xy[j] = ax; T.xy[j + 1] = ay; T.xy[j + 2] = bx; T.xy[j + 3] = by; T.xy[j + 4] = qx; T.xy[j + 5] = qy;
+      T.z[nt] = (sw[i0] + sw[i1] + sw[i2]) / 3; T.a[nt] = a; T.fac[nt] = fac; T.o[nt] = oi; T.col[nt] = rgbStr(r, g, bl);
+      nt++;
+    }
+  });
+  T.n = nt;
+  const idx = T.idx.subarray(0, nt); for (let i = 0; i < nt; i++) idx[i] = i;
+  idx.sort((x, y) => T.z[y] - T.z[x]);
+  ctx.lineJoin = 'round'; ctx.lineWidth = 0.9;
+  for (let q = 0; q < nt; q++){
+    const i = idx[q], j = i * 6, a = T.a[i], solid = a >= 0.99;
+    ctx.globalAlpha = solid ? 1 : a;
+    ctx.beginPath(); ctx.moveTo(T.xy[j], T.xy[j + 1]); ctx.lineTo(T.xy[j + 2], T.xy[j + 3]); ctx.lineTo(T.xy[j + 4], T.xy[j + 5]); ctx.closePath();
+    ctx.fillStyle = T.col[i]; ctx.fill();
+    /* حدّ بنفس اللون يسدّ الشقوق الرفيعة بين المثلثات المعتمة */
+    if (solid && objs[T.o[i]].alpha >= 0.99){ ctx.strokeStyle = T.col[i]; ctx.stroke(); }
+  }
+  ctx.globalAlpha = 1;
+  placeLabels();
+}
+/* الالتقاط في الرسم البديل: نفس ترتيب WebGL (المعتم تحت الإصبع، ثم الأغشية من الأصغر، ثم أقرب جزء صغير) */
+function pickSW(cx, cy){
+  renderSW();
+  const T = swT, px = cx * dpr, py = cy * dpr, nt = T.n || 0;
+  const inTri = j => { const ax = T.xy[j], ay = T.xy[j + 1], bx = T.xy[j + 2], by = T.xy[j + 3], qx = T.xy[j + 4], qy = T.xy[j + 5];
+    const d1 = (px - bx) * (ay - by) - (ax - bx) * (py - by), d2 = (px - qx) * (by - qy) - (bx - qx) * (py - qy), d3 = (px - ax) * (qy - ay) - (qx - ax) * (py - ay);
+    return !((d1 < 0 || d2 < 0 || d3 < 0) && (d1 > 0 || d2 > 0 || d3 > 0)); };
+  const isShell = o => !!o.shell || o.alpha < 0.99;
+  let best = -1, bz = 1e9; const shellHit = new Map();
+  for (let i = 0; i < nt; i++){
+    const o = objs[T.o[i]]; if (!o.part || !inTri(i * 6)) continue;
+    if (!isShell(o)){ if (T.z[i] < bz){ bz = T.z[i]; best = i; } }
+    else { const h = shellHit.get(o); if (!h || T.z[i] < T.z[h]) shellHit.set(o, i); }
+  }
+  if (best >= 0) return objs[T.o[best]].part;
+  const shells = [...shellHit.keys()].sort((a, b) => ((a.shell && a.shell.size) || 1) - ((b.shell && b.shell.size) || 1));
+  if (shells.length){ const o = shells[0], i = shellHit.get(o), tau = o.shell && o.shell.tau !== undefined ? o.shell.tau : 0.3;
+    return o.shell && o.shell.inner && T.fac[i] > tau ? o.shell.inner : o.part; }
+  const R = 9 * dpr; let bd = R, found = null;
+  for (let i = 0; i < nt; i++){
+    const o = objs[T.o[i]]; if (!o.part || isShell(o)) continue;
+    const j = i * 6;
+    for (let v = 0; v < 6; v += 2){ const d = Math.hypot(T.xy[j + v] - px, T.xy[j + v + 1] - py); if (d < bd){ bd = d; found = o.part; } }
+  }
   return found;
 }
 
@@ -5497,8 +5636,8 @@ const SCENE_MODEL = () => {
 let on = false, hint2d = '';
 /* المجسّم هو العرض الافتراضي لرسوم التراكيب؛ إذا اختار الطالب «مسطّح» يُحفظ اختياره */
 let want3d = true;
-try { want3d = localStorage.getItem('cell3d') !== 'flat'; } catch (e) {}
-const saveWant = () => { try { localStorage.setItem('cell3d', want3d ? '3d' : 'flat'); } catch (e) {} };
+try { want3d = localStorage.getItem('cell3d_v2') !== 'flat'; } catch (e) {}
+const saveWant = () => { try { localStorage.setItem('cell3d_v2', want3d ? '3d' : 'flat'); } catch (e) {} };
 const NO_GL = 'جهازك أو متصفحك لا يدعم العرض الثلاثي الأبعاد (WebGL)، فالرسوم تظهر مسطّحة. جرّب متصفح Chrome محدّثاً.';
 const HINT3D = 'مجسّم ثلاثي الأبعاد: اسحب بإصبعك أو بالماوس لتدويره، وقرّب وبعّد بإصبعين أو بعجلة الماوس، واضغط مرتين على المجسم لإرجاعه. اضغط أي جزء أو اسمه لتظهر معلوماته.';
 function setOn(v){
@@ -5538,7 +5677,7 @@ window.__v3 = {
   sync, onSelect: id => { if (on) onSelect(id); },
   active: () => on, reset: () => { if (on) resetView(); },
   pick: (x, y) => pickAt(x, y), proj: p => project(p), setOn,
-  debug: () => ({ lw: Object.keys(labState).map(k => k + ":" + Math.round(labState[k].w) + "/" + labState[k].side), objs: objs.length, parts: partIds.slice(), labels: labels.map(l => l.part), key: modelKey, yaw, pitch, dist,
+  debug: () => ({ sw: SW, lw: Object.keys(labState).map(k => k + ":" + Math.round(labState[k].w) + "/" + labState[k].side), objs: objs.length, parts: partIds.slice(), labels: labels.map(l => l.part), key: modelKey, yaw, pitch, dist,
     screen: labels.map(l => { const s = project(l.at); return { part: l.part, x: s[0], y: s[1] }; }) })
 };
 $('#v3Btn').addEventListener('click', () => {
@@ -5792,9 +5931,11 @@ function proModel(B){
   B.add(merge(pili), { part: 'pilus', color: '#f0dcae', rim: 0.6, rimColor: '#ffffff' });
   /* السوط: لولب يدور من أحد القطبين */
   const base = [L / 2 + R + 0.12, 0, 0];
+  const flagLbl = [0, 0, 0];   // نقطة تأشير الاسم تتبع السوط وهو يدور
   const flag = ph => { const pts = [];
     for (let i = 0; i <= 60; i++){ const t = i / 60, amp = 0.05 + 0.24 * t;
       pts.push([base[0] + t * 2.6, Math.cos(t * 13 - ph) * amp, Math.sin(t * 13 - ph) * amp]); }
+    flagLbl[0] = pts[37][0]; flagLbl[1] = pts[37][1]; flagLbl[2] = pts[37][2];
     return tube({ pts, r: 0.035, sides: 6 }); };
   const fl = B.add(flag(0), { part: 'flagel', color: '#d8c68e', rim: 0.7, rimColor: '#fff3cf', center: [base[0] + 1.3, 0, 0], pop: false });
 
@@ -5805,7 +5946,7 @@ function proModel(B){
   B.label('capsule', [0.9, -(R + 0.17), 0.2], [0, -1, 0.2]);
   B.label('pilus', add(surf(0.4, 1.2)[0], mul(surf(0.4, 1.2)[1], 0.95)), surf(0.4, 1.2)[1]);
   B.label('cilia', add(hp, mul(hd, 0.2)), hd);
-  B.label('flagel', [base[0] + 1.6, 0, 0.1], [0, 0.2, 1]);
+  B.label('flagel', flagLbl, [0, 0.2, 1]);
   /* رايبوسوم قريب من الأمام ليؤشّر عليه الاسم */
   const front = rbAt.slice().sort((a, b) => (b[2] - Math.abs(b[0] - 1.2) * 0.3) - (a[2] - Math.abs(a[0] - 1.2) * 0.3))[0];
   B.label('ribo', front, [0, 0, 1]);
@@ -6385,6 +6526,7 @@ document.addEventListener('keydown', e => {
     النواة، المايتوكوندريا، البلاستيدة، النواة، الغشاء البلازمي): تدوير
     بالسحب، تقريب بإصبعين أو بالعجلة، نقرتان للإرجاع، والضغط على الجزء أو
     اسمه يضيئه ويفتح معلوماته. المخططات وحركات العمليات تبقى مسطّحة.
+    وإذا لم يدعم الجهاز WebGL تُرسم المجسّمات نفسها بـ Canvas 2D تلقائياً.
 
   ── ما يبقى للمراجعة ──
   أ) النواة: الملزمة تشرحها نصّياً (ص31–33) بلا رسم مستقل لها؛ رسم النواة
