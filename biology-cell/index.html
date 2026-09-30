@@ -548,7 +548,8 @@
   @media (max-width:430px){
     #titleRow h1{font-size:15px;letter-spacing:1px}
     #bar .ctl > label{display:none}
-    #tblBtn span,#themeBtn span,#fsBtn span{display:none}
+    #tblBtn span,#themeBtn span,#fsBtn span,#v3Btn span{display:none}
+    #lbl3d .lbl{font-size:10.5px;stroke-width:2.6px}
     .tgl > span{display:none}
     .tgl{padding:6px 10px;gap:7px}
     #spd{width:62px}
@@ -569,6 +570,34 @@
     *{animation-duration:.001ms!important;transition-duration:.001ms!important}
     #stage::before{animation:none}
   }
+
+  /* ═══════════ العرض ثلاثي الأبعاد ═══════════ */
+  #gl3d,#lbl3d{position:absolute;inset:0;width:100%;height:100%;display:none}
+  #gl3d{z-index:1;touch-action:none;cursor:grab}
+  #gl3d:active{cursor:grabbing}
+  #lbl3d{z-index:2;pointer-events:none;overflow:visible}
+  body.v3 #gl3d,body.v3 #lbl3d{display:block}
+  body.v3 #svgHost,body.v3 #fx{display:none!important}
+  body.v3 #lbl3d.off{display:none}
+  #lbl3d .lbl{font-size:12.5px;stroke-width:3px}
+  #lbl3d .lblG .lbl,#lbl3d .lblG .lead{transition:fill .18s,stroke .18s}
+  #lbl3d .lblG{transition:opacity .25s}
+  #lbl3d .lblG.clk:hover .lbl,#lbl3d .lblG.hov .lbl{fill:var(--gold2)}
+  #lbl3d .lblG.clk:hover .lead,#lbl3d .lblG.hov .lead{stroke:var(--gold2);opacity:1}
+  #lbl3d .lblG.sel .lbl{fill:var(--gold2);font-weight:700}
+  #lbl3d .lblG.sel .lead{stroke:var(--gold2);stroke-width:1.9;opacity:1}
+  #lbl3d .lblG.sel .lblDot{fill:#fff3cf;filter:drop-shadow(0 0 4px #ffd166)}
+  #lbl3d.dim .lblG:not(.sel){opacity:.32}
+  #lbl3d .lblG.back:not(.sel) .lead,#lbl3d .lblG.back:not(.sel) .lblDot{opacity:.35}
+  #v3Btn.on{color:#221607;background:linear-gradient(180deg,#ffe2a6 0%,var(--gold) 52%,#bd8b2c 100%);border-color:rgba(255,255,255,.4)}
+  #v3Btn:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
+  @media (max-width:700px){ #lbl3d .lbl{font-size:10.5px;stroke-width:2.6px} }
+  /* نقطة التأشير فوق المجسم لا تحجز اللمس: السحب منها يدوّر المجسم، والنقر عليها يلتقط الجزء نفسه من المجسم */
+  #lbl3d .dotHit{pointer-events:none}
+  #lbl3d.tiny .lblG{display:none}
+  #lbl3d.compact .lbl{font-size:9.6px;stroke-width:2.4px}
+  #lbl3d.compact .lblDot{r:2.8px}
+  html[data-theme=day] #v3Btn.on{color:#221607;background:linear-gradient(180deg,#ffe2a6,#e0ae4c 55%,#c2902f)}
 
   /* ═══════════ الامتحان: الشريط يبقى بدون أدوات الحركة ═══════════ */
   body.examMode #playBtn,body.examMode #bar .ctl,body.examMode #bar .tgl,body.examMode #resetBtn{display:none}
@@ -746,6 +775,7 @@
   <symbol id="ic-moon" viewBox="0 0 24 24"><path d="M20.5 14.8A8.6 8.6 0 0 1 9.2 3.5a8.6 8.6 0 1 0 11.3 11.3z"/></symbol>
   <symbol id="ic-expand" viewBox="0 0 24 24"><path d="M9 3.5H3.5V9M15 3.5h5.5V9M9 20.5H3.5V15M15 20.5h5.5V15"/></symbol>
   <symbol id="ic-shrink" viewBox="0 0 24 24"><path d="M3.5 9H9V3.5M20.5 9H15V3.5M3.5 15H9v5.5M20.5 15H15v5.5"/></symbol>
+  <symbol id="ic-cube" viewBox="0 0 24 24"><path d="M12 2.8 20.5 7.5v9L12 21.2 3.5 16.5v-9z"/><path d="M3.5 7.5 12 12.2l8.5-4.7M12 12.2v9"/></symbol>
   <symbol id="ic-layers" viewBox="0 0 24 24"><path d="M12 3.5 21 8l-9 4.5L3 8z"/><path d="M3 12.5 12 17l9-4.5M3 16.5 12 21l9-4.5"/></symbol>
 </svg>
 
@@ -778,6 +808,8 @@
     <svg id="svgHost" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid meet"
          role="img" aria-label="مشهد تفاعلي"></svg>
     <canvas id="fx" aria-hidden="true"></canvas>
+    <canvas id="gl3d" aria-label="مجسّم ثلاثي الأبعاد — اسحب لتدويره"></canvas>
+    <svg id="lbl3d" aria-hidden="true"><g id="lbl3dG"></g></svg>
 
     <div id="sceneHead">
       <div id="sceneName"></div>
@@ -864,6 +896,7 @@
   <label class="tgl"><input id="lblTgl" type="checkbox" checked><svg class="ic"><use href="#ic-eye"/></svg><span>الأسماء</span></label>
   <label class="tgl"><input id="glowTgl" type="checkbox" checked><svg class="ic"><use href="#ic-spark"/></svg><span>تأثيرات</span></label>
   <div id="barSpacer"></div>
+  <button id="v3Btn" class="btn ghost" title="عرض الرسم مجسّماً ثلاثي الأبعاد"><svg class="ic"><use href="#ic-cube"/></svg><span id="v3Txt">ثلاثي الأبعاد</span></button>
   <button id="themeBtn" class="btn ghost" title="تبديل الوضع نهاري/ليلي"><svg class="ic"><use id="themeIcon" href="#ic-sun"/></svg><span id="themeTxt">نهاري</span></button>
   <button id="fsBtn" class="btn ghost" title="ملء الشاشة للرسم"><svg class="ic"><use id="fsIcon" href="#ic-expand"/></svg><span id="fsTxt">ملء الشاشة</span></button>
   <button id="tblBtn" class="btn ghost"><svg class="ic"><use href="#ic-table"/></svg><span>كل الجداول</span></button>
@@ -4257,7 +4290,7 @@ function loadScene(key){
   /* في الامتحان يبقى الشريط (نهاري/ملء الشاشة/الجداول) وتختفي أدوات الحركة فقط */
   document.body.classList.toggle('examMode', isExam);
   $('#phaseBar').classList.remove('on');
-  if (isExam){ cur = null; flows = []; stream = null; $('#sceneName').textContent = 'وضع الامتحان'; $('#sceneHint').textContent = ''; initExam(); return; }
+  if (isExam){ cur = null; if (window.__v3) window.__v3.sync(); flows = []; stream = null; $('#sceneName').textContent = 'وضع الامتحان'; $('#sceneHint').textContent = ''; initExam(); return; }
 
   const def = SCENES[key];
   cur = def.build();
@@ -4288,6 +4321,7 @@ function loadScene(key){
   if (cur.isDivision) $('#phaseBar').classList.add('on');
   if (cur.init) cur.init(api);
   applyLabelToggle();
+  if (window.__v3) window.__v3.sync();
 }
 
 /* مناطق ضغط سخية: الأجزاء ذات الخطوط الرفيعة أو النقاط الصغيرة
@@ -4467,6 +4501,7 @@ function selectPart(id){
   const hasFn = flows.some(f => f.owner === id) ||
     ['lyso','pm','mito','chloro','nuc','pore','golgi','rer','golgiVes','ribo','crista','granum','nucleolus'].indexOf(id) >= 0;
   $('#seeFn').disabled = !hasFn;
+  if (window.__v3) window.__v3.onSelect(id);
 }
 function clearInfo(){
   selPart = null;
@@ -4479,6 +4514,7 @@ function clearInfo(){
   $('#infoBody').hidden = true;
   $('#infoFoot').hidden = true;
   if (document.body.classList.contains('fs')) $('#info').classList.add('closed');
+  if (window.__v3) window.__v3.onSelect(null);
 }
 $('#infoClose').addEventListener('click', () => clearInfo());
 $('#seeFn').addEventListener('click', () => {
@@ -4559,6 +4595,9 @@ function syncTools(){
   });
 }
 function onTool(id, btn){
+  /* أدوات الحركة والتجارب مرسومة في المشهد المسطّح: نرجع إليه حتى يظهر أثرها */
+  const keeps3d = id.indexOf('tbl:') === 0 || id.indexOf('info:') === 0 || btn.dataset.radio === 'euk';
+  if (!keeps3d && window.__v3 && window.__v3.active()) window.__v3.setOn(false);
   if (btn.dataset.radio){
     const grp = btn.dataset.radio;
     radioState[grp] = id;
@@ -4702,6 +4741,8 @@ function frame(now){
   dt = Math.min(dt, 0.05);
   /* ورا واجهة البداية ما نرسم شي — توفير بطارية الموبايل */
   if (welcomeEl && !welcomeEl.classList.contains('off')){ requestAnimationFrame(frame); return; }
+  /* بالعرض ثلاثي الأبعاد الرسم المسطّح مخفي فلا نحرّكه */
+  if (document.body.classList.contains('v3')){ requestAnimationFrame(frame); return; }
   const slow = (focusOwner || tAcc < focusUntil) ? 0.45 : 1;
   if (tAcc >= focusUntil && focusOwner){ focusOwner = null; clearDiff(); }
   const eff = playing ? dt * speedMul * slow : 0;
@@ -4747,6 +4788,1222 @@ $('#resetBtn').addEventListener('click', () => {
   else { if (cur && cur.onReset) cur.onReset(); loadScene(curKey); }
 });
 window.addEventListener('resize', () => { fitCanvas(); fitViewBox(); });
+
+/* ══════════════════════════════════════════════════════════════════════════
+   9 · العرض ثلاثي الأبعاد — محرّك WebGL صغير مكتوب هنا (بلا مكتبات، بلا إنترنت)
+   ══════════════════════════════════════════════════════════════════════════
+   المجسمات بنفس أجزاء الرسوم وأسمائها؛ تُدار بالسحب، وتُقرّب بإصبعين أو بعجلة
+   الماوس، والضغط على أي جزء أو اسمه يفتح معلوماته كما في الرسم المسطّح. */
+const G3 = { models: {} };
+
+(function(){
+/* ── متجهات ومصفوفات ── */
+const add = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
+const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+const mul = (a, s) => [a[0] * s, a[1] * s, a[2] * s];
+const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+const vlen = a => Math.hypot(a[0], a[1], a[2]);
+const norm = a => { const l = vlen(a) || 1; return [a[0] / l, a[1] / l, a[2] / l]; };
+/* دوران 3×3 (صفوف) من زوايا x ثم y ثم z */
+function rot3(ax, ay, az){
+  const cx = Math.cos(ax), sx = Math.sin(ax), cy = Math.cos(ay), sy = Math.sin(ay), cz = Math.cos(az), sz = Math.sin(az);
+  return [cz * cy, cz * sy * sx - sz * cx, cz * sy * cx + sz * sx,
+          sz * cy, sz * sy * sx + cz * cx, sz * sy * cx - cz * sx,
+          -sy,     cy * sx,                cy * cx];
+}
+const ap3 = (R, v) => [R[0] * v[0] + R[1] * v[1] + R[2] * v[2], R[3] * v[0] + R[4] * v[1] + R[5] * v[2], R[6] * v[0] + R[7] * v[1] + R[8] * v[2]];
+/* دوران يوجّه المحور y المحلي نحو d */
+function alignY(d){
+  const n = norm(d), c = n[1];
+  if (c > 0.9999) return [1, 0, 0, 0, 1, 0, 0, 0, 1];
+  if (c < -0.9999) return [1, 0, 0, 0, -1, 0, 0, 0, -1];
+  const a = norm(cross([0, 1, 0], n)), s = Math.sqrt(1 - c * c), t = 1 - c, [x, y, z] = a;
+  return [t * x * x + c, t * x * y - s * z, t * x * z + s * y,
+          t * x * y + s * z, t * y * y + c, t * y * z - s * x,
+          t * x * z - s * y, t * y * z + s * x, t * z * z + c];
+}
+function rotAxis(v, k, ang){
+  const c = Math.cos(ang), s = Math.sin(ang);
+  return add(add(mul(v, c), mul(cross(k, v), s)), mul(k, dot(k, v) * (1 - c)));
+}
+function persp(fov, asp, n, f){
+  const t = 1 / Math.tan(fov / 2);
+  return [t / asp, 0, 0, 0, 0, t, 0, 0, 0, 0, (f + n) / (n - f), -1, 0, 0, 2 * f * n / (n - f), 0];
+}
+function m4mul(a, b){
+  const o = new Array(16);
+  for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++){
+    let s = 0; for (let k = 0; k < 4; k++) s += a[k * 4 + r] * b[c * 4 + k]; o[c * 4 + r] = s;
+  }
+  return o;
+}
+function lookAt(eye, tgt, up){
+  const z = norm(sub(eye, tgt)), x = norm(cross(up, z)), y = cross(z, x);
+  return { m: [x[0], y[0], z[0], 0, x[1], y[1], z[1], 0, x[2], y[2], z[2], 0, -dot(x, eye), -dot(y, eye), -dot(z, eye), 1], x, y, z };
+}
+const popM = (c, k) => [k, 0, 0, 0, 0, k, 0, 0, 0, 0, k, 0, c[0] * (1 - k), c[1] * (1 - k), c[2] * (1 - k), 1];
+const hex = h => { const v = parseInt(h.slice(1), 16); return [(v >> 16 & 255) / 255, (v >> 8 & 255) / 255, (v & 255) / 255]; };
+
+/* ── بناء المجسمات ── (مواقع p، اتجاهات n، إحداثيات محلية l للنقوش) */
+const mk = () => ({ p: [], n: [], l: [], i: [] });
+function gridIdx(m, R, C, base){
+  base = base || 0;
+  for (let i = 0; i < R; i++) for (let j = 0; j < C; j++){
+    const a = base + i * C + j, b = base + i * C + (j + 1) % C, c = base + (i + 1) * C + j, d = base + (i + 1) * C + (j + 1) % C;
+    m.i.push(a, c, b, b, c, d);
+  }
+}
+function computeNormals(m){
+  const n = new Array(m.p.length).fill(0), P = m.p;
+  for (let k = 0; k < m.i.length; k += 3){
+    const a = m.i[k] * 3, b = m.i[k + 1] * 3, c = m.i[k + 2] * 3;
+    const f = cross([P[b] - P[a], P[b + 1] - P[a + 1], P[b + 2] - P[a + 2]], [P[c] - P[a], P[c + 1] - P[a + 1], P[c + 2] - P[a + 2]]);
+    for (const v of [a, b, c]){ n[v] += f[0]; n[v + 1] += f[1]; n[v + 2] += f[2]; }
+  }
+  for (let v = 0; v < n.length; v += 3){ const l = Math.hypot(n[v], n[v + 1], n[v + 2]) || 1; n[v] /= l; n[v + 1] /= l; n[v + 2] /= l; }
+  m.n = n; return m;
+}
+/* إهليلج (كرة مشوّهة اختيارياً) */
+function ellipsoid(o){
+  const r = Array.isArray(o.r) ? o.r : [o.r, o.r, o.r], R = o.rows || 14, C = o.cols || 24, m = mk();
+  for (let i = 0; i <= R; i++){
+    const ph = -Math.PI / 2 + Math.PI * i / R, cp = Math.cos(ph), sp = Math.sin(ph);
+    for (let j = 0; j < C; j++){
+      const th = 2 * Math.PI * j / C, d = [cp * Math.cos(th), sp, cp * Math.sin(th)];
+      const k = o.disp ? o.disp(d) : 1;
+      let p = [d[0] * r[0] * k, d[1] * r[1] * k, d[2] * r[2] * k];
+      if (o.warp) p = o.warp(p);
+      m.p.push(p[0], p[1], p[2]); m.l.push(p[0], p[1], p[2]);
+      const nn = norm([d[0] / r[0], d[1] / r[1], d[2] / r[2]]); m.n.push(nn[0], nn[1], nn[2]);
+    }
+  }
+  gridIdx(m, R, C);
+  if (o.disp || o.warp) computeNormals(m);
+  return m;
+}
+/* شكل فائق (صندوق مدوّر الحواف أو بيضوي مسطّح) */
+function superEll(o){
+  const h = o.h, e = o.e || 0.3, R = o.rows || 28, C = o.cols || 44, m = mk();
+  const sp = (w, x) => Math.sign(w) * Math.pow(Math.abs(w), x);
+  for (let i = 0; i <= R; i++){
+    const ph = -Math.PI / 2 + Math.PI * i / R, cp = Math.cos(ph), s = Math.sin(ph);
+    for (let j = 0; j < C; j++){
+      const th = 2 * Math.PI * j / C;
+      const p = [h[0] * sp(cp, e) * sp(Math.cos(th), e), h[1] * sp(s, e), h[2] * sp(cp, e) * sp(Math.sin(th), e)];
+      m.p.push(p[0], p[1], p[2]); m.l.push(p[0], p[1], p[2]); m.n.push(0, 0, 0);
+    }
+  }
+  gridIdx(m, R, C);
+  return computeNormals(m);
+}
+/* كبسولة على المحور y */
+function capsule(o){
+  const H = o.rows || 8, C = o.cols || 22, m = mk(), h = o.len / 2, rows = [];
+  for (let i = 0; i <= H; i++) rows.push([-Math.PI / 2 + (Math.PI / 2) * i / H, -h]);
+  for (let i = 0; i <= H; i++) rows.push([(Math.PI / 2) * i / H, h]);
+  rows.forEach(([ph, off]) => {
+    const cp = Math.cos(ph), s = Math.sin(ph);
+    for (let j = 0; j < C; j++){
+      const th = 2 * Math.PI * j / C, d = [cp * Math.cos(th), s, cp * Math.sin(th)];
+      const p = [d[0] * o.r, d[1] * o.r + off, d[2] * o.r];
+      m.p.push(p[0], p[1], p[2]); m.l.push(p[0], p[1], p[2]); m.n.push(d[0], d[1], d[2]);
+    }
+  });
+  gridIdx(m, rows.length - 1, C);
+  return m;
+}
+/* أنبوب على مسار (نبيبات، شبكة، سوط، خيوط كروماتين، حلقات الثقوب) */
+function tube(o){
+  const P = o.pts, N = P.length, S = o.sides || 8, m = mk(), closed = !!o.closed;
+  const T = P.map((p, i) => closed ? norm(sub(P[(i + 1) % N], P[(i - 1 + N) % N]))
+                                   : norm(sub(P[Math.min(N - 1, i + 1)], P[Math.max(0, i - 1)])));
+  let nr = norm(cross(T[0], Math.abs(T[0][1]) < 0.9 ? [0, 1, 0] : [1, 0, 0]));
+  const F = [];
+  for (let i = 0; i < N; i++){
+    if (i > 0){
+      const b = cross(T[i - 1], T[i]), bl = vlen(b);
+      if (bl > 1e-6) nr = rotAxis(nr, mul(b, 1 / bl), Math.acos(Math.max(-1, Math.min(1, dot(T[i - 1], T[i])))));
+    }
+    F.push([nr, cross(T[i], nr)]);
+  }
+  for (let i = 0; i < N; i++){
+    const rr = typeof o.r === 'function' ? o.r(i / (N - 1)) : o.r, [n1, b1] = F[i];
+    for (let j = 0; j < S; j++){
+      const a = 2 * Math.PI * j / S, d = add(mul(n1, Math.cos(a)), mul(b1, Math.sin(a))), p = add(P[i], mul(d, rr));
+      m.p.push(p[0], p[1], p[2]); m.l.push(p[0], p[1], p[2]); m.n.push(d[0], d[1], d[2]);
+    }
+  }
+  const rings = closed ? N : N - 1;
+  for (let i = 0; i < rings; i++){
+    const i2 = (i + 1) % N;
+    for (let j = 0; j < S; j++){
+      const a = i * S + j, b = i * S + (j + 1) % S, c = i2 * S + j, d = i2 * S + (j + 1) % S;
+      m.i.push(a, b, c, b, d, c);
+    }
+  }
+  if (!closed && o.caps !== false){
+    [[0, -1], [N - 1, 1]].forEach(([ri, sg]) => {
+      const nn = mul(T[ri], sg), base = m.p.length / 3, rr = typeof o.r === 'function' ? o.r(ri / (N - 1)) : o.r;
+      m.p.push(...P[ri]); m.l.push(...P[ri]); m.n.push(...nn);
+      const [n1, b1] = F[ri];
+      for (let j = 0; j < S; j++){
+        const a = 2 * Math.PI * j / S, d = add(mul(n1, Math.cos(a)), mul(b1, Math.sin(a))), p = add(P[ri], mul(d, rr));
+        m.p.push(p[0], p[1], p[2]); m.l.push(p[0], p[1], p[2]); m.n.push(...nn);
+      }
+      for (let j = 0; j < S; j++){
+        const a = base + 1 + j, b = base + 1 + (j + 1) % S;
+        if (sg < 0) m.i.push(base, b, a); else m.i.push(base, a, b);
+      }
+    });
+  }
+  return m;
+}
+/* تحويل: تدوير R (أو rot أو dir) ثم تحجيم s ثم إزاحة at */
+function place(m, o){
+  const R = o.R || (o.dir ? alignY(o.dir) : o.rot ? rot3(o.rot[0], o.rot[1], o.rot[2]) : null);
+  const s = o.s === undefined ? [1, 1, 1] : Array.isArray(o.s) ? o.s : [o.s, o.s, o.s], at = o.at || [0, 0, 0];
+  const out = { p: [], n: [], l: m.l.slice(), i: m.i.slice() };
+  for (let k = 0; k < m.p.length; k += 3){
+    let p = [m.p[k] * s[0], m.p[k + 1] * s[1], m.p[k + 2] * s[2]];
+    let n = [m.n[k] / s[0], m.n[k + 1] / s[1], m.n[k + 2] / s[2]];
+    if (R){ p = ap3(R, p); n = ap3(R, n); }
+    n = norm(n);
+    out.p.push(p[0] + at[0], p[1] + at[1], p[2] + at[2]); out.n.push(n[0], n[1], n[2]);
+  }
+  return out;
+}
+function merge(list){
+  const o = mk();
+  list.forEach(m => {
+    const base = o.p.length / 3;
+    for (let k = 0; k < m.p.length; k++){ o.p.push(m.p[k]); o.n.push(m.n[k]); o.l.push(m.l[k]); }
+    for (let k = 0; k < m.i.length; k++) o.i.push(m.i[k] + base);
+  });
+  return o;
+}
+/* منحنى ناعم يمر بنقاط (Catmull-Rom) */
+function spline(pts, per, closed){
+  const out = [], N = pts.length, segs = closed ? N : N - 1;
+  const at = i => closed ? pts[(i + N) % N] : pts[Math.max(0, Math.min(N - 1, i))];
+  for (let i = 0; i < segs; i++){
+    const p0 = at(i - 1), p1 = at(i), p2 = at(i + 1), p3 = at(i + 2);
+    for (let k = 0; k < per; k++){
+      const t = k / per, t2 = t * t, t3 = t2 * t;
+      out.push([0, 1, 2].map(c => 0.5 * ((2 * p1[c]) + (-p0[c] + p2[c]) * t + (2 * p0[c] - 5 * p1[c] + 4 * p2[c] - p3[c]) * t2 + (-p0[c] + 3 * p1[c] - 3 * p2[c] + p3[c]) * t3)));
+    }
+  }
+  if (!closed) out.push(pts[N - 1].slice());
+  return out;
+}
+/* عشوائي ثابت حتى يبقى المجسم نفسه في كل مرة */
+function srng(seed){ let s = seed >>> 0 || 1; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+
+Object.assign(G3, { add, sub, mul, dot, cross, vlen, norm, rot3, ap3, alignY, rotAxis, hex,
+  mk, ellipsoid, superEll, capsule, tube, place, merge, spline, srng, computeNormals });
+
+/* ══════════ المُصيِّر ══════════ */
+const VS = `
+attribute vec3 aPos; attribute vec3 aNrm; attribute vec3 aLoc;
+uniform mat4 uProj; uniform mat4 uView; uniform mat4 uModel;
+varying vec3 vN; varying vec3 vW; varying vec3 vL;
+void main(){ vec4 w = uModel * vec4(aPos, 1.0); vW = w.xyz; vN = aNrm; vL = aLoc; gl_Position = uProj * uView * w; }`;
+const FS = `
+precision mediump float;
+varying vec3 vN; varying vec3 vW; varying vec3 vL;
+uniform vec3 uEye; uniform vec3 uLight; uniform vec3 uColor; uniform float uAlpha;
+uniform float uRim; uniform vec3 uRimColor; uniform int uPat; uniform vec3 uPatColor; uniform float uPatK;
+uniform float uGlow; uniform float uHover; uniform float uDim; uniform float uDay;
+uniform float uPick; uniform vec3 uPickColor; uniform vec3 uPickColor2; uniform float uPickFacing; uniform float uTau;
+float hash(vec3 p){ p = fract(p * 0.3183099 + 0.1); p *= 17.0; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }
+float noise(vec3 x){ vec3 i = floor(x); vec3 f = fract(x); f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(mix(hash(i), hash(i + vec3(1,0,0)), f.x), mix(hash(i + vec3(0,1,0)), hash(i + vec3(1,1,0)), f.x), f.y),
+             mix(mix(hash(i + vec3(0,0,1)), hash(i + vec3(1,0,1)), f.x), mix(hash(i + vec3(0,1,1)), hash(i + vec3(1,1,1)), f.x), f.y), f.z); }
+void main(){
+  vec3 N = normalize(vN); vec3 V = normalize(uEye - vW);
+  if (!gl_FrontFacing) N = -N;
+  float fac = max(dot(N, V), 0.0);
+  if (uPick > 0.5){ gl_FragColor = vec4((uPickFacing > 0.5 && fac > uTau) ? uPickColor2 : uPickColor, 1.0); return; }
+  vec3 base = uColor;
+  if (uPat == 1){ float s = sin(vL.y * uPatK + noise(vL * 4.0) * 2.2); base = mix(base, uPatColor, smoothstep(0.35, 0.9, s)); }
+  else if (uPat == 2){ float d = noise(vL * uPatK); base = mix(base, uPatColor, smoothstep(0.55, 0.72, d)); }
+  else if (uPat == 3){ base *= 0.86 + 0.28 * noise(vL * uPatK); }
+  float diff = max(dot(N, uLight), 0.0), hemi = 0.5 + 0.5 * N.y;
+  vec3 H = normalize(uLight + V);
+  float spec = pow(max(dot(N, H), 0.0), 36.0) * 0.32;
+  float fres = pow(1.0 - fac, 2.4);
+  vec3 col = base * (0.30 + 0.24 * hemi + 0.62 * diff) + vec3(spec) + uRimColor * fres * uRim;
+  col += uGlow * (base * 0.35 + vec3(1.0, 0.82, 0.42) * (0.18 + fres * 0.95));
+  col += uHover * (base * 0.22 + vec3(1.0, 0.85, 0.5) * fres * 0.6);
+  float a = uAlpha;
+  if (uAlpha < 0.99) a = clamp(uAlpha * (0.55 + 1.9 * fres) + uGlow * 0.18, 0.0, 1.0);
+  vec3 grey = vec3(dot(col, vec3(0.3, 0.59, 0.11)));
+  col = mix(col, mix(grey, vec3(uDay), 0.25), uDim * 0.55);
+  a *= 1.0 - uDim * 0.62;
+  gl_FragColor = vec4(col, a);
+}`;
+
+let gl = null, prog = null, U = {}, A = {}, ext32 = null, fbo = null, fboTex = null, fboDepth = null, fboW = 0, fboH = 0;
+let canvas = null, svg = null, labG = null, supported = null;
+let objs = [], labels = [], partIds = [], cfg = null, modelKey = null;
+let yaw = 0.6, pitch = 0.32, dist = 7, yawV = 0, pitchV = 0, lastUser = 0, animT = 0;
+let selId = null, hovId = null, running = false, W = 0, H = 0, dpr = 1;
+let viewM = null, projM = null, eye = [0, 0, 7], cam = null;
+
+function initGL(){
+  if (supported !== null) return supported;
+  canvas = $('#gl3d'); svg = $('#lbl3d'); labG = $('#lbl3dG');
+  try {
+    gl = canvas.getContext('webgl', { antialias: true, alpha: true, premultipliedAlpha: false, preserveDrawingBuffer: false })
+      || canvas.getContext('experimental-webgl');
+  } catch (e) { gl = null; }
+  if (!gl){ supported = false; return false; }
+  ext32 = gl.getExtension('OES_element_index_uint');
+  const sh = (t, s) => { const o = gl.createShader(t); gl.shaderSource(o, s); gl.compileShader(o);
+    if (!gl.getShaderParameter(o, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(o)); return o; };
+  try {
+    prog = gl.createProgram();
+    gl.attachShader(prog, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, FS));
+    gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
+  } catch (e) { console.warn('3D disabled:', e.message); supported = false; return false; }
+  gl.useProgram(prog);
+  ['aPos', 'aNrm', 'aLoc'].forEach(n => { A[n] = gl.getAttribLocation(prog, n); });
+  ['uProj', 'uView', 'uModel', 'uEye', 'uLight', 'uColor', 'uAlpha', 'uRim', 'uRimColor', 'uPat', 'uPatColor', 'uPatK',
+   'uGlow', 'uHover', 'uDim', 'uDay', 'uPick', 'uPickColor', 'uPickColor2', 'uPickFacing', 'uTau']
+    .forEach(n => { U[n] = gl.getUniformLocation(prog, n); });
+  bindInput();
+  supported = true;
+  return true;
+}
+
+function upload(m){
+  const nv = m.p.length / 3, data = new Float32Array(nv * 9);
+  for (let v = 0; v < nv; v++){
+    data.set([m.p[v * 3], m.p[v * 3 + 1], m.p[v * 3 + 2], m.n[v * 3], m.n[v * 3 + 1], m.n[v * 3 + 2], m.l[v * 3], m.l[v * 3 + 1], m.l[v * 3 + 2]], v * 9);
+  }
+  const big = nv > 65535 && ext32;
+  const vbo = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, vbo); gl.bufferData(gl.ARRAY_BUFFER, data, gl.DYNAMIC_DRAW);
+  const ibo = gl.createBuffer(); gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, big ? new Uint32Array(m.i) : new Uint16Array(m.i), gl.STATIC_DRAW);
+  return { vbo, ibo, count: m.i.length, type: big ? gl.UNSIGNED_INT : gl.UNSIGNED_SHORT };
+}
+function freeObjs(){
+  objs.forEach(o => { gl.deleteBuffer(o.buf.vbo); gl.deleteBuffer(o.buf.ibo); });
+  objs = [];
+}
+function centerOf(m){
+  let x = 0, y = 0, z = 0; const n = m.p.length / 3;
+  for (let k = 0; k < m.p.length; k += 3){ x += m.p[k]; y += m.p[k + 1]; z += m.p[k + 2]; }
+  return [x / n, y / n, z / n];
+}
+
+/* باني النموذج الذي تستعمله دوال المجسمات */
+function makeBuilder(){
+  return {
+    add(mesh, o){
+      const rec = Object.assign({
+        part: null, color: '#cccccc', alpha: 1, rim: 0.35, rimColor: '#ffffff', pat: 0, patColor: '#000000', patK: 6,
+        shell: null, pop: true
+      }, o);
+      rec.buf = upload(mesh);
+      rec.c = o.center || centerOf(mesh);
+      rec.col = hex(rec.color); rec.rimC = hex(rec.rimColor); rec.patC = hex(rec.patColor);
+      rec.k = 1; rec.glow = 0; rec.hov = 0;
+      if (rec.part && partIds.indexOf(rec.part) < 0) partIds.push(rec.part);
+      if (rec.shell && rec.shell.inner && partIds.indexOf(rec.shell.inner) < 0) partIds.push(rec.shell.inner);
+      objs.push(rec);
+      return rec;
+    },
+    /* لتحريك مجسم (مثل السوط): نعيد رفع بياناته */
+    update(rec, mesh){
+      const nv = mesh.p.length / 3, data = new Float32Array(nv * 9);
+      for (let v = 0; v < nv; v++) data.set([mesh.p[v * 3], mesh.p[v * 3 + 1], mesh.p[v * 3 + 2], mesh.n[v * 3], mesh.n[v * 3 + 1], mesh.n[v * 3 + 2], mesh.l[v * 3], mesh.l[v * 3 + 1], mesh.l[v * 3 + 2]], v * 9);
+      gl.bindBuffer(gl.ARRAY_BUFFER, rec.buf.vbo); gl.bufferSubData(gl.ARRAY_BUFFER, 0, data);
+    },
+    label(part, at, n){ labels.push({ part, at, n: n ? norm(n) : null }); }
+  };
+}
+
+function loadModel(key){
+  if (modelKey === key && objs.length) return;
+  freeObjs(); labels = []; partIds = []; selId = null; hovId = null;
+  const B = makeBuilder();
+  cfg = G3.models[key](B) || {};
+  modelKey = key;
+  resetView();
+  buildLabels();
+}
+function resetView(){
+  yaw = cfg.yaw === undefined ? 0.55 : cfg.yaw; pitch = cfg.pitch === undefined ? 0.3 : cfg.pitch;
+  dist = cfg.dist || 7; yawV = pitchV = 0; lastUser = 0;
+}
+
+/* ── الرسم ── */
+function resize(){
+  const r = canvas.getBoundingClientRect();
+  dpr = Math.min(2, window.devicePixelRatio || 1);
+  const w = Math.max(1, Math.round(r.width * dpr)), h = Math.max(1, Math.round(r.height * dpr));
+  if (canvas.width !== w || canvas.height !== h){ canvas.width = w; canvas.height = h; }
+  W = r.width; H = r.height;
+  svg.setAttribute('viewBox', `0 0 ${Math.max(1, W)} ${Math.max(1, H)}`);
+}
+function camera(){
+  const tg = cfg.target || [0, 0, 0];
+  const dd = dist * fitK();
+  eye = [tg[0] + dd * Math.cos(pitch) * Math.sin(yaw), tg[1] + dd * Math.sin(pitch), tg[2] + dd * Math.cos(pitch) * Math.cos(yaw)];
+  cam = lookAt(eye, tg, [0, 1, 0]);
+  viewM = cam.m;
+  projM = persp(38 * Math.PI / 180, Math.max(0.2, W / Math.max(1, H)), 0.1, 100);
+}
+function setCommon(){
+  gl.uniformMatrix4fv(U.uProj, false, projM);
+  gl.uniformMatrix4fv(U.uView, false, viewM);
+  gl.uniform3fv(U.uEye, eye);
+  const lv = [-0.45, 0.75, 0.55];
+  gl.uniform3fv(U.uLight, norm(add(add(mul(cam.x, lv[0]), mul(cam.y, lv[1])), mul(cam.z, lv[2]))));
+  gl.uniform1f(U.uDay, document.documentElement.dataset.theme === 'day' ? 1 : 0);
+}
+function bindBuf(o){
+  gl.bindBuffer(gl.ARRAY_BUFFER, o.buf.vbo);
+  gl.enableVertexAttribArray(A.aPos); gl.vertexAttribPointer(A.aPos, 3, gl.FLOAT, false, 36, 0);
+  if (A.aNrm >= 0){ gl.enableVertexAttribArray(A.aNrm); gl.vertexAttribPointer(A.aNrm, 3, gl.FLOAT, false, 36, 12); }
+  if (A.aLoc >= 0){ gl.enableVertexAttribArray(A.aLoc); gl.vertexAttribPointer(A.aLoc, 3, gl.FLOAT, false, 36, 24); }
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, o.buf.ibo);
+}
+function drawObj(o, pickCol, pickCol2){
+  bindBuf(o);
+  gl.uniformMatrix4fv(U.uModel, false, popM(o.c, o.k));
+  if (pickCol){
+    gl.uniform1f(U.uPick, 1);
+    gl.uniform3fv(U.uPickColor, pickCol);
+    gl.uniform3fv(U.uPickColor2, pickCol2 || pickCol);
+    gl.uniform1f(U.uPickFacing, pickCol2 ? 1 : 0);
+    gl.uniform1f(U.uTau, o.shell && o.shell.tau !== undefined ? o.shell.tau : 0.3);
+  } else {
+    gl.uniform1f(U.uPick, 0);
+    gl.uniform3fv(U.uColor, o.col); gl.uniform1f(U.uAlpha, o.alpha);
+    gl.uniform1f(U.uRim, o.rim); gl.uniform3fv(U.uRimColor, o.rimC);
+    gl.uniform1i(U.uPat, o.pat); gl.uniform3fv(U.uPatColor, o.patC); gl.uniform1f(U.uPatK, o.patK);
+    gl.uniform1f(U.uGlow, o.glow); gl.uniform1f(U.uHover, o.hov);
+    const lit = o.part === selId || (o.shell && o.shell.inner === selId);
+    gl.uniform1f(U.uDim, selId && !lit ? 1 : 0);
+  }
+  gl.drawElements(gl.TRIANGLES, o.buf.count, o.buf.type, 0);
+}
+function render(){
+  resize(); camera();
+  gl.viewport(0, 0, canvas.width, canvas.height);
+  gl.clearColor(0, 0, 0, 0);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  gl.useProgram(prog); setCommon();
+  gl.enable(gl.DEPTH_TEST); gl.depthFunc(gl.LEQUAL);
+  /* الأجسام المعتمة */
+  gl.disable(gl.BLEND); gl.depthMask(true); gl.enable(gl.CULL_FACE); gl.cullFace(gl.BACK);
+  objs.forEach(o => { if (!o.shell && o.alpha >= 0.99) drawObj(o); });
+  /* الأغشية الشفافة: الوجوه الخلفية من الخارج للداخل، ثم الأمامية من الداخل للخارج */
+  gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); gl.depthMask(false);
+  const shells = objs.filter(o => o.shell || o.alpha < 0.99);
+  const sz = o => (o.shell && o.shell.size) || 1;
+  gl.cullFace(gl.FRONT); shells.slice().sort((a, b) => sz(b) - sz(a)).forEach(o => drawObj(o));
+  gl.cullFace(gl.BACK);  shells.slice().sort((a, b) => sz(a) - sz(b)).forEach(o => drawObj(o));
+  gl.depthMask(true);
+  placeLabels();
+}
+
+/* ── اختيار الجزء تحت الإصبع (لون لكل جزء في إطار مخفي) ── */
+const idCol = id => { const v = partIds.indexOf(id) + 1; return [(v & 255) / 255, ((v >> 8) & 255) / 255, 0.5]; };
+const colId = (r, g) => { const v = r + (g << 8); return v > 0 ? partIds[v - 1] || null : null; };
+function ensureFbo(){
+  const w = canvas.width, h = canvas.height;
+  if (fbo && fboW === w && fboH === h) return;
+  if (!fbo){ fbo = gl.createFramebuffer(); fboTex = gl.createTexture(); fboDepth = gl.createRenderbuffer(); }
+  gl.bindTexture(gl.TEXTURE_2D, fboTex);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+  gl.bindRenderbuffer(gl.RENDERBUFFER, fboDepth);
+  gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, w, h);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, fboTex, 0);
+  gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, fboDepth);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  fboW = w; fboH = h;
+}
+function pickAt(cx, cy){
+  if (!objs.length) return null;
+  resize(); camera(); ensureFbo();
+  const px = Math.round(cx * dpr), py = Math.round(canvas.height - cy * dpr), Rr = Math.round(9 * dpr);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+  gl.viewport(0, 0, canvas.width, canvas.height);
+  gl.enable(gl.SCISSOR_TEST);
+  const x0 = Math.max(0, px - Rr), y0 = Math.max(0, py - Rr), w = Math.min(canvas.width - x0, Rr * 2 + 1), h = Math.min(canvas.height - y0, Rr * 2 + 1);
+  gl.scissor(x0, y0, w, h);
+  gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  gl.useProgram(prog); setCommon();
+  gl.disable(gl.BLEND); gl.enable(gl.DEPTH_TEST); gl.depthMask(true); gl.enable(gl.CULL_FACE); gl.cullFace(gl.BACK);
+  let found = null;
+  /* 1) الأجزاء المعتمة: ما تحت الإصبع بالضبط يفوز */
+  objs.forEach(o => { if (!o.shell && o.alpha >= 0.99 && o.part) drawObj(o, idCol(o.part)); });
+  const buf = new Uint8Array(w * h * 4); gl.readPixels(x0, y0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, buf);
+  const ck = ((py - y0) * w + (px - x0)) * 4;
+  if (ck >= 0 && ck < buf.length) found = colId(buf[ck], buf[ck + 1]);
+  /* 2) ثم الأغشية تحت الإصبع، من الأصغر للأكبر (الداخل له الأولوية) */
+  if (!found){
+    const shells = objs.filter(o => (o.shell || o.alpha < 0.99) && o.part).sort((a, b) => ((a.shell && a.shell.size) || 1) - ((b.shell && b.shell.size) || 1));
+    const one = new Uint8Array(4);
+    gl.scissor(px, py, 1, 1);
+    for (const o of shells){
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+      drawObj(o, idCol(o.part), o.shell && o.shell.inner ? idCol(o.shell.inner) : null);
+      gl.readPixels(px, py, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, one);
+      const id = colId(one[0], one[1]);
+      if (id){ found = id; break; }
+    }
+  }
+  /* 3) الإصبع على فراغ: أقرب جزء صغير حوله (رايبوسوم، شعيرة، نبيب) */
+  if (!found){
+    let bd = 1e9;
+    for (let yy = 0; yy < h; yy++) for (let xx = 0; xx < w; xx++){
+      const k = (yy * w + xx) * 4; if (!buf[k] && !buf[k + 1]) continue;
+      const d = Math.hypot(x0 + xx - px, y0 + yy - py);
+      if (d < bd && d <= Rr){ bd = d; found = colId(buf[k], buf[k + 1]); }
+    }
+  }
+  gl.disable(gl.SCISSOR_TEST);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  return found;
+}
+
+/* ── الأسماء: عمودان جانبيان وخطوط تأشير تتبع الدوران ── */
+let labState = {};
+/* شاشة الموبايل الضيقة: أسماء أصغر على الحافتين، والمجسم يبتعد قليلاً ليبقى بين العمودين */
+const compact = () => W > 0 && W < 600;
+/* نبعد الكاميرا إذا ضاق العرض المتاح للمجسم (شاشة طولية أو عمودا الأسماء) حتى لا تغطي الأسماء المجسم */
+const fitK = () => {
+  if (!W || !H) return 1;
+  const lab = labels.length && !svg.classList.contains('off') && !svg.classList.contains('tiny');
+  const avail = W - (lab ? (compact() ? 160 : 300) : 0);
+  return Math.max(1, Math.min(4, H / Math.max(120, avail)));
+};
+function project(p){
+  const v = m4mul(projM, m4mul(viewM, [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, p[0], p[1], p[2], 1])).slice(12, 16);
+  return [(v[0] / v[3] * 0.5 + 0.5) * W, (1 - (v[1] / v[3] * 0.5 + 0.5)) * H, v[3]];
+}
+function buildLabels(){
+  labG.innerHTML = '';
+  labState = {};
+  const small = window.innerWidth < 700, cmp = compact(), dy = cmp ? 12 : 17;
+  svg.classList.toggle('compact', cmp);
+  labels.forEach(L => {
+    const d = INFO[L.part]; if (!d) return;
+    const g = document.createElementNS(SVGNS, 'g');
+    g.setAttribute('class', 'lblG clk'); g.dataset.for = L.part;
+    const lines = wrapName(d.name, cmp ? 11 : small ? 13 : 16);
+    g.innerHTML = `<line class="lead"/><circle class="lblDot" r="3.4"/><rect class="lblHit" rx="7"/><circle class="lblHit dotHit" r="10"/>` +
+      `<text class="lbl">${lines.map((l, i) => `<tspan x="0" dy="${i ? dy : 0}">${l}</tspan>`).join('')}</text>`;
+    labG.appendChild(g);
+    const t = g.querySelector('text');
+    const bb = t.getBBox();
+    labState[L.part] = { g, t, lines: lines.length, w: bb.width || 60, h: bb.height || 16, side: null };
+    g.addEventListener('click', ev => { ev.stopPropagation(); selectPart(L.part); });
+    g.addEventListener('mouseenter', () => setHover(L.part));
+    g.addEventListener('mouseleave', () => setHover(null));
+  });
+  svg.classList.toggle('off', !$('#lblTgl').checked);
+}
+function placeLabels(){
+  if (!labels.length || svg.classList.contains('off')) return;
+  const cmp = compact(), top = cmp ? 40 : 58, cx = W / 2;
+  /* لا تنزل الأسماء تحت شريط أدوات المشهد */
+  let bottom = H - (cmp ? 60 : 74);
+  const tl = document.getElementById('sceneTools');
+  if (tl && tl.offsetHeight){ const r = tl.getBoundingClientRect(), c = canvas.getBoundingClientRect(); bottom = Math.min(H - 16, r.top - c.top - 6); }
+  /* مساحة ضيقة جداً (موبايل بالعرض خارج ملء الشاشة): نخفي الأسماء بدل أن تتراكب */
+  const tiny = bottom - top < 130;
+  svg.classList.toggle('tiny', tiny);
+  if (tiny) return;
+  if (cmp !== svg.classList.contains('compact')){ buildLabels(); }
+  const cols = { L: [], R: [] };
+  labels.forEach(L => {
+    const st = labState[L.part]; if (!st) return;
+    const s = project(L.at);
+    let side = s[0] < cx ? 'L' : 'R';
+    if (st.side && Math.abs(s[0] - cx) < 40) side = st.side;
+    st.side = side;
+    let face = 1;
+    if (L.n){ face = dot(L.n, norm(sub(eye, L.at))); }
+    cols[side].push({ st, sx: s[0], sy: s[1], face });
+  });
+  /* موازنة العمودين: إن زاد أحدهما كثيراً ننقل أقرب أسمائه للوسط إلى العمود الآخر */
+  const lineSum = c => c.reduce((a, o) => a + o.st.lines, 0);
+  for (let guard = 0; guard < 12; guard++){
+    const big = lineSum(cols.L) > lineSum(cols.R) ? 'L' : 'R', sm = big === 'L' ? 'R' : 'L';
+    if (!cols[big].length || lineSum(cols[big]) - lineSum(cols[sm]) <= 3) break;
+    cols[big].sort((a, b) => Math.abs(a.sx - cx) - Math.abs(b.sx - cx));
+    const o = cols[big].shift(); o.st.side = sm; cols[sm].push(o);
+  }
+  const lh = cmp ? 12 : 17;
+  Object.keys(cols).forEach(side => {
+    const c = cols[side]; if (!c.length) return;
+    c.sort((a, b) => a.sy - b.sy);
+    /* كل اسم متمركز على y؛ نصف ارتفاعه حسب عدد أسطره، مع فراغ بين الأسماء */
+    const room = bottom - top - c.reduce((a, o) => a + o.st.lines * lh, 0);
+    const gap = Math.max(0, Math.min(5, room / (2 * c.length)));
+    const half = o => o.st.lines * lh / 2 + gap;
+    c.forEach(o => { o.y = Math.max(top + half(o), Math.min(bottom - half(o), o.sy)); });
+    for (let i = 1; i < c.length; i++){ const need = c[i - 1].y + half(c[i - 1]) + half(c[i]) - c[i].y; if (need > 0) c[i].y += need; }
+    const last = c[c.length - 1], over = last.y + half(last) - bottom;
+    if (over > 0) c.forEach(o => { o.y -= over; });
+    for (let i = c.length - 2; i >= 0; i--){ const need = c[i].y + half(c[i]) + half(c[i + 1]) - c[i + 1].y; if (need > 0) c[i].y -= need; }
+    const maxW = Math.max(...c.map(o => o.st.w));
+    const pad = cmp ? 10 : 22;
+    const colX = side === 'L' ? Math.min(cx - 40, maxW + pad) : Math.max(cx + 40, W - maxW - pad);
+    c.forEach(o => {
+      const { g, t } = o.st, ty = o.y + 6 - (o.st.lines - 1) * lh / 2;
+      const tx = side === 'L' ? colX - 8 : colX + 8;
+      t.setAttribute('x', tx.toFixed(1)); t.setAttribute('y', ty.toFixed(1));
+      t.setAttribute('text-anchor', side === 'L' ? 'start' : 'end');
+      t.querySelectorAll('tspan').forEach(ts => ts.setAttribute('x', tx.toFixed(1)));
+      const ln = g.querySelector('.lead');
+      ln.setAttribute('x1', colX.toFixed(1)); ln.setAttribute('y1', o.y.toFixed(1));
+      ln.setAttribute('x2', o.sx.toFixed(1)); ln.setAttribute('y2', o.sy.toFixed(1));
+      const dt = g.querySelector('.lblDot'), dh = g.querySelector('.dotHit');
+      dt.setAttribute('cx', o.sx.toFixed(1)); dt.setAttribute('cy', o.sy.toFixed(1));
+      dh.setAttribute('cx', o.sx.toFixed(1)); dh.setAttribute('cy', o.sy.toFixed(1));
+      const hr = g.querySelector('rect.lblHit'), w = o.st.w + 14, h = o.st.lines * lh + (cmp ? 8 : 12);
+      hr.setAttribute('x', (side === 'L' ? tx - o.st.w - 7 : tx - 7).toFixed(1));
+      hr.setAttribute('y', (ty - lh + 2).toFixed(1));
+      hr.setAttribute('width', w.toFixed(1)); hr.setAttribute('height', h.toFixed(1));
+      g.classList.toggle('back', o.face < -0.15);
+    });
+  });
+}
+
+/* ── الاختيار والإضاءة ── */
+function setHover(id){
+  hovId = id;
+  objs.forEach(o => { o.hovT = (id && (o.part === id || (o.shell && o.shell.inner === id))) ? 1 : 0; });
+  labG.querySelectorAll('.lblG').forEach(g => g.classList.toggle('hov', g.dataset.for === id));
+}
+function onSelect(id){
+  selId = id && partIds.indexOf(id) >= 0 ? id : null;
+  labG.querySelectorAll('.lblG').forEach(g => g.classList.toggle('sel', g.dataset.for === selId));
+  svg.classList.toggle('dim', !!selId);
+}
+function stepAnim(dt){
+  objs.forEach(o => {
+    const lit = selId && (o.part === selId || (o.shell && o.shell.inner === selId));
+    const kT = lit && o.pop && !o.shell ? 1.08 : 1;
+    o.k += (kT - o.k) * Math.min(1, dt * 8);
+    o.glow += ((lit ? 1 : 0) - o.glow) * Math.min(1, dt * 8);
+    o.hov += ((o.hovT || 0) - o.hov) * Math.min(1, dt * 10);
+  });
+}
+
+/* ── التحكم: سحب للتدوير، إصبعان أو العجلة للتقريب، ضغطتان للإرجاع ── */
+const ptrs = new Map();
+let pinch0 = 0, dist0 = 7, tapInfo = null, lastTap = 0, hoverAt = 0;
+function bindInput(){
+  canvas.addEventListener('pointerdown', e => {
+    try { canvas.setPointerCapture(e.pointerId); } catch (_){}
+    ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    lastUser = performance.now();
+    if (ptrs.size === 1) tapInfo = { x: e.clientX, y: e.clientY, t: e.timeStamp, moved: 0 };
+    if (ptrs.size === 2){ const [a, b] = [...ptrs.values()]; pinch0 = Math.hypot(a.x - b.x, a.y - b.y); dist0 = dist; tapInfo = null; }
+    yawV = pitchV = 0;
+  });
+  canvas.addEventListener('pointermove', e => {
+    const p = ptrs.get(e.pointerId);
+    if (!p){
+      /* مرور الماوس: إضاءة خفيفة للجزء تحت المؤشر */
+      if (e.pointerType === 'mouse' && performance.now() - hoverAt > 90){
+        hoverAt = performance.now();
+        const r = canvas.getBoundingClientRect(), id = pickAt(e.clientX - r.left, e.clientY - r.top);
+        if (id !== hovId) setHover(id);
+        canvas.style.cursor = id ? 'pointer' : 'grab';
+      }
+      return;
+    }
+    const dx = e.clientX - p.x, dy = e.clientY - p.y;
+    p.x = e.clientX; p.y = e.clientY;
+    lastUser = performance.now();
+    if (ptrs.size === 1){
+      if (tapInfo) tapInfo.moved += Math.abs(dx) + Math.abs(dy);
+      yaw -= dx * 0.009; pitch = Math.max(-1.3, Math.min(1.3, pitch + dy * 0.008));
+      yawV = -dx * 0.009; pitchV = dy * 0.008;
+    } else if (ptrs.size === 2 && pinch0){
+      const [a, b] = [...ptrs.values()], d = Math.hypot(a.x - b.x, a.y - b.y);
+      dist = Math.max(cfg.minDist || 2.2, Math.min(cfg.maxDist || 18, dist0 * pinch0 / Math.max(20, d)));
+    }
+  });
+  const up = e => {
+    if (!ptrs.has(e.pointerId)) return;
+    ptrs.delete(e.pointerId);
+    if (ptrs.size < 2) pinch0 = 0;
+    /* أوقات الحدث نفسه (لا وقت معالجته) حتى يعمل النقر المزدوج حتى لو تأخر الرسم */
+    if (ptrs.size === 0 && tapInfo && tapInfo.moved < 8 && e.timeStamp - tapInfo.t < 450){
+      const now = e.timeStamp;
+      if (now - lastTap < 320){ resetView(); lastTap = 0; }
+      else {
+        const r = canvas.getBoundingClientRect(), id = pickAt(e.clientX - r.left, e.clientY - r.top);
+        if (id) selectPart(id); else clearInfo();
+        lastTap = now;
+      }
+      yawV = pitchV = 0;
+    }
+    if (ptrs.size === 0) tapInfo = null;
+  };
+  canvas.addEventListener('pointerup', up);
+  canvas.addEventListener('pointercancel', up);
+  canvas.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse' && !ptrs.size) setHover(null); });
+  canvas.addEventListener('wheel', e => {
+    e.preventDefault();
+    lastUser = performance.now();
+    dist = Math.max(cfg.minDist || 2.2, Math.min(cfg.maxDist || 18, dist * Math.exp(e.deltaY * 0.0013)));
+  }, { passive: false });
+}
+
+/* ── الحلقة ── */
+let lastF = 0;
+function loop(now){
+  if (!running) return;
+  const dt = Math.min(0.05, (now - (lastF || now)) / 1000); lastF = now;
+  const wel = document.getElementById('welcome');
+  if (!(wel && !wel.classList.contains('off'))){
+    const idle = now - lastUser > 2500 && !ptrs.size;
+    if (!ptrs.size){
+      yaw += yawV; pitch = Math.max(-1.3, Math.min(1.3, pitch + pitchV));
+      yawV *= 0.92; pitchV *= 0.92;
+    }
+    if (idle && playing && !REDUCE) yaw += dt * 0.16 * speedMul;
+    if (playing) animT += dt * speedMul;
+    if (cfg.anim) cfg.anim(animT, dt);
+    stepAnim(dt);
+    render();
+  }
+  requestAnimationFrame(loop);
+}
+
+/* ══════════ الربط بالواجهة ══════════ */
+const SCENE_MODEL = () => {
+  if (curKey === 'euk') return eukSel;
+  return { pro: 'pro', mitoZoom: 'mito', chloroZoom: 'chloro', nucleus: 'nucleus', membrane: 'membrane' }[curKey] || null;
+};
+let on = false, hint2d = '';
+const HINT3D = 'مجسّم ثلاثي الأبعاد: اسحب بإصبعك أو بالماوس لتدويره، وقرّب وبعّد بإصبعين أو بعجلة الماوس، واضغط مرتين على المجسم لإرجاعه. اضغط أي جزء أو اسمه لتظهر معلوماته.';
+function setOn(v){
+  const key = SCENE_MODEL();
+  if (v && (!key || !G3.models[key] || !initGL())) v = false;
+  on = v;
+  document.body.classList.toggle('v3', on);
+  $('#v3Btn').classList.toggle('on', on);
+  $('#v3Txt').textContent = on ? 'مسطّح' : 'ثلاثي الأبعاد';
+  if (on){
+    hint2d = $('#sceneHint').textContent;
+    $('#sceneHint').textContent = HINT3D;
+    loadModel(key);
+    onSelect(selPart);
+    if (!running){ running = true; lastF = 0; requestAnimationFrame(loop); }
+  } else {
+    running = false;
+    if (hint2d) $('#sceneHint').textContent = (cur && cur.hint) || hint2d;
+  }
+}
+function sync(){
+  const key = SCENE_MODEL(), has = !!(key && G3.models[key]) && supported !== false;
+  const b = $('#v3Btn');
+  b.disabled = !has;
+  b.title = has ? 'عرض الرسم مجسّماً ثلاثي الأبعاد' : 'هذا المشهد مخطط أو حركة وليس له مجسّم';
+  if (on){
+    if (!has) setOn(false);
+    else { modelKey = null; loadModel(key); $('#sceneHint').textContent = HINT3D; }
+  }
+}
+
+window.__v3 = {
+  sync, onSelect: id => { if (on) onSelect(id); },
+  active: () => on, reset: () => { if (on) resetView(); },
+  pick: (x, y) => pickAt(x, y), proj: p => project(p), setOn,
+  debug: () => ({ lw: Object.keys(labState).map(k => k + ":" + Math.round(labState[k].w) + "/" + labState[k].side), objs: objs.length, parts: partIds.slice(), labels: labels.map(l => l.part), key: modelKey, yaw, pitch, dist,
+    screen: labels.map(l => { const s = project(l.at); return { part: l.part, x: s[0], y: s[1] }; }) })
+};
+$('#v3Btn').addEventListener('click', () => setOn(!on));
+$('#lblTgl').addEventListener('change', () => { if (svg) svg.classList.toggle('off', !$('#lblTgl').checked); });
+})();
+
+/* ══════════════════════════════════════════════════════════════════════════
+   9.2 · المجسمات — نفس أجزاء الرسوم المسطّحة وأسمائها (ملزمة ص5، ص8، ص10، ص18، ص20، ص31)
+   ══════════════════════════════════════════════════════════════════════════ */
+(function(){
+const { add, sub, mul, norm, cross, dot, rot3, ap3, ellipsoid, superEll, capsule, tube, place, merge, spline, srng, mk } = G3;
+
+/* ── قطع مشتركة ── */
+/* خيط مموّج بين نقطتين (شبكة، كروماتين) */
+function wavy(a, b, amp, waves, seed, per){
+  const r = srng(seed), d = sub(b, a), L = G3.vlen(d), t = norm(d);
+  const n1 = norm(cross(t, Math.abs(t[1]) < 0.9 ? [0, 1, 0] : [1, 0, 0])), n2 = cross(t, n1);
+  const pts = [], K = Math.max(6, Math.round(waves * 5));
+  const ph1 = r() * 6.28, ph2 = r() * 6.28;
+  for (let i = 0; i <= K; i++){
+    const u = i / K, env = Math.sin(Math.PI * u) * 0.85 + 0.15;
+    const w1 = Math.sin(u * waves * Math.PI * 2 + ph1) * amp * env, w2 = Math.cos(u * waves * Math.PI * 1.3 + ph2) * amp * 0.55 * env;
+    pts.push(add(add(add(a, mul(d, u)), mul(n1, w1)), mul(n2, w2)));
+  }
+  return spline(pts, per || 4, false);
+}
+/* حبيبات صغيرة على سطح أنبوب (رايبوسومات على الشبكة الخشنة) */
+function studs(path, rTube, every, seed, rDot){
+  const r = srng(seed), out = [];
+  for (let i = 1; i < path.length - 1; i += every){
+    const t = norm(sub(path[i + 1], path[i - 1]));
+    const n1 = norm(cross(t, Math.abs(t[1]) < 0.9 ? [0, 1, 0] : [1, 0, 0])), n2 = cross(t, n1);
+    for (let k = 0; k < 2; k++){
+      const a = r() * 6.283, d = add(mul(n1, Math.cos(a)), mul(n2, Math.sin(a)));
+      out.push(place(ellipsoid({ r: rDot || 0.035, rows: 4, cols: 6 }), { at: add(path[i], mul(d, rTube + (rDot || 0.035) * 0.6)) }));
+    }
+  }
+  return merge(out);
+}
+/* كومة صهاريج كولجي: أقراص مسطّحة منحنية */
+function golgiStack(at, rot, n, w, d, gap){
+  const R = rot3(rot[0], rot[1], rot[2]), list = [];
+  for (let i = 0; i < n; i++){
+    const f = 1 - Math.abs(i - (n - 1) / 2) * 0.12;
+    const disc = ellipsoid({ r: [w * f, 0.045, d * f], rows: 8, cols: 26, warp: p => [p[0], p[1] + p[0] * p[0] * 0.55, p[2]] });
+    list.push(place(disc, { R, at: add(at, ap3(R, [0, (i - (n - 1) / 2) * gap, 0])) }));
+  }
+  return merge(list);
+}
+/* مايتوكوندريا صغيرة داخل الخلية (خطوط الأعراف على السطح) */
+const mitoSmall = (at, dir, len, r) => place(capsule({ r: r || 0.21, len: len || 0.55, rows: 6, cols: 18 }), { at, dir });
+const MITO = { color: '#e07a3a', rimColor: '#ffc38a', rim: 0.55, pat: 1, patColor: '#9a4418', patK: 62 };
+/* جسيمات مركزية: أسطوانتان متعامدتان */
+function centrioles(at){
+  const c1 = tube({ pts: [add(at, [-0.17, 0, 0]), add(at, [0.17, 0, 0])], r: 0.065, sides: 9 });
+  const c2 = tube({ pts: [add(at, [0.02, -0.17, 0.12]), add(at, [0.02, 0.17, 0.12])], r: 0.065, sides: 9 });
+  return merge([c1, c2]);
+}
+/* تشويه خفيف لغشاء الخلية الحيوانية حتى لا تكون كرة ملساء */
+const blobDisp = (seed, amt) => { const r = srng(seed), a = [r() * 6, r() * 6, r() * 6];
+  return d => 1 + amt * (Math.sin(d[0] * 3.1 + a[0]) * Math.sin(d[1] * 2.7 + a[1]) + 0.6 * Math.sin(d[2] * 3.7 + a[2] + d[0] * 2)); };
+
+/* ═════════════ الخلية الحيوانية (ص8) ═════════════ */
+function animalModel(B, O){
+  O = O || {}; const S = O.s || 1, T = O.at || [0, 0, 0];
+  const P = (p) => add(mul(p, S), T);            // موضع ضمن الخلية
+  const pl = (m) => place(m, { s: S, at: T });   // مجسم مبني في إحداثيات الخلية
+  const RX = 2.75, RY = 2.15, RZ = 1.95;
+  const cellDisp = blobDisp(21, 0.045);
+  /* الغشاء البلازمي والسايتوبلازم: قشرة شفافة؛ وسطها سايتوبلازم وحافتها غشاء */
+  B.add(pl(ellipsoid({ r: [RX, RY, RZ], rows: 30, cols: 48, disp: cellDisp })),
+    { part: 'pm', color: '#3f7a66', alpha: 0.2, rim: 1.25, rimColor: '#f3d28a', shell: { size: 2.8 * S, inner: 'cyto', tau: 0.3 }, pat: 3, patK: 5 });
+  /* النواة والنوية */
+  const NUC = [-0.62, 0.52, -0.05], NR = 0.88;
+  B.add(pl(place(ellipsoid({ r: NR, rows: 20, cols: 30 }), { at: NUC })),
+    { part: 'nuc', color: '#7f6fe0', alpha: 0.5, rim: 1.1, rimColor: '#dcd2ff', shell: { size: 0.9 * S } });
+  const pores = [], pr = srng(5);
+  for (let i = 0; i < 22; i++){
+    const u = pr() * 2 - 1, a = pr() * 6.283, d = [Math.sqrt(1 - u * u) * Math.cos(a), u, Math.sqrt(1 - u * u) * Math.sin(a)];
+    pores.push(place(ellipsoid({ r: [0.07, 0.03, 0.07], rows: 5, cols: 8 }), { at: add(NUC, mul(d, NR)), dir: d }));
+  }
+  const chrom = [];
+  for (let i = 0; i < 5; i++){
+    const a = add(NUC, [(pr() - .5) * 1.1, (pr() - .5) * 1.1, (pr() - .5) * 1.1]), b = add(NUC, [(pr() - .5) * 1.1, (pr() - .5) * 1.1, (pr() - .5) * 1.1]);
+    chrom.push(tube({ pts: wavy(a, b, 0.14, 2.5, 40 + i), r: 0.025, sides: 5 }));
+  }
+  B.add(pl(merge(pores.concat(chrom))), { part: 'nuc', color: '#3b2f86', rim: 0.4, rimColor: '#b9a8ff', center: P(NUC) });
+  B.add(pl(place(ellipsoid({ r: 0.3, rows: 12, cols: 16, disp: blobDisp(8, 0.06) }), { at: add(NUC, [-0.12, -0.08, 0.18]) })),
+    { part: 'nucleolus', color: '#4b3a9e', rim: 0.7, rimColor: '#c8b8ff', pat: 3, patK: 14 });
+  /* الشبكة البلازمية الداخلية الخشنة وعليها الرايبوسومات */
+  const rerPaths = [
+    wavy([0.25, 0.05, 0.55], [1.55, 0.35, 0.2], 0.22, 2.6, 11, 5),
+    wavy([0.1, -0.35, 0.3], [1.35, -0.1, -0.2], 0.2, 2.4, 12, 5),
+    wavy([-0.1, -0.1, -0.7], [1.2, 0.2, -0.95], 0.2, 2.2, 13, 5)
+  ];
+  B.add(pl(merge(rerPaths.map(p => tube({ pts: p, r: 0.1, sides: 10 })))), { part: 'rer', color: '#5f86c6', rim: 0.6, rimColor: '#dcecfb' });
+  B.add(pl(merge(rerPaths.map((p, i) => studs(p, 0.1, 2, 70 + i, 0.036)))), { part: 'ribo', color: '#22304a', rim: 0.9, rimColor: '#accbe8', pop: false });
+  /* الشبكة الملساء */
+  const serPaths = [wavy([-1.9, -0.2, 0.4], [-1.1, -1.25, 0.2], 0.2, 2.2, 21, 5), wavy([-1.95, 0.35, -0.5], [-1.2, -0.9, -0.8], 0.18, 2, 22, 5)];
+  B.add(pl(merge(serPaths.map(p => tube({ pts: p, r: 0.09, sides: 9 })))), { part: 'ser', color: '#6fae95', rim: 0.6, rimColor: '#d6f0e2' });
+  /* جهاز كولجي وحويصلاته */
+  const GOL = [1.2, -0.7, 0.35];
+  B.add(pl(golgiStack(GOL, [0.25, 0.4, -0.35], 5, 0.62, 0.36, 0.13)), { part: 'golgi', color: '#e58bb6', rim: 0.7, rimColor: '#ffd1e6' });
+  const ves = [[1.85, -0.45, 0.55, 0.11], [1.95, -0.85, 0.2, 0.09], [1.6, -1.25, 0.5, 0.1], [0.62, -0.5, 0.75, 0.08], [2.05, -0.2, 0.05, 0.08]];
+  B.add(pl(merge(ves.map(v => place(ellipsoid({ r: v[3], rows: 8, cols: 12 }), { at: [v[0], v[1], v[2]] })))),
+    { part: 'golgiVes', color: '#f3b3d2', rim: 0.9, rimColor: '#ffe3f0' });
+  /* المايتوكوندريا */
+  B.add(pl(merge([mitoSmall([-1.25, -1.15, 0.55], [1, 0.3, 0.2]), mitoSmall([1.1, 1.2, -0.35], [0.8, -0.5, 0.3]), mitoSmall([0.15, -1.45, -0.6], [1, 0.1, -0.4])])),
+    Object.assign({ part: 'mito' }, MITO));
+  /* الجسيمات الحالة */
+  B.add(pl(merge([place(ellipsoid({ r: 0.2, rows: 10, cols: 14 }), { at: [1.8, 0.55, 0.3] }), place(ellipsoid({ r: 0.17, rows: 10, cols: 14 }), { at: [-0.3, -1.05, 1.15] })])),
+    { part: 'lyso', color: '#9b6fd6', rim: 0.9, rimColor: '#e4d2ff', pat: 2, patColor: '#f3e9ff', patK: 22 });
+  /* الجسيمات المركزية والنبيبات الدقيقة */
+  const CEN = [0.45, 1.3, 0.35];
+  B.add(pl(centrioles(CEN)), { part: 'centro', color: '#b9c6d6', rim: 0.8, rimColor: '#ffffff', pat: 1, patColor: '#6f7d8e', patK: 60 });
+  const tubes = [], tr = srng(33); let tubeAt = null, tubeBest = -1e9;
+  for (let i = 0; i < 12; i++){
+    const u = tr() * 2 - 1, a = tr() * 6.283, d = [Math.sqrt(1 - u * u) * Math.cos(a), u * 0.8, Math.sqrt(1 - u * u) * Math.sin(a)];
+    const end = [d[0] * RX * 0.92, d[1] * RY * 0.92, d[2] * RZ * 0.92];
+    const mid = add(mul(add(CEN, end), 0.5), [(tr() - .5) * 0.5, (tr() - .5) * 0.5, (tr() - .5) * 0.5]);
+    const path = spline([CEN, mid, end], 5, false);
+    tubes.push(tube({ pts: path, r: 0.0085, sides: 5 }));
+    /* نقطة التأشير: منتصف أقرب نبيب للأمام */
+    const p = path[Math.floor(path.length * 0.62)];
+    if (p[2] + p[1] * 0.3 > tubeBest){ tubeBest = p[2] + p[1] * 0.3; tubeAt = p; }
+  }
+  B.add(pl(merge(tubes)), { part: 'microtub', color: '#aebdcc', rim: 0.35, rimColor: '#ffffff', pop: false });
+
+  if (!O.noLabels){
+    B.label('pm', P([RX * 0.62, RY * 0.72, RZ * 0.3]), [0.6, 0.7, 0.3]);
+    B.label('cyto', P([0.55, 0.35, 1.72]), [0.1, 0.1, 1]);
+    B.label('nuc', P(add(NUC, [0.2, 0.62, 0.55])), [0.2, 0.7, 0.6]);
+    B.label('nucleolus', P(add(NUC, [-0.12, -0.08, 0.18])), [0, 0, 1]);
+    B.label('rer', P(rerPaths[0][14]), [0, 0.3, 1]);
+    B.label('ribo', P(rerPaths[1][10]), [0, 0, 1]);
+    B.label('ser', P(serPaths[0][10]), [-0.5, 0, 1]);
+    B.label('golgi', P(GOL), [0.4, 0, 1]);
+    B.label('golgiVes', P([1.85, -0.45, 0.55]), [0.6, 0, 1]);
+    B.label('mito', P([1.1, 1.2, -0.35]), [0.5, 0.6, 0]);
+    B.label('lyso', P([1.8, 0.55, 0.3]), [1, 0.2, 0.3]);
+    B.label('centro', P(CEN), [0, 1, 0.4]);
+    B.label('microtub', P(tubeAt), [0, 0.5, 0.8]);
+  }
+  return { dist: 8.3, yaw: 0.35, pitch: 0.28 };
+}
+
+/* ═════════════ الخلية النباتية (ص8) ═════════════ */
+function plantModel(B, O){
+  O = O || {}; const S = O.s || 1, T = O.at || [0, 0, 0];
+  const P = (p) => add(mul(p, S), T), pl = (m) => place(m, { s: S, at: T });
+  const HX = 2.85, HY = 2.05, HZ = 1.55;
+  /* الجدار الخلوي والغشاء البلازمي */
+  B.add(pl(superEll({ h: [HX, HY, HZ], e: 0.28 })), { part: 'wall', color: '#b9cf5c', alpha: 0.26, rim: 1.1, rimColor: '#f1e7a0', shell: { size: 3.0 * S } });
+  B.add(pl(superEll({ h: [HX - 0.17, HY - 0.17, HZ - 0.14], e: 0.28 })),
+    { part: 'pm', color: '#4f8f64', alpha: 0.16, rim: 1.2, rimColor: '#ffe6b4', shell: { size: 2.8 * S, inner: 'cyto', tau: 0.3 }, pat: 3, patK: 5 });
+  /* الفجوة المركزية الكبيرة */
+  B.add(pl(place(superEll({ h: [1.55, 1.12, 0.95], e: 0.62, rows: 20, cols: 32 }), { at: [0.35, -0.05, 0] })),
+    { part: 'vacuole', color: '#7fb8d8', alpha: 0.3, rim: 1.1, rimColor: '#d6f0fb', shell: { size: 1.6 * S } });
+  /* النواة والنوية */
+  const NUC = [-2.0, 0.95, 0.15];
+  B.add(pl(place(ellipsoid({ r: 0.58, rows: 16, cols: 24 }), { at: NUC })), { part: 'nuc', color: '#7f6fe0', alpha: 0.5, rim: 1.1, rimColor: '#dcd2ff', shell: { size: 0.6 * S } });
+  B.add(pl(place(ellipsoid({ r: 0.2, rows: 10, cols: 14 }), { at: add(NUC, [-0.05, -0.05, 0.12]) })), { part: 'nucleolus', color: '#4b3a9e', rim: 0.7, rimColor: '#c8b8ff', pat: 3, patK: 14 });
+  /* البلاستيدات الخضراء */
+  const CH = [[-1.2, 1.55, 0.6, 0.3], [1.65, 1.5, -0.5, -0.4], [2.3, -0.9, 0.55, 1.2], [-0.8, -1.6, -0.7, 0.2], [0.6, 1.6, 0.85, 0.6]];
+  B.add(pl(merge(CH.map(c => place(ellipsoid({ r: [0.44, 0.2, 0.27], rows: 12, cols: 20 }), { at: [c[0], c[1], c[2]], rot: [0.3, c[3], 0.15] })))),
+    { part: 'chloro', color: '#4f9a45', rim: 0.7, rimColor: '#d6f2b0', pat: 2, patColor: '#1d5a22', patK: 11 });
+  /* حبيبات النشأ */
+  B.add(pl(merge([[-0.5, -1.72, 0.5], [2.35, 0.25, -0.6], [-2.25, -0.55, -0.6]].map(a => place(ellipsoid({ r: [0.14, 0.1, 0.11], rows: 8, cols: 12 }), { at: a })))),
+    { part: 'starch', color: '#f0e8d0', rim: 0.8, rimColor: '#ffffff' });
+  /* المايتوكوندريا */
+  B.add(pl(merge([mitoSmall([-2.25, -1.2, 0.45], [1, 0.4, 0], 0.42, 0.17), mitoSmall([2.35, 1.05, 0.35], [0.4, 1, 0.2], 0.42, 0.17)])), Object.assign({ part: 'mito' }, MITO));
+  /* الشبكة الخشنة والملساء */
+  const rer = wavy([-1.65, 0.05, 0.75], [-0.9, -0.95, 0.9], 0.16, 2.2, 31, 5);
+  B.add(pl(tube({ pts: rer, r: 0.085, sides: 9 })), { part: 'rer', color: '#5f86c6', rim: 0.6, rimColor: '#dcecfb' });
+  B.add(pl(studs(rer, 0.085, 2, 91, 0.032)), { part: 'rer', color: '#22304a', rim: 0.9, rimColor: '#accbe8', pop: false });
+  const ser = wavy([1.95, 1.25, 0.85], [2.35, 0.1, 0.95], 0.14, 2, 32, 5);
+  B.add(pl(tube({ pts: ser, r: 0.08, sides: 9 })), { part: 'ser', color: '#6fae95', rim: 0.6, rimColor: '#d6f0e2' });
+  /* جهاز كولجي وحويصلاته */
+  const GOL = [-1.25, -0.95, -0.75];
+  B.add(pl(golgiStack(GOL, [0.3, -0.5, 0.2], 4, 0.42, 0.26, 0.11)), { part: 'golgi', color: '#e58bb6', rim: 0.7, rimColor: '#ffd1e6' });
+  B.add(pl(merge([[-0.7, -1.2, -0.55], [-0.85, -0.6, -0.9], [-1.7, -1.4, -0.5]].map(a => place(ellipsoid({ r: 0.08, rows: 8, cols: 12 }), { at: a })))),
+    { part: 'golgiVes', color: '#f3b3d2', rim: 0.9, rimColor: '#ffe3f0' });
+  /* رايبوسومات حرة في السايتوبلازم (كما في رسم الخلية النباتية) */
+  const rb = [], rbAt = [], r = srng(55);
+  [[-1.85, 1.75, -0.4], [-2.35, 0.15, 0.6]].forEach(c => { for (let i = 0; i < 9; i++){
+    const at = add(c, [(r() - .5) * 0.5, (r() - .5) * 0.35, (r() - .5) * 0.4]);
+    rb.push(place(ellipsoid({ r: 0.035, rows: 4, cols: 6 }), { at })); rbAt.push(at); } });
+  B.add(pl(merge(rb)), { part: 'ribo', color: '#22304a', rim: 0.9, rimColor: '#accbe8', pop: false });
+
+  if (!O.noLabels){
+    B.label('wall', P([HX * 0.95, HY * 0.55, HZ * 0.2]), [1, 0.3, 0.2]);
+    B.label('pm', P([HX * 0.6, HY * 0.9, HZ * 0.55]), [0.3, 1, 0.4]);
+    B.label('cyto', P([-0.9, 0.35, 1.25]), [0, 0, 1]);
+    B.label('vacuole', P([0.35, -0.05, 0.95]), [0, 0, 1]);
+    B.label('nuc', P(add(NUC, [0.1, 0.4, 0.4])), [0.2, 0.7, 0.6]);
+    B.label('nucleolus', P(add(NUC, [-0.05, -0.05, 0.12])), [0, 0, 1]);
+    B.label('chloro', P([0.6, 1.6, 0.85]), [0.2, 0.6, 0.7]);
+    B.label('starch', P([-0.5, -1.72, 0.5]), [0, -0.6, 0.7]);
+    B.label('mito', P([-2.25, -1.2, 0.45]), [-0.6, -0.3, 0.6]);
+    B.label('rer', P(rer[12]), [0, 0, 1]);
+    B.label('ser', P(ser[8]), [0.5, 0, 1]);
+    B.label('golgi', P(GOL), [0, -0.3, -1]);
+    B.label('golgiVes', P([-0.7, -1.2, -0.55]), [0, -0.5, -0.8]);
+    B.label('ribo', P(rbAt.slice(9).sort((a, b) => b[2] - a[2])[0]), [-0.3, 0.2, 1]);
+  }
+  return { dist: 7.6, yaw: 0.45, pitch: 0.3 };
+}
+
+/* ═════════════ الخلية بدائية النواة (ص5) — مع سوط يدور ═════════════ */
+function proModel(B){
+  const L = 2.5, R = 0.95;
+  const along = m => place(m, { R: rot3(0, 0, -Math.PI / 2) });   // الكبسولة أفقية على x
+  B.add(along(capsule({ r: R + 0.17, len: L, rows: 10, cols: 30 })), { part: 'capsule', color: '#e2cd96', alpha: 0.14, rim: 1.0, rimColor: '#f3e6b8', shell: { size: 2.4 } });
+  B.add(along(capsule({ r: R + 0.06, len: L, rows: 10, cols: 30 })), { part: 'bwall', color: '#cdb46a', alpha: 0.26, rim: 1.1, rimColor: '#f0e0ac', shell: { size: 2.3 } });
+  B.add(along(capsule({ r: R - 0.03, len: L, rows: 10, cols: 30 })),
+    { part: 'bpm', color: '#5f8f68', alpha: 0.2, rim: 1.2, rimColor: '#ffe6b4', shell: { size: 2.2, inner: 'cyto', tau: 0.3 }, pat: 3, patK: 5 });
+  /* المنطقة النووية: خيط DNA ملتف */
+  const r = srng(91), ring = [];
+  for (let i = 0; i < 14; i++){ const a = i / 14 * 6.283; ring.push([Math.cos(a) * (0.55 + r() * 0.35) - 0.2, Math.sin(a * 2) * 0.35 + (r() - .5) * 0.3, Math.sin(a) * (0.35 + r() * 0.2)]); }
+  B.add(tube({ pts: spline(ring, 6, true), r: 0.04, sides: 7, closed: true }), { part: 'nucleoid', color: '#b89cff', rim: 0.8, rimColor: '#efe4ff', center: [-0.2, 0, 0] });
+  /* رايبوسومات */
+  const rb = [], rbAt = [];
+  for (let i = 0; i < 70; i++){
+    const x = (r() - .5) * (L + 1.1), a = r() * 6.283, rr = Math.sqrt(r()) * (R - 0.2);
+    if (Math.abs(x + 0.2) < 0.8 && rr < 0.45) continue;
+    const at = [x, Math.cos(a) * rr, Math.sin(a) * rr];
+    rb.push(place(ellipsoid({ r: 0.045, rows: 4, cols: 6 }), { at })); rbAt.push(at);
+  }
+  B.add(merge(rb), { part: 'ribo', color: '#22304a', rim: 0.9, rimColor: '#accbe8', pop: false });
+  /* نقطة على سطح الكبسولة واتجاهها */
+  const surf = (x, a, off) => { const cx = Math.max(-L / 2, Math.min(L / 2, x)), d = x === cx ? [0, Math.cos(a), Math.sin(a)] : norm([x - cx, Math.cos(a) * 0.7, Math.sin(a) * 0.7]);
+    return [add([cx, 0, 0], mul(d, R + 0.17 + (off || 0))), d]; };
+  /* الأهداب/الشعيرات القصيرة */
+  const hairs = [];
+  for (let i = 0; i < 170; i++){
+    const [p, d] = surf((r() - .5) * (L + 1.6), r() * 6.283);
+    hairs.push(tube({ pts: [p, add(p, mul(d, 0.2 + r() * 0.1))], r: 0.012, sides: 4, caps: false }));
+  }
+  /* شعرة ظاهرة أسفل الأمام (بعيدة عن الأهلاب) ليؤشّر عليها الاسم */
+  const [hp, hd] = surf(0.3, -Math.PI / 2 + 0.2);
+  const hairTip = add(hp, mul(hd, 0.27));
+  hairs.push(tube({ pts: [hp, hairTip], r: 0.016, sides: 5, caps: false }));
+  B.add(merge(hairs), { part: 'cilia', color: '#e6d6a4', rim: 0.5, rimColor: '#ffffff', pop: false });
+  /* الأهلاب الجنسية */
+  const pili = [[0.4, 1.2], [-1.0, 2.1], [1.3, -0.8]].map(([x, a]) => { const [p, d] = surf(x, a); const e = add(p, mul(d, 0.95));
+    return merge([tube({ pts: [p, e], r: 0.028, sides: 6 }), place(ellipsoid({ r: 0.06, rows: 6, cols: 8 }), { at: e })]); });
+  B.add(merge(pili), { part: 'pilus', color: '#f0dcae', rim: 0.6, rimColor: '#ffffff' });
+  /* السوط: لولب يدور من أحد القطبين */
+  const base = [L / 2 + R + 0.12, 0, 0];
+  const flag = ph => { const pts = [];
+    for (let i = 0; i <= 60; i++){ const t = i / 60, amp = 0.05 + 0.24 * t;
+      pts.push([base[0] + t * 2.6, Math.cos(t * 13 - ph) * amp, Math.sin(t * 13 - ph) * amp]); }
+    return tube({ pts, r: 0.035, sides: 6 }); };
+  const fl = B.add(flag(0), { part: 'flagel', color: '#d8c68e', rim: 0.7, rimColor: '#fff3cf', center: [base[0] + 1.3, 0, 0], pop: false });
+
+  B.label('cyto', [0.9, -0.35, 0.55], [0, 0, 1]);
+  B.label('nucleoid', ring[3], [0, 0.5, 1]);
+  B.label('bpm', [0.2, R - 0.03, 0.2], [0, 1, 0.2]);
+  B.label('bwall', [-0.6, 0.2, R + 0.06], [0, 0.2, 1]);
+  B.label('capsule', [0.9, -(R + 0.17), 0.2], [0, -1, 0.2]);
+  B.label('pilus', add(surf(0.4, 1.2)[0], mul(surf(0.4, 1.2)[1], 0.95)), surf(0.4, 1.2)[1]);
+  B.label('cilia', add(hp, mul(hd, 0.2)), hd);
+  B.label('flagel', [base[0] + 1.6, 0, 0.1], [0, 0.2, 1]);
+  /* رايبوسوم قريب من الأمام ليؤشّر عليه الاسم */
+  const front = rbAt.slice().sort((a, b) => (b[2] - Math.abs(b[0] - 1.2) * 0.3) - (a[2] - Math.abs(a[0] - 1.2) * 0.3))[0];
+  B.label('ribo', front, [0, 0, 1]);
+  return {
+    dist: 8.8, yaw: 0.45, pitch: 0.35, target: [1.1, 0, 0], maxDist: 20,
+    anim(t){ B.update(fl, flag(t * 7)); }
+  };
+}
+
+/* ═════════════ المقارنة: الخليتان جنباً إلى جنب ═════════════ */
+function bothModel(B){
+  animalModel(B, { s: 0.78, at: [-2.55, 0, 0], noLabels: true });
+  plantModel(B, { s: 0.78, at: [2.55, 0, 0], noLabels: true });
+  return { dist: 11.5, yaw: 0, pitch: 0.25, maxDist: 22 };
+}
+
+Object.assign(G3.models, { animal: animalModel, plant: plantModel, pro: proModel, both: bothModel });
+G3.parts = { wavy, studs, golgiStack, mitoSmall, MITO, centrioles, blobDisp };
+})();
+
+/* ══════════════════════════════════════════════════════════════════════════
+   9.3 · مجسمات العضيات المكبّرة: المايتوكوندريا (ص18)، البلاستيدة (ص20)،
+         النواة (ص31–33)، الغشاء البلازمي (ص10)
+   ══════════════════════════════════════════════════════════════════════════ */
+(function(){
+const { add, sub, mul, norm, cross, rot3, ellipsoid, superEll, capsule, tube, place, merge, spline, srng } = G3;
+const { wavy, studs, blobDisp } = G3.parts;
+const alongX = m => place(m, { R: rot3(0, 0, -Math.PI / 2) });
+
+/* ═════════════ المايتوكوندريا (ص18) ═════════════ */
+function mitoModel(B){
+  const L = 2.9, RO = 1.22, RI = 1.06;
+  B.add(alongX(capsule({ r: RO, len: L, rows: 12, cols: 36 })),
+    { part: 'outerM', color: '#e99a5c', alpha: 0.17, rim: 1.1, rimColor: '#ffd2a6', shell: { size: 2.7 } });
+  B.add(alongX(capsule({ r: RI, len: L - 0.1, rows: 12, cols: 36 })),
+    { part: 'innerM', color: '#c8672c', alpha: 0.2, rim: 1.15, rimColor: '#ffc38a', shell: { size: 2.5, inner: 'matrix', tau: 0.3 }, pat: 3, patK: 4 });
+  /* الأعراف: طيّات الغشاء الداخلي، متناوبة من الأعلى والأسفل */
+  const cr = [], r = srng(18), cAt = [];
+  for (let i = 0; i < 9; i++){
+    const x = -2.05 + i * 0.51, up = i % 2 ? 1 : -1, ry = 0.66, cy = up * (RI - ry + 0.02);
+    const lobe = ellipsoid({ r: [0.075, ry, 0.82], rows: 12, cols: 22, warp: p => [p[0] + Math.sin(p[2] * 3 + i) * 0.05, p[1], p[2]] });
+    cr.push(place(lobe, { at: [x, cy, 0], rot: [0, (r() - .5) * 0.25, 0] }));
+    cAt.push([x, cy - up * 0.25, 0.55]);
+  }
+  B.add(merge(cr), { part: 'crista', color: '#f0a060', rim: 0.8, rimColor: '#ffe0bf', pat: 3, patK: 9 });
+  /* حبيبات في القالب */
+  const g = [], gAt = [];
+  for (let i = 0; i < 30; i++){
+    const x = (r() - .5) * (L + 0.8), a = r() * 6.283, rr = Math.sqrt(r()) * 0.85;
+    const at = [x, Math.cos(a) * rr * 0.5, Math.sin(a) * rr];
+    g.push(place(ellipsoid({ r: 0.045, rows: 5, cols: 7 }), { at })); gAt.push(at);
+  }
+  B.add(merge(g), { part: 'matrix', color: '#7a3a14', rim: 0.8, rimColor: '#ffc38a', pop: false });
+  B.label('outerM', [0.62, -0.9, 0.74], [0, -0.75, 0.62]);
+  B.label('innerM', [2.24, -0.51, 0.39], [0.8, -0.48, 0.37]);
+  B.label('crista', cAt[5], [0, 0, 1]);
+  B.label('matrix', gAt.sort((a, b) => b[2] - a[2])[0], [0, 0, 1]);
+  return { dist: 7.8, yaw: 0.45, pitch: 0.42 };
+}
+
+/* ═════════════ البلاستيدة الخضراء (ص20) ═════════════ */
+function chloroModel(B){
+  B.add(ellipsoid({ r: [2.95, 1.25, 1.58], rows: 22, cols: 40 }),
+    { part: 'outerM', color: '#7fbf6a', alpha: 0.15, rim: 1.1, rimColor: '#d9f2b0', shell: { size: 2.95 } });
+  B.add(ellipsoid({ r: [2.78, 1.1, 1.42], rows: 22, cols: 40 }),
+    { part: 'innerM', color: '#5f9f55', alpha: 0.18, rim: 1.15, rimColor: '#c7eaa0', shell: { size: 2.8, inner: 'stroma', tau: 0.3 }, pat: 3, patK: 4 });
+  /* الكرانوم: أكوام من الأقراص */
+  const ST = [[-1.85, 0.05], [-1.0, -0.55], [-0.95, 0.62], [0, 0], [0.95, -0.6], [1.0, 0.62], [1.85, 0.05]];
+  const discs = [], lam = [];
+  ST.forEach(([x, z], si) => {
+    const n = 6 + (si % 2);
+    for (let k = 0; k < n; k++){
+      const y = (k - (n - 1) / 2) * 0.092;
+      discs.push(place(ellipsoid({ r: [0.31, 0.034, 0.31], rows: 6, cols: 20 }), { at: [x, y, z] }));
+    }
+  });
+  B.add(merge(discs), { part: 'granum', color: '#2f7d38', rim: 0.9, rimColor: '#a8e39a', pat: 3, patK: 18 });
+  /* صفائح الكرانا: صفائح رقيقة تصل الأكوام ببعضها */
+  const pairs = [[0, 1], [0, 2], [1, 3], [2, 3], [3, 4], [3, 5], [4, 6], [5, 6], [1, 2], [4, 5]];
+  const lamAt = [];
+  pairs.forEach(([a, b], k) => {
+    const A = [ST[a][0], 0, ST[a][1]], Bp = [ST[b][0], 0, ST[b][1]], d = sub(Bp, A), len = G3.vlen(d);
+    const y = (k % 3 - 1) * 0.12, mid = add(mul(add(A, Bp), 0.5), [0, y, 0]);
+    lam.push(place(ellipsoid({ r: [len / 2, 0.016, 0.1], rows: 5, cols: 16 }), { at: mid, rot: [0, -Math.atan2(d[2], d[0]), 0] }));
+    lamAt.push(mid);
+  });
+  B.add(merge(lam), { part: 'grana', color: '#4f9a45', rim: 0.8, rimColor: '#c7eaa0' });
+  /* حبيبات النشأ */
+  B.add(merge([place(ellipsoid({ r: [0.3, 0.18, 0.22], rows: 10, cols: 16 }), { at: [-0.35, -0.55, 0.62] }),
+               place(ellipsoid({ r: [0.26, 0.16, 0.2], rows: 10, cols: 16 }), { at: [1.45, 0.5, -0.45] })]),
+    { part: 'starch', color: '#efe6cf', rim: 0.8, rimColor: '#ffffff' });
+  B.label('starch', [-0.35, -0.55, 0.62], [0, -0.3, 1]);
+  B.label('stroma', [2.19, 0.41, 0.21], [0.9, 0.4, 0.2]);
+  B.label('granum', [0, 0.25, 0.31], [0, 0.3, 1]);
+  B.label('grana', lamAt[3], [0, 0.4, 1]);
+  B.label('outerM', [1.6, -0.93, 0.59], [0.55, -0.75, 0.37]);
+  B.label('innerM', [-1.83, -0.53, 0.82], [-0.4, -0.5, 0.75]);
+  return { dist: 8.2, yaw: 0.35, pitch: 0.48 };
+}
+
+/* ═════════════ النواة (ص31–33) ═════════════ */
+function nucleusModel(B){
+  const R = 2.0;
+  B.add(ellipsoid({ r: R, rows: 26, cols: 40 }), { part: 'env', color: '#7c6ad6', alpha: 0.17, rim: 1.1, rimColor: '#d8ccff', shell: { size: 2.05 } });
+  B.add(ellipsoid({ r: R - 0.1, rows: 26, cols: 40 }),
+    { part: 'env', color: '#6a58c8', alpha: 0.13, rim: 0.9, rimColor: '#c9bcff', shell: { size: 1.95, inner: 'nucleoplasm', tau: 0.3 }, pat: 3, patK: 4 });
+  /* الثقوب النووية: حلقات على الغلاف */
+  const r = srng(31), rings = [], poreDirs = [];
+  for (let i = 0; i < 34; i++){
+    const u = r() * 2 - 1, a = r() * 6.283, d = [Math.sqrt(1 - u * u) * Math.cos(a), u, Math.sqrt(1 - u * u) * Math.sin(a)];
+    const t1 = norm(cross(d, Math.abs(d[1]) < 0.9 ? [0, 1, 0] : [1, 0, 0])), t2 = cross(d, t1), c = mul(d, R - 0.04), pts = [];
+    for (let k = 0; k < 14; k++){ const b = k / 14 * 6.283; pts.push(add(c, add(mul(t1, Math.cos(b) * 0.14), mul(t2, Math.sin(b) * 0.14)))); }
+    rings.push(tube({ pts, r: 0.045, sides: 6, closed: true }));
+    poreDirs.push(d);
+  }
+  B.add(merge(rings), { part: 'pore', color: '#3d2f86', rim: 0.9, rimColor: '#b9a8ff', pop: false });
+  /* الشبكة الكروماتينية */
+  const ch = [], chPts = [];
+  for (let i = 0; i < 10; i++){
+    const a = [(r() - .5) * 2.6, (r() - .5) * 2.6, (r() - .5) * 2.6], b = [(r() - .5) * 2.6, (r() - .5) * 2.6, (r() - .5) * 2.6];
+    const pts = wavy(a, b, 0.25, 3, 60 + i, 4);
+    ch.push(tube({ pts, r: 0.032, sides: 6 })); pts.forEach(q => chPts.push(q));
+  }
+  B.add(merge(ch), { part: 'chromatin', color: '#d3c7ff', rim: 0.7, rimColor: '#ffffff', pop: false, center: [0, 0, 0] });
+  /* النوية */
+  B.add(place(ellipsoid({ r: 0.55, rows: 16, cols: 22, disp: blobDisp(4, 0.07) }), { at: [-0.45, -0.3, 0.3] }),
+    { part: 'nucleolus', color: '#4b3a9e', rim: 0.8, rimColor: '#c8b8ff', pat: 3, patK: 12 });
+  /* الشبكة البلازمية الداخلية الخشنة تتصل بالغلاف من الخارج */
+  const erPaths = [wavy([1.35, 0.55, 1.35], [2.9, 1.25, 1.9], 0.2, 2, 71, 5), wavy([1.65, -0.35, 1.1], [3.1, -0.9, 1.4], 0.22, 2, 72, 5)];
+  B.add(merge(erPaths.map(p => tube({ pts: p, r: 0.1, sides: 10 }))), { part: 'rer', color: '#5f86c6', rim: 0.6, rimColor: '#dcecfb' });
+  B.add(merge(erPaths.map((p, i) => studs(p, 0.1, 2, 80 + i, 0.036))), { part: 'rer', color: '#22304a', rim: 0.9, rimColor: '#accbe8', pop: false });
+  /* الأقرب للأمام من الثقوب لنقطة التأشير */
+  const pd = poreDirs.slice().sort((a, b) => (b[2] + b[1] * 0.3) - (a[2] + a[1] * 0.3))[1];
+  B.label('env', [-1.1, 1.35, 0.9], [-0.5, 0.7, 0.45]);
+  B.label('pore', mul(pd, R - 0.04), pd);
+  B.label('rer', erPaths[0][12], [0.5, 0.2, 0.8]);
+  const chAt = chPts.filter(q => G3.vlen(sub(q, [-0.45, -0.3, 0.3])) > 0.9 && G3.vlen(q) < 1.6).sort((a, b) => (b[2] + b[0] * 0.3) - (a[2] + a[0] * 0.3))[0];
+  B.label('chromatin', chAt, [0, 0, 1]);
+  B.label('nucleoplasm', [0.7, -0.9, 1.4], [0.3, -0.4, 0.9]);
+  B.label('nucleolus', [-0.45, -0.3, 0.85], [0, 0, 1]);
+  return { dist: 8.0, yaw: 0.4, pitch: 0.3, target: [0.35, 0, 0] };
+}
+
+/* ═════════════ الغشاء البلازمي (ص10) — الطبقتان الدهنيتان والبروتينات ═════════════ */
+function membraneModel(B){
+  const HX = 3.0, HZ = 1.8, Y = 0.56, STEP = 0.3, LIP_X = 2.2;
+  const PROT = [{ at: [-1.25, 0, 0.35], r: 0.62 }, { at: [1.0, 0, -0.75], r: 0.62 }, { at: [0.2, 0, 0.95], r: 0.52 }];
+  const heads = [], tails = [], r = srng(10);
+  let headAt = null, tailAt = null;
+  for (let x = -HX; x <= LIP_X + 1e-6; x += STEP){
+    for (let z = -HZ; z <= HZ + 1e-6; z += STEP){
+      if (PROT.some(p => Math.hypot(x - p.at[0], z - p.at[2]) < p.r + 0.12)) continue;
+      [1, -1].forEach(s => {
+        const jx = x + (r() - .5) * 0.05, jz = z + (r() - .5) * 0.05, hy = s * Y;
+        heads.push(place(ellipsoid({ r: 0.125, rows: 5, cols: 8 }), { at: [jx, hy, jz] }));
+        [-0.055, 0.055].forEach(o => {
+          const a = [jx + o, hy - s * 0.1, jz], e = [jx + o * 1.6 + (r() - .5) * 0.06, s * 0.06, jz + (r() - .5) * 0.06];
+          tails.push(tube({ pts: [a, e], r: 0.026, sides: 4, caps: false }));
+        });
+        if (s > 0 && Math.abs(z - 1.8) < 0.01 && Math.abs(x + 0.6) < 0.16){ headAt = [jx, hy, jz]; tailAt = [jx, 0.3, jz]; }
+      });
+    }
+  }
+  B.add(merge(heads), { part: 'head', color: '#e8a94a', rim: 0.8, rimColor: '#fff0c8', pop: false });
+  B.add(merge(tails), { part: 'tail', color: '#efe0bd', rim: 0.5, rimColor: '#ffffff', pop: false });
+  /* حزمة الشحوم المفسفرة: عند الطرف الأيمن تظهر الطبقتان كحزمتين متراصّتين */
+  const bx0 = LIP_X + 0.2, bx1 = HX + 0.25, bcx = (bx0 + bx1) / 2, bh = (bx1 - bx0) / 2;
+  [1, -1].forEach(s => B.add(place(superEll({ h: [bh, 0.25, HZ + 0.15], e: 0.25, rows: 16, cols: 30 }), { at: [bcx, s * 0.29, 0] }),
+    { part: 'lipidBundle', color: s > 0 ? '#e8b35a' : '#d99a45', alpha: 0.55, rim: 0.9, rimColor: '#fff0c8', pat: 1, patColor: '#9c6a22', patK: 40, shell: { size: 1.2 } }));
+  /* بروتينات ناقلة */
+  B.add(merge(PROT.slice(0, 2).map((p, i) => place(ellipsoid({ r: [0.52, 0.95, 0.5], rows: 16, cols: 22, disp: blobDisp(30 + i, 0.08) }), { at: p.at }))),
+    { part: 'carrier', color: '#6aa7d8', rim: 0.8, rimColor: '#dff0ff', pat: 3, patK: 7 });
+  /* قناة ناقلة: وحدات بروتينية حول ممر */
+  const C = PROT[2].at, sub6 = [];
+  for (let k = 0; k < 6; k++){
+    const a = k / 6 * 6.283;
+    sub6.push(place(ellipsoid({ r: [0.17, 0.88, 0.17], rows: 10, cols: 12, disp: blobDisp(40 + k, 0.06) }), { at: add(C, [Math.cos(a) * 0.3, 0, Math.sin(a) * 0.3]) }));
+  }
+  B.add(merge(sub6), { part: 'channel', color: '#7fc49a', rim: 0.8, rimColor: '#e6fff0', pat: 3, patK: 8 });
+  /* الثقب: فتحة الممر من الأعلى */
+  B.add(place(ellipsoid({ r: [0.17, 0.02, 0.17], rows: 4, cols: 14 }), { at: add(C, [0, 0.84, 0]) }),
+    { part: 'memPore', color: '#1a2a22', rim: 0.2, rimColor: '#7fc49a' });
+  /* مواد منقولة: جزيئات تعبر الممر */
+  const mols = [];
+  for (let k = 0; k < 6; k++) mols.push(B.add(place(ellipsoid({ r: 0.11, rows: 7, cols: 10 }), { at: [0, 0, 0] }),
+    { part: 'transported', color: '#ff7b54', rim: 0.9, rimColor: '#ffd9c8', center: [0, 0, 0], pop: false }));
+  const molAt = t => {
+    const out = [];
+    for (let k = 0; k < mols.length; k++){
+      const u = ((t * 0.18 + k / mols.length) % 1);
+      const y = 2.1 - u * 4.2, near = Math.max(0, 1 - Math.abs(y) / 1.4);
+      const a = k * 2.1 + t * 0.4, rr = 0.7 * (1 - near);
+      out.push([C[0] + Math.cos(a) * rr, y, C[2] + Math.sin(a) * rr]);
+    }
+    return out;
+  };
+  const molLbl = [0, 0, 0];
+  const moveMols = t => molAt(t).forEach((p, k) => { B.update(mols[k], place(ellipsoid({ r: 0.11, rows: 7, cols: 10 }), { at: p })); mols[k].c = p;
+    if (!k){ molLbl[0] = p[0]; molLbl[1] = p[1]; molLbl[2] = p[2]; } });
+  moveMols(0);
+  B.label('head', headAt || [-0.6, Y, 1.8], [0, 1, 0.3]);
+  B.label('tail', tailAt || [-0.6, 0.3, 1.8], [0, 0, 1]);
+  B.label('lipidBundle', [bcx, 0.3, HZ + 0.15], [0.2, 0.3, 1]);
+  B.label('carrier', add(PROT[0].at, [0.1, 0.8, 0.25]), [0, 1, 0.3]);
+  B.label('channel', add(C, [0.3, 0.55, 0.12]), [0.5, 0.6, 0.4]);
+  B.label('memPore', add(C, [0, 0.86, 0]), [0, 1, 0]);
+  B.label('transported', molLbl, [0, 1, 0.2]);   // يتبع الجزيء المتحرك
+  return {
+    dist: 10.4, yaw: 0.35, pitch: 0.6, target: [0.1, -0.2, 0],
+    anim(t){ moveMols(t); }
+  };
+}
+
+Object.assign(G3.models, { mito: mitoModel, chloro: chloroModel, nucleus: nucleusModel, membrane: membraneModel });
+})();
 
 /* ══════════════════════════════════════════════════════════════════════════
    7 · وضع الامتحان: «أشّر الأجزاء» + «اختبر نفسك»
@@ -5105,6 +6362,11 @@ document.addEventListener('keydown', e => {
     الخليتان مع صفاتهما من جدول ص35 الوزاري، والانقسامان يعملان على
     الشريط الزمني نفسه مع اسم الطور وعدد الكروموسومات تحت كل رسم.
   · زرّ «كل الجداول» في الشريط السفلي يفتح فهرس جداول الملزمة الـ21.
+  · زرّ «ثلاثي الأبعاد» يحوّل رسوم التراكيب إلى مجسّمات WebGL حقيقية بنفس
+    الأجزاء والأسماء (الخلية الحيوانية، النباتية، الاثنتان معاً، بدائية
+    النواة، المايتوكوندريا، البلاستيدة، النواة، الغشاء البلازمي): تدوير
+    بالسحب، تقريب بإصبعين أو بالعجلة، نقرتان للإرجاع، والضغط على الجزء أو
+    اسمه يضيئه ويفتح معلوماته. المخططات وحركات العمليات تبقى مسطّحة.
 
   ── ما يبقى للمراجعة ──
   أ) النواة: الملزمة تشرحها نصّياً (ص31–33) بلا رسم مستقل لها؛ رسم النواة
