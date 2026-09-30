@@ -1942,11 +1942,14 @@ SCENES.animal = {
     const DEBRIS = [585, 520];
     const CENTRO = [575, 195];
 
-    const rr = rng(21), freeRibo = [];
-    [[620, 570], [385, 545], [560, 160], [300, 405]].forEach(([bx, by]) => {
-      for (let i = 0; i < 7; i++)
-        freeRibo.push([bx + (rr() - 0.5) * 60, by + (rr() - 0.5) * 42]);
-    });
+    /* الرايبوسومات على سطوح نبيبات الشبكة الخشنة (ملزمة ص13) — لا عناقيد حرة
+       (كان عنقود منها خارج غشاء الخلية). نستهلك نفس الأرقام العشوائية حتى
+       يبقى شكل النبيبات الدقيقة كما هو */
+    const rr = rng(21);
+    for (let i = 0; i < 56; i++) rr();
+    const riboOnEr = rer1.dots.concat(rer2.dots);
+    /* رايبوسوم ظاهر بالكامل على الأنبوب السفلي (آخر واحد يقع تحت جهاز كولجي) */
+    const riboLabel = rer2.dots[12];
     /* النبيبات الدقيقة: تشع من الجسيمات المركزية وتنتشر في السايتوبلازم */
     const tubes = []; let tubeMid = [647, 264];
     for (let i = 0; i < 11; i++){
@@ -1959,8 +1962,6 @@ SCENES.animal = {
       tubes.push(`<path d="M${CENTRO[0]},${CENTRO[1]} Q${n2(qx)},${n2(qy)} ${n2(ex)},${n2(ey)}"
         fill="none" stroke="#b9c6d6" stroke-width="2" opacity=".5" stroke-linecap="round"/>`);
     }
-    const dotsOf = pts => pts.map(p =>
-      `<circle cx="${n2(p[0])}" cy="${n2(p[1])}" r="3.1" fill="#26354a" stroke="#a9c6e4" stroke-width=".8"/>`).join('');
 
     const body = `
       ${part('cyto', `
@@ -1983,8 +1984,11 @@ SCENES.animal = {
         <path d="${rer1.d}" fill="none" stroke="url(#gRer)" stroke-width="14" stroke-linecap="round"/>
         <path d="${rer1.d}" fill="none" stroke="#dcecfb" stroke-width="3.2" stroke-linecap="round" opacity=".45"/>
         <path d="${rer2.d}" fill="none" stroke="url(#gRer)" stroke-width="12" stroke-linecap="round"/>
-        <path d="${rer2.d}" fill="none" stroke="#dcecfb" stroke-width="2.8" stroke-linecap="round" opacity=".45"/>
-        ${dotsOf(rer1.dots)}${dotsOf(rer2.dots)}`)}
+        <path d="${rer2.d}" fill="none" stroke="#dcecfb" stroke-width="2.8" stroke-linecap="round" opacity=".45"/>`)}
+
+      ${part('ribo', riboOnEr.map(p =>
+        `<circle cx="${n2(p[0])}" cy="${n2(p[1])}" r="5.6" fill="rgba(0,0,0,0)" data-hit="1"/>
+         <circle cx="${n2(p[0])}" cy="${n2(p[1])}" r="3.3" fill="#22304a" stroke="#accbe8" stroke-width=".9" data-hit="1"/>`).join(''))}
 
       ${wrap(`translate(${NUC[0]},${NUC[1]})`, part('nuc', nucleusShape(NR, 11, true)))}
       ${wrap(`translate(${CENTRO[0]},${CENTRO[1]})`, part('centro', centroShape()))}
@@ -2004,16 +2008,14 @@ SCENES.animal = {
         <circle r="4" cx="-4" cy="3" fill="#3d3228" opacity=".8"/>
       </g>
 
-      ${part('ribo', freeRibo.map(p =>
-        `<circle cx="${n2(p[0])}" cy="${n2(p[1])}" r="3.3" fill="#22304a" stroke="#accbe8" stroke-width=".9"/>`).join(''))}
     `;
 
     const poreAt = a => [NUC[0] + Math.cos(a) * NR, NUC[1] + Math.sin(a) * NR];
     const mrnaPaths = [
       [poreAt(0.35), [500, 350], rer1.dots[2]],
       [poreAt(0.9), [470, 400], rer2.dots[1]],
-      [poreAt(-0.5), [520, 250], [560, 170]],
-      [poreAt(1.9), [350, 400], [385, 540]]
+      [poreAt(0.2), [520, 370], rer1.dots[9]],
+      [poreAt(1.2), [455, 410], rer2.dots[6]]
     ];
     const proteinPaths = [
       rer1.pts.slice(4).concat([[GOLGI[0] - 10, GOLGI[1] - 14]]),
@@ -2048,7 +2050,7 @@ SCENES.animal = {
         { id: 'lyso',      anchor: [720, 320], label: [858, 330], side: 'R', short: 'جسيم حال' },
         { id: 'golgi',     anchor: [640, 440], label: [858, 402], side: 'R' },
         { id: 'golgiVes',  anchor: [683, 463], label: [858, 474], side: 'R' },
-        { id: 'ribo',      anchor: [freeRibo[0][0], freeRibo[0][1]], label: [858, 546], side: 'R' },
+        { id: 'ribo',      anchor: riboLabel, label: [858, 546], side: 'R' },
         { id: 'microtub',  anchor: tubeMid, label: [858, 618], side: 'R' },
         { id: 'centro',    anchor: [575, 195], label: [142, 104], side: 'L' },
         { id: 'nuc',       anchor: [NUC[0] + 44, NUC[1] - 52], label: [142, 176], side: 'L' },
