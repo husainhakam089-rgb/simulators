@@ -621,7 +621,12 @@
     background:radial-gradient(900px 560px at 50% 36%, rgba(120,100,70,.2), transparent 66%),linear-gradient(180deg,#121017,#0a090c)}
   #drawM.on{display:flex}
   #drPick{flex:0 0 auto;display:flex;gap:6px;padding:9px 14px;border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
+  #drPick{flex-direction:column;gap:7px}
+  #drCats,#drItems{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;flex:0 0 auto}
+  #drCats{align-self:flex-start;max-width:100%}
   #drPick .stool{font-size:11.5px;padding:7px 12px;white-space:nowrap;flex:0 0 auto}
+  #drSvg .drT{fill:#2d2a26}
+  #drSvg .drT.drNow{fill:#a8432b}
   #drBody{flex:1 1 auto;min-height:0;display:flex;gap:10px;padding:10px 12px}
   #drStage{flex:1 1 auto;min-width:0;min-height:0;position:relative;border-radius:14px;overflow:hidden;
     background:#f8f3e6;box-shadow:0 10px 30px rgba(0,0,0,.45), inset 0 0 0 1px rgba(90,70,40,.25)}
@@ -7143,30 +7148,99 @@ const DRAW_SHAPE = {
   nucleoplasm: 'لا يُرسم له شكل؛ هو الفراغ داخل النواة', chromatin: 'خيوطاً رفيعة متشابكة داخل النواة'
 };
 
+Object.assign(DRAW_SHAPE, {
+  chromosome: 'الكروموسومات: كل كروموسوم كروماتيدان متلاصقان عند الجزء المركزي', _spindle: 'خطوطاً رفيعة من قطبي الخلية إلى الأجزاء المركزية للكروموسومات',
+  _plate: 'خطاً في وسط الخلية يفصل الخليتين', _xover: 'دائرة حول موضع تبادل أطراف الكروماتيدات',
+  diffusion: 'إناءً زجاجياً (كأساً) فيه ماء', osmosis: 'قمعاً مقلوباً بأنبوبة طويلة', permeability: 'غشاءً عند فوهة القمع',
+  plasmolysis: 'خلية منكمشة داخل محلول', activeT: 'بروتيناً حاملاً كبيراً يخترق الغشاء', atp: 'رمز الطاقة ATP',
+  phago: 'جيباً من الغشاء يحيط بالغذاء', pino: 'انبعاجاً صغيراً في الغشاء فيه سائل', exo: 'مواد تخرج من الخلية',
+  metabolism: 'مستطيلاً كُتب فيه «الأيض الخلوي»', glycolysis: 'مستطيلات المواد متصلة بأسهم من الأعلى للأسفل',
+  krebs: 'دائرة أسهم (دورة) وفيها المواد', fermentation: 'مستطيلات النواتج مع أسهمها', ferment: 'مستطيلات النواتج مع أسهمها'
+});
+/* جسيمات الرسم غير المسمّاة في المشاهد المتحركة (الإناء، الأيونات، الغذاء…) تُرسم كخطوة واحدة */
+const TR_BASE = {
+  diffusion: ['البلورات وانتشارها', 'بلورات في قاع الإناء ونقاطاً صغيرة تنتشر منها في الماء'],
+  osmosis: ['الحوض والمحلول السكري', 'حوضاً فيه ماء مقطر، وعموداً للمحلول السكري داخل القمع، وجزيئات ماء تتجه نحو الغشاء'],
+  solutions: ['الكؤوس', 'ثلاث كؤوس، في كل واحدة خلية'],
+  activeT: ['الأيونات', 'دوائر صغيرة (أيونات) تعبر من خلال البروتين الحامل'],
+  phago: ['الغذاء', 'قطعة غذاء صلبة يحيط بها الجيب'],
+  pino: ['القطرات السائلة', 'قطرات سائلة صغيرة داخل الانبعاج'],
+  exo: ['المواد المُفرزة', 'مواد صغيرة تخرج من الحويصلة إلى خارج الخلية']
+};
+const TR_ORDER = {
+  diffusion: ['diffusion', '_base'], osmosis: ['_base', 'osmosis', 'permeability'],
+  activeT: ['lipidBundle', 'activeT', 'atp', '_base'], phago: ['pm', '_base', 'phago', 'lyso'],
+  pino: ['pm', '_base', 'pino'], exo: ['pm', 'golgiVes', '_base', 'exo']
+};
+/* زمن تشغيل الحركة قبل الرسم: نرسم اللحظة التي تُظهر التجربة بوضوح */
+const TR_SIM = { diffusion: 9, osmosis: 9, solutions: 4, activeT: 5, phago: 3.6, pino: 3.4, exo: 5.4 };
+/* خطوات الانقسام تُحدَّد بعناصر الرسم نفسه */
+const DIV_STEPS = [
+  { sel: '.dcell', id: 'pm' }, { sel: '.denv .ec', id: 'nuc' }, { sel: '.denv .en', id: 'nucleolus' },
+  { sel: '#chromatinG', id: 'chromatin' }, { sel: '.dcen', id: 'centro' }, { sel: '#spindle', id: '_spindle', name: 'خيوط المغزل' },
+  { sel: '#chrs', id: 'chromosome' }, { sel: '#xover', id: '_xover', name: 'التصالب (العبور)' }, { sel: '.dplate', id: '_plate', name: 'الصفيحة الخلوية' }
+];
+/* واجهة بديلة للمشهد المسطّح حتى تعمل حركته داخل الرسم المخفي */
+const drApi = host => ({ playing: true, dragSlider: false, sliderVal: 0,
+  el: q => host.querySelector(q), all: q => Array.from(host.querySelectorAll(q)),
+  tool: id => id === 'showX', setTool(){}, radio: () => null, setRadio(){}, setSlider(){}, setCap(){}, setPhase(){}, flowEnabled(){}, hideLabels(){}, g(){} });
+const divItems = mode => {
+  const ph = divisionScene(mode).build().phases;
+  return ph.map((x, i) => ({ k: mode + ':' + i, t: x.n, desc: x.d, chrom: x.chrom,
+    scene: () => divisionScene(mode).build(),
+    prep(sc, api){ sc.init(api); const S = sc.compute((i + 0.8) / ph.length, false); sc.apply(S, api, false); },
+    steps: DIV_STEPS, autoLabel: true }));
+};
+const DR_GROUPS = [
+  { g: 'c', t: 'رسوم الخلية', items: DRAW_DIAGRAMS.map(d => ({ k: 'c:' + d.k, t: d.t, scene: () => SCENES[d.k].build(), order: DRAW_ORDER[d.k],
+      base: d.k === 'membrane' ? ['طبقتا الدهون المفسفرة', DRAW_SHAPE._base] : null })) },
+  { g: 't', t: 'عبور المواد', items: PROC_TOOLS.map(x => ({ k: 't:' + x.id, t: x.label, scene: () => PROC[x.id].build(),
+      prep(sc, api){ if (sc.init) sc.init(api); let tt = 0; const n = Math.round(TR_SIM[x.id] / 0.05); for (let i = 0; i < n; i++){ tt += 0.05; if (sc.tick) sc.tick(0.05, tt, api); } },
+      order: TR_ORDER[x.id], base: TR_BASE[x.id] })) },
+  { g: 'mit', t: 'الانقسام الخيطي', items: divItems('mit') },
+  { g: 'mei', t: 'الانقسام الاختزالي', items: divItems('mei') },
+  { g: 'met', t: 'الأيض الخلوي', items: [['glyco', 'التحلل السكري'], ['aerobic', 'التنفس الهوائي'], ['anaer', 'التنفس اللاهوائي']].map(([id, t]) => ({
+      k: 'met:' + id, t, scene: () => { const old = pathSel; pathSel = id; try { return SCENES.metabolism.build(); } finally { pathSel = old; } } })) }
+];
+const drItem = k => { for (const G of DR_GROUPS) for (const it of G.items) if (it.k === k) return it; return DR_GROUPS[0].items[0]; };
+const drGroupOf = k => DR_GROUPS.find(G => G.items.some(it => it.k === k)) || DR_GROUPS[0];
+
 const drSvg = $('#drSvg'), drPad = $('#drPad');
-let drKey = 'animal', drSteps = [], drIdx = 0, drT = 0, drPlay = true, drSpeed = 1, drRun = false, drLast = 0;
-let drNames = true, drColor = false, drPractice = false, drGuide = true;
+let drKey = 'c:animal', drSteps = [], drIdx = 0, drT = 0, drPlay = true, drSpeed = 1, drRun = false, drLast = 0;
+let drDesc = '', drNames = true, drColor = false, drPractice = false, drGuide = true;
 const SHAPE_SEL = 'path,circle,ellipse,rect,line,polygon,polyline';
 const PENCIL = '#2d2a26', NOW_INK = '#a8432b';
 
 function initDraw(){
-  $('#drPick').innerHTML = DRAW_DIAGRAMS.map(d =>
-    `<button class="stool" data-dk="${d.k}"><svg class="ic"><use href="#ic-cell"/></svg><span>${d.t}</span></button>`).join('');
-  $('#drPick').querySelectorAll('[data-dk]').forEach(b => b.addEventListener('click', () => drLoad(b.dataset.dk)));
+  $('#drPick').innerHTML = '<div id="drCats" class="segbar">' + DR_GROUPS.map(G =>
+    `<button class="stool" data-dg="${G.g}">${G.t}</button>`).join('') + '</div><div id="drItems"></div>';
+  $('#drCats').querySelectorAll('[data-dg]').forEach(b => b.addEventListener('click', () => {
+    const G = DR_GROUPS.find(x => x.g === b.dataset.dg); drItemsRow(G); drLoad(G.items[0].k); }));
+  drItemsRow(drGroupOf(drKey));
   drLoad(drKey);
+}
+function drItemsRow(G){
+  $('#drCats').querySelectorAll('[data-dg]').forEach(b => b.classList.toggle('on', b.dataset.dg === G.g));
+  $('#drItems').innerHTML = G.items.map(d =>
+    `<button class="stool" data-dk="${d.k}"><svg class="ic"><use href="#ic-${G.g === 'c' ? 'cell' : G.g === 't' ? 'mol' : G.g === 'met' ? 'flask' : 'layers'}"/></svg><span>${d.t}</span></button>`).join('');
+  $('#drItems').querySelectorAll('[data-dk]').forEach(b => b.addEventListener('click', () => drLoad(b.dataset.dk)));
 }
 
 /* ── تحويل رسم المشهد إلى خطوط قلم وخطوات ── */
 function drLoad(k){
-  drKey = k;
-  $('#drPick').querySelectorAll('[data-dk]').forEach(b => b.classList.toggle('on', b.dataset.dk === k));
-  const s = SCENES[k].build();
+  const it = drItem(k); k = it.k; drKey = k;
+  if (!$('#drItems').querySelector(`[data-dk="${k}"]`)) drItemsRow(drGroupOf(k));
+  $('#drItems').querySelectorAll('[data-dk]').forEach(b => b.classList.toggle('on', b.dataset.dk === k));
+  const ob = $('#drItems').querySelector('.on'); if (ob && ob.scrollIntoView) ob.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  const s = it.scene();
   drSvg.setAttribute('viewBox', '0 0 1000 700');
   drSvg.innerHTML = DEFS + `
     <defs>
       <pattern id="drPaper" width="40" height="34" patternUnits="userSpaceOnUse">
         <rect width="40" height="34" fill="#f8f3e6"/><path d="M0 33.5H40" stroke="#cfdcec" stroke-width="1"/>
       </pattern>
+      <marker id="drArr" viewBox="0 0 12 12" refX="10.5" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto">
+        <path d="M1.5,1.5 L11,6 L1.5,10.5" fill="none" stroke="#2d2a26" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></marker>
       <filter id="drPencil" x="-5%" y="-5%" width="110%" height="110%">
         <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" seed="4"/>
         <feDisplacementMap in="SourceGraphic" scale="2.2" xChannelSelector="R" yChannelSelector="G"/>
@@ -7183,6 +7257,7 @@ function drLoad(k){
       <rect x="-5.5" y="-76" width="11" height="10" rx="2" fill="#e7a1a1" stroke="#5b4630" stroke-width="1"/>
     </g></g>`;
   const src = drSvg.querySelector('#drSrc'), lines = drSvg.querySelector('#drLines'), lbls = drSvg.querySelector('#drLbls');
+  if (it.prep){ try { it.prep(s, drApi(src)); } catch (e) { console.warn('draw prep', e); } }
   const rootInv = lines.getCTM().inverse();
 
   /* هل العنصر مرئي فعلاً في الرسم الأصلي؟ (نتجاهل مناطق الضغط الشفافة والطبقات المخفية) */
@@ -7196,13 +7271,32 @@ function drLoad(k){
     return noFill && noStroke;
   };
   const byPart = {};
-  src.querySelectorAll(SHAPE_SEL).forEach(el => {
-    if (el.closest('defs,clipPath,mask,pattern,symbol,marker') || hidden(el)) return;
+  const stepOf = el => {
+    if (it.steps){ const st = it.steps.find(x => el.closest(x.sel)); return st ? st.id : null; }
     const pg = el.closest('[data-part]');
-    const id = pg ? pg.dataset.part : (k === 'membrane' ? '_base' : null);
+    return pg ? pg.dataset.part : (it.base ? '_base' : null);
+  };
+  src.querySelectorAll(SHAPE_SEL + ',text').forEach(el => {
+    if (el.closest('defs,clipPath,mask,pattern,symbol,marker') || hidden(el)) return;
+    const id = stepOf(el);
     if (!id) return;
     const M = rootInv.multiply(el.getCTM()), sc = Math.sqrt(Math.abs(M.a * M.d - M.b * M.c));
     const tag = el.tagName.toLowerCase();
+    /* الكتابة داخل الرسم (أسماء المواد في المخططات، «ماء»…): تُكتب بقلم الرصاص؛ الجمل الشارحة الطويلة لا */
+    if (tag === 'text'){
+      const txt = (el.textContent || '').trim();
+      if (!txt || /\bcap\b/.test(el.getAttribute('class') || '') || txt.length > 40) return;
+      const cs = getComputedStyle(el), c = el.cloneNode(true);
+      ['id', 'class', 'style', 'fill', 'opacity', 'filter', 'transform', 'clip-path'].forEach(a => c.removeAttribute(a));
+      c.querySelectorAll('*').forEach(x => { x.removeAttribute('fill'); x.removeAttribute('class'); x.removeAttribute('opacity'); });
+      c.setAttribute('transform', `matrix(${M.a},${M.b},${M.c},${M.d},${M.e},${M.f})`);
+      c.setAttribute('class', 'drT'); c.setAttribute('opacity', '0');
+      c.setAttribute('font-size', cs.fontSize); c.setAttribute('font-weight', cs.fontWeight === '400' ? '600' : cs.fontWeight);
+      c.setAttribute('direction', cs.direction);
+      lines.appendChild(c);
+      (byPart[id] = byPart[id] || []).push({ el: c, text: true, len: 0, M, local: 0 });
+      return;
+    }
     if (tag === 'rect' && el.width.baseVal.value * sc > 600) return;
     const r = tag === 'circle' ? el.r.baseVal.value : tag === 'ellipse' ? Math.max(el.rx.baseVal.value, el.ry.baseVal.value) : 99;
     const dot = r * sc <= 4.6;
@@ -7211,30 +7305,33 @@ function drLoad(k){
      'marker-start', 'marker-end', 'marker-mid', 'fill-opacity', 'stroke-opacity', 'data-part', 'tabindex', 'role'].forEach(a => c.removeAttribute(a));
     c.setAttribute('transform', `matrix(${M.a},${M.b},${M.c},${M.d},${M.e},${M.f})`);
     c.setAttribute('class', dot ? 'drD' : 'drS');
+    const arrow = !!el.getAttribute('marker-end');
     if (!dot){ c.setAttribute('pathLength', '1'); c.setAttribute('stroke-dasharray', '1.002 2'); c.setAttribute('stroke-dashoffset', '1'); c.style.visibility = 'hidden'; }
     else c.setAttribute('opacity', '0');
     lines.appendChild(c);
     let len = 0;
     try { len = dot ? 0 : c.getTotalLength() * sc; } catch (e) {}
-    (byPart[id] = byPart[id] || []).push({ el: c, dot, len, M, local: dot ? 0 : (c.getTotalLength ? c.getTotalLength() : 0), cx: 0, cy: 0 });
+    (byPart[id] = byPart[id] || []).push({ el: c, dot, arrow, len, M, local: dot ? 0 : (c.getTotalLength ? c.getTotalLength() : 0) });
   });
 
   /* حدود الرسم لتقدير موقع كل جزء (أعلى/وسط/أسفل · يمين/يسار) */
   const bbAll = src.getBBox();
-  const order = (DRAW_ORDER[k] || []).slice();
+  const order = (it.order || (it.steps ? it.steps.map(x => x.id) : [])).slice();
   (s.parts || []).forEach(p => { if (order.indexOf(p.id) < 0) order.push(p.id); });
+  if (byPart._base && order.indexOf('_base') < 0) order.unshift('_base');
   const partDef = {}; (s.parts || []).forEach(p => { partDef[p.id] = p; });
+  const stepName = id => id === '_base' ? (it.base ? it.base[0] : 'الرسم') : (it.steps && (it.steps.find(x => x.id === id) || {}).name) || (INFO[id] ? INFO[id].name : (partDef[id] ? nameOf(partDef[id]) : id));
 
   drSteps = order.filter(id => byPart[id] || partDef[id]).map(id => {
     const els = byPart[id] || [];
     const p = partDef[id];
-    const name = id === '_base' ? 'طبقتا الدهون المفسفرة' : (INFO[id] ? INFO[id].name : (p ? nameOf(p) : id));
+    const name = stepName(id);
     /* زمن الرسم من طول الخطوط، والنقاط تظهر تباعاً */
     let tot = 0;
-    els.forEach(e => { tot += e.dot ? 9 : Math.max(12, e.len); });
+    els.forEach(e => { tot += e.text ? 70 : e.dot ? 9 : Math.max(12, e.len); });
     const scale = tot > 2600 ? 2600 / tot : 1;
     let t = 0;
-    els.forEach(e => { const d = (e.dot ? 9 : Math.max(12, e.len)) * scale / 420; e.t0 = t; e.t1 = t + d; t += d; });
+    els.forEach(e => { const d = e.text ? 0.45 : (e.dot ? 9 : Math.max(12, e.len)) * scale / 420; e.t0 = t; e.t1 = t + d; t += d; });
     const drawT = t;
     /* الموقع داخل الرسم */
     let loc = '';
@@ -7251,11 +7348,26 @@ function drLoad(k){
         loc = ' ' + v + h;
       }
     }
-    const shape = DRAW_SHAPE[id] || 'الجزء';
+    const shape = id === '_base' && it.base ? it.base[1] : (DRAW_SHAPE[id] || 'الجزء');
     const noShape = !els.length;
-    const txt = noShape ? shape + (p ? '، فقط أشّر عليه واكتب اسمه.' : '.')
-                        : 'ارسم ' + shape + loc + (p ? '، ثم أشّر عليه بخط واكتب: «' + name + '».' : '.');
-    return { id, name, els, p, drawT, txt, lbl: null };
+    /* أسماء تلقائية للرسوم التي ليس لها أسماء جاهزة (أطوار الانقسام): خط من الجزء إلى عمود جانبي */
+    let pp = p;
+    if (!pp && it.autoLabel && els.length && id !== '_spindle' && id !== '_xover'){
+      let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9, ax = 0, ay = 0, n = 0;
+      els.forEach(e => { try { const b = e.el.getBBox(), m = e.M; const cx = b.x + b.width / 2, cy = b.y + b.height / 2;
+        const X = m.a * cx + m.c * cy + m.e, Y = m.b * cx + m.d * cy + m.f; ax += X; ay += Y; n++;
+        [[b.x, b.y], [b.x + b.width, b.y + b.height]].forEach(([x, y]) => { const XX = m.a * x + m.c * y + m.e, YY = m.b * x + m.d * y + m.f;
+          x0 = Math.min(x0, XX); x1 = Math.max(x1, XX); y0 = Math.min(y0, YY); y1 = Math.max(y1, YY); }); } catch (er) {} });
+      if (n){
+        ax /= n; ay /= n;
+        if (id === 'pm'){ ax = x1; ay = (y0 + y1) / 2 - (y1 - y0) * 0.25; }
+        const left = ax < bbAll.x + bbAll.width / 2 && id !== 'pm';
+        pp = { id, anchor: [ax, ay], label: [left ? bbAll.x - 40 : bbAll.x + bbAll.width + 40, ay], side: left ? 'L' : 'R', short: name };
+      }
+    }
+    const txt = noShape ? shape + (pp ? '، فقط أشّر عليه واكتب اسمه.' : '.')
+                        : 'ارسم ' + shape + loc + (pp ? '، ثم أشّر عليه بخط واكتب: «' + name + '».' : '.');
+    return { id, name, els, p: pp, drawT, txt, lbl: null };
   });
 
   /* أسماء الأجزاء بخطوط تأشير (بقلم أزرق كما في ورقة الامتحان) — أكبر على الموبايل حتى تُقرأ */
@@ -7265,7 +7377,7 @@ function drLoad(k){
   /* تباعد الأسماء في كل عمود حتى لا يركب اسم على اسم (الأسطر تكثر على الموبايل) */
   const LY = {};
   ['L', 'R'].forEach(side => {
-    const col = drSteps.filter(st => st.p && st.p.side === side).map(st => ({ st, n: wrapName(INFO[st.id] ? INFO[st.id].name : nameOf(st.p), small ? 11 : 16).length, y: st.p.label[1] }))
+    const col = drSteps.filter(st => st.p && st.p.side === side).map(st => ({ st, n: wrapName(st.name, small ? 11 : 16).length, y: st.p.label[1] }))
       .sort((a, b) => a.y - b.y);
     for (let i = 1; i < col.length; i++){
       const need = col[i - 1].y + (col[i - 1].n + col[i].n) * lh / 2 + fs * 0.45;
@@ -7276,13 +7388,13 @@ function drLoad(k){
   drSteps.forEach(st => {
     const p0 = st.p; if (!p0) return;
     const p = Object.assign({}, p0, { label: [p0.label[0], LY[st.id] !== undefined ? LY[st.id] : p0.label[1]] });
-    const lines2 = wrapName(INFO[st.id] ? INFO[st.id].name : nameOf(p), p.side === 'C' ? 26 : small ? 11 : 16);
+    const lines2 = wrapName(st.name, p.side === 'C' ? 26 : small ? 11 : 16);
     const anch = p.side === 'R' ? 'start' : p.side === 'L' ? 'end' : 'middle';
     const tx = p.side === 'R' ? p.label[0] + 8 : p.side === 'L' ? p.label[0] - 8 : p.label[0];
     const ty = p.label[1] + fs * 0.35 - (lines2.length - 1) * lh / 2;
     const g = document.createElementNS(SVGNS, 'g');
     g.setAttribute('class', 'drL');
-    const cid = 'drClip' + st.id;
+    const cid = 'drClip' + st.id.replace(/[^a-zA-Z0-9]/g, '');
     g.innerHTML = `<line pathLength="1" stroke-dasharray="1.002 2" stroke-dashoffset="1" x1="${n2(p.anchor[0])}" y1="${n2(p.anchor[1])}" x2="${n2(p.label[0])}" y2="${n2(p.label[1])}"/>
       <circle cx="${n2(p.anchor[0])}" cy="${n2(p.anchor[1])}" r="3.2"/>
       <clipPath id="${cid}"><rect x="0" y="0" width="0" height="0"/></clipPath>
@@ -7305,6 +7417,7 @@ function drLoad(k){
   $('#drDots').querySelectorAll('button').forEach(b => b.addEventListener('click', () => drGo(+b.dataset.i, true)));
   drSvg.querySelector('#drSrc').style.visibility = drColor ? 'visible' : 'hidden';
   drSvg.querySelector('#drSrc').style.opacity = '0.45';
+  drDesc = it.desc ? it.desc + (it.chrom ? ' — ' + it.chrom + '.' : '') : '';
   drApplyNames();
   drPadClear();
   drGo(0, false);
@@ -7315,8 +7428,9 @@ function drLoad(k){
 function drStepState(st, t, now){
   st.els.forEach(e => {
     const f = t >= e.t1 ? 1 : t <= e.t0 ? 0 : (t - e.t0) / Math.max(1e-3, e.t1 - e.t0);
-    if (e.dot) e.el.setAttribute('opacity', f > 0 ? '1' : '0');
+    if (e.dot || e.text) e.el.setAttribute('opacity', e.text ? String(f) : f > 0 ? '1' : '0');
     else {
+      if (e.arrow){ if (f >= 1) e.el.setAttribute('marker-end', 'url(#drArr)'); else e.el.removeAttribute('marker-end'); }
       e.el.setAttribute('stroke-dashoffset', String(1 - f));
       e.el.style.visibility = f > 0 ? '' : 'hidden';   // بلا نقطة عند بداية خط لم يُرسم بعد
     }
@@ -7358,6 +7472,7 @@ function drPenAt(st, t){
   if (t < st.drawT){
     const e = st.els.find(x => t >= x.t0 && t < x.t1); if (!e) return null;
     const m = e.M;
+    if (e.text){ const b = e.el.getBBox(), w = (t - e.t0) / Math.max(1e-3, e.t1 - e.t0), x = b.x + b.width * (1 - w), y = b.y + b.height * 0.8; return [m.a * x + m.c * y + m.e, m.b * x + m.d * y + m.f]; }
     if (e.dot){ const b = e.el.getBBox(); const x = b.x + b.width / 2, y = b.y + b.height / 2; return [m.a * x + m.c * y + m.e, m.b * x + m.d * y + m.f]; }
     try { const q = e.el.getPointAtLength(e.local * (t - e.t0) / Math.max(1e-3, e.t1 - e.t0)); return [m.a * q.x + m.c * q.y + m.e, m.b * q.x + m.d * q.y + m.f]; } catch (er) { return null; }
   }
@@ -7384,8 +7499,8 @@ function drLoop(now){
 }
 function drFinished(){
   $('#drStepNo').textContent = 'اكتمل الرسم';
-  $('#drStepName').textContent = DRAW_DIAGRAMS.find(d => d.k === drKey).t;
-  $('#drStepTxt').textContent = 'جرّب الآن أن ترسمه بنفسك: اضغط «ارسم بنفسك» وارسم بإصبعك أو بالماوس فوق الدليل، ثم أخفِ الدليل وارسمه من الذاكرة.';
+  $('#drStepName').textContent = drItem(drKey).t;
+  $('#drStepTxt').textContent = (drDesc ? drDesc + ' ' : '') + 'جرّب الآن أن ترسمه بنفسك: اضغط «ارسم بنفسك» وارسم بإصبعك أو بالماوس فوق الدليل، ثم أخفِ الدليل وارسمه من الذاكرة.';
   $('#drDots').querySelectorAll('button').forEach(b => { b.classList.remove('on'); b.classList.add('done'); });
 }
 function drSetPlay(v){
@@ -7822,7 +7937,8 @@ document.addEventListener('keydown', e => {
     عبور المواد السبع مجسّمة ومتحركة أيضاً، وكذلك أزرار التجارب داخل المشاهد
     (مسار البروتين، النفوذية الاختيارية، أدخل الضوء، تجربة الحركة، اختيار
     الجزيئة في الغشاء)؛ مخططات الأيض وحدها تبقى مسطّحة.
-  · تبويب «الرسم اليدوي»: البرنامج يرسم رسوم الملزمة السبعة بقلم رصاص خطوة
+  · تبويب «الرسم اليدوي»: البرنامج يرسم رسوم الخلية وتجارب عبور المواد وأطوار
+    الانقسامين ومخططات الأيض بقلم رصاص خطوة
     بخطوة ويكتب الأسماء بخطوط التأشير، مع بطاقة تشرح كل خطوة، و«ارسم بنفسك»
     للرسم بالإصبع فوق دليل باهت أو من الذاكرة.
     وإذا لم يدعم الجهاز WebGL تُرسم المجسّمات نفسها بـ Canvas 2D تلقائياً.
