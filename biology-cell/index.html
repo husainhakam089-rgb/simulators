@@ -614,7 +614,56 @@
   html[data-theme=day] #v3Btn.on{color:#221607;background:linear-gradient(180deg,#ffe2a6,#e0ae4c 55%,#c2902f)}
 
   /* ═══════════ الامتحان: الشريط يبقى بدون أدوات الحركة ═══════════ */
-  body.examMode #playBtn,body.examMode #bar .ctl,body.examMode #bar .tgl,body.examMode #resetBtn{display:none}
+  body.examMode #playBtn,body.examMode #bar .ctl,body.examMode #bar .tgl,body.examMode #resetBtn,body.examMode #v3Btn{display:none}
+  /* ═══════════ وضع الرسم اليدوي ═══════════ */
+  .welDraw{top:calc(68px + env(safe-area-inset-top))!important}
+  #drawM{position:absolute;inset:0;display:none;flex-direction:column;overflow:hidden;z-index:5;
+    background:radial-gradient(900px 560px at 50% 36%, rgba(120,100,70,.2), transparent 66%),linear-gradient(180deg,#121017,#0a090c)}
+  #drawM.on{display:flex}
+  #drPick{flex:0 0 auto;display:flex;gap:6px;padding:9px 14px;border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
+  #drPick .stool{font-size:11.5px;padding:7px 12px;white-space:nowrap;flex:0 0 auto}
+  #drBody{flex:1 1 auto;min-height:0;display:flex;gap:10px;padding:10px 12px}
+  #drStage{flex:1 1 auto;min-width:0;min-height:0;position:relative;border-radius:14px;overflow:hidden;
+    background:#f8f3e6;box-shadow:0 10px 30px rgba(0,0,0,.45), inset 0 0 0 1px rgba(90,70,40,.25)}
+  #drSvg,#drPad{position:absolute;inset:0;width:100%;height:100%}
+  #drSvg{transition:opacity .25s}
+  #drPad{display:none;touch-action:none;cursor:crosshair}
+  #drawM.practice #drPad{display:block}
+  .drPracOnly{display:none!important}
+  #drawM.practice .drPracOnly{display:inline-flex!important}
+  #drSide{flex:0 0 260px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;overflow-y:auto}
+  #drStepNo{font-size:11.5px;color:var(--steel);letter-spacing:.3px}
+  #drStepName{font-size:19px;font-weight:800;color:var(--gold2);line-height:1.5}
+  #drStepTxt{font-size:13.5px;line-height:1.95;color:var(--bone)}
+  #drDots{display:flex;flex-wrap:wrap;gap:5px;margin-top:auto;padding-top:8px}
+  #drDots button{cursor:pointer;width:26px;height:26px;border-radius:50%;font-size:11px;font-family:inherit;color:var(--steel);
+    background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);touch-action:manipulation}
+  #drDots button.done{color:#cfe9d6;border-color:rgba(63,191,111,.5);background:rgba(63,191,111,.14)}
+  #drDots button.on{color:#1a1208;font-weight:800;background:linear-gradient(180deg,var(--gold2),var(--gold));border-color:transparent}
+  #drCtl{flex:0 0 auto;display:flex;gap:8px;flex-wrap:wrap;justify-content:center;align-items:center;padding:9px 12px;border-top:1px solid var(--line)}
+  #drCtl .grp{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+  #drCtl .stool{padding:8px 12px;font-size:12px}
+  #drPrev .ic{transform:scaleX(-1)}
+  /* بلا non-scaling-stroke: معه يحسب كروم طول التقطيع بمقياس الشاشة فلا يكتمل الخط */
+  #drSvg .drS{fill:none;stroke:#2d2a26;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+  #drSvg .drS.drNow{stroke:#a8432b;stroke-width:2.6}
+  #drSvg .drD{fill:#2d2a26}
+  #drSvg .drD.drNow{fill:#a8432b}
+  #drSvg .drL line{stroke:#1d3f8f;stroke-width:1.6}
+  #drSvg .drL circle{fill:#1d3f8f}
+  #drSvg .drL text{fill:#1d3f8f;font-size:var(--drFs,17px);font-weight:700}
+  @media (max-width:700px){
+    #drBody{flex-direction:column;padding:6px 8px;gap:6px}
+    #drSide{flex:0 0 auto;max-height:34%;padding:10px 12px;gap:4px}
+    #drStepName{font-size:15px}
+    #drStepTxt{font-size:12.5px;line-height:1.8}
+    #drDots{display:none}
+    #drCtl{gap:5px;padding:6px 6px calc(6px + env(safe-area-inset-bottom))}
+    #drCtl .stool{padding:7px 9px;font-size:11px;min-height:36px}
+    #drCtl .stool .ic + span{display:none}
+    #drSpeed .stool{padding:7px 8px}
+    .welDraw{top:calc(62px + env(safe-area-inset-top))!important}
+  }
   #sheet{z-index:6}
 
   /* ═══════════ لوحة المفاتيح: حلقة تركيز على الجزء المختار ═══════════ */
@@ -802,6 +851,7 @@
     <button id="welGo" class="welHot" aria-label="ابدأ المحاكاة" title="ابدأ المحاكاة"></button>
   </div>
   <button id="welExam" class="btn3d ghost3d welExam">وضع الامتحان</button>
+  <button id="welDraw" class="btn3d ghost3d welExam welDraw">الرسم اليدوي</button>
 </div>
 
 <header id="top">
@@ -875,6 +925,39 @@
           <div id="qOpts"></div>
           <div id="qWhy" class="panel"></div>
           <button id="qNext" class="btn primary"><span>السؤال التالي</span><svg class="ic"><use href="#ic-route"/></svg></button>
+        </div>
+      </div>
+    </div>
+    <div id="drawM">
+      <div id="drPick"></div>
+      <div id="drBody">
+        <div id="drStage">
+          <svg id="drSvg" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid meet" role="img" aria-label="رسم يدوي خطوة بخطوة"></svg>
+          <canvas id="drPad" aria-label="لوح الرسم"></canvas>
+        </div>
+        <div id="drSide" class="panel">
+          <div id="drStepNo"></div>
+          <div id="drStepName"></div>
+          <div id="drStepTxt"></div>
+          <div id="drDots"></div>
+        </div>
+      </div>
+      <div id="drCtl">
+        <div class="grp">
+          <button id="drPrev" class="stool"><svg class="ic"><use href="#ic-route"/></svg><span>السابق</span></button>
+          <button id="drPlay" class="stool on"><svg class="ic"><use href="#ic-pause"/></svg><span>إيقاف</span></button>
+          <button id="drNext" class="stool"><svg class="ic"><use href="#ic-route"/></svg><span>التالي</span></button>
+          <button id="drRestart" class="stool"><svg class="ic"><use href="#ic-reset"/></svg><span>من البداية</span></button>
+        </div>
+        <div id="drSpeed" class="segbar">
+          <button class="stool" data-v="0.5">بطيء</button><button class="stool on" data-v="1">عادي</button><button class="stool" data-v="2">سريع</button>
+        </div>
+        <div class="grp">
+          <button id="drNamesBtn" class="stool on"><svg class="ic"><use href="#ic-list"/></svg><span>الأسماء</span></button>
+          <button id="drColorBtn" class="stool"><svg class="ic"><use href="#ic-spark"/></svg><span>لوّن الرسم</span></button>
+          <button id="drPracBtn" class="stool"><svg class="ic"><use href="#ic-leaf"/></svg><span>ارسم بنفسك</span></button>
+          <button id="drGuideBtn" class="stool drPracOnly"><svg class="ic"><use href="#ic-eye"/></svg><span>أخفِ الدليل</span></button>
+          <button id="drClearBtn" class="stool drPracOnly"><svg class="ic"><use href="#ic-close"/></svg><span>امسح رسمي</span></button>
         </div>
       </div>
     </div>
@@ -4196,6 +4279,7 @@ const TABS = [
   { k: 'transport',  t: 'عبور المواد' },
   { k: 'metabolism', t: 'الأيض الخلوي' },
   { k: 'division',   t: 'الانقسام الخلوي' },
+  { k: 'draw',       t: 'الرسم اليدوي' },
   { k: 'exam',       t: 'وضع الامتحان' }
 ];
 
@@ -4298,12 +4382,15 @@ function loadScene(key){
   svgHost.dataset.scene = key;
   $$('.tab').forEach(b => b.classList.toggle('on', b.dataset.k === key));
   closeSheet(); clearInfo();
-  const isExam = key === 'exam';
+  const isExam = key === 'exam', isDraw = key === 'draw';
   $('#exam').classList.toggle('on', isExam);
-  $('#info').style.display = isExam ? 'none' : '';
-  /* في الامتحان يبقى الشريط (نهاري/ملء الشاشة/الجداول) وتختفي أدوات الحركة فقط */
-  document.body.classList.toggle('examMode', isExam);
+  $('#drawM').classList.toggle('on', isDraw);
+  $('#info').style.display = isExam || isDraw ? 'none' : '';
+  /* في الامتحان والرسم اليدوي يبقى الشريط (نهاري/ملء الشاشة/الجداول) وتختفي أدوات الحركة فقط */
+  document.body.classList.toggle('examMode', isExam || isDraw);
   $('#phaseBar').classList.remove('on');
+  if (!isDraw) drStop();
+  if (isDraw){ cur = null; if (window.__v3) window.__v3.sync(); flows = []; stream = null; $('#sceneName').textContent = 'الرسم اليدوي'; $('#sceneHint').textContent = ''; initDraw(); drStart(); return; }
   if (isExam){ cur = null; if (window.__v3) window.__v3.sync(); flows = []; stream = null; $('#sceneName').textContent = 'وضع الامتحان'; $('#sceneHint').textContent = ''; initExam(); return; }
 
   const def = SCENES[key];
@@ -7012,6 +7099,364 @@ Object.assign(G3.models, {
 })();
 
 /* ══════════════════════════════════════════════════════════════════════════
+   8 · وضع الرسم اليدوي: البرنامج يرسم رسوم الملزمة بقلم الرصاص خطوة بخطوة،
+       ويكتب اسم كل جزء بخط تأشير كما يُطلب في الامتحان، والطالب يرسم معه
+   الرسم مأخوذ من رسوم المحاكي نفسها (نفس الأشكال والمواقع)، تُحوَّل إلى خطوط.
+   ══════════════════════════════════════════════════════════════════════════ */
+const DRAW_DIAGRAMS = [
+  { k: 'animal',     t: 'الخلية الحيوانية' },
+  { k: 'plant',      t: 'الخلية النباتية' },
+  { k: 'pro',        t: 'بدائية النواة' },
+  { k: 'membrane',   t: 'الغشاء البلازمي' },
+  { k: 'mitoZoom',   t: 'المايتوكوندريا' },
+  { k: 'chloroZoom', t: 'البلاستيدة الخضراء' },
+  { k: 'nucleus',    t: 'النواة' }
+];
+/* ترتيب الرسم: الإطار الخارجي أولاً، ثم العضيات الكبيرة، ثم الصغيرة */
+const DRAW_ORDER = {
+  animal:     ['pm', 'nuc', 'nucleolus', 'rer', 'ribo', 'ser', 'golgi', 'golgiVes', 'mito', 'lyso', 'centro', 'microtub', 'cyto'],
+  plant:      ['wall', 'pm', 'vacuole', 'nuc', 'nucleolus', 'chloro', 'starch', 'mito', 'rer', 'ser', 'golgi', 'golgiVes', 'ribo', 'cyto'],
+  pro:        ['capsule', 'bwall', 'bpm', 'nucleoid', 'ribo', 'pilus', 'cilia', 'flagel', 'cyto'],
+  membrane:   ['_base', 'head', 'tail', 'lipidBundle', 'carrier', 'channel', 'memPore', 'transported'],
+  mitoZoom:   ['outerM', 'innerM', 'crista', 'matrix'],
+  chloroZoom: ['outerM', 'innerM', 'granum', 'grana', 'stroma', 'starch'],
+  nucleus:    ['env', 'pore', 'nucleoplasm', 'chromatin', 'nucleolus', 'rer']
+};
+/* كيف يُرسم كل جزء (وصف الشكل فقط؛ الموقع يُحسب من الرسم نفسه) */
+const DRAW_SHAPE = {
+  pm: 'خطاً مغلقاً يحيط بالخلية كلها', wall: 'إطاراً سميكاً مستطيلاً بزوايا دائرية (خطّان متوازيان)',
+  cyto: 'لا يُرسم له شكل خاص؛ هو المادة التي تملأ الفراغ بين العضيات', nuc: 'دائرة كبيرة وداخلها خيوط ونقاط صغيرة',
+  nucleolus: 'دائرة صغيرة داخل النواة', rer: 'أكياساً متعرّجة متوازية', ribo: 'نقاطاً صغيرة جداً',
+  ser: 'أنابيب متعرّجة ملساء بلا نقاط', golgi: 'أكياساً مقوّسة متراصة فوق بعضها', golgiVes: 'دوائر صغيرة عند أطراف جهاز كولجي',
+  mito: 'شكلاً بيضوياً وداخله خطوط متعرّجة (الأعراف)', lyso: 'دوائر صغيرة', centro: 'أسطوانتين صغيرتين متعامدتين',
+  microtub: 'خطوطاً رفيعة تنطلق من الجسيمات المركزية', vacuole: 'شكلاً كبيراً يشغل معظم وسط الخلية',
+  chloro: 'أشكالاً بيضوية وداخلها خطوط قصيرة متراصة', starch: 'حبيبات بيضوية صغيرة',
+  capsule: 'إطاراً كبسولياً خارجياً (مستطيل بطرفين مدوّرين)', bwall: 'إطاراً ثانياً داخل المحفظة', bpm: 'إطاراً ثالثاً داخل الجدار',
+  nucleoid: 'خيطاً ملتفاً متشابكاً بلا غلاف', pilus: 'خطوطاً طويلة مستقيمة قليلة العدد', cilia: 'شعيرات قصيرة كثيرة حول السطح',
+  flagel: 'خطاً طويلاً متموّجاً من أحد الطرفين',
+  _base: 'صفّين متقابلين من الدوائر الصغيرة وبينهما خطوط قصيرة', head: 'الدوائر في الصفّين (الرؤوس)', tail: 'الخطّان القصيران تحت كل رأس (الذيول)',
+  lipidBundle: 'قوساً يجمع رأسين متقابلين مع ذيولهما', carrier: 'كتلاً كبيرة تخترق الطبقتين', channel: 'بروتيناً في وسطه ممرّ',
+  memPore: 'الفتحة في وسط القناة', transported: 'دوائر صغيرة تعبر القناة',
+  outerM: 'خطاً بيضوياً خارجياً', innerM: 'خطاً ثانياً داخل الأول', crista: 'طيّات تدخل من الغشاء الداخلي نحو الوسط',
+  matrix: 'نقاطاً صغيرة في الفراغ الداخلي', granum: 'أكواماً من أقراص صغيرة فوق بعضها', grana: 'خطوطاً رفيعة تربط الأكوام',
+  stroma: 'لا يُرسم له شكل؛ هو الفراغ بين الأكوام', env: 'دائرة كبيرة بخطّين متوازيين', pore: 'فتحات صغيرة على الغلاف',
+  nucleoplasm: 'لا يُرسم له شكل؛ هو الفراغ داخل النواة', chromatin: 'خيوطاً رفيعة متشابكة داخل النواة'
+};
+
+const drSvg = $('#drSvg'), drPad = $('#drPad');
+let drKey = 'animal', drSteps = [], drIdx = 0, drT = 0, drPlay = true, drSpeed = 1, drRun = false, drLast = 0;
+let drNames = true, drColor = false, drPractice = false, drGuide = true;
+const SHAPE_SEL = 'path,circle,ellipse,rect,line,polygon,polyline';
+const PENCIL = '#2d2a26', NOW_INK = '#a8432b';
+
+function initDraw(){
+  $('#drPick').innerHTML = DRAW_DIAGRAMS.map(d =>
+    `<button class="stool" data-dk="${d.k}"><svg class="ic"><use href="#ic-cell"/></svg><span>${d.t}</span></button>`).join('');
+  $('#drPick').querySelectorAll('[data-dk]').forEach(b => b.addEventListener('click', () => drLoad(b.dataset.dk)));
+  drLoad(drKey);
+}
+
+/* ── تحويل رسم المشهد إلى خطوط قلم وخطوات ── */
+function drLoad(k){
+  drKey = k;
+  $('#drPick').querySelectorAll('[data-dk]').forEach(b => b.classList.toggle('on', b.dataset.dk === k));
+  const s = SCENES[k].build();
+  drSvg.setAttribute('viewBox', '0 0 1000 700');
+  drSvg.innerHTML = DEFS + `
+    <defs>
+      <pattern id="drPaper" width="40" height="34" patternUnits="userSpaceOnUse">
+        <rect width="40" height="34" fill="#f8f3e6"/><path d="M0 33.5H40" stroke="#cfdcec" stroke-width="1"/>
+      </pattern>
+      <filter id="drPencil" x="-5%" y="-5%" width="110%" height="110%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" seed="4"/>
+        <feDisplacementMap in="SourceGraphic" scale="2.2" xChannelSelector="R" yChannelSelector="G"/>
+      </filter>
+    </defs>
+    <rect x="-2000" y="-2000" width="5000" height="5000" fill="url(#drPaper)"/>
+    <g id="drSrc" style="visibility:hidden">${s.body}</g>
+    <g id="drLines" filter="url(#drPencil)"></g>
+    <g id="drLbls"></g>
+    <g id="drPen" style="display:none"><g transform="rotate(35)">
+      <path d="M0,0 L-5.5,-15 L5.5,-15 Z" fill="#f2c98a" stroke="#5b4630" stroke-width="1"/>
+      <path d="M0,0 L-2,-5.5 L2,-5.5 Z" fill="#2d2a26"/>
+      <rect x="-5.5" y="-66" width="11" height="51" fill="#e8b23a" stroke="#5b4630" stroke-width="1"/>
+      <rect x="-5.5" y="-76" width="11" height="10" rx="2" fill="#e7a1a1" stroke="#5b4630" stroke-width="1"/>
+    </g></g>`;
+  const src = drSvg.querySelector('#drSrc'), lines = drSvg.querySelector('#drLines'), lbls = drSvg.querySelector('#drLbls');
+  const rootInv = lines.getCTM().inverse();
+
+  /* هل العنصر مرئي فعلاً في الرسم الأصلي؟ (نتجاهل مناطق الضغط الشفافة والطبقات المخفية) */
+  const hidden = el => {
+    for (let e = el; e && e !== src; e = e.parentNode){
+      if (e.getAttribute && (e.getAttribute('opacity') === '0' || e.style.opacity === '0' || e.getAttribute('display') === 'none')) return true;
+    }
+    const cs = getComputedStyle(el);
+    const noFill = cs.fill === 'none' || /rgba\(.*,\s*0\)$/.test(cs.fill) || cs.fill === 'transparent';
+    const noStroke = cs.stroke === 'none' || cs.strokeWidth === '0px';
+    return noFill && noStroke;
+  };
+  const byPart = {};
+  src.querySelectorAll(SHAPE_SEL).forEach(el => {
+    if (el.closest('defs,clipPath,mask,pattern,symbol,marker') || hidden(el)) return;
+    const pg = el.closest('[data-part]');
+    const id = pg ? pg.dataset.part : (k === 'membrane' ? '_base' : null);
+    if (!id) return;
+    const M = rootInv.multiply(el.getCTM()), sc = Math.sqrt(Math.abs(M.a * M.d - M.b * M.c));
+    const tag = el.tagName.toLowerCase();
+    if (tag === 'rect' && el.width.baseVal.value * sc > 600) return;
+    const r = tag === 'circle' ? el.r.baseVal.value : tag === 'ellipse' ? Math.max(el.rx.baseVal.value, el.ry.baseVal.value) : 99;
+    const dot = r * sc <= 4.6;
+    const c = el.cloneNode(false);
+    ['id', 'class', 'style', 'fill', 'stroke', 'stroke-width', 'filter', 'opacity', 'mask', 'clip-path', 'stroke-dasharray', 'transform',
+     'marker-start', 'marker-end', 'marker-mid', 'fill-opacity', 'stroke-opacity', 'data-part', 'tabindex', 'role'].forEach(a => c.removeAttribute(a));
+    c.setAttribute('transform', `matrix(${M.a},${M.b},${M.c},${M.d},${M.e},${M.f})`);
+    c.setAttribute('class', dot ? 'drD' : 'drS');
+    if (!dot){ c.setAttribute('pathLength', '1'); c.setAttribute('stroke-dasharray', '1.002 2'); c.setAttribute('stroke-dashoffset', '1'); c.style.visibility = 'hidden'; }
+    else c.setAttribute('opacity', '0');
+    lines.appendChild(c);
+    let len = 0;
+    try { len = dot ? 0 : c.getTotalLength() * sc; } catch (e) {}
+    (byPart[id] = byPart[id] || []).push({ el: c, dot, len, M, local: dot ? 0 : (c.getTotalLength ? c.getTotalLength() : 0), cx: 0, cy: 0 });
+  });
+
+  /* حدود الرسم لتقدير موقع كل جزء (أعلى/وسط/أسفل · يمين/يسار) */
+  const bbAll = src.getBBox();
+  const order = (DRAW_ORDER[k] || []).slice();
+  (s.parts || []).forEach(p => { if (order.indexOf(p.id) < 0) order.push(p.id); });
+  const partDef = {}; (s.parts || []).forEach(p => { partDef[p.id] = p; });
+
+  drSteps = order.filter(id => byPart[id] || partDef[id]).map(id => {
+    const els = byPart[id] || [];
+    const p = partDef[id];
+    const name = id === '_base' ? 'طبقتا الدهون المفسفرة' : (INFO[id] ? INFO[id].name : (p ? nameOf(p) : id));
+    /* زمن الرسم من طول الخطوط، والنقاط تظهر تباعاً */
+    let tot = 0;
+    els.forEach(e => { tot += e.dot ? 9 : Math.max(12, e.len); });
+    const scale = tot > 2600 ? 2600 / tot : 1;
+    let t = 0;
+    els.forEach(e => { const d = (e.dot ? 9 : Math.max(12, e.len)) * scale / 420; e.t0 = t; e.t1 = t + d; t += d; });
+    const drawT = t;
+    /* الموقع داخل الرسم */
+    let loc = '';
+    if (els.length){
+      let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+      els.forEach(e => { try { const b = e.el.getBBox(), m = e.M;
+        [[b.x, b.y], [b.x + b.width, b.y + b.height]].forEach(([x, y]) => { const X = m.a * x + m.c * y + m.e, Y = m.b * x + m.d * y + m.f;
+          x0 = Math.min(x0, X); x1 = Math.max(x1, X); y0 = Math.min(y0, Y); y1 = Math.max(y1, Y); }); } catch (er) {} });
+      const big = (x1 - x0) > bbAll.width * 0.6 && (y1 - y0) > bbAll.height * 0.5;
+      if (!big && x1 > x0){
+        const fx = ((x0 + x1) / 2 - bbAll.x) / bbAll.width, fy = ((y0 + y1) / 2 - bbAll.y) / bbAll.height;
+        const v = fy < 0.36 ? 'في الأعلى' : fy > 0.64 ? 'في الأسفل' : 'في الوسط';
+        const h = fx < 0.36 ? ' يسار الرسم' : fx > 0.64 ? ' يمين الرسم' : '';
+        loc = ' ' + v + h;
+      }
+    }
+    const shape = DRAW_SHAPE[id] || 'الجزء';
+    const noShape = !els.length;
+    const txt = noShape ? shape + (p ? '، فقط أشّر عليه واكتب اسمه.' : '.')
+                        : 'ارسم ' + shape + loc + (p ? '، ثم أشّر عليه بخط واكتب: «' + name + '».' : '.');
+    return { id, name, els, p, drawT, txt, lbl: null };
+  });
+
+  /* أسماء الأجزاء بخطوط تأشير (بقلم أزرق كما في ورقة الامتحان) — أكبر على الموبايل حتى تُقرأ */
+  const stW = Math.max(200, $('#drStage').getBoundingClientRect().width || 800);
+  const fs = Math.max(17, Math.min(27, 9.5 * 1000 / stW)), lh = fs * 1.2, small = fs > 20;
+  drSvg.style.setProperty('--drFs', fs.toFixed(1) + 'px');
+  /* تباعد الأسماء في كل عمود حتى لا يركب اسم على اسم (الأسطر تكثر على الموبايل) */
+  const LY = {};
+  ['L', 'R'].forEach(side => {
+    const col = drSteps.filter(st => st.p && st.p.side === side).map(st => ({ st, n: wrapName(INFO[st.id] ? INFO[st.id].name : nameOf(st.p), small ? 11 : 16).length, y: st.p.label[1] }))
+      .sort((a, b) => a.y - b.y);
+    for (let i = 1; i < col.length; i++){
+      const need = col[i - 1].y + (col[i - 1].n + col[i].n) * lh / 2 + fs * 0.45;
+      if (col[i].y < need) col[i].y = need;
+    }
+    col.forEach(o => { LY[o.st.id] = o.y; });
+  });
+  drSteps.forEach(st => {
+    const p0 = st.p; if (!p0) return;
+    const p = Object.assign({}, p0, { label: [p0.label[0], LY[st.id] !== undefined ? LY[st.id] : p0.label[1]] });
+    const lines2 = wrapName(INFO[st.id] ? INFO[st.id].name : nameOf(p), p.side === 'C' ? 26 : small ? 11 : 16);
+    const anch = p.side === 'R' ? 'start' : p.side === 'L' ? 'end' : 'middle';
+    const tx = p.side === 'R' ? p.label[0] + 8 : p.side === 'L' ? p.label[0] - 8 : p.label[0];
+    const ty = p.label[1] + fs * 0.35 - (lines2.length - 1) * lh / 2;
+    const g = document.createElementNS(SVGNS, 'g');
+    g.setAttribute('class', 'drL');
+    const cid = 'drClip' + st.id;
+    g.innerHTML = `<line pathLength="1" stroke-dasharray="1.002 2" stroke-dashoffset="1" x1="${n2(p.anchor[0])}" y1="${n2(p.anchor[1])}" x2="${n2(p.label[0])}" y2="${n2(p.label[1])}"/>
+      <circle cx="${n2(p.anchor[0])}" cy="${n2(p.anchor[1])}" r="3.2"/>
+      <clipPath id="${cid}"><rect x="0" y="0" width="0" height="0"/></clipPath>
+      <text direction="ltr" text-anchor="${anch}" x="${n2(tx)}" y="${n2(ty)}" clip-path="url(#${cid})">${lines2.map((l, i) => `<tspan x="${n2(tx)}" dy="${i ? n2(lh) : 0}">${l}</tspan>`).join('')}</text>`;
+    lbls.appendChild(g);
+    const tb = g.querySelector('text').getBBox();
+    st.lbl = { g, line: g.querySelector('line'), dot: g.querySelector('circle'), text: g.querySelector('text'), clip: g.querySelector('clipPath rect'), tb, p };
+  });
+  drSteps.forEach(st => { st.lblT = st.lbl ? 1.1 : 0; st.total = st.drawT + st.lblT + 0.7; });
+
+  /* إطار العرض: الرسم مع أسمائه بهامش */
+  const bb = drSvg.querySelector('#drLines').getBBox(), lb = lbls.getBBox();
+  const X0 = Math.min(bb.x, lb.width ? lb.x : bb.x) - 30, Y0 = Math.min(bb.y, lb.height ? lb.y : bb.y) - 30;
+  const X1 = Math.max(bb.x + bb.width, lb.width ? lb.x + lb.width : 0) + 30, Y1 = Math.max(bb.y + bb.height, lb.height ? lb.y + lb.height : 0) + 30;
+  drSvg.setAttribute('viewBox', `${n2(X0)} ${n2(Y0)} ${n2(X1 - X0)} ${n2(Y1 - Y0)}`);
+  drSvg.querySelector('#drPen').setAttribute('data-s', String(Math.max(0.7, (X1 - X0) / 1000)));
+  drSteps.forEach(st => { if (st.lbl) st.lbl.g.style.display = 'none'; });   // تُقاس الأسماء أولاً ثم تُخفى حتى يحين دورها
+
+  $('#drDots').innerHTML = drSteps.map((st, i) => `<button data-i="${i}" title="${st.name}">${i + 1}</button>`).join('');
+  $('#drDots').querySelectorAll('button').forEach(b => b.addEventListener('click', () => drGo(+b.dataset.i, true)));
+  drSvg.querySelector('#drSrc').style.visibility = drColor ? 'visible' : 'hidden';
+  drSvg.querySelector('#drSrc').style.opacity = '0.45';
+  drApplyNames();
+  drPadClear();
+  drGo(0, false);
+  drSetPlay(true);
+}
+
+/* حالة كل خطوة: المنتهية مرسومة كاملة، والقادمة مخفية، والحالية حسب الزمن */
+function drStepState(st, t, now){
+  st.els.forEach(e => {
+    const f = t >= e.t1 ? 1 : t <= e.t0 ? 0 : (t - e.t0) / Math.max(1e-3, e.t1 - e.t0);
+    if (e.dot) e.el.setAttribute('opacity', f > 0 ? '1' : '0');
+    else {
+      e.el.setAttribute('stroke-dashoffset', String(1 - f));
+      e.el.style.visibility = f > 0 ? '' : 'hidden';   // بلا نقطة عند بداية خط لم يُرسم بعد
+    }
+    e.el.classList.toggle('drNow', !!now);
+  });
+  const L = st.lbl; if (!L) return;
+  const u = t - st.drawT;
+  L.g.style.display = u > 0 ? '' : 'none';
+  if (u <= 0) return;
+  const a = Math.min(1, u / 0.35), w = Math.min(1, Math.max(0, (u - 0.35) / 0.75));
+  L.line.setAttribute('stroke-dashoffset', String(1 - a));
+  L.dot.setAttribute('opacity', a > 0.05 ? '1' : '0');
+  /* الكتابة من اليمين إلى اليسار كما يُكتب العربي */
+  const tb = L.tb, ww = tb.width + 8;
+  L.clip.setAttribute('x', n2(tb.x + tb.width + 4 - ww * w)); L.clip.setAttribute('y', n2(tb.y - 4));
+  L.clip.setAttribute('width', n2(ww * w)); L.clip.setAttribute('height', n2(tb.height + 8));
+}
+function drGo(i, user){
+  drIdx = Math.max(0, Math.min(drSteps.length - 1, i)); drT = 0;
+  drSteps.forEach((st, j) => drStepState(st, j < drIdx ? 1e9 : j > drIdx ? -1 : 0, j === drIdx));
+  drUI();
+  if (user && !drPlay){ drT = drSteps[drIdx].total - 0.7; drStepState(drSteps[drIdx], drT, true); drPen(null); }
+}
+function drUI(){
+  const st = drSteps[drIdx]; if (!st) return;
+  $('#drStepNo').textContent = `الخطوة ${drIdx + 1} من ${drSteps.length}`;
+  $('#drStepName').textContent = st.name;
+  $('#drStepTxt').textContent = st.txt;
+  $('#drDots').querySelectorAll('button').forEach((b, j) => { b.classList.toggle('on', j === drIdx); b.classList.toggle('done', j < drIdx); });
+}
+function drPen(pt){
+  const pen = drSvg.querySelector('#drPen'); if (!pen) return;
+  if (!pt){ pen.style.display = 'none'; return; }
+  pen.style.display = '';
+  pen.setAttribute('transform', `translate(${n2(pt[0])},${n2(pt[1])}) scale(${pen.getAttribute('data-s') || 1})`);
+}
+/* نقطة رأس القلم الآن (على الخط الذي يُرسم أو على الاسم الذي يُكتب) */
+function drPenAt(st, t){
+  if (t < st.drawT){
+    const e = st.els.find(x => t >= x.t0 && t < x.t1); if (!e) return null;
+    const m = e.M;
+    if (e.dot){ const b = e.el.getBBox(); const x = b.x + b.width / 2, y = b.y + b.height / 2; return [m.a * x + m.c * y + m.e, m.b * x + m.d * y + m.f]; }
+    try { const q = e.el.getPointAtLength(e.local * (t - e.t0) / Math.max(1e-3, e.t1 - e.t0)); return [m.a * q.x + m.c * q.y + m.e, m.b * q.x + m.d * q.y + m.f]; } catch (er) { return null; }
+  }
+  const L = st.lbl; if (!L) return null;
+  const u = t - st.drawT;
+  if (u < 0.35){ const p = L.p, k = u / 0.35; return [p.anchor[0] + (p.label[0] - p.anchor[0]) * k, p.anchor[1] + (p.label[1] - p.anchor[1]) * k]; }
+  if (u < 1.1){ const w = (u - 0.35) / 0.75, tb = L.tb; return [tb.x + tb.width - tb.width * w, tb.y + tb.height * 0.75]; }
+  return null;
+}
+function drLoop(now){
+  if (!drRun) return;
+  const dt = Math.min(0.05, (now - (drLast || now)) / 1000); drLast = now;
+  const st = drSteps[drIdx];
+  if (st && drPlay){
+    drT += dt * drSpeed;
+    drStepState(st, drT, true);
+    drPen(drPenAt(st, drT));
+    if (drT >= st.total){
+      if (drIdx < drSteps.length - 1){ drStepState(st, 1e9, false); drIdx++; drT = 0; drUI(); }
+      else { drStepState(st, 1e9, false); drPen(null); drSetPlay(false); drFinished(); }
+    }
+  }
+  requestAnimationFrame(drLoop);
+}
+function drFinished(){
+  $('#drStepNo').textContent = 'اكتمل الرسم';
+  $('#drStepName').textContent = DRAW_DIAGRAMS.find(d => d.k === drKey).t;
+  $('#drStepTxt').textContent = 'جرّب الآن أن ترسمه بنفسك: اضغط «ارسم بنفسك» وارسم بإصبعك أو بالماوس فوق الدليل، ثم أخفِ الدليل وارسمه من الذاكرة.';
+  $('#drDots').querySelectorAll('button').forEach(b => { b.classList.remove('on'); b.classList.add('done'); });
+}
+function drSetPlay(v){
+  drPlay = v;
+  $('#drPlay').innerHTML = v ? '<svg class="ic"><use href="#ic-pause"/></svg><span>إيقاف</span>' : '<svg class="ic"><use href="#ic-play"/></svg><span>تشغيل</span>';
+  if (v && drIdx === drSteps.length - 1 && drT >= drSteps[drIdx].total) drGo(0, false);
+}
+function drStart(){ if (!drRun){ drRun = true; drLast = 0; requestAnimationFrame(drLoop); } }
+function drStop(){ drRun = false; }
+function drApplyNames(){ drSvg.querySelector('#drLbls').style.visibility = drNames ? '' : 'hidden'; }
+
+$('#drPlay').addEventListener('click', () => drSetPlay(!drPlay));
+$('#drPrev').addEventListener('click', () => { const back = drT < 0.6 ? 1 : 0; drGo(drIdx - back, true); });
+$('#drNext').addEventListener('click', () => {
+  if (drIdx >= drSteps.length - 1){ drStepState(drSteps[drIdx], 1e9, false); drPen(null); drSetPlay(false); drFinished(); return; }
+  drStepState(drSteps[drIdx], 1e9, false); drGo(drIdx + 1, true);
+});
+$('#drRestart').addEventListener('click', () => { drGo(0, false); drSetPlay(true); });
+$('#drSpeed').querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+  drSpeed = +b.dataset.v; $('#drSpeed').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+}));
+$('#drNamesBtn').addEventListener('click', () => { drNames = !drNames; $('#drNamesBtn').classList.toggle('on', drNames); drApplyNames(); });
+$('#drColorBtn').addEventListener('click', () => {
+  drColor = !drColor; $('#drColorBtn').classList.toggle('on', drColor);
+  const s = drSvg.querySelector('#drSrc'); if (s) s.style.visibility = drColor ? 'visible' : 'hidden';
+});
+
+/* ── «ارسم بنفسك»: لوح شفاف فوق الرسم يرسم عليه الطالب بإصبعه أو بالماوس ── */
+let padStrokes = [], padCur = null;
+function padSize(){
+  const r = $('#drStage').getBoundingClientRect(), d = Math.min(2, window.devicePixelRatio || 1);
+  drPad.width = Math.max(1, Math.round(r.width * d)); drPad.height = Math.max(1, Math.round(r.height * d));
+  padDraw();
+}
+function padDraw(){
+  const c = drPad.getContext('2d'), d = drPad.width / Math.max(1, drPad.getBoundingClientRect().width);
+  c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, drPad.width, drPad.height);
+  c.setTransform(d, 0, 0, d, 0, 0);
+  c.lineCap = 'round'; c.lineJoin = 'round'; c.strokeStyle = '#1d3f8f'; c.lineWidth = 2.6;
+  padStrokes.forEach(s => { if (s.length < 2){ if (s.length){ c.beginPath(); c.arc(s[0][0], s[0][1], 1.4, 0, 6.3); c.fillStyle = '#1d3f8f'; c.fill(); } return; }
+    c.beginPath(); c.moveTo(s[0][0], s[0][1]); for (let i = 1; i < s.length; i++) c.lineTo(s[i][0], s[i][1]); c.stroke(); });
+}
+function drPadClear(){ padStrokes = []; padCur = null; if (drPad.width) padDraw(); }
+drPad.addEventListener('pointerdown', e => {
+  e.preventDefault(); try { drPad.setPointerCapture(e.pointerId); } catch (_){}
+  const r = drPad.getBoundingClientRect(); padCur = [[e.clientX - r.left, e.clientY - r.top]]; padStrokes.push(padCur); padDraw();
+});
+drPad.addEventListener('pointermove', e => {
+  if (!padCur) return;
+  const r = drPad.getBoundingClientRect(); padCur.push([e.clientX - r.left, e.clientY - r.top]); padDraw();
+});
+['pointerup', 'pointercancel'].forEach(t => drPad.addEventListener(t, () => { padCur = null; }));
+function drSetPractice(v){
+  drPractice = v;
+  $('#drawM').classList.toggle('practice', v);
+  $('#drPracBtn').classList.toggle('on', v);
+  if (v){ padSize(); drSetGuide(true); }
+  else drSvg.style.opacity = '';
+}
+function drSetGuide(v){
+  drGuide = v;
+  $('#drGuideBtn').innerHTML = `<svg class="ic"><use href="#ic-eye"/></svg><span>${v ? 'أخفِ الدليل' : 'أظهر الدليل'}</span>`;
+  drSvg.style.opacity = drPractice ? (v ? '0.35' : '0') : '';
+}
+$('#drPracBtn').addEventListener('click', () => drSetPractice(!drPractice));
+$('#drGuideBtn').addEventListener('click', () => drSetGuide(!drGuide));
+$('#drClearBtn').addEventListener('click', drPadClear);
+window.addEventListener('resize', () => { if (drPractice) padSize(); });
+$('#welDraw').addEventListener('click', () => { loadScene('draw'); showWelcome(false); });
+
+/* ══════════════════════════════════════════════════════════════════════════
    7 · وضع الامتحان: «أشّر الأجزاء» + «اختبر نفسك»
    ══════════════════════════════════════════════════════════════════════════ */
 
@@ -7377,6 +7822,9 @@ document.addEventListener('keydown', e => {
     عبور المواد السبع مجسّمة ومتحركة أيضاً، وكذلك أزرار التجارب داخل المشاهد
     (مسار البروتين، النفوذية الاختيارية، أدخل الضوء، تجربة الحركة، اختيار
     الجزيئة في الغشاء)؛ مخططات الأيض وحدها تبقى مسطّحة.
+  · تبويب «الرسم اليدوي»: البرنامج يرسم رسوم الملزمة السبعة بقلم رصاص خطوة
+    بخطوة ويكتب الأسماء بخطوط التأشير، مع بطاقة تشرح كل خطوة، و«ارسم بنفسك»
+    للرسم بالإصبع فوق دليل باهت أو من الذاكرة.
     وإذا لم يدعم الجهاز WebGL تُرسم المجسّمات نفسها بـ Canvas 2D تلقائياً.
 
   ── ما يبقى للمراجعة ──
