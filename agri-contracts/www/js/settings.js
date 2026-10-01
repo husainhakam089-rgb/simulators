@@ -35,6 +35,7 @@ export const DEFAULTS = {
   conditions: [...DEFAULT_CONDITIONS],
   // الختم الإلكتروني — يُطبع مع العقد فلا يحتاج ختماً يدوياً
   stampEnabled: true,
+  stampOnReceipt: true,   // الوصل يُختم أيضاً
   stampImage: null,       // صورة ختم حقيقي تعلو على المرسوم
   stampName: 'معرض البركة',
   stampSubtitle: 'لتجارة السيارات الحديثة',

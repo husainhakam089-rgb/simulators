@@ -56,6 +56,7 @@ export async function render(root) {
 
   /* ----- الختم ----- */
   const stampEnabled = h('input', { type: 'checkbox', checked: s.stampEnabled !== false });
+  const stampOnReceipt = h('input', { type: 'checkbox', checked: s.stampOnReceipt !== false });
   const stampImage = photoField({ label: 'صورة ختم حقيقي (اختياري)', value: s.stampImage });
   const stampName = textField({ label: 'السطر الأول', value: s.stampName || '' });
   const stampSubtitle = textField({ label: 'السطر الثاني', value: s.stampSubtitle || '' });
@@ -177,6 +178,7 @@ export async function render(root) {
         printerPort: Number(digitsOnly(printerPort.get())) || 631,
         printerQueue: printerQueue.get() || 'ipp/print',
         stampEnabled: stampEnabled.checked,
+        stampOnReceipt: stampOnReceipt.checked,
         stampImage: stampImage.get(),
         stampName: stampName.get(),
         stampSubtitle: stampSubtitle.get(),
@@ -242,6 +244,7 @@ export async function render(root) {
         h('h2', { class: 'card__title', text: 'الختم' }),
         h('p', { class: 'muted', text: 'يُطبع مع كل نسخة من العقد فوق توقيع الشرعي، فيخرج العقد جاهزاً بلا ختم يدوي.' }),
         h('label', { class: 'checkrow' }, stampEnabled, h('span', { text: 'طباعة الختم مع العقد' })),
+        h('label', { class: 'checkrow' }, stampOnReceipt, h('span', { text: 'طباعة الختم مع الوصل أيضاً' })),
         h('h3', { class: 'subhead', text: 'الختم المرسوم' }),
         stampName.el, stampSubtitle.el, stampNote.el,
         h('h3', { class: 'subhead', text: 'أو ختم حقيقي' }),

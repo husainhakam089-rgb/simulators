@@ -101,11 +101,12 @@ function headerBlock(s) {
  * النصّ أفقي داخل الدائرة لا منحنياً على محيطها: الحروف العربية تتقطّع
  * أوصالها في بعض محرّكات العرض حين تُرصف على مسار.
  */
-function stampBlock(s) {
+function stampBlock(s, variant = '') {
   if (s.stampEnabled === false) return '';
+  const cls = variant ? `stamp stamp--${variant}` : 'stamp';
 
   if (s.stampImage) {
-    return `<img class="stamp stamp--photo" src="${escapeHtml(s.stampImage)}" alt="ختم المعرض">`;
+    return `<img class="${cls} stamp--photo" src="${escapeHtml(s.stampImage)}" alt="ختم المعرض">`;
   }
 
   const name = s.stampName || s.shopName || '';
@@ -121,7 +122,7 @@ function stampBlock(s) {
   }
 
   return `
-  <div class="stamp">
+  <div class="${cls}">
     <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-label="ختم المعرض">
       <g fill="none" stroke="currentColor">
         <circle cx="100" cy="100" r="95" stroke-width="3.4"/>
@@ -296,6 +297,8 @@ function receiptHalf(r, s, copyKey) {
         <div class="cell"><span class="lbl">الموبايل</span><span class="val">${dots(r.mobile)}</span></div>
       </div>
       <div class="row"><div class="cell"><span class="lbl">ملاحظات</span><span class="val val--free">${dots(r.notes)}</span></div></div>
+
+      ${s.stampOnReceipt === false ? '' : stampBlock(s, 'receipt')}
 
       <div class="rsigns">
         ${['المستلم', 'المعرض', 'الدافع'].map((n) => `<div><div class="sign__name">${n}</div><div class="sign__line"></div></div>`).join('')}

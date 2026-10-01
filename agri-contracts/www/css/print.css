@@ -19,6 +19,10 @@
   --stamp-side: 60mm;
   --stamp-rotate: -12deg;
   --stamp-opacity: 0.82;
+  /* الوصل نصف ورقة، فختمه أصغر وأقرب لأسفلها */
+  --stamp-size-receipt: 23mm;
+  --stamp-bottom-receipt: 19mm;
+  --stamp-side-receipt: 76mm;
   --sign-space: 8mm;      /* أدنى مساحة توقيع؛ تتمدّد تلقائياً في العقد القصير */
 }
 
@@ -269,6 +273,12 @@ html, body {
   z-index: 2;
 }
 .stamp svg { width: 100%; height: 100%; display: block; }
+.stamp--receipt {
+  width: var(--stamp-size-receipt);
+  height: var(--stamp-size-receipt);
+  bottom: var(--stamp-bottom-receipt);
+  inset-inline-start: var(--stamp-side-receipt);
+}
 .stamp--photo { object-fit: contain; height: auto; mix-blend-mode: multiply; }
 
 /* ----- الوصل الصغير ----- */
@@ -293,6 +303,7 @@ html, body {
 
 .rframe {
   height: 100%;
+  position: relative;
   border: 0.8mm double var(--red);
   border-radius: 1.5mm;
   padding: 3.5mm 4mm;

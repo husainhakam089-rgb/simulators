@@ -556,6 +556,10 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
   --stamp-side: 60mm;
   --stamp-rotate: -12deg;
   --stamp-opacity: 0.82;
+  /* الوصل نصف ورقة، فختمه أصغر وأقرب لأسفلها */
+  --stamp-size-receipt: 23mm;
+  --stamp-bottom-receipt: 19mm;
+  --stamp-side-receipt: 76mm;
   --sign-space: 8mm;      /* أدنى مساحة توقيع؛ تتمدّد تلقائياً في العقد القصير */
 }
 
@@ -806,6 +810,12 @@ html, body {
   z-index: 2;
 }
 .stamp svg { width: 100%; height: 100%; display: block; }
+.stamp--receipt {
+  width: var(--stamp-size-receipt);
+  height: var(--stamp-size-receipt);
+  bottom: var(--stamp-bottom-receipt);
+  inset-inline-start: var(--stamp-side-receipt);
+}
 .stamp--photo { object-fit: contain; height: auto; mix-blend-mode: multiply; }
 
 /* ----- الوصل الصغير ----- */
@@ -830,6 +840,7 @@ html, body {
 
 .rframe {
   height: 100%;
+  position: relative;
   border: 0.8mm double var(--red);
   border-radius: 1.5mm;
   padding: 3.5mm 4mm;
@@ -1321,6 +1332,8 @@ html, body {
         conditions: [...DEFAULT_CONDITIONS],
         // الختم الإلكتروني — يُطبع مع العقد فلا يحتاج ختماً يدوياً
         stampEnabled: true,
+        stampOnReceipt: true,
+        // الوصل يُختم أيضاً
         stampImage: null,
         // صورة ختم حقيقي تعلو على المرسوم
         stampName: "معرض البركة",
@@ -2102,10 +2115,11 @@ ${main}`;
       <div class="head__img">${img(left, "", "ترتكتر")}</div>
     </div>`;
   }
-  function stampBlock(s) {
+  function stampBlock(s, variant = "") {
     if (s.stampEnabled === false) return "";
+    const cls = variant ? `stamp stamp--${variant}` : "stamp";
     if (s.stampImage) {
-      return `<img class="stamp stamp--photo" src="${escapeHtml(s.stampImage)}" alt="ختم المعرض">`;
+      return `<img class="${cls} stamp--photo" src="${escapeHtml(s.stampImage)}" alt="ختم المعرض">`;
     }
     const name = s.stampName || s.shopName || "";
     const subtitle = s.stampSubtitle || "";
@@ -2117,7 +2131,7 @@ ${main}`;
       points.push(`${(100 + radius * Math.cos(angle)).toFixed(1)},${(146 + radius * Math.sin(angle)).toFixed(1)}`);
     }
     return `
-  <div class="stamp">
+  <div class="${cls}">
     <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-label="ختم المعرض">
       <g fill="none" stroke="currentColor">
         <circle cx="100" cy="100" r="95" stroke-width="3.4"/>
@@ -2272,6 +2286,8 @@ ${main}`;
         <div class="cell"><span class="lbl">الموبايل</span><span class="val">${dots(r.mobile)}</span></div>
       </div>
       <div class="row"><div class="cell"><span class="lbl">ملاحظات</span><span class="val val--free">${dots(r.notes)}</span></div></div>
+
+      ${s.stampOnReceipt === false ? "" : stampBlock(s, "receipt")}
 
       <div class="rsigns">
         ${["المستلم", "المعرض", "الدافع"].map((n) => `<div><div class="sign__name">${n}</div><div class="sign__line"></div></div>`).join("")}
@@ -3514,6 +3530,7 @@ ${main}`;
     const conditionsReviewed = h("input", { type: "checkbox", checked: s.conditionsReviewed });
     const conditions = s.conditions.map((t, i) => textArea({ label: `الشرط ${i + 1}`, value: t, rows: 3 }));
     const stampEnabled = h("input", { type: "checkbox", checked: s.stampEnabled !== false });
+    const stampOnReceipt = h("input", { type: "checkbox", checked: s.stampOnReceipt !== false });
     const stampImage = photoField({ label: "صورة ختم حقيقي (اختياري)", value: s.stampImage });
     const stampName = textField({ label: "السطر الأول", value: s.stampName || "" });
     const stampSubtitle = textField({ label: "السطر الثاني", value: s.stampSubtitle || "" });
@@ -3639,6 +3656,7 @@ ${main}`;
           printerPort: Number(digitsOnly(printerPort.get())) || 631,
           printerQueue: printerQueue.get() || "ipp/print",
           stampEnabled: stampEnabled.checked,
+          stampOnReceipt: stampOnReceipt.checked,
           stampImage: stampImage.get(),
           stampName: stampName.get(),
           stampSubtitle: stampSubtitle.get(),
@@ -3716,6 +3734,7 @@ ${main}`;
           h("h2", { class: "card__title", text: "الختم" }),
           h("p", { class: "muted", text: "يُطبع مع كل نسخة من العقد فوق توقيع الشرعي، فيخرج العقد جاهزاً بلا ختم يدوي." }),
           h("label", { class: "checkrow" }, stampEnabled, h("span", { text: "طباعة الختم مع العقد" })),
+          h("label", { class: "checkrow" }, stampOnReceipt, h("span", { text: "طباعة الختم مع الوصل أيضاً" })),
           h("h3", { class: "subhead", text: "الختم المرسوم" }),
           stampName.el,
           stampSubtitle.el,
