@@ -54,6 +54,16 @@ export async function render(root) {
   const conditionsReviewed = h('input', { type: 'checkbox', checked: s.conditionsReviewed });
   const conditions = s.conditions.map((t, i) => textArea({ label: `الشرط ${i + 1}`, value: t, rows: 3 }));
 
+  /* ----- الختم ----- */
+  const stampEnabled = h('input', { type: 'checkbox', checked: s.stampEnabled !== false });
+  const stampImage = photoField({ label: 'صورة ختم حقيقي (اختياري)', value: s.stampImage });
+  const stampName = textField({ label: 'السطر الأول', value: s.stampName || '' });
+  const stampSubtitle = textField({ label: 'السطر الثاني', value: s.stampSubtitle || '' });
+  const stampNote = textField({
+    label: 'السطر الثالث', value: s.stampNote || '',
+    hint: 'اتركه فارغاً ليأخذ اسم الإدارة تلقائياً.',
+  });
+
   /* ----- القوائم ----- */
   const listsBox = h('div', {});
   async function paintLists() {
@@ -166,6 +176,11 @@ export async function render(root) {
         printerAddress: printerAddress.get(),
         printerPort: Number(digitsOnly(printerPort.get())) || 631,
         printerQueue: printerQueue.get() || 'ipp/print',
+        stampEnabled: stampEnabled.checked,
+        stampImage: stampImage.get(),
+        stampName: stampName.get(),
+        stampSubtitle: stampSubtitle.get(),
+        stampNote: stampNote.get(),
         digitStyle: digitStyle.value,
         subjectWord: subjectWord.value,
         engineNoRequired: engineNoRequired.checked,
@@ -221,6 +236,17 @@ export async function render(root) {
         h('p', { class: 'muted', text: 'النص الحالي مسوّدة. انسخ الشروط حرفياً من الدفتر الورقي ثم علّم الاعتماد.' }),
         ...conditions.map((c) => c.el),
         h('label', { class: 'checkrow' }, conditionsReviewed, h('span', { text: 'اعتُمد نص الشروط من الدفتر الأصلي' })),
+      ),
+
+      h('section', { class: 'card' },
+        h('h2', { class: 'card__title', text: 'الختم' }),
+        h('p', { class: 'muted', text: 'يُطبع مع كل نسخة من العقد فوق توقيع الشرعي، فيخرج العقد جاهزاً بلا ختم يدوي.' }),
+        h('label', { class: 'checkrow' }, stampEnabled, h('span', { text: 'طباعة الختم مع العقد' })),
+        h('h3', { class: 'subhead', text: 'الختم المرسوم' }),
+        stampName.el, stampSubtitle.el, stampNote.el,
+        h('h3', { class: 'subhead', text: 'أو ختم حقيقي' }),
+        h('p', { class: 'muted', text: 'صوّر الختم على ورقة بيضاء بإضاءة جيدة. إن رفعت صورة فهي تحلّ محل المرسوم.' }),
+        stampImage.el,
       ),
 
       h('section', { class: 'card' },

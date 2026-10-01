@@ -33,6 +33,12 @@ export const DEFAULTS = {
   receiptsPerPage: 2, // وصلان في الورقة الواحدة مع خط قص
   // نصوص العقد
   conditions: [...DEFAULT_CONDITIONS],
+  // الختم الإلكتروني — يُطبع مع العقد فلا يحتاج ختماً يدوياً
+  stampEnabled: true,
+  stampImage: null,       // صورة ختم حقيقي تعلو على المرسوم
+  stampName: 'معرض البركة',
+  stampSubtitle: 'لتجارة السيارات الحديثة',
+  stampNote: '',          // فارغ = يُشتق من اسم الإدارة
   digitStyle: 'arabic', // 'arabic' = ٠١٢٣ أو 'latin' = 0123
   subjectWord: 'الآلية', // قرار معلّق: «الآلية» أم «السيارة»
   engineNoRequired: false, // قرار معلّق: رقم المحرك إلزامي؟

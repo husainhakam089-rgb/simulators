@@ -550,6 +550,12 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
   --frame-inner: #7f9a93; /* الخط الداخلي الرفيع */
   --base: 3.5mm;          /* حجم الخط الأساسي */
   --corner-w: 13mm;       /* عرض زخرفة الزاوية */
+  /* الختم — تُضبط هذه بعد أول طبعة تجريبية */
+  --stamp-size: 33mm;
+  --stamp-bottom: 14mm;
+  --stamp-side: 60mm;
+  --stamp-rotate: -12deg;
+  --stamp-opacity: 0.82;
   --sign-space: 8mm;      /* أدنى مساحة توقيع؛ تتمدّد تلقائياً في العقد القصير */
 }
 
@@ -785,6 +791,22 @@ html, body {
   margin-top: 6mm;
   border-top: 0.3mm solid var(--blue);
 }
+
+/* ----- ختم المعرض ----- */
+.stamp {
+  position: absolute;
+  bottom: var(--stamp-bottom);
+  inset-inline-start: var(--stamp-side);
+  width: var(--stamp-size);
+  height: var(--stamp-size);
+  color: var(--blue);
+  opacity: var(--stamp-opacity);
+  transform: rotate(var(--stamp-rotate));
+  pointer-events: none;
+  z-index: 2;
+}
+.stamp svg { width: 100%; height: 100%; display: block; }
+.stamp--photo { object-fit: contain; height: auto; mix-blend-mode: multiply; }
 
 /* ----- الوصل الصغير ----- */
 .half {
@@ -1297,6 +1319,14 @@ html, body {
         // وصلان في الورقة الواحدة مع خط قص
         // نصوص العقد
         conditions: [...DEFAULT_CONDITIONS],
+        // الختم الإلكتروني — يُطبع مع العقد فلا يحتاج ختماً يدوياً
+        stampEnabled: true,
+        stampImage: null,
+        // صورة ختم حقيقي تعلو على المرسوم
+        stampName: "معرض البركة",
+        stampSubtitle: "لتجارة السيارات الحديثة",
+        stampNote: "",
+        // فارغ = يُشتق من اسم الإدارة
         digitStyle: "arabic",
         // 'arabic' = ٠١٢٣ أو 'latin' = 0123
         subjectWord: "الآلية",
@@ -2072,6 +2102,37 @@ ${main}`;
       <div class="head__img">${img(left, "", "ترتكتر")}</div>
     </div>`;
   }
+  function stampBlock(s) {
+    if (s.stampEnabled === false) return "";
+    if (s.stampImage) {
+      return `<img class="stamp stamp--photo" src="${escapeHtml(s.stampImage)}" alt="ختم المعرض">`;
+    }
+    const name = s.stampName || s.shopName || "";
+    const subtitle = s.stampSubtitle || "";
+    const note = s.stampNote || (s.manager ? `إدارة: ${s.manager}` : "");
+    const points = [];
+    for (let i = 0; i < 10; i++) {
+      const radius = i % 2 === 0 ? 7 : 7 / 2.4;
+      const angle = Math.PI / 5 * i - Math.PI / 2;
+      points.push(`${(100 + radius * Math.cos(angle)).toFixed(1)},${(146 + radius * Math.sin(angle)).toFixed(1)}`);
+    }
+    return `
+  <div class="stamp">
+    <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-label="ختم المعرض">
+      <g fill="none" stroke="currentColor">
+        <circle cx="100" cy="100" r="95" stroke-width="3.4"/>
+        <circle cx="100" cy="100" r="86" stroke-width="1.1"/>
+        <circle cx="100" cy="100" r="70" stroke-width="0.8" stroke-dasharray="2.5 2.5"/>
+      </g>
+      <g text-anchor="middle" fill="currentColor" direction="rtl">
+        <text x="100" y="84" font-size="18" font-weight="700">${escapeHtml(name)}</text>
+        ${subtitle ? `<text x="100" y="104" font-size="11">${escapeHtml(subtitle)}</text>` : ""}
+        ${note ? `<text x="100" y="127" font-size="10.5">${escapeHtml(note)}</text>` : ""}
+      </g>
+      <polygon points="${points.join(" ")}" fill="currentColor"/>
+    </svg>
+  </div>`;
+  }
   function frameCorners() {
     return ["tr", "tl", "br", "bl"].map((pos) => `<span class="frame__art frame__art--${pos}"></span>`).join("");
   }
@@ -2169,6 +2230,8 @@ ${main}`;
       </div>
 
       <div class="sign-space"></div>
+
+      ${stampBlock(s)}
 
       <div class="signs">
         ${["البائع", "الشاهد الأول", "الشرعي", "الشاهد الثاني", "المشتري"].map((n) => `<div class="sign__name">${n}</div>`).join("")}
@@ -3450,6 +3513,15 @@ ${main}`;
     const engineNoRequired = h("input", { type: "checkbox", checked: s.engineNoRequired });
     const conditionsReviewed = h("input", { type: "checkbox", checked: s.conditionsReviewed });
     const conditions = s.conditions.map((t, i) => textArea({ label: `الشرط ${i + 1}`, value: t, rows: 3 }));
+    const stampEnabled = h("input", { type: "checkbox", checked: s.stampEnabled !== false });
+    const stampImage = photoField({ label: "صورة ختم حقيقي (اختياري)", value: s.stampImage });
+    const stampName = textField({ label: "السطر الأول", value: s.stampName || "" });
+    const stampSubtitle = textField({ label: "السطر الثاني", value: s.stampSubtitle || "" });
+    const stampNote = textField({
+      label: "السطر الثالث",
+      value: s.stampNote || "",
+      hint: "اتركه فارغاً ليأخذ اسم الإدارة تلقائياً."
+    });
     const listsBox = h("div", {});
     async function paintLists() {
       listsBox.textContent = "";
@@ -3566,6 +3638,11 @@ ${main}`;
           printerAddress: printerAddress.get(),
           printerPort: Number(digitsOnly(printerPort.get())) || 631,
           printerQueue: printerQueue.get() || "ipp/print",
+          stampEnabled: stampEnabled.checked,
+          stampImage: stampImage.get(),
+          stampName: stampName.get(),
+          stampSubtitle: stampSubtitle.get(),
+          stampNote: stampNote.get(),
           digitStyle: digitStyle2.value,
           subjectWord: subjectWord.value,
           engineNoRequired: engineNoRequired.checked,
@@ -3632,6 +3709,20 @@ ${main}`;
           h("p", { class: "muted", text: "النص الحالي مسوّدة. انسخ الشروط حرفياً من الدفتر الورقي ثم علّم الاعتماد." }),
           ...conditions.map((c) => c.el),
           h("label", { class: "checkrow" }, conditionsReviewed, h("span", { text: "اعتُمد نص الشروط من الدفتر الأصلي" }))
+        ),
+        h(
+          "section",
+          { class: "card" },
+          h("h2", { class: "card__title", text: "الختم" }),
+          h("p", { class: "muted", text: "يُطبع مع كل نسخة من العقد فوق توقيع الشرعي، فيخرج العقد جاهزاً بلا ختم يدوي." }),
+          h("label", { class: "checkrow" }, stampEnabled, h("span", { text: "طباعة الختم مع العقد" })),
+          h("h3", { class: "subhead", text: "الختم المرسوم" }),
+          stampName.el,
+          stampSubtitle.el,
+          stampNote.el,
+          h("h3", { class: "subhead", text: "أو ختم حقيقي" }),
+          h("p", { class: "muted", text: "صوّر الختم على ورقة بيضاء بإضاءة جيدة. إن رفعت صورة فهي تحلّ محل المرسوم." }),
+          stampImage.el
         ),
         h(
           "section",
