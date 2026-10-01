@@ -263,7 +263,7 @@ export function renderContractPage(c, s, copyKey) {
   </div>`;
 }
 
-/** نصف ورقة: وصل واحد. بلا رسومات — الوصل نصّي بحت بطلب صاحب المعرض. */
+/** نصف ورقة: وصل واحد. نصّي بلا رسومات رأس، لكن مختوم كالعقد. */
 function receiptHalf(r, s, copyKey) {
   return `
   <div class="half">
