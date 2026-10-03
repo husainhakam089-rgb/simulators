@@ -235,7 +235,7 @@ export async function render(root) {
         h('div', { class: 'field' }, h('label', { class: 'field__label', text: 'الكلمة المستعملة في العقد' }), subjectWord),
         h('label', { class: 'checkrow' }, engineNoRequired, h('span', { text: 'رقم المحرك حقل إلزامي' })),
         h('h3', { class: 'subhead', text: 'الشروط المطبوعة أسفل العقد' }),
-        h('p', { class: 'muted', text: 'النص الحالي مسوّدة. انسخ الشروط حرفياً من الدفتر الورقي ثم علّم الاعتماد.' }),
+        h('p', { class: 'muted', text: 'منقولة حرفياً من الدفتر الورقي للمعرض. عدّلها هنا إن تغيّرت.' }),
         ...conditions.map((c) => c.el),
         h('label', { class: 'checkrow' }, conditionsReviewed, h('span', { text: 'اعتُمد نص الشروط من الدفتر الأصلي' })),
       ),

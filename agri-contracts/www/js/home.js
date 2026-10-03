@@ -70,7 +70,7 @@ export async function render(root) {
 
       s.conditionsReviewed ? null : h('section', { class: 'card card--warn' },
         h('h2', { class: 'card__title', text: 'تنبيه قبل الطباعة الرسمية' }),
-        h('p', { text: 'نص الشروط الثلاثة الحالي مسوّدة مؤقتة. افتح الإعدادات وانسخ النص الحرفي من الدفتر الورقي، ثم علّم «اعتُمد النص».' }),
+        h('p', { text: 'نص الشروط عُدّل ولم يُعتمد بعد. راجعه في الإعدادات ثم علّم «اعتُمد النص».' }),
         h('button', { type: 'button', class: 'btn btn--sm', onclick: () => go('settings') }, 'فتح الإعدادات'),
       ),
     ),

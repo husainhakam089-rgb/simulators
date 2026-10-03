@@ -182,6 +182,12 @@ export function renderContractPage(c, s, copyKey) {
   const day = c.day || dayNameFromISO(c.date);
   const remaining = Math.max(0, (Number(c.amount) || 0) - (Number(c.paid) || 0));
   const subject = s.subjectWord || 'الآلية';
+  const seller = c.seller || {};
+  const buyer = c.buyer || {};
+  const plate = [c.plate, c.governorate].filter(Boolean).join(' ');
+  const vehicle = [c.machineType, c.brand].filter(Boolean).join(' ');
+  // موعد تسديد الباقي لا معنى له إن لم يبقَ شيء
+  const due = remaining > 0 && c.dueDate ? formatDate(c.dueDate) : '';
   return `
   <div class="page">
     <div class="frame">
@@ -198,35 +204,33 @@ export function renderContractPage(c, s, copyKey) {
         <div class="photo">${img(c.buyerPhoto, '', 'صورة المشتري')}<span class="photo__cap">المشتري</span></div>
       </div>
 
+      <!-- سطور المتن بترتيب الدفتر الورقي حرفياً، وجملة البيع في أولها -->
       <div class="body">
         <div class="row">
+          <div class="cell"><span class="lbl">اليوم</span><span class="val">${dots(day)}</span></div>
           <div class="cell"><span class="lbl">الساعة</span><span class="val">${dots(formatTime(c.time))}</span></div>
           <div class="cell"><span class="lbl">التاريخ</span><span class="val">${dots(formatDate(c.date))}</span></div>
-          <div class="cell"><span class="lbl">اليوم</span><span class="val">${dots(day)}</span></div>
         </div>
-
-        <div class="section">
-          <div class="section__title">بيانات ${escapeHtml(subject)}</div>
-          <div class="row">
-            <div class="cell"><span class="lbl">النوع</span><span class="val">${dots(c.machineType)}</span></div>
-            <div class="cell"><span class="lbl">الماركة</span><span class="val">${dots(c.brand)}</span></div>
-            <div class="cell"><span class="lbl">الموديل</span><span class="val">${dots(c.model)}</span></div>
-            <div class="cell"><span class="lbl">اللون</span><span class="val">${dots(c.color)}</span></div>
-          </div>
-          <div class="row">
-            <div class="cell"><span class="lbl">رقم الشاصي</span><span class="val">${serial(c.chassis)}</span></div>
-            <div class="cell"><span class="lbl">رقم المحرك</span><span class="val">${serial(c.engineNo)}</span></div>
-          </div>
-          <div class="row">
-            <div class="cell"><span class="lbl">المرقمة</span><span class="val">${dots(c.plate)}</span></div>
-            <div class="cell cell--sm"><span class="lbl">المحافظة</span><span class="val">${dots(c.governorate)}</span></div>
-          </div>
-          <div class="row">
-            <div class="cell"><span class="lbl">السنوية بأسم</span><span class="val">${dots(c.annualName)}</span></div>
-            <div class="cell"><span class="lbl">وعنوانه</span><span class="val">${dots(c.annualAddress)}</span></div>
-          </div>
+        <div class="row">
+          <div class="cell"><span class="lbl">باع الطرف الأول</span><span class="val">${dots(seller.name)}</span></div>
+          <div class="cell"><span class="lbl">المركبة المرقمة</span><span class="val">${dots(plate)}</span></div>
         </div>
-
+        <div class="row">
+          <div class="cell"><span class="lbl">المركبة</span><span class="val">${dots(vehicle)}</span></div>
+          <div class="cell cell--sm"><span class="lbl">الموديل</span><span class="val">${dots(c.model)}</span></div>
+          <div class="cell cell--sm"><span class="lbl">اللون</span><span class="val">${dots(c.color)}</span></div>
+        </div>
+        <div class="row">
+          <div class="cell"><span class="lbl">رقم الشاصي</span><span class="val">${serial(c.chassis)}</span></div>
+          <div class="cell"><span class="lbl">رقم المحرك</span><span class="val">${serial(c.engineNo)}</span></div>
+        </div>
+        <div class="row">
+          <div class="cell"><span class="lbl">والسنوية بأسم</span><span class="val">${dots(c.annualName)}</span></div>
+          <div class="cell"><span class="lbl">عنوانه</span><span class="val">${dots(c.annualAddress)}</span></div>
+        </div>
+        <div class="row">
+          <div class="cell"><span class="lbl">إلى الطرف الثاني المشتري</span><span class="val">${dots(buyer.name)}</span></div>
+        </div>
         <div class="row">
           <div class="cell"><span class="lbl">بمبلغ قدره</span><span class="val val--free">${dots(c.amountWords || amountPhrase(c.amount))}</span></div>
           <div class="cell cell--sm"><span class="lbl">رقماً</span><span class="val">${dots(formatMoney(c.amount))}</span></div>
@@ -234,19 +238,17 @@ export function renderContractPage(c, s, copyKey) {
         <div class="row">
           <div class="cell"><span class="lbl">وقد قبض منه</span><span class="val">${dots(formatMoney(c.paid))}</span></div>
           <div class="cell"><span class="lbl">والباقي</span><span class="val">${dots(formatMoney(remaining))}</span></div>
+          ${due ? `<div class="cell cell--sm"><span class="lbl">يُسدَّد في</span><span class="val">${dots(due)}</span></div>` : ''}
         </div>
         <div class="row">
-          <div class="cell"><span class="lbl">ملاحظات</span><span class="val val--free val--wide">${dots(c.notes)}</span></div>
+          <div class="cell"><span class="lbl">الملاحظات</span><span class="val val--free val--wide">${dots(c.notes)}</span></div>
         </div>
+
+        <ul class="terms">${(s.conditions || []).map((t) => `<li>${escapeHtml(toArabicDigits(t))}</li>`).join('')}</ul>
 
         <div class="parties">
-          ${partyBlock('بيانات البائع', c.seller || {})}
-          ${partyBlock('بيانات المشتري', c.buyer || {})}
-        </div>
-
-        <div class="terms">
-          <div class="terms__title">الشروط</div>
-          <ol>${(s.conditions || []).map((t) => `<li>${escapeHtml(t)}</li>`).join('')}</ol>
+          ${partyBlock('البائع', seller)}
+          ${partyBlock('المشتري', buyer)}
         </div>
       </div>
 
@@ -255,9 +257,16 @@ export function renderContractPage(c, s, copyKey) {
       ${stampBlock(s)}
 
       <div class="signs">
-        ${['البائع', 'الشاهد الأول', 'الشرعي', 'الشاهد الثاني', 'المشتري']
-          .map((n) => `<div class="sign__name">${n}</div>`)
-          .join('')}
+        ${[
+          ['البائع', ''],
+          ['الشاهد الأول', c.witness1],
+          ['الشرعي', ''],
+          ['الشاهد الثاني', c.witness2],
+          ['المشتري', ''],
+        ].map(([role, who]) => `<div class="sign">
+          <div class="sign__name">${role}</div>
+          ${who ? `<div class="sign__who">${dots(who)}</div>` : ''}
+        </div>`).join('')}
       </div>
     </div>
   </div>`;

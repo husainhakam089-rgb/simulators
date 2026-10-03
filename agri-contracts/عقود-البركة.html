@@ -761,16 +761,24 @@ html, body {
 }
 
 /* ----- الشروط ----- */
-.terms { margin-top: 2.5mm; }
-.terms__title { color: var(--red); font-weight: 700; margin-bottom: 0.8mm; }
-.terms ol {
-  margin: 0;
-  padding-inline-start: 5mm;
+/* الشروط كما في الدفتر: سطور تبدأ بشَرطة، بلا عنوان ولا ترقيم */
+.terms {
+  margin: 2.5mm 0 0;
+  padding: 0;
+  list-style: none;
   font-size: 3.1mm;
   line-height: 1.6;
-  list-style-type: arabic-indic;
 }
-.terms li { margin-bottom: 0.6mm; }
+.terms li {
+  position: relative;
+  margin-bottom: 0.6mm;
+  padding-inline-start: 3.5mm;
+}
+.terms li::before {
+  content: "-";
+  position: absolute;
+  inset-inline-start: 0;
+}
 
 /* ----- التواقيع ----- */
 /* مساحة التوقيع: تتمدّد لتبتلع الفراغ الباقي في عقد قصير، وتنكمش إلى
@@ -791,6 +799,8 @@ html, body {
   color: var(--blue);
 }
 .sign__name { font-size: 3.2mm; font-weight: 700; }
+/* اسم الشاهد تحت صفته، إن كُتب */
+.sign__who { margin-top: 0.4mm; font-size: 2.8mm; font-weight: 600; color: var(--ink); }
 .sign__line {
   margin-top: 6mm;
   border-top: 0.3mm solid var(--blue);
@@ -1272,7 +1282,15 @@ html, body {
     if (!Array.isArray(cached.conditions) || !cached.conditions.length) {
       cached.conditions = [...DEFAULT_CONDITIONS];
     }
+    if (isPlaceholder(cached.conditions)) {
+      cached.conditions = [...DEFAULT_CONDITIONS];
+      cached.conditionsReviewed = true;
+      if (stored) await put("settings", cached);
+    }
     return cached;
+  }
+  function isPlaceholder(conditions) {
+    return conditions.length === PLACEHOLDER_CONDITIONS.length && conditions.every((text, i) => String(text).trim() === PLACEHOLDER_CONDITIONS[i]);
   }
   async function save(patch) {
     const current3 = await load();
@@ -1294,12 +1312,17 @@ html, body {
     const s = await load();
     return Number(kind === "receipt" ? s.receiptNext : s.contractNext) || 1;
   }
-  var KEY, DEFAULT_CONDITIONS, DEFAULTS2, cached;
+  var KEY, DEFAULT_CONDITIONS, PLACEHOLDER_CONDITIONS, DEFAULTS2, cached;
   var init_settings = __esm({
     "www/js/settings.js"() {
       init_db();
       KEY = "app";
       DEFAULT_CONDITIONS = [
+        "تم تبليغ البائع والمشتري مواجهة الشرعي ومعرفة عنوانه لضمان حق المشتري.",
+        "على المشتري فحص السيارة قبل الشراء. وجهة تنظيم العقد غير مسؤولة عن العيوب الفنية التي تظهر بعد توقيع العقد.",
+        "تبلغ الطرفان بمعرفة دار وعنوان كل منهما."
+      ];
+      PLACEHOLDER_CONDITIONS = [
         "شاهد المشتري الآلية وفحصها فحصاً كاملاً وقبلها بحالتها الراهنة، ولا يحق له الرجوع على البائع أو المعرض بأي عيب بعد توقيع هذا العقد.",
         "المعرض غير مسؤول عن أي مخالفات أو حجوزات أو ديون مترتّبة على الآلية قبل تاريخ هذا العقد، وهي من مسؤولية البائع.",
         "على المشتري إكمال معاملة نقل الملكية خلال مدة أقصاها ثلاثون يوماً من تاريخ العقد، وبعدها لا يتحمّل المعرض أي مسؤولية."
@@ -1346,8 +1369,8 @@ html, body {
         // قرار معلّق: «الآلية» أم «السيارة»
         engineNoRequired: false,
         // قرار معلّق: رقم المحرك إلزامي؟
-        conditionsReviewed: false
-        // تُرفع بعد اعتماد نص الشروط الحقيقي من الدفتر
+        conditionsReviewed: true
+        // النص الافتراضي هو نص الدفتر نفسه
       };
       cached = null;
     }
@@ -2175,6 +2198,11 @@ ${main}`;
     const day = c.day || dayNameFromISO(c.date);
     const remaining = Math.max(0, (Number(c.amount) || 0) - (Number(c.paid) || 0));
     const subject = s.subjectWord || "الآلية";
+    const seller = c.seller || {};
+    const buyer = c.buyer || {};
+    const plate = [c.plate, c.governorate].filter(Boolean).join(" ");
+    const vehicle = [c.machineType, c.brand].filter(Boolean).join(" ");
+    const due = remaining > 0 && c.dueDate ? formatDate(c.dueDate) : "";
     return `
   <div class="page">
     <div class="frame">
@@ -2191,35 +2219,33 @@ ${main}`;
         <div class="photo">${img(c.buyerPhoto, "", "صورة المشتري")}<span class="photo__cap">المشتري</span></div>
       </div>
 
+      <!-- سطور المتن بترتيب الدفتر الورقي حرفياً، وجملة البيع في أولها -->
       <div class="body">
         <div class="row">
+          <div class="cell"><span class="lbl">اليوم</span><span class="val">${dots(day)}</span></div>
           <div class="cell"><span class="lbl">الساعة</span><span class="val">${dots(formatTime(c.time))}</span></div>
           <div class="cell"><span class="lbl">التاريخ</span><span class="val">${dots(formatDate(c.date))}</span></div>
-          <div class="cell"><span class="lbl">اليوم</span><span class="val">${dots(day)}</span></div>
         </div>
-
-        <div class="section">
-          <div class="section__title">بيانات ${escapeHtml(subject)}</div>
-          <div class="row">
-            <div class="cell"><span class="lbl">النوع</span><span class="val">${dots(c.machineType)}</span></div>
-            <div class="cell"><span class="lbl">الماركة</span><span class="val">${dots(c.brand)}</span></div>
-            <div class="cell"><span class="lbl">الموديل</span><span class="val">${dots(c.model)}</span></div>
-            <div class="cell"><span class="lbl">اللون</span><span class="val">${dots(c.color)}</span></div>
-          </div>
-          <div class="row">
-            <div class="cell"><span class="lbl">رقم الشاصي</span><span class="val">${serial(c.chassis)}</span></div>
-            <div class="cell"><span class="lbl">رقم المحرك</span><span class="val">${serial(c.engineNo)}</span></div>
-          </div>
-          <div class="row">
-            <div class="cell"><span class="lbl">المرقمة</span><span class="val">${dots(c.plate)}</span></div>
-            <div class="cell cell--sm"><span class="lbl">المحافظة</span><span class="val">${dots(c.governorate)}</span></div>
-          </div>
-          <div class="row">
-            <div class="cell"><span class="lbl">السنوية بأسم</span><span class="val">${dots(c.annualName)}</span></div>
-            <div class="cell"><span class="lbl">وعنوانه</span><span class="val">${dots(c.annualAddress)}</span></div>
-          </div>
+        <div class="row">
+          <div class="cell"><span class="lbl">باع الطرف الأول</span><span class="val">${dots(seller.name)}</span></div>
+          <div class="cell"><span class="lbl">المركبة المرقمة</span><span class="val">${dots(plate)}</span></div>
         </div>
-
+        <div class="row">
+          <div class="cell"><span class="lbl">المركبة</span><span class="val">${dots(vehicle)}</span></div>
+          <div class="cell cell--sm"><span class="lbl">الموديل</span><span class="val">${dots(c.model)}</span></div>
+          <div class="cell cell--sm"><span class="lbl">اللون</span><span class="val">${dots(c.color)}</span></div>
+        </div>
+        <div class="row">
+          <div class="cell"><span class="lbl">رقم الشاصي</span><span class="val">${serial(c.chassis)}</span></div>
+          <div class="cell"><span class="lbl">رقم المحرك</span><span class="val">${serial(c.engineNo)}</span></div>
+        </div>
+        <div class="row">
+          <div class="cell"><span class="lbl">والسنوية بأسم</span><span class="val">${dots(c.annualName)}</span></div>
+          <div class="cell"><span class="lbl">عنوانه</span><span class="val">${dots(c.annualAddress)}</span></div>
+        </div>
+        <div class="row">
+          <div class="cell"><span class="lbl">إلى الطرف الثاني المشتري</span><span class="val">${dots(buyer.name)}</span></div>
+        </div>
         <div class="row">
           <div class="cell"><span class="lbl">بمبلغ قدره</span><span class="val val--free">${dots(c.amountWords || amountPhrase(c.amount))}</span></div>
           <div class="cell cell--sm"><span class="lbl">رقماً</span><span class="val">${dots(formatMoney(c.amount))}</span></div>
@@ -2227,19 +2253,17 @@ ${main}`;
         <div class="row">
           <div class="cell"><span class="lbl">وقد قبض منه</span><span class="val">${dots(formatMoney(c.paid))}</span></div>
           <div class="cell"><span class="lbl">والباقي</span><span class="val">${dots(formatMoney(remaining))}</span></div>
+          ${due ? `<div class="cell cell--sm"><span class="lbl">يُسدَّد في</span><span class="val">${dots(due)}</span></div>` : ""}
         </div>
         <div class="row">
-          <div class="cell"><span class="lbl">ملاحظات</span><span class="val val--free val--wide">${dots(c.notes)}</span></div>
+          <div class="cell"><span class="lbl">الملاحظات</span><span class="val val--free val--wide">${dots(c.notes)}</span></div>
         </div>
+
+        <ul class="terms">${(s.conditions || []).map((t) => `<li>${escapeHtml(toArabicDigits(t))}</li>`).join("")}</ul>
 
         <div class="parties">
-          ${partyBlock("بيانات البائع", c.seller || {})}
-          ${partyBlock("بيانات المشتري", c.buyer || {})}
-        </div>
-
-        <div class="terms">
-          <div class="terms__title">الشروط</div>
-          <ol>${(s.conditions || []).map((t) => `<li>${escapeHtml(t)}</li>`).join("")}</ol>
+          ${partyBlock("البائع", seller)}
+          ${partyBlock("المشتري", buyer)}
         </div>
       </div>
 
@@ -2248,7 +2272,16 @@ ${main}`;
       ${stampBlock(s)}
 
       <div class="signs">
-        ${["البائع", "الشاهد الأول", "الشرعي", "الشاهد الثاني", "المشتري"].map((n) => `<div class="sign__name">${n}</div>`).join("")}
+        ${[
+      ["البائع", ""],
+      ["الشاهد الأول", c.witness1],
+      ["الشرعي", ""],
+      ["الشاهد الثاني", c.witness2],
+      ["المشتري", ""]
+    ].map(([role, who]) => `<div class="sign">
+          <div class="sign__name">${role}</div>
+          ${who ? `<div class="sign__who">${dots(who)}</div>` : ""}
+        </div>`).join("")}
       </div>
     </div>
   </div>`;
@@ -2743,7 +2776,7 @@ ${main}`;
           "section",
           { class: "card card--warn" },
           h("h2", { class: "card__title", text: "تنبيه قبل الطباعة الرسمية" }),
-          h("p", { text: "نص الشروط الثلاثة الحالي مسوّدة مؤقتة. افتح الإعدادات وانسخ النص الحرفي من الدفتر الورقي، ثم علّم «اعتُمد النص»." }),
+          h("p", { text: "نص الشروط عُدّل ولم يُعتمد بعد. راجعه في الإعدادات ثم علّم «اعتُمد النص»." }),
           h("button", { type: "button", class: "btn btn--sm", onclick: () => go("settings") }, "فتح الإعدادات")
         )
       )
@@ -3015,7 +3048,31 @@ ${main}`;
       wordsOut.textContent = a ? amountPhrase(a) : "—";
       remainOut.textContent = `${formatMoney(a - p)} دينار`;
     }
+    const dueW = wheelField({
+      label: "موعد تسديد الباقي",
+      kind: "date",
+      value: existing?.dueDate || "",
+      hint: "اختياري — يُطبع في العقد إن بقي مبلغ."
+    });
+    const clearDue = h("button", {
+      type: "button",
+      class: "btn btn--ghost btn--sm",
+      onclick: () => dueW.set("")
+    }, "بلا موعد");
     const notes = textArea({ label: "الملاحظات", value: existing?.notes || "" });
+    const witnessSuggest = async (q) => (await search(q)).map((c) => ({ label: c.name, rec: c }));
+    const witness1 = textField({
+      label: "الشاهد الأول",
+      value: existing?.witness1 || "",
+      suggest: witnessSuggest,
+      onPick: (item) => witness1.set(item.rec.name)
+    });
+    const witness2 = textField({
+      label: "الشاهد الثاني",
+      value: existing?.witness2 || "",
+      suggest: witnessSuggest,
+      onPick: (item) => witness2.set(item.rec.name)
+    });
     const seller = await partyBlock2("بيانات البائع", existing?.seller || {});
     const buyer = await partyBlock2("بيانات المشتري", existing?.buyer || {});
     const copies = copiesPicker(existing?.copies || s.defaultContractCopies);
@@ -3042,6 +3099,9 @@ ${main}`;
         paid: Math.min(paidValue(), amountValue()),
         amountWords: amountPhrase(amountValue()),
         notes: notes.get(),
+        dueDate: dueW.get() || "",
+        witness1: witness1.get(),
+        witness2: witness2.get(),
         seller: seller.get(),
         buyer: buyer.get(),
         sellerPhoto: sellerPhoto.get(),
@@ -3164,10 +3224,19 @@ ${main}`;
             h("label", { class: "field__label", text: "والباقي (تلقائي)" }),
             h("div", { class: "readout" }, remainOut)
           ),
+          dueW.el,
+          h("div", { class: "row-actions" }, clearDue),
           notes.el
         ),
         seller.el,
         buyer.el,
+        h(
+          "section",
+          { class: "card" },
+          h("h2", { class: "card__title", text: "الشهود" }),
+          h("p", { class: "muted", text: "اختياري — يُطبع اسم كل شاهد تحت مكان توقيعه." }),
+          h("div", { class: "grid grid--2" }, witness1.el, witness2.el)
+        ),
         h(
           "section",
           { class: "card" },
@@ -3724,7 +3793,7 @@ ${main}`;
           h("div", { class: "field" }, h("label", { class: "field__label", text: "الكلمة المستعملة في العقد" }), subjectWord),
           h("label", { class: "checkrow" }, engineNoRequired, h("span", { text: "رقم المحرك حقل إلزامي" })),
           h("h3", { class: "subhead", text: "الشروط المطبوعة أسفل العقد" }),
-          h("p", { class: "muted", text: "النص الحالي مسوّدة. انسخ الشروط حرفياً من الدفتر الورقي ثم علّم الاعتماد." }),
+          h("p", { class: "muted", text: "منقولة حرفياً من الدفتر الورقي للمعرض. عدّلها هنا إن تغيّرت." }),
           ...conditions.map((c) => c.el),
           h("label", { class: "checkrow" }, conditionsReviewed, h("span", { text: "اعتُمد نص الشروط من الدفتر الأصلي" }))
         ),

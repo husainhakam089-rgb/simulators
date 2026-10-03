@@ -224,16 +224,24 @@ html, body {
 }
 
 /* ----- الشروط ----- */
-.terms { margin-top: 2.5mm; }
-.terms__title { color: var(--red); font-weight: 700; margin-bottom: 0.8mm; }
-.terms ol {
-  margin: 0;
-  padding-inline-start: 5mm;
+/* الشروط كما في الدفتر: سطور تبدأ بشَرطة، بلا عنوان ولا ترقيم */
+.terms {
+  margin: 2.5mm 0 0;
+  padding: 0;
+  list-style: none;
   font-size: 3.1mm;
   line-height: 1.6;
-  list-style-type: arabic-indic;
 }
-.terms li { margin-bottom: 0.6mm; }
+.terms li {
+  position: relative;
+  margin-bottom: 0.6mm;
+  padding-inline-start: 3.5mm;
+}
+.terms li::before {
+  content: "-";
+  position: absolute;
+  inset-inline-start: 0;
+}
 
 /* ----- التواقيع ----- */
 /* مساحة التوقيع: تتمدّد لتبتلع الفراغ الباقي في عقد قصير، وتنكمش إلى
@@ -254,6 +262,8 @@ html, body {
   color: var(--blue);
 }
 .sign__name { font-size: 3.2mm; font-weight: 700; }
+/* اسم الشاهد تحت صفته، إن كُتب */
+.sign__who { margin-top: 0.4mm; font-size: 2.8mm; font-weight: 600; color: var(--ink); }
 .sign__line {
   margin-top: 6mm;
   border-top: 0.3mm solid var(--blue);

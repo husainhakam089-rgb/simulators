@@ -117,7 +117,29 @@ export async function render(root, { id = null, type = '' } = {}) {
     remainOut.textContent = `${formatMoney(a - p)} دينار`;
   }
 
+  // موعد تسديد الباقي — اختياري، ولا يُطبع إلا إن بقي مبلغ
+  const dueW = wheelField({
+    label: 'موعد تسديد الباقي', kind: 'date', value: existing?.dueDate || '',
+    hint: 'اختياري — يُطبع في العقد إن بقي مبلغ.',
+  });
+  const clearDue = h('button', {
+    type: 'button', class: 'btn btn--ghost btn--sm',
+    onclick: () => dueW.set(''),
+  }, 'بلا موعد');
+
   const notes = textArea({ label: 'الملاحظات', value: existing?.notes || '' });
+
+  // الشهود: الدفتر فيه مكان توقيعهم، والعقد يسجّل أسماءهم تحته
+  const witnessSuggest = async (q) =>
+    (await customers.search(q)).map((c) => ({ label: c.name, rec: c }));
+  const witness1 = textField({
+    label: 'الشاهد الأول', value: existing?.witness1 || '',
+    suggest: witnessSuggest, onPick: (item) => witness1.set(item.rec.name),
+  });
+  const witness2 = textField({
+    label: 'الشاهد الثاني', value: existing?.witness2 || '',
+    suggest: witnessSuggest, onPick: (item) => witness2.set(item.rec.name),
+  });
 
   /* ----- الأطراف ----- */
   const seller = await partyBlock('بيانات البائع', existing?.seller || {});
@@ -152,6 +174,9 @@ export async function render(root, { id = null, type = '' } = {}) {
       paid: Math.min(paidValue(), amountValue()),
       amountWords: amountPhrase(amountValue()),
       notes: notes.get(),
+      dueDate: dueW.get() || '',
+      witness1: witness1.get(),
+      witness2: witness2.get(),
       seller: seller.get(),
       buyer: buyer.get(),
       sellerPhoto: sellerPhoto.get(),
@@ -270,11 +295,19 @@ export async function render(root, { id = null, type = '' } = {}) {
           h('label', { class: 'field__label', text: 'والباقي (تلقائي)' }),
           h('div', { class: 'readout' }, remainOut),
         ),
+        dueW.el,
+        h('div', { class: 'row-actions' }, clearDue),
         notes.el,
       ),
 
       seller.el,
       buyer.el,
+
+      h('section', { class: 'card' },
+        h('h2', { class: 'card__title', text: 'الشهود' }),
+        h('p', { class: 'muted', text: 'اختياري — يُطبع اسم كل شاهد تحت مكان توقيعه.' }),
+        h('div', { class: 'grid grid--2' }, witness1.el, witness2.el),
+      ),
 
       h('section', { class: 'card' },
         h('h2', { class: 'card__title', text: 'الطباعة' }),

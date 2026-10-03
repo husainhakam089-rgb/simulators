@@ -4,7 +4,16 @@ import * as db from './db.js';
 
 const KEY = 'app';
 
+// نص الشروط حرفياً من الدفتر الورقي للمعرض.
 export const DEFAULT_CONDITIONS = [
+  'تم تبليغ البائع والمشتري مواجهة الشرعي ومعرفة عنوانه لضمان حق المشتري.',
+  'على المشتري فحص السيارة قبل الشراء. وجهة تنظيم العقد غير مسؤولة عن العيوب الفنية التي تظهر بعد توقيع العقد.',
+  'تبلغ الطرفان بمعرفة دار وعنوان كل منهما.',
+];
+
+// المسوّدة المؤقتة التي سبقت نص الدفتر. من حفظ إعداداته وقتها بقيت عنده
+// مخزّنة، فتُستبدل عند التحميل — ما لم يكن قد عدّلها بنفسه.
+const PLACEHOLDER_CONDITIONS = [
   'شاهد المشتري الآلية وفحصها فحصاً كاملاً وقبلها بحالتها الراهنة، ولا يحق له الرجوع على البائع أو المعرض بأي عيب بعد توقيع هذا العقد.',
   'المعرض غير مسؤول عن أي مخالفات أو حجوزات أو ديون مترتّبة على الآلية قبل تاريخ هذا العقد، وهي من مسؤولية البائع.',
   'على المشتري إكمال معاملة نقل الملكية خلال مدة أقصاها ثلاثون يوماً من تاريخ العقد، وبعدها لا يتحمّل المعرض أي مسؤولية.',
@@ -43,7 +52,7 @@ export const DEFAULTS = {
   digitStyle: 'arabic', // 'arabic' = ٠١٢٣ أو 'latin' = 0123
   subjectWord: 'الآلية', // قرار معلّق: «الآلية» أم «السيارة»
   engineNoRequired: false, // قرار معلّق: رقم المحرك إلزامي؟
-  conditionsReviewed: false, // تُرفع بعد اعتماد نص الشروط الحقيقي من الدفتر
+  conditionsReviewed: true, // النص الافتراضي هو نص الدفتر نفسه
 };
 
 let cached = null;
@@ -55,7 +64,17 @@ export async function load() {
   if (!Array.isArray(cached.conditions) || !cached.conditions.length) {
     cached.conditions = [...DEFAULT_CONDITIONS];
   }
+  if (isPlaceholder(cached.conditions)) {
+    cached.conditions = [...DEFAULT_CONDITIONS];
+    cached.conditionsReviewed = true;
+    if (stored) await db.put('settings', cached);
+  }
   return cached;
+}
+
+function isPlaceholder(conditions) {
+  return conditions.length === PLACEHOLDER_CONDITIONS.length
+    && conditions.every((text, i) => String(text).trim() === PLACEHOLDER_CONDITIONS[i]);
 }
 
 export async function save(patch) {
