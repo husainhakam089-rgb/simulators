@@ -34,6 +34,8 @@ CROPS = {
     "logo": (268, 196, 594, 295),
     "corner": (0, 1288, 80, 1395),
 }
+# رسوم تُبيَّض خلفيتها بالملء من الحواف — الملوّنة فقط
+CLEAR_BACKGROUND = {"tractor"}
 # العرض النهائي بالبكسل — مقيس على الطباعة بدقة 300 نقطة/إنش
 TARGET_WIDTH = {"tractor": 540, "car": 540, "logo": 760, "corner": 260}
 
@@ -75,6 +77,46 @@ def unpremultiply_white(img: Image.Image, floor: float = 0.16, gain: float = 1.5
     return Image.fromarray(np.dstack([ink, alpha * 255.0]).astype(np.uint8), "RGBA")
 
 
+def clear_background(img: Image.Image, light: int = 205, max_chroma: int = 28) -> Image.Image:
+    """
+    تبييض خلفية الورق المحيطة بالرسم فقط: تُملأ من حواف الصورة كل البكسلات
+    الفاتحة الرمادية المتصلة بالحافة، فيختفي المربع الرمادي حول الرسم.
+    الملء من الحواف لا بعتبة عامة: جسم السيارة البيضاء محاط بخطوط داكنة
+    فلا يصله الملء، ولو بُيّض بعتبة عامة لاختفت السيارة نفسها.
+    """
+    from collections import deque
+
+    a = np.asarray(img.convert("RGB")).astype(np.int16)
+    h, w, _ = a.shape
+    mx, mn = a.max(axis=2), a.min(axis=2)
+    paper = (mn >= light) & ((mx - mn) <= max_chroma)
+
+    seen = np.zeros((h, w), dtype=bool)
+    queue = deque()
+    for x in range(w):
+        for y in (0, h - 1):
+            if paper[y, x] and not seen[y, x]:
+                seen[y, x] = True
+                queue.append((y, x))
+    for y in range(h):
+        for x in (0, w - 1):
+            if paper[y, x] and not seen[y, x]:
+                seen[y, x] = True
+                queue.append((y, x))
+    while queue:
+        y, x = queue.popleft()
+        for ny, nx in ((y + 1, x), (y - 1, x), (y, x + 1), (y, x - 1)):
+            if 0 <= ny < h and 0 <= nx < w and paper[ny, nx] and not seen[ny, nx]:
+                seen[ny, nx] = True
+                queue.append((ny, nx))
+
+    # حافة ناعمة بين الخلفية المبيّضة والرسم
+    mask = Image.fromarray((seen * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(1.2))
+    m = np.asarray(mask).astype(np.float32)[..., None] / 255.0
+    out = a * (1.0 - m) + 255.0 * m
+    return Image.fromarray(np.clip(out, 0, 255).astype(np.uint8))
+
+
 def sharpen_to(img: Image.Image, width: int) -> Image.Image:
     scale = max(1, round(width / img.width * 2))
     big = img.resize((img.width * scale, img.height * scale), Image.LANCZOS)
@@ -105,6 +147,10 @@ def extract():
             crop = ImageEnhance.Color(crop).enhance(1.18)
             crop = ImageEnhance.Contrast(crop).enhance(1.12)
             out = sharpen_to(crop, TARGET_WIDTH[name])
+            # السيارة بيضاء على ورق أبيض في صورة غير حادّة، فحدودها لا تنغلق
+            # والملء من الحواف يأكل جسمها؛ يُكتفى عندها بتبييض لون الورق.
+            if name in CLEAR_BACKGROUND:
+                out = clear_background(out)
             path = ART_DIR / f"{name}.jpg"
             out.save(path, quality=90, optimize=True, progressive=True)
         produced[name] = path

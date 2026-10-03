@@ -13,6 +13,11 @@
   --frame-inner: #7f9a93; /* الخط الداخلي الرفيع */
   --base: 3.5mm;          /* حجم الخط الأساسي */
   --corner-w: 13mm;       /* عرض زخرفة الزاوية */
+  --brand-size: 10mm;     /* حجم اسم المعرض في الرأس */
+  --brand-red: #d4362a;   /* أحمر شعار الدفتر */
+  --head-img-w: 40mm;     /* عرض عمود كل صورة في الرأس */
+  --head-img-box: 22mm;
+  --head-img-h: 18mm;     /* ارتفاع الصورتين — واحد للاثنتين */
   /* الختم — تُضبط هذه بعد أول طبعة تجريبية */
   --stamp-size: 33mm;
   --stamp-bottom: 14mm;
@@ -93,21 +98,46 @@ html, body {
 /* ----- الرأس ----- */
 .head {
   display: grid;
-  grid-template-columns: 34mm 1fr 34mm;
+  grid-template-columns: var(--head-img-w) 1fr var(--head-img-w);
   align-items: center;
   gap: 3mm;
   border-bottom: 0.4mm solid var(--red);
   padding-bottom: 2mm;
 }
 .head__img {
-  height: 22mm;
+  height: var(--head-img-box);
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
 }
-.head__img img { max-width: 100%; max-height: 100%; object-fit: contain; }
+/* الصورتان بارتفاع واحد كي يتوازن الرأس: السيارة أعرض من الترتكتر،
+   فلو مُلئ العرض لخرجت أقصر منه بكثير وبدا الرأس مائلاً */
+.head__img img {
+  max-width: 100%;
+  max-height: var(--head-img-h);
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
 .head__center { text-align: center; }
+
+/* اسم المعرض نصّاً بشكل شعار الدفتر: أحمر ثقيل بظلّ رمادي، وسطر تحته */
+.brand { line-height: 1.12; margin-bottom: 1mm; }
+.brand__name {
+  font-family: "Cairo", sans-serif;
+  font-weight: 900;
+  font-size: var(--brand-size);
+  color: var(--brand-red);
+  text-shadow: 0.3mm 0.4mm 0 #8a8a8a;
+}
+.brand__tag {
+  font-family: "Cairo", sans-serif;
+  font-weight: 900;
+  font-size: calc(var(--brand-size) * 0.5);
+  color: #484848;
+  margin-top: 0.6mm;
+}
 .head__logo { max-height: 17mm; max-width: 72mm; object-fit: contain; }
 .head__name {
   font-family: "Amiri", "Cairo", serif;

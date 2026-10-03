@@ -14,11 +14,13 @@ export async function render(root) {
 
   /* ----- بيانات المعرض ----- */
   const shopName = textField({ label: 'اسم المعرض', value: s.shopName });
+  const brandName = textField({ label: 'الاسم في رأس العقد', value: s.brandName || '' });
+  const brandTagline = textField({ label: 'السطر تحت الاسم', value: s.brandTagline || '' });
   const manager = textField({ label: 'الإدارة', value: s.manager });
   const address = textField({ label: 'العنوان', value: s.address });
   const phones = textField({ label: 'أرقام الموبايل (تظهر في الرأس)', value: s.phones, type: 'tel' });
 
-  const logo = photoField({ label: 'الشعار (وسط الرأس)', value: s.logo });
+  const logo = photoField({ label: 'صورة شعار بدل الاسم المكتوب (اختياري)', value: s.logo });
   const imgRight = photoField({ label: 'صورة الرأس — اليمين (سيارة)', value: s.headerImageRight });
   const imgLeft = photoField({ label: 'صورة الرأس — اليسار (ترتكتر)', value: s.headerImageLeft });
 
@@ -165,6 +167,8 @@ export async function render(root) {
     onclick: async () => {
       await settingsStore.save({
         shopName: shopName.get(),
+        brandName: brandName.get(),
+        brandTagline: brandTagline.get(),
         manager: manager.get(),
         address: address.get(),
         phones: phones.get(),
@@ -201,7 +205,9 @@ export async function render(root) {
 
       h('section', { class: 'card' },
         h('h2', { class: 'card__title', text: 'بيانات المعرض' }),
-        shopName.el, manager.el, address.el, phones.el,
+        shopName.el,
+        h('div', { class: 'grid grid--2' }, brandName.el, brandTagline.el),
+        manager.el, address.el, phones.el,
       ),
 
       h('section', { class: 'card' },

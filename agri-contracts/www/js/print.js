@@ -76,17 +76,23 @@ function img(src, cls, alt = '') {
 function headerBlock(s) {
   const right = s.headerImageRight || art.CAR;
   const left = s.headerImageLeft || art.TRACTOR;
-  const logo = s.logo || art.LOGO;
+  // الاسم نصّ حقيقي لا صورة: الصورة مقصوصة من تصوير هاتف فتطلع باهتة،
+  // والنص حادّ على أي مقاس ومتوسّط بالضبط. وإن رُفع شعار من الإعدادات
+  // فهو يعلو عليه.
+  const brand = s.logo
+    ? img(s.logo, 'head__logo', s.shopName)
+    : `<div class="brand">
+        <div class="brand__name">${escapeHtml(s.brandName || s.shopName)}</div>
+        ${s.brandTagline ? `<div class="brand__tag">${escapeHtml(s.brandTagline)}</div>` : ''}
+      </div>`;
   return `
     <div class="head">
       <div class="head__img">${img(right, '', 'سيارة')}</div>
       <div class="head__center">
-        ${logo
-          ? img(logo, 'head__logo', s.shopName)
-          : `<div class="head__name">${escapeHtml(s.shopName)}</div>`}
+        ${brand}
         <div class="head__line head__line--manager"><b>بإدارة:</b> ${escapeHtml(s.manager)}</div>
         <div class="head__line">${escapeHtml(s.address)}</div>
-        ${s.phones ? `<div class="head__line">${escapeHtml(s.phones)}</div>` : ''}
+        ${s.phones ? `<div class="head__line">${escapeHtml(toArabicDigits(s.phones))}</div>` : ''}
       </div>
       <div class="head__img">${img(left, '', 'ترتكتر')}</div>
     </div>`;

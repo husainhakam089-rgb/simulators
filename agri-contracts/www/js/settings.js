@@ -22,6 +22,9 @@ const PLACEHOLDER_CONDITIONS = [
 export const DEFAULTS = {
   key: KEY,
   shopName: 'معرض البركة لتجارة السيارات الحديثة',
+  // اسم المعرض في رأس العقد، بسطرين كما في شعار الدفتر
+  brandName: 'معرض البركة',
+  brandTagline: 'لتجارة السيارات الحديثة',
   manager: 'كرم حسين علي',
   address: 'موصل - الساحل الأيسر - مدينة المعارض',
   phones: '',
