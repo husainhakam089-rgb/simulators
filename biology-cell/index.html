@@ -816,6 +816,78 @@
     border-color:rgba(40,50,70,.12);box-shadow:0 3px 9px rgba(30,40,60,.08)}
   html[data-theme=day] .opt.good{color:#1f6b3e}
   html[data-theme=day] .opt.bad{color:#9a2a20}
+
+  /* ═══════════ توحيد الألوان ووضوح الكتابة ═══════════
+     لون تمييز واحد (الذهبي) لكل زر أساسي أو مفعّل: الأزرار، المفاتيح، المنزلقات، الشرائح
+     ونصوص مساعدة أكبر وأوضح تباين في الوضعين */
+  :root{--steel:#aab3bf;--goldOn:linear-gradient(180deg,#ffe2a6 0%,#e0ae4c 52%,#bd8b2c 100%)}
+  html[data-theme=day]{--steel:#46505e}
+  .btn.primary,html[data-theme=day] .btn.primary{color:#221607;background:var(--goldOn);border-color:rgba(255,255,255,.4);
+    box-shadow:0 8px 20px rgba(224,174,76,.38), 0 1px 0 rgba(255,255,255,.65) inset, 0 -6px 12px rgba(120,80,10,.28) inset}
+  .btn.primary:hover{box-shadow:0 12px 28px rgba(224,174,76,.5), 0 1px 0 rgba(255,255,255,.7) inset}
+  .tgl:has(input:checked){border-color:rgba(224,174,76,.5);background:linear-gradient(180deg,rgba(224,174,76,.16),rgba(224,174,76,.05))}
+  .tgl input:checked{background:linear-gradient(90deg,#bd8b2c,#e0ae4c);border-color:rgba(224,174,76,.6);
+    box-shadow:inset 0 1px 4px rgba(0,0,0,.3), 0 0 12px rgba(224,174,76,.35)}
+  .tgl input:checked::after{background:radial-gradient(circle at 35% 30%,#fff,#fff1d2)}
+  html[data-theme=day] .tgl:has(input:checked){border-color:rgba(168,120,28,.45);background:linear-gradient(180deg,#fffaf0,#fbefd6)}
+  input[type=range]::-webkit-slider-runnable-track{background:linear-gradient(90deg,#f5d089 0%,#e0ae4c var(--p),rgba(255,255,255,.14) var(--p))}
+  html[data-theme=day] input[type=range]::-webkit-slider-runnable-track{background:linear-gradient(90deg,#e8c172 0%,#c2902f var(--p),#d6dbe2 var(--p))}
+  input[type=range]::-moz-range-progress{background:#e0ae4c}
+  #score b,#phaseBar .pchrom b{color:var(--gold2)}
+  .chip.drag{border-color:var(--gold)}
+  .slot.hot{fill:rgba(224,174,76,.2);stroke:var(--gold)}
+  html[data-theme=day] #sheetHead{background:linear-gradient(180deg,rgba(168,120,28,.08),transparent)}
+  html[data-theme=day] th{background:linear-gradient(180deg,#fdf5e4,#f8edd6)}
+  #v3Btn.on,html[data-theme=day] #v3Btn.on{color:#221607;background:var(--goldOn);border-color:rgba(255,255,255,.4)}
+
+  /* نصوص صغيرة كانت باهتة: حجم أكبر ولون أوضح */
+  #titleRow .sub{font-size:12.5px;letter-spacing:.6px}
+  #titleRow .src span{font-size:11.5px;letter-spacing:.3px;color:var(--steel)}
+  #sceneName b{font-size:12px;color:var(--steel)}
+  #sceneHint{font-size:12.5px;color:#d6cfc3}
+  html[data-theme=day] #sceneHint{color:#2c3542}
+  #phaseBar .pdesc{font-size:12.5px;color:#e2dbcf}
+  #phaseBar .pchrom{font-size:12px}
+  #phaseBar .pcap{font-size:12px}
+  #phaseBar .psrc{font-size:11.5px;opacity:1}
+  #infoSrc{font-size:12px}
+  .fld h5{font-size:12px;letter-spacing:.6px}
+  #bar label{font-size:12px}
+  #bar output{font-size:12.5px}
+  .slotTxt{font-size:12px}
+  .slot{stroke:rgba(245,208,137,.8);fill:rgba(236,228,216,.08)}
+  #pickRow > span,#qMeta{font-size:12px}
+  /* «اختر الرسم:» فقط بلون رمادي؛ كتابة الأزرار تبقى بلون الزر (كانت تختفي على الزر الذهبي) */
+  #pickRow .stool span{color:inherit;font-size:inherit}
+  /* شرح المشهد: سطران فقط حتى لا يغطي أسماء الرسم، ويُفتح كاملاً بالمرور أو الضغط */
+  #sceneHint{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;cursor:pointer;
+    transition:background .2s}
+  #sceneHint:hover,#sceneHint.open{-webkit-line-clamp:unset;display:block;position:relative;z-index:6}
+  .btn.ghost,.tgl{color:#d0c9be}
+  html[data-theme=day] .btn.ghost,html[data-theme=day] .tgl{color:#2c3542}
+  .lbl.sm{font-size:12.5px}
+  /* الأسماء غير المختارة تخفت قليلاً فقط حتى تبقى مقروءة */
+  #svgHost.dim #labelLayer .lblG:not(.sel),#lbl3d.dim .lblG:not(.sel){opacity:.55}
+  #lbl3d.compact .lbl{font-size:10.6px}
+  #lbl3d.compact .cap3d .c1{font-size:12px}
+  #lbl3d.compact .cap3d .c2{font-size:10.5px}
+  @media (max-width:700px){
+    #lbl3d .lbl{font-size:11.5px}
+    #bar{font-size:12px}
+    #drCtl .stool{font-size:12px}
+  }
+  #drStepNo{font-size:12.5px}
+  #drDots button{font-size:12px;color:#d0c9be}
+  /* الرسم اليدوي بالوضع النهاري */
+  html[data-theme=day] #drawM{background:radial-gradient(900px 560px at 50% 36%, rgba(200,170,110,.18), transparent 66%),linear-gradient(180deg,#f6f7f9,#e9edf1)}
+  html[data-theme=day] #drStage{box-shadow:0 8px 24px rgba(30,40,60,.16), inset 0 0 0 1px rgba(90,70,40,.22)}
+  html[data-theme=day] #drStepTxt{color:#28303b}
+  html[data-theme=day] #drDots button{color:#3f4a58;background:#fff;border-color:rgba(40,50,70,.18)}
+  html[data-theme=day] #drDots button.done{color:#1f6b3a;background:#e7f6ec;border-color:rgba(63,191,111,.5)}
+  html[data-theme=day] #drDots button.on{color:#221607;background:var(--goldOn)}
+  /* عدّادات ATP في مخطط الأيض بالنهاري: إطار وكتابة أوضح */
+  html[data-theme=day] #svgHost[data-scene=metabolism] rect[rx="13"]{fill:#fffaf0;stroke:#c2902f}
+  html[data-theme=day] #svgHost[data-scene=metabolism] circle[stroke-dasharray]{stroke:#b07d1e;fill:#fff}
 </style>
 </head>
 <body>
@@ -4892,6 +4964,7 @@ function applyLabelToggle(){
 $('#lblTgl').addEventListener('change', applyLabelToggle);
 /* على الموبايل بالمجسّم: الضغط على لوحة الطور يفتح/يطوي وصف الطور */
 $('#phaseBar').addEventListener('click', () => $('#phaseBar').classList.toggle('open'));
+$('#sceneHint').addEventListener('click', () => $('#sceneHint').classList.toggle('open'));
 $('#glowTgl').addEventListener('change', e => svgHost.classList.toggle('flat', !e.target.checked));
 $('#resetBtn').addEventListener('click', () => {
   if (curKey === 'exam') initExam();
