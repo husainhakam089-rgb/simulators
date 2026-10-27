@@ -7907,7 +7907,9 @@ $('#themeBtn').addEventListener('click', () =>
   setTheme(document.documentElement.dataset.theme !== 'day'));
 
 /* ── ملء الشاشة: يُخفى الرأس والشريط ويكبر الرسم ── */
-const fsApi = document.documentElement.requestFullscreen ? 'std'
+/* داخل تطبيق أندرويد (WebView) ملء الشاشة الحقيقي قد يُظهر شاشة فارغة: نكتفي بإخفاء الرأس والشريط */
+const fsApi = /; wv\)/.test(navigator.userAgent) ? null
+            : document.documentElement.requestFullscreen ? 'std'
             : document.documentElement.webkitRequestFullscreen ? 'webkit' : null;
 const fsActive = () => document.fullscreenElement || document.webkitFullscreenElement;
 function refit(){ requestAnimationFrame(() => { fitCanvas(); fitViewBox(); }); }
