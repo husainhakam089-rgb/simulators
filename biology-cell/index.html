@@ -891,6 +891,107 @@
   /* عدّادات ATP في مخطط الأيض بالنهاري: إطار وكتابة أوضح */
   html[data-theme=day] #svgHost[data-scene=metabolism] rect[rx="13"]{fill:#fffaf0;stroke:#c2902f}
   html[data-theme=day] #svgHost[data-scene=metabolism] circle[stroke-dasharray]{stroke:#b07d1e;fill:#fff}
+
+  /* ═══════════ الموبايل (عمودي وعرضي): الرسم ياخذ كل المساحة ═══════════
+     لوحة المعلومات تظهر فقط عند اختيار جزء ولا تحجز نصف الشاشة وهي فارغة */
+  @media (max-width:880px),(orientation:portrait),(max-height:520px){
+    #info.closed{display:none}
+    #info{flex:0 0 46%;max-height:46%}
+    #infoHead{padding:9px 14px 8px}
+    #infoClose{width:36px;height:36px}
+    /* شرح المشهد يغطي الأسماء على الشاشة الصغيرة: نخفيه (الطريقة مكتوبة على الأزرار) */
+    #sceneHint,#sceneHint.open{display:none}
+    #sceneHead{top:8px;right:8px;left:8px}
+    #sceneName{font-size:12px;padding:4px 11px}
+    #sceneName b{font-size:10px}
+  }
+  /* موبايل عمودي ضيق: شريط سفلي بصف واحد يكفي بدون سحب */
+  @media (max-width:480px) and (orientation:portrait){
+    #bar{gap:6px;padding:7px 8px calc(7px + env(safe-area-inset-bottom));justify-content:space-between}
+    #bar .btn,#bar .tgl{min-height:40px;padding:8px 10px}
+    #bar .btn span,#playTxt{display:none}
+    /* التأثيرات والسرعة نادراً تُستخدم على الموبايل؛ «الأسماء» زر أيقونة يضيء حين يكون مفعّلاً */
+    #bar .tgl:has(#glowTgl),#bar .ctl{display:none}
+    #bar .tgl input{display:none}
+    #bar .tgl .ic{width:17px;height:17px;opacity:1}
+    #bar .btn .ic{width:17px;height:17px}
+    #playBtn{min-width:0}
+  }
+  /* موبايل بالعرض: العنوان والتبويبات بسطر واحد، والشريط السفلي رفيع، واللوحة جانبية */
+  @media (orientation:landscape) and (max-height:520px){
+    #top{display:flex;align-items:center;gap:10px;padding:5px 10px 0}
+    #titleRow{flex:0 0 auto;flex-wrap:nowrap;gap:8px;padding-bottom:5px}
+    #titleRow .sub,#titleRow .src span{display:none}
+    #titleRow h1{font-size:15px;letter-spacing:1px}
+    #titleRow .src{padding:3px 9px;margin:0}
+    #titleRow .src b{font-size:11px}
+    #tabsWrap{flex:1 1 auto;min-width:0;margin-top:0}
+    #tabs{padding-bottom:5px}
+    .tab{padding:6px 12px;font-size:11.5px}
+    #wrap{flex-direction:row-reverse}
+    #info{flex:0 0 min(330px,44%);max-height:none;width:auto;border-top:0;
+      border-inline-end:1px solid var(--line);box-shadow:-14px 0 30px rgba(0,0,0,.4)}
+    #bar{padding:4px 8px calc(4px + env(safe-area-inset-bottom));gap:5px}
+    #bar .btn,#bar .tgl{min-height:34px;padding:5px 11px;font-size:11.5px}
+    #bar .ctl{padding:2px 8px}
+    .tgl input{width:30px;height:18px}
+    .tgl input::after{width:12px;height:12px}
+    .tgl input:checked::after{right:calc(100% - 14px)}
+    #sceneTools{bottom:5px;right:6px;left:6px}
+    #sceneTools .stool,#sceneTools .segb{min-height:32px;padding:5px 10px;font-size:11.5px}
+    #phaseBar{top:40px;padding:6px 9px}
+  }
+  @media (orientation:landscape) and (max-height:520px){
+    #bar{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+    #bar::-webkit-scrollbar{display:none}
+    #bar > *{flex:0 0 auto}
+  }
+  @media (orientation:landscape) and (max-height:520px) and (max-width:1020px){
+    #bar .btn.ghost span,#bar .ctl > label{display:none}
+  }
+  /* الأجهزة اللمسية: بدون تمويه زجاجي وحركة خلفية (أثقل شي على معالج الرسوم) */
+  html.phone *,html.phone *::before,html.phone *::after{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+  html.phone #stage::before{animation:none}
+  body.rotTip #rotHint{display:block}
+  #bar .tgl:has(input:checked){color:var(--gold2)}
+
+  /* لوحة الطور على الشاشة الصغيرة: الاسم فقط، ويُفتح الوصف بالضغط عليها حتى لا تغطي الرسم */
+  @media (max-width:880px),(max-height:520px){
+    #phaseBar{cursor:pointer;width:min(215px,52vw)}
+    #phaseBar:not(.open) .pdesc,#phaseBar:not(.open) .psrc{display:none}
+    #phaseBar:not(.open) .pname::after{content:' ▾';font-size:10px;opacity:.7}
+    /* الامتحان والرسم اليدوي: قائمة الرسوم بسطر واحد يُسحب أفقياً */
+    #pickRow{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding:6px 10px}
+    #pickRow::-webkit-scrollbar,#drItems::-webkit-scrollbar{display:none}
+    #pickRow > *{flex:0 0 auto}
+    #examTop{padding:6px 10px}
+  }
+  @media (orientation:landscape) and (max-height:520px){
+    /* الامتحان بالعرض: الرسم يمين والأسماء عمود يسار */
+    #dragWrap{display:grid;grid-template-columns:1fr minmax(150px,32%);grid-template-rows:auto auto 1fr}
+    #pickRow{grid-column:1/-1;grid-row:1}
+    #dragDone{grid-column:1/-1;grid-row:2;padding:5px 12px}
+    #dragStage{grid-column:1;grid-row:3}
+    #tray{grid-column:2;grid-row:3;max-height:none;border-top:0;border-inline-start:1px solid var(--line);
+      align-content:flex-start;padding:8px;gap:5px}
+    .chip{padding:7px 10px;font-size:11.5px}
+    #examTop .segb{min-height:32px;padding:5px 11px}
+    /* الرسم اليدوي بالعرض: كل الأدوات بسطر واحد حتى تبقى ورقة الرسم كبيرة */
+    #drPick{flex-direction:row;padding:5px 10px;gap:6px}
+    #drPick .segbar,#drItems{flex:0 0 auto}
+    #drItems{display:flex;gap:5px;flex-wrap:nowrap}
+    #drPick .stool{padding:5px 10px;font-size:11px;min-height:32px}
+    #drBody{padding:5px 8px;gap:6px}
+    #drSide{flex:0 0 min(210px,30%);padding:8px 10px;gap:3px}
+    #drStepName{font-size:14px}
+    #drStepTxt{font-size:12px;line-height:1.7}
+    #drDots{display:none}
+    #drCtl{flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start;gap:5px;padding:4px 8px;scrollbar-width:none}
+    #drCtl::-webkit-scrollbar{display:none}
+    #drCtl .grp{flex-wrap:nowrap;flex:0 0 auto}
+    #drCtl .stool{padding:5px 9px;font-size:11px;min-height:32px}
+    #drCtl .stool .ic + span{display:none}
+  }
 </style>
 </head>
 <body>
@@ -1043,7 +1144,7 @@
     </div>
   </section>
 
-  <aside id="info">
+  <aside id="info" class="closed">
     <div id="infoHead">
       <div>
         <div id="infoName">لوحة المعلومات</div>
@@ -4367,6 +4468,10 @@ const $  = s => document.querySelector(s);
 const $$ = s => Array.from(document.querySelectorAll(s));
 const svgHost = $('#svgHost'), fx = $('#fx'), stage = $('#stage');
 const REDUCE = window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+/* موبايل/تابلت باللمس: نخفف الرسم (دقة أقل، مسطّح افتراضياً) حتى يبقى سلساً */
+const PHONE = window.matchMedia('(pointer:coarse)').matches && Math.min(screen.width, screen.height) <= 820;
+document.documentElement.classList.toggle('phone', PHONE);
+window.__PHONE = PHONE;
 
 let cur = null, curKey = null, playing = !REDUCE, speedMul = 1, tAcc = 0, routeTimer = 0;
 let focusOwner = null, focusUntil = 0, selPart = null;
@@ -4694,7 +4799,8 @@ function clearInfo(){
   $('#infoEmpty').hidden = false;
   $('#infoBody').hidden = true;
   $('#infoFoot').hidden = true;
-  if (document.body.classList.contains('fs')) $('#info').classList.add('closed');
+  /* اللوحة تُغلق حتى يُختار جزء؛ على الشاشات الكبيرة يبقى ظاهراً (CSS) */
+  $('#info').classList.add('closed');
   if (window.__v3) window.__v3.onSelect(null);
 }
 $('#infoClose').addEventListener('click', () => clearInfo());
@@ -4874,10 +4980,11 @@ function updateFlows(dt){
 
 /* ───────────── جريان السايتوبلازم (Canvas) ───────────── */
 const ctx = fx.getContext('2d');
-let dpr = Math.min(2, window.devicePixelRatio || 1);
+const DPR_MAX = PHONE ? 1.5 : 2;
+let dpr = Math.min(DPR_MAX, window.devicePixelRatio || 1);
 function fitCanvas(){
   const r = stage.getBoundingClientRect();
-  dpr = Math.min(2, window.devicePixelRatio || 1);
+  dpr = Math.min(DPR_MAX, window.devicePixelRatio || 1);
   fx.width = Math.max(1, Math.round(r.width * dpr));
   fx.height = Math.max(1, Math.round(r.height * dpr));
 }
@@ -5359,7 +5466,7 @@ function resetView(){
 /* ── الرسم ── */
 function resize(){
   const r = canvas.getBoundingClientRect();
-  dpr = Math.min(SW ? 1.5 : 2, window.devicePixelRatio || 1);
+  dpr = Math.min(SW ? 1.5 : window.__PHONE ? 1.35 : 2, window.devicePixelRatio || 1);
   const w = Math.max(1, Math.round(r.width * dpr)), h = Math.max(1, Math.round(r.height * dpr));
   if (canvas.width !== w || canvas.height !== h){ canvas.width = w; canvas.height = h; }
   W = r.width; H = r.height;
@@ -5857,9 +5964,11 @@ function bindInput(){
 }
 
 /* ── الحلقة ── */
-let lastF = 0;
+let lastF = 0, skipF = false;
 function loop(now){
   if (!running) return;
+  /* الموبايل: 30 إطاراً بالثانية تكفي للتدوير وتنصّف الحمل على المعالج */
+  if (window.__PHONE && !ptrs.size){ skipF = !skipF; if (skipF){ requestAnimationFrame(loop); return; } }
   const dt = Math.min(0.05, (now - (lastF || now)) / 1000); lastF = now;
   const wel = document.getElementById('welcome');
   if (!(wel && !wel.classList.contains('off'))){
@@ -5886,8 +5995,9 @@ const SCENE_MODEL = () => {
 };
 let on = false, hint2d = '';
 /* المجسّم هو العرض الافتراضي لرسوم التراكيب؛ إذا اختار الطالب «مسطّح» يُحفظ اختياره */
-let want3d = true;
-try { want3d = localStorage.getItem('cell3d_v2') !== 'flat'; } catch (e) {}
+/* على الموبايل يبدأ مسطّحاً (أخف وأسرع) إلا إذا اختار الطالب المجسّم بنفسه */
+let want3d = !window.__PHONE;
+try { const v = localStorage.getItem('cell3d_v2'); if (v) want3d = v !== 'flat'; } catch (e) {}
 const saveWant = () => { try { localStorage.setItem('cell3d_v2', want3d ? '3d' : 'flat'); } catch (e) {} };
 const NO_GL = 'جهازك أو متصفحك لا يدعم العرض الثلاثي الأبعاد (WebGL)، فالرسوم تظهر مسطّحة. جرّب متصفح Chrome محدّثاً.';
 const HINT3D = 'مجسّم ثلاثي الأبعاد: اسحب بإصبعك أو بالماوس لتدويره، وقرّب وبعّد بإصبعين أو بعجلة الماوس، واضغط مرتين على المجسم لإرجاعه. اضغط أي جزء أو اسمه لتظهر معلوماته.';
@@ -7686,7 +7796,7 @@ function setExMode(m){
   exMode = m;
   $('#mLabel').classList.toggle('on', m === 'label');
   $('#mQuiz').classList.toggle('on', m === 'quiz');
-  $('#dragWrap').style.display = m === 'label' ? 'flex' : 'none';
+  $('#dragWrap').style.display = m === 'label' ? '' : 'none';
   $('#quiz').classList.toggle('on', m === 'quiz');
   updateScore();
 }
@@ -7883,8 +7993,16 @@ window.addEventListener('orientationchange', () => setTimeout(sizeWelcome, 250))
 function showWelcome(v){
   welBox.classList.toggle('off', !v);
   if (v) sizeWelcome();
-  else { fitCanvas(); fitViewBox(); }
+  else {
+    fitCanvas(); fitViewBox();
+    /* أول دخول بالموبايل وهو عمودي: تلميح مرة وحدة إن الرسم يكبر بالعرض */
+    if (PHONE && !rotTipped && innerHeight > innerWidth){
+      rotTipped = true; document.body.classList.add('rotTip');
+      setTimeout(() => document.body.classList.remove('rotTip'), 5200);
+    }
+  }
 }
+let rotTipped = false;
 $('#tblBtn').addEventListener('click', openTableIndex);
 $('#welGo').addEventListener('click', () => showWelcome(false));
 $('#welExam').addEventListener('click', () => { loadScene('exam'); showWelcome(false); });
@@ -7894,6 +8012,7 @@ $('#brandBtn').addEventListener('keydown', e => {
 });
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && !welBox.classList.contains('off')) showWelcome(false);
+  else if (e.key === 'Escape' && selPart) clearInfo();
 });
 
 /* ── الوضع النهاري / الليلي (يُحفظ في المتصفح) ── */
@@ -7920,7 +8039,7 @@ function setFs(on){
   document.body.classList.toggle('fs', on);
   document.body.classList.remove('fsTabs');
   /* في ملء الشاشة تختفي اللوحة الجانبية حتى يُختار جزء */
-  $('#info').classList.toggle('closed', on && $('#infoBody').hidden);
+  $('#info').classList.toggle('closed', $('#infoBody').hidden);
   $('#fsIcon').setAttribute('href', on ? '#ic-shrink' : '#ic-expand');
   $('#fsTxt').textContent = on ? 'خروج' : 'ملء الشاشة';
   if (on && !fsActive()){
