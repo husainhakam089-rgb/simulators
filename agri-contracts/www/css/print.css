@@ -48,11 +48,13 @@ html, body {
   print-color-adjust: exact;
 }
 
-/* min-height لا height، وبلا overflow:hidden — لو طال العقد عن الورقة
-   فالأولى أن يكمل في ورقة ثانية على أن يُقصّ منه سطر. */
+/* كل نسخة ورقة واحدة بالضبط. كانت min-height فيطول العقد عن الورقة
+   (ملاحظات طويلة، أو خط الهاتف مكبَّر) ويكمل في ورقة ثانية. الآن إن زاد
+   المحتوى يُصغَّر الإطار كله ليسع الورقة — FIT_SCRIPT في print.js. */
 .page {
   width: 210mm;
-  min-height: 297mm;
+  height: 297mm;
+  overflow: hidden;
   padding: var(--page-pad);
   page-break-after: always;
   break-after: page;
@@ -323,6 +325,7 @@ html, body {
 /* ----- الوصل الصغير ----- */
 .half {
   height: 148.5mm;
+  overflow: hidden;
   padding: 5mm;
   position: relative;
 }

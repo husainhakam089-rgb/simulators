@@ -591,11 +591,13 @@ html, body {
   print-color-adjust: exact;
 }
 
-/* min-height لا height، وبلا overflow:hidden — لو طال العقد عن الورقة
-   فالأولى أن يكمل في ورقة ثانية على أن يُقصّ منه سطر. */
+/* كل نسخة ورقة واحدة بالضبط. كانت min-height فيطول العقد عن الورقة
+   (ملاحظات طويلة، أو خط الهاتف مكبَّر) ويكمل في ورقة ثانية. الآن إن زاد
+   المحتوى يُصغَّر الإطار كله ليسع الورقة — FIT_SCRIPT في print.js. */
 .page {
   width: 210mm;
-  min-height: 297mm;
+  height: 297mm;
+  overflow: hidden;
   padding: var(--page-pad);
   page-break-after: always;
   break-after: page;
@@ -866,6 +868,7 @@ html, body {
 /* ----- الوصل الصغير ----- */
 .half {
   height: 148.5mm;
+  overflow: hidden;
   padding: 5mm;
   position: relative;
 }
@@ -2381,7 +2384,7 @@ ${main}`;
 <title>${escapeHtml(title)}</title>
 <style>${css}${extra}</style>
 </head>
-<body>${innerHtml}</body>
+<body>${innerHtml}${FIT_SCRIPT}</body>
 </html>`;
   }
   function nativePlugin() {
@@ -2474,7 +2477,7 @@ ${main}`;
     await plugin.sharePdf({ html, fileName, title, pageCount: countPages(html) });
     return true;
   }
-  var COPY_LABELS, cssCache, dots, serial, pluginRef;
+  var COPY_LABELS, cssCache, dots, serial, FIT_SCRIPT, pluginRef;
   var init_print = __esm({
     "www/js/print.js"() {
       init_util();
@@ -2489,6 +2492,25 @@ ${main}`;
       cssCache = null;
       dots = (v) => v == null || v === "" ? "" : escapeHtml(toArabicDigits(v));
       serial = (v) => v == null || v === "" ? "" : escapeHtml(v);
+      FIT_SCRIPT = `<script>(function () {
+  var pairs = [['.page', '.frame'], ['.half', '.rframe']];
+  function fit() {
+    pairs.forEach(function (pair) {
+      document.querySelectorAll(pair[0]).forEach(function (box) {
+        var inner = box.querySelector(pair[1]);
+        if (!inner) return;
+        inner.style.zoom = '';
+        for (var i = 0; i < 8 && box.scrollHeight > box.clientHeight + 1; i++) {
+          var z = (parseFloat(inner.style.zoom) || 1) * (box.clientHeight / box.scrollHeight) * 0.995;
+          inner.style.zoom = String(Math.max(0.5, z));
+        }
+      });
+    });
+  }
+  fit();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
+  window.addEventListener('load', fit);
+})();<\/script>`;
     }
   });
 

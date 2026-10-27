@@ -77,7 +77,12 @@ public class NativePrintPlugin extends Plugin {
         }
 
         final WebView webView = new WebView(getContext());
-        webView.getSettings().setJavaScriptEnabled(false);
+        // JavaScript لسكربت التصغير داخل المستند (يُبقي كل نسخة في ورقة واحدة).
+        // المستند مولَّد من التطبيق نفسه وكل القيم فيه مُهرَّبة.
+        webView.getSettings().setJavaScriptEnabled(true);
+        // حجم الخط في إعدادات الهاتف يكبّر نصوص الـ WebView تلقائياً، فيطول
+        // العقد عن الورقة. الورقة لها مقاس ثابت، فالطباعة دائماً بحجم 100%.
+        webView.getSettings().setTextZoom(100);
         webView.getSettings().setAllowFileAccess(false);
         // بمقاس الورقة كاملاً منذ البداية: الـ WebView لا يرسم إلا ما رُصف
         // فعلاً، فلو أُلحق بارتفاع سطر واحد خرجت الصفحة بيضاء.

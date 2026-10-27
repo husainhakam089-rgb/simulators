@@ -63,6 +63,24 @@ try {
   });
   check(/<img class="stamp stamp--photo"/.test(withStamp), 'صورة الختم الحقيقي تُطبع إن رُفعت');
 
+  // --- كل نسخة ورقة واحدة بالضبط، حتى مع ملاحظات طويلة
+  for (const [label, notes, copies] of [['عقد عادي', '', ['shop']], ['ملاحظات طويلة', 'ملاحظة طويلة جداً '.repeat(60), ['buyer', 'shop']]]) {
+    const doc = await page.evaluate(async ({ notes, copies }) => {
+      const { buildHtml } = await import('/js/docbuild.js');
+      const db = await import('/js/db.js');
+      return buildHtml('contract', { ...(await db.get('contracts', 'c_test')), notes }, (await import('/js/settings.js')).current(), copies);
+    }, { notes, copies });
+    const q = await browser.newPage();
+    await q.setContent(doc);
+    await q.waitForTimeout(600);
+    const pdf = await q.pdf({ preferCSSPageSize: true, printBackground: true });
+    const sheets = (pdf.toString('latin1').match(/\/Type\s*\/Page[^s]/g) || []).length;
+    const whole = await q.evaluate(() => [...document.querySelectorAll('.page')].every((pg) =>
+      pg.querySelector('.signs').getBoundingClientRect().bottom <= pg.getBoundingClientRect().bottom + 0.5));
+    check(sheets === copies.length && whole, `${label}: ${copies.length} نسخة = ${sheets} ورقة، والتواقيع ظاهرة`);
+    await q.close();
+  }
+
   // --- شاشة تحرير العقد
   await page.evaluate(async () => (await import('/js/router.js')).go('contract', { id: 'c_test' }));
   await page.waitForSelector('text=الحجم');

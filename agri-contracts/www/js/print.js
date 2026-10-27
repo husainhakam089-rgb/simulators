@@ -304,6 +304,31 @@ export function renderReceiptSheets(entries, s) {
   return pages.join('');
 }
 
+/**
+ * تصغير المحتوى ليسع ورقته إن زاد عنها. يعمل داخل المستند نفسه أينما رُسم
+ * (عارض التطبيق، الطباعة، ملف PDF) فيقيس بالخط الذي سيُطبع به فعلاً.
+ * يُعاد بعد تحميل الخطوط لأن قياس ما قبلها يخطئ.
+ */
+const FIT_SCRIPT = `<script>(function () {
+  var pairs = [['.page', '.frame'], ['.half', '.rframe']];
+  function fit() {
+    pairs.forEach(function (pair) {
+      document.querySelectorAll(pair[0]).forEach(function (box) {
+        var inner = box.querySelector(pair[1]);
+        if (!inner) return;
+        inner.style.zoom = '';
+        for (var i = 0; i < 8 && box.scrollHeight > box.clientHeight + 1; i++) {
+          var z = (parseFloat(inner.style.zoom) || 1) * (box.clientHeight / box.scrollHeight) * 0.995;
+          inner.style.zoom = String(Math.max(0.5, z));
+        }
+      });
+    });
+  }
+  fit();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
+  window.addEventListener('load', fit);
+})();<\/script>`; // <\/ حتى لا يُغلق وسم السكربت في نسخة الملف الواحد
+
 /** مستند HTML كامل جاهز للتحويل إلى PDF. */
 export async function buildDocument(innerHtml, { title = 'طباعة' } = {}) {
   const css = await printCss();
@@ -316,7 +341,7 @@ export async function buildDocument(innerHtml, { title = 'طباعة' } = {}) {
 <title>${escapeHtml(title)}</title>
 <style>${css}${extra}</style>
 </head>
-<body>${innerHtml}</body>
+<body>${innerHtml}${FIT_SCRIPT}</body>
 </html>`;
 }
 
