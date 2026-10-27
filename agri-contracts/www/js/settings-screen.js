@@ -52,20 +52,13 @@ export async function render(root) {
     h('option', { value: 'الآلية', selected: s.subjectWord === 'الآلية' }, 'الآلية'),
     h('option', { value: 'السيارة', selected: s.subjectWord === 'السيارة' }, 'السيارة'),
   );
-  const engineNoRequired = h('input', { type: 'checkbox', checked: s.engineNoRequired });
   const conditionsReviewed = h('input', { type: 'checkbox', checked: s.conditionsReviewed });
   const conditions = s.conditions.map((t, i) => textArea({ label: `الشرط ${i + 1}`, value: t, rows: 3 }));
 
   /* ----- الختم ----- */
   const stampEnabled = h('input', { type: 'checkbox', checked: s.stampEnabled !== false });
   const stampOnReceipt = h('input', { type: 'checkbox', checked: s.stampOnReceipt !== false });
-  const stampImage = photoField({ label: 'صورة ختم حقيقي (اختياري)', value: s.stampImage });
-  const stampName = textField({ label: 'السطر الأول', value: s.stampName || '' });
-  const stampSubtitle = textField({ label: 'السطر الثاني', value: s.stampSubtitle || '' });
-  const stampNote = textField({
-    label: 'السطر الثالث', value: s.stampNote || '',
-    hint: 'اتركه فارغاً ليأخذ اسم الإدارة تلقائياً.',
-  });
+  const stampImage = photoField({ label: 'صورة ختم المعرض', value: s.stampImage });
 
   /* ----- القوائم ----- */
   const listsBox = h('div', {});
@@ -184,12 +177,8 @@ export async function render(root) {
         stampEnabled: stampEnabled.checked,
         stampOnReceipt: stampOnReceipt.checked,
         stampImage: stampImage.get(),
-        stampName: stampName.get(),
-        stampSubtitle: stampSubtitle.get(),
-        stampNote: stampNote.get(),
         digitStyle: digitStyle.value,
         subjectWord: subjectWord.value,
-        engineNoRequired: engineNoRequired.checked,
         conditionsReviewed: conditionsReviewed.checked,
         conditions: conditions.map((c) => c.get()).filter(Boolean),
       });
@@ -236,10 +225,9 @@ export async function render(root) {
         h('div', { class: 'field' },
           h('label', { class: 'field__label', text: 'شكل الأرقام في العقد والشاشات' }),
           digitStyle,
-          h('div', { class: 'field__hint', text: 'أرقام الشاصي والمحرك تبقى كما تُكتب في الحالتين، لأنها أرقام مضروبة على الآلية نفسها.' }),
+          h('div', { class: 'field__hint', text: 'رقم الشاصي يبقى كما يُكتب في الحالتين، لأنه مضروب على الآلية نفسها.' }),
         ),
         h('div', { class: 'field' }, h('label', { class: 'field__label', text: 'الكلمة المستعملة في العقد' }), subjectWord),
-        h('label', { class: 'checkrow' }, engineNoRequired, h('span', { text: 'رقم المحرك حقل إلزامي' })),
         h('h3', { class: 'subhead', text: 'الشروط المطبوعة أسفل العقد' }),
         h('p', { class: 'muted', text: 'منقولة حرفياً من الدفتر الورقي للمعرض. عدّلها هنا إن تغيّرت.' }),
         ...conditions.map((c) => c.el),
@@ -248,14 +236,11 @@ export async function render(root) {
 
       h('section', { class: 'card' },
         h('h2', { class: 'card__title', text: 'الختم' }),
-        h('p', { class: 'muted', text: 'يُطبع مع كل نسخة من العقد فوق توقيع الشرعي، فيخرج العقد جاهزاً بلا ختم يدوي.' }),
-        h('label', { class: 'checkrow' }, stampEnabled, h('span', { text: 'طباعة الختم مع العقد' })),
-        h('label', { class: 'checkrow' }, stampOnReceipt, h('span', { text: 'طباعة الختم مع الوصل أيضاً' })),
-        h('h3', { class: 'subhead', text: 'الختم المرسوم' }),
-        stampName.el, stampSubtitle.el, stampNote.el,
-        h('h3', { class: 'subhead', text: 'أو ختم حقيقي' }),
-        h('p', { class: 'muted', text: 'صوّر الختم على ورقة بيضاء بإضاءة جيدة. إن رفعت صورة فهي تحلّ محل المرسوم.' }),
+        h('p', { class: 'muted', text: 'ارفع صورة ختم المعرض فيُطبع مع العقد والوصل. بدون صورة لا يُطبع أي ختم.' }),
+        h('p', { class: 'muted', text: 'صوّر الختم على ورقة بيضاء بإضاءة جيدة، والكاميرا عمودية فوقه.' }),
         stampImage.el,
+        h('label', { class: 'checkrow' }, stampEnabled, h('span', { text: 'طباعة الختم مع العقد' })),
+        h('label', { class: 'checkrow' }, stampOnReceipt, h('span', { text: 'طباعة الختم مع الوصل' })),
       ),
 
       h('section', { class: 'card' },

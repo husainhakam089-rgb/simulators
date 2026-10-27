@@ -434,9 +434,13 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
   background: rgba(255, 255, 255, 0.16);
   color: #fff;
   border-radius: 9px;
-  width: 36px;
+  min-width: 36px;
   height: 36px;
-  font-size: 1.1rem;
+  padding: 0 12px;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  white-space: nowrap;
   cursor: pointer;
   flex: 0 0 auto;
 }
@@ -851,7 +855,6 @@ html, body {
   pointer-events: none;
   z-index: 2;
 }
-.stamp svg { width: 100%; height: 100%; display: block; }
 .stamp--receipt {
   width: var(--stamp-size-receipt);
   height: var(--stamp-size-receipt);
@@ -1393,21 +1396,37 @@ html, body {
         stampOnReceipt: true,
         // الوصل يُختم أيضاً
         stampImage: null,
-        // صورة ختم حقيقي تعلو على المرسوم
-        stampName: "معرض البركة",
-        stampSubtitle: "لتجارة السيارات الحديثة",
-        stampNote: "",
-        // فارغ = يُشتق من اسم الإدارة
+        // صورة الختم الحقيقي — لا يُطبع ختم بدونها
         digitStyle: "arabic",
         // 'arabic' = ٠١٢٣ أو 'latin' = 0123
         subjectWord: "الآلية",
         // قرار معلّق: «الآلية» أم «السيارة»
-        engineNoRequired: false,
-        // قرار معلّق: رقم المحرك إلزامي؟
         conditionsReviewed: true
         // النص الافتراضي هو نص الدفتر نفسه
       };
       cached = null;
+    }
+  });
+
+  // www/js/overlay.js
+  function openOverlay(close) {
+    stack.push(close);
+    history.pushState({ ...history.state || {}, overlay: true }, "");
+  }
+  function closeTopOverlay() {
+    const close = stack.pop();
+    if (!close) return false;
+    close();
+    return true;
+  }
+  function forgetOverlay(close) {
+    const i = stack.lastIndexOf(close);
+    if (i >= 0) stack.splice(i, 1);
+  }
+  var stack;
+  var init_overlay = __esm({
+    "www/js/overlay.js"() {
+      stack = [];
     }
   });
 
@@ -1444,6 +1463,7 @@ html, body {
   }
   function start(defaultRoute = "home") {
     window.addEventListener("popstate", (e) => {
+      if (closeTopOverlay()) return;
       const s = e.state;
       if (s && s.name) {
         const loader = routes.get(s.name);
@@ -1462,6 +1482,7 @@ html, body {
   var routes, rootEl, currentName, listeners;
   var init_router = __esm({
     "www/js/router.js"() {
+      init_overlay();
       routes = /* @__PURE__ */ new Map();
       rootEl = null;
       currentName = null;
@@ -2176,36 +2197,9 @@ ${main}`;
     </div>`;
   }
   function stampBlock(s, variant = "") {
-    if (s.stampEnabled === false) return "";
+    if (s.stampEnabled === false || !s.stampImage) return "";
     const cls = variant ? `stamp stamp--${variant}` : "stamp";
-    if (s.stampImage) {
-      return `<img class="${cls} stamp--photo" src="${escapeHtml(s.stampImage)}" alt="ختم المعرض">`;
-    }
-    const name = s.stampName || s.shopName || "";
-    const subtitle = s.stampSubtitle || "";
-    const note = s.stampNote || (s.manager ? `إدارة: ${s.manager}` : "");
-    const points = [];
-    for (let i = 0; i < 10; i++) {
-      const radius = i % 2 === 0 ? 7 : 7 / 2.4;
-      const angle = Math.PI / 5 * i - Math.PI / 2;
-      points.push(`${(100 + radius * Math.cos(angle)).toFixed(1)},${(146 + radius * Math.sin(angle)).toFixed(1)}`);
-    }
-    return `
-  <div class="${cls}">
-    <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-label="ختم المعرض">
-      <g fill="none" stroke="currentColor">
-        <circle cx="100" cy="100" r="95" stroke-width="3.4"/>
-        <circle cx="100" cy="100" r="86" stroke-width="1.1"/>
-        <circle cx="100" cy="100" r="70" stroke-width="0.8" stroke-dasharray="2.5 2.5"/>
-      </g>
-      <g text-anchor="middle" fill="currentColor" direction="rtl">
-        <text x="100" y="84" font-size="18" font-weight="700">${escapeHtml(name)}</text>
-        ${subtitle ? `<text x="100" y="104" font-size="11">${escapeHtml(subtitle)}</text>` : ""}
-        ${note ? `<text x="100" y="127" font-size="10.5">${escapeHtml(note)}</text>` : ""}
-      </g>
-      <polygon points="${points.join(" ")}" fill="currentColor"/>
-    </svg>
-  </div>`;
+    return `<img class="${cls} stamp--photo" src="${escapeHtml(s.stampImage)}" alt="ختم المعرض">`;
   }
   function frameCorners() {
     return ["tr", "tl", "br", "bl"].map((pos) => `<span class="frame__art frame__art--${pos}"></span>`).join("");
@@ -2274,7 +2268,7 @@ ${main}`;
         </div>
         <div class="row">
           <div class="cell"><span class="lbl">رقم الشاصي</span><span class="val">${serial(c.chassis)}</span></div>
-          <div class="cell"><span class="lbl">رقم المحرك</span><span class="val">${serial(c.engineNo)}</span></div>
+          <div class="cell"><span class="lbl">الحجم</span><span class="val">${dots(c.size)}</span></div>
         </div>
         <div class="row">
           <div class="cell"><span class="lbl">والسنوية بأسم</span><span class="val">${dots(c.annualName)}</span></div>
@@ -2498,35 +2492,7 @@ ${main}`;
     }
   });
 
-  // www/js/docactions.js
-  function copiesPicker(selected = []) {
-    let value = ORDER.filter((k) => selected.includes(k));
-    const wrap2 = h("div", { class: "chips" });
-    function render6() {
-      wrap2.textContent = "";
-      for (const k of ORDER) {
-        wrap2.append(h("button", {
-          type: "button",
-          class: `chip ${value.includes(k) ? "is-on" : ""}`,
-          onclick: () => {
-            value = value.includes(k) ? value.filter((x) => x !== k) : [...value, k];
-            render6();
-          }
-        }, COPY_LABELS[k].replace("نسخة ", "")));
-      }
-    }
-    render6();
-    return {
-      el: h(
-        "div",
-        { class: "field" },
-        h("label", { class: "field__label", text: "النسخ المطلوبة" }),
-        wrap2,
-        h("div", { class: "field__hint", text: "كل نسخة يُطبع فوقها اسم صاحبها، وتخرج كلها بضغطة واحدة." })
-      ),
-      get: () => ORDER.filter((k) => value.includes(k))
-    };
-  }
+  // www/js/docbuild.js
   async function contractHtml(contract, settings, copies) {
     const pages = (copies.length ? copies : [null]).map((k) => renderContractPage(contract, settings, k)).join("");
     return buildDocument(pages, { title: `عقد ${formatDocNumber(contract.number)}` });
@@ -2541,66 +2507,10 @@ ${main}`;
   async function buildViewHtml(kind, doc, settings) {
     return buildHtml(kind, doc, settings, [null]);
   }
-  function printActions(kind, getDoc, getSettings, getCopies) {
-    const label = kind === "receipt" ? "الوصل" : "العقد";
-    const withHtml = async (fn) => {
-      const doc = getDoc();
-      if (!doc) {
-        toast(`احفظ ${label} أولاً`, "warn");
-        return;
-      }
-      try {
-        const html = await buildHtml(kind, doc, getSettings(), getCopies());
-        await fn(html, doc);
-      } catch (err) {
-        toast(err && err.message ? err.message : "تعذّرت العملية", "error");
-      }
-    };
-    const printBtn = h("button", {
-      type: "button",
-      class: "btn btn--primary",
-      onclick: () => withHtml(async (html, doc) => {
-        const via = await printDocument(html, {
-          jobName: `${label} ${formatDocNumber(doc.number)}`,
-          settings: getSettings()
-        });
-        if (via === "direct") toast("أُرسل للطابعة مباشرة", "ok");
-      })
-    }, "🖨 طباعة");
-    const shareBtn = h("button", {
-      type: "button",
-      class: "btn",
-      onclick: () => withHtml(async (html, doc) => {
-        const ok = await shareDocument(html, {
-          fileName: `${label}-${formatDocNumber(doc.number)}.pdf`,
-          title: `${label} ${formatDocNumber(doc.number)}`
-        });
-        if (ok) toast("جاهز للمشاركة", "ok");
-      })
-    }, "📤 مشاركة PDF");
-    const previewBtn = h("button", {
-      type: "button",
-      class: "btn btn--ghost",
-      onclick: () => withHtml(async (html) => {
-        const win = window.open("", "_blank");
-        if (!win) {
-          toast("تعذّر فتح المعاينة", "error");
-          return;
-        }
-        win.document.open();
-        win.document.write(html);
-        win.document.close();
-      })
-    }, "👁 معاينة");
-    return h("div", { class: "actions" }, printBtn, shareBtn, previewBtn);
-  }
-  var ORDER;
-  var init_docactions = __esm({
-    "www/js/docactions.js"() {
-      init_ui();
+  var init_docbuild = __esm({
+    "www/js/docbuild.js"() {
       init_print();
       init_util();
-      ORDER = ["buyer", "seller", "shop"];
     }
   });
 
@@ -2636,11 +2546,14 @@ ${main}`;
       applyZoom();
     };
     const overlay = h("div", { class: "docview" });
-    const close = () => {
+    let afterClose = null;
+    const teardown = () => {
       window.removeEventListener("resize", fit);
       document.removeEventListener("keydown", onKey);
       overlay.remove();
+      if (afterClose) afterClose();
     };
+    const close = () => history.back();
     const onKey = (e) => {
       if (e.key === "Escape") close();
     };
@@ -2656,7 +2569,7 @@ ${main}`;
       h(
         "header",
         { class: "docview__bar" },
-        h("button", { type: "button", class: "docview__x", "aria-label": "إغلاق", onclick: close }, "✕"),
+        h("button", { type: "button", class: "docview__x", "aria-label": "خروج من المعاينة", onclick: close }, "✕ خروج"),
         h(
           "div",
           { class: "docview__title" },
@@ -2696,15 +2609,16 @@ ${main}`;
             if (ok) toast("جاهز للمشاركة", "ok");
           })
         }, "📤 مشاركة"),
-        h("button", {
+        hooks.preview ? null : h("button", {
           type: "button",
           class: "btn btn--ghost",
           onclick: () => {
-            close();
-            go(kind === "receipt" ? "receipt" : "contract", { id: doc.id });
+            forgetOverlay(teardown);
+            teardown();
+            go(kind === "receipt" ? "receipt" : "contract", { id: doc.id }, { replace: true });
           }
         }, "✎ تعديل"),
-        h("button", {
+        hooks.preview ? null : h("button", {
           type: "button",
           class: "btn btn--ghost btn--danger",
           onclick: () => act(async () => {
@@ -2714,14 +2628,15 @@ ${main}`;
             );
             if (!yes) return;
             await remove(kind === "receipt" ? "receipts" : "contracts", doc.id);
-            close();
             toast("حُذف", "ok");
-            if (hooks.onDeleted) hooks.onDeleted();
+            afterClose = hooks.onDeleted || null;
+            close();
           })
         }, "🗑 حذف")
       )
     );
     document.body.append(overlay);
+    openOverlay(teardown);
     document.addEventListener("keydown", onKey);
     window.addEventListener("resize", fit);
     frame.srcdoc = html;
@@ -2732,7 +2647,8 @@ ${main}`;
   var init_docviewer = __esm({
     "www/js/docviewer.js"() {
       init_db();
-      init_docactions();
+      init_docbuild();
+      init_overlay();
       init_print();
       init_router();
       init_ui();
@@ -2874,6 +2790,102 @@ ${main}`;
       init_db();
       init_util();
       cachePromise = null;
+    }
+  });
+
+  // www/js/docactions.js
+  function copiesPicker(selected = []) {
+    let value = ORDER.filter((k) => selected.includes(k));
+    const wrap2 = h("div", { class: "chips" });
+    function render6() {
+      wrap2.textContent = "";
+      for (const k of ORDER) {
+        wrap2.append(h("button", {
+          type: "button",
+          class: `chip ${value.includes(k) ? "is-on" : ""}`,
+          onclick: () => {
+            value = value.includes(k) ? value.filter((x) => x !== k) : [...value, k];
+            render6();
+          }
+        }, COPY_LABELS[k].replace("نسخة ", "")));
+      }
+    }
+    render6();
+    return {
+      el: h(
+        "div",
+        { class: "field" },
+        h("label", { class: "field__label", text: "النسخ المطلوبة" }),
+        wrap2,
+        h("div", { class: "field__hint", text: "كل نسخة يُطبع فوقها اسم صاحبها، وتخرج كلها بضغطة واحدة." })
+      ),
+      get: () => ORDER.filter((k) => value.includes(k))
+    };
+  }
+  function printActions(kind, getDoc, getSettings, getCopies) {
+    const label = kind === "receipt" ? "الوصل" : "العقد";
+    const withHtml = async (fn) => {
+      const doc = getDoc();
+      if (!doc) {
+        toast(`احفظ ${label} أولاً`, "warn");
+        return;
+      }
+      try {
+        const html = await buildHtml(kind, doc, getSettings(), getCopies());
+        await fn(html, doc);
+      } catch (err) {
+        toast(err && err.message ? err.message : "تعذّرت العملية", "error");
+      }
+    };
+    const printBtn = h("button", {
+      type: "button",
+      class: "btn btn--primary",
+      onclick: () => withHtml(async (html, doc) => {
+        const via = await printDocument(html, {
+          jobName: `${label} ${formatDocNumber(doc.number)}`,
+          settings: getSettings()
+        });
+        if (via === "direct") toast("أُرسل للطابعة مباشرة", "ok");
+      })
+    }, "🖨 طباعة");
+    const shareBtn = h("button", {
+      type: "button",
+      class: "btn",
+      onclick: () => withHtml(async (html, doc) => {
+        const ok = await shareDocument(html, {
+          fileName: `${label}-${formatDocNumber(doc.number)}.pdf`,
+          title: `${label} ${formatDocNumber(doc.number)}`
+        });
+        if (ok) toast("جاهز للمشاركة", "ok");
+      })
+    }, "📤 مشاركة PDF");
+    const previewBtn = h("button", {
+      type: "button",
+      class: "btn btn--ghost",
+      onclick: async () => {
+        const doc = getDoc();
+        if (!doc) {
+          toast(`احفظ ${label} أولاً`, "warn");
+          return;
+        }
+        try {
+          await openDocument(kind, { ...doc, copies: getCopies() }, getSettings(), { preview: true });
+        } catch (err) {
+          toast(err && err.message ? err.message : "تعذّرت المعاينة", "error");
+        }
+      }
+    }, "👁 معاينة");
+    return h("div", { class: "actions" }, printBtn, shareBtn, previewBtn);
+  }
+  var ORDER;
+  var init_docactions = __esm({
+    "www/js/docactions.js"() {
+      init_ui();
+      init_docbuild();
+      init_docviewer();
+      init_print();
+      init_util();
+      ORDER = ["buyer", "seller", "shop"];
     }
   });
 
@@ -3023,11 +3035,10 @@ ${main}`;
       suggest: (q) => similar("colors", q)
     });
     const chassis = textField({ label: "رقم الشاصي", value: existing?.chassis || "", required: true });
-    const engineNo = textField({
-      label: "رقم المحرك",
-      value: existing?.engineNo || "",
-      required: Boolean(s.engineNoRequired),
-      hint: s.engineNoRequired ? null : "اختياري — يُضبط من الإعدادات"
+    const size = textField({
+      label: "الحجم",
+      value: existing?.size || "",
+      hint: "اختياري — مثلاً: ٧٥ حصان أو ٤ سلندر"
     });
     const plate = textField({ label: "المرقمة (رقم اللوحة)", value: existing?.plate || "", inputmode: "numeric" });
     const governorate = chipField({
@@ -3127,7 +3138,7 @@ ${main}`;
         model: model.get(),
         color: color.get(),
         chassis: chassis.get(),
-        engineNo: engineNo.get(),
+        size: size.get(),
         plate: plate.get(),
         governorate: governorate.get(),
         annualName: annualName.get(),
@@ -3153,7 +3164,6 @@ ${main}`;
       if (!machineType.get()) problems.push("نوع الآلية");
       if (!brand.get()) problems.push("الماركة");
       if (!chassis.get()) problems.push("رقم الشاصي");
-      if (s.engineNoRequired && !engineNo.get()) problems.push("رقم المحرك");
       if (!amountValue()) problems.push("المبلغ");
       if (!seller.get().name) problems.push("اسم البائع");
       if (!buyer.get().name) problems.push("اسم المشتري");
@@ -3234,7 +3244,7 @@ ${main}`;
           machineType.el,
           brand.el,
           h("div", { class: "grid grid--2" }, model.el, color.el),
-          h("div", { class: "grid grid--2" }, chassis.el, engineNo.el),
+          h("div", { class: "grid grid--2" }, chassis.el, size.el),
           h("div", { class: "grid grid--2" }, plate.el, governorate.el)
         ),
         h(
@@ -3506,6 +3516,7 @@ ${main}`;
       d.seller?.mobile,
       d.mobile,
       d.chassis,
+      d.size,
       d.engineNo,
       d.plate,
       d.brand,
@@ -3634,19 +3645,11 @@ ${main}`;
       h("option", { value: "الآلية", selected: s.subjectWord === "الآلية" }, "الآلية"),
       h("option", { value: "السيارة", selected: s.subjectWord === "السيارة" }, "السيارة")
     );
-    const engineNoRequired = h("input", { type: "checkbox", checked: s.engineNoRequired });
     const conditionsReviewed = h("input", { type: "checkbox", checked: s.conditionsReviewed });
     const conditions = s.conditions.map((t, i) => textArea({ label: `الشرط ${i + 1}`, value: t, rows: 3 }));
     const stampEnabled = h("input", { type: "checkbox", checked: s.stampEnabled !== false });
     const stampOnReceipt = h("input", { type: "checkbox", checked: s.stampOnReceipt !== false });
-    const stampImage = photoField({ label: "صورة ختم حقيقي (اختياري)", value: s.stampImage });
-    const stampName = textField({ label: "السطر الأول", value: s.stampName || "" });
-    const stampSubtitle = textField({ label: "السطر الثاني", value: s.stampSubtitle || "" });
-    const stampNote = textField({
-      label: "السطر الثالث",
-      value: s.stampNote || "",
-      hint: "اتركه فارغاً ليأخذ اسم الإدارة تلقائياً."
-    });
+    const stampImage = photoField({ label: "صورة ختم المعرض", value: s.stampImage });
     const listsBox = h("div", {});
     async function paintLists() {
       listsBox.textContent = "";
@@ -3768,12 +3771,8 @@ ${main}`;
           stampEnabled: stampEnabled.checked,
           stampOnReceipt: stampOnReceipt.checked,
           stampImage: stampImage.get(),
-          stampName: stampName.get(),
-          stampSubtitle: stampSubtitle.get(),
-          stampNote: stampNote.get(),
           digitStyle: digitStyle2.value,
           subjectWord: subjectWord.value,
-          engineNoRequired: engineNoRequired.checked,
           conditionsReviewed: conditionsReviewed.checked,
           conditions: conditions.map((c) => c.get()).filter(Boolean)
         });
@@ -3830,10 +3829,9 @@ ${main}`;
             { class: "field" },
             h("label", { class: "field__label", text: "شكل الأرقام في العقد والشاشات" }),
             digitStyle2,
-            h("div", { class: "field__hint", text: "أرقام الشاصي والمحرك تبقى كما تُكتب في الحالتين، لأنها أرقام مضروبة على الآلية نفسها." })
+            h("div", { class: "field__hint", text: "رقم الشاصي يبقى كما يُكتب في الحالتين، لأنه مضروب على الآلية نفسها." })
           ),
           h("div", { class: "field" }, h("label", { class: "field__label", text: "الكلمة المستعملة في العقد" }), subjectWord),
-          h("label", { class: "checkrow" }, engineNoRequired, h("span", { text: "رقم المحرك حقل إلزامي" })),
           h("h3", { class: "subhead", text: "الشروط المطبوعة أسفل العقد" }),
           h("p", { class: "muted", text: "منقولة حرفياً من الدفتر الورقي للمعرض. عدّلها هنا إن تغيّرت." }),
           ...conditions.map((c) => c.el),
@@ -3843,16 +3841,11 @@ ${main}`;
           "section",
           { class: "card" },
           h("h2", { class: "card__title", text: "الختم" }),
-          h("p", { class: "muted", text: "يُطبع مع كل نسخة من العقد فوق توقيع الشرعي، فيخرج العقد جاهزاً بلا ختم يدوي." }),
+          h("p", { class: "muted", text: "ارفع صورة ختم المعرض فيُطبع مع العقد والوصل. بدون صورة لا يُطبع أي ختم." }),
+          h("p", { class: "muted", text: "صوّر الختم على ورقة بيضاء بإضاءة جيدة، والكاميرا عمودية فوقه." }),
+          stampImage.el,
           h("label", { class: "checkrow" }, stampEnabled, h("span", { text: "طباعة الختم مع العقد" })),
-          h("label", { class: "checkrow" }, stampOnReceipt, h("span", { text: "طباعة الختم مع الوصل أيضاً" })),
-          h("h3", { class: "subhead", text: "الختم المرسوم" }),
-          stampName.el,
-          stampSubtitle.el,
-          stampNote.el,
-          h("h3", { class: "subhead", text: "أو ختم حقيقي" }),
-          h("p", { class: "muted", text: "صوّر الختم على ورقة بيضاء بإضاءة جيدة. إن رفعت صورة فهي تحلّ محل المرسوم." }),
-          stampImage.el
+          h("label", { class: "checkrow" }, stampOnReceipt, h("span", { text: "طباعة الختم مع الوصل" }))
         ),
         h(
           "section",

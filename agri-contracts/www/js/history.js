@@ -14,7 +14,7 @@ function haystack(d) {
     d.kind === 'receipt' ? d.tool : '',
     d.buyer?.name, d.seller?.name,
     d.buyer?.mobile, d.seller?.mobile, d.mobile,
-    d.chassis, d.engineNo, d.plate, d.brand, d.machineType,
+    d.chassis, d.size, d.engineNo, d.plate, d.brand, d.machineType,
   ].filter(Boolean).join(' '));
 }
 

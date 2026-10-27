@@ -54,8 +54,10 @@ if (existsSync(mainActivity)) {
   if (src.includes('NativePrintPlugin.class')) {
     skipped.push('الملحق مسجَّل مسبقاً في MainActivity');
   } else if (/public class MainActivity extends BridgeActivity\s*\{/.test(src)) {
-    if (!src.includes('import android.os.Bundle;')) {
-      src = src.replace(/(package [^;]+;\n)/, '$1\nimport android.os.Bundle;\n');
+    for (const imp of ['android.os.Bundle', 'android.webkit.WebView', 'androidx.activity.OnBackPressedCallback']) {
+      if (!src.includes(`import ${imp};`)) {
+        src = src.replace(/(package [^;]+;\n)/, `$1\nimport ${imp};\n`);
+      }
     }
     src = src.replace(
       /public class MainActivity extends BridgeActivity\s*\{/,
@@ -65,6 +67,21 @@ if (existsSync(mainActivity)) {
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(NativePrintPlugin.class);
         super.onCreate(savedInstanceState);
+        // زر الرجوع في الهاتف يرجع داخل التطبيق (يغلق المعاينة، يعود للشاشة
+        // السابقة) بدل الخروج منه مباشرة. يخرج فقط من الشاشة الأولى.
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                WebView web = getBridge() == null ? null : getBridge().getWebView();
+                if (web != null && web.canGoBack()) {
+                    web.goBack();
+                } else {
+                    setEnabled(false);
+                    getOnBackPressedDispatcher().onBackPressed();
+                    setEnabled(true);
+                }
+            }
+        });
     }
 `,
     );

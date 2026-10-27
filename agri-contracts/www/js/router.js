@@ -1,5 +1,7 @@
 // موجّه شاشات بسيط مع دعم زر الرجوع في الهاتف.
 
+import { closeTopOverlay } from './overlay.js';
+
 const routes = new Map();
 let rootEl = null;
 let currentName = null;
@@ -43,6 +45,8 @@ export function current() {
 
 export function start(defaultRoute = 'home') {
   window.addEventListener('popstate', (e) => {
+    // الرجوع وعارضٌ مفتوح يغلق العارض فقط ويبقى على الشاشة نفسها
+    if (closeTopOverlay()) return;
     const s = e.state;
     if (s && s.name) {
       const loader = routes.get(s.name);

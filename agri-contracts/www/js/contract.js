@@ -67,10 +67,11 @@ export async function render(root, { id = null, type = '' } = {}) {
     suggest: (q) => lists.similar('colors', q),
   });
   const chassis = textField({ label: 'رقم الشاصي', value: existing?.chassis || '', required: true });
-  const engineNo = textField({
-    label: 'رقم المحرك', value: existing?.engineNo || '',
-    required: Boolean(s.engineNoRequired),
-    hint: s.engineNoRequired ? null : 'اختياري — يُضبط من الإعدادات',
+  // «الحجم» حلّ محل رقم المحرك بطلب المعرض. العقود القديمة تحتفظ
+  // بـ engineNo في قاعدة البيانات لكنه لم يعد يُطبع.
+  const size = textField({
+    label: 'الحجم', value: existing?.size || '',
+    hint: 'اختياري — مثلاً: ٧٥ حصان أو ٤ سلندر',
   });
   const plate = textField({ label: 'المرقمة (رقم اللوحة)', value: existing?.plate || '', inputmode: 'numeric' });
   const governorate = chipField({
@@ -165,7 +166,7 @@ export async function render(root, { id = null, type = '' } = {}) {
       model: model.get(),
       color: color.get(),
       chassis: chassis.get(),
-      engineNo: engineNo.get(),
+      size: size.get(),
       plate: plate.get(),
       governorate: governorate.get(),
       annualName: annualName.get(),
@@ -192,7 +193,6 @@ export async function render(root, { id = null, type = '' } = {}) {
     if (!machineType.get()) problems.push('نوع الآلية');
     if (!brand.get()) problems.push('الماركة');
     if (!chassis.get()) problems.push('رقم الشاصي');
-    if (s.engineNoRequired && !engineNo.get()) problems.push('رقم المحرك');
     if (!amountValue()) problems.push('المبلغ');
     if (!seller.get().name) problems.push('اسم البائع');
     if (!buyer.get().name) problems.push('اسم المشتري');
@@ -274,7 +274,7 @@ export async function render(root, { id = null, type = '' } = {}) {
         h('h2', { class: 'card__title', text: 'بيانات الآلية' }),
         machineType.el, brand.el,
         h('div', { class: 'grid grid--2' }, model.el, color.el),
-        h('div', { class: 'grid grid--2' }, chassis.el, engineNo.el),
+        h('div', { class: 'grid grid--2' }, chassis.el, size.el),
         h('div', { class: 'grid grid--2' }, plate.el, governorate.el),
       ),
 

@@ -1,7 +1,8 @@
 // عارض المستند: يفتح العقد أو الوصل مكتوباً كاملاً كما يخرج من الطابعة.
 
 import * as db from './db.js';
-import { buildHtml, buildViewHtml } from './docactions.js';
+import { buildHtml, buildViewHtml } from './docbuild.js';
+import { forgetOverlay, openOverlay } from './overlay.js';
 import { countPages, printDocument, shareDocument } from './print.js';
 import { go } from './router.js';
 import { ask, h, toast } from './ui.js';
@@ -17,7 +18,8 @@ const MAX_ZOOM = 2.5;
  * @param {'contract'|'receipt'} kind
  * @param {object} doc المستند المحفوظ
  * @param {object} settings
- * @param {{onDeleted?: () => void}} [hooks]
+ * @param {{onDeleted?: () => void, preview?: boolean}} [hooks]
+ *   preview: معاينة من شاشة التحرير — بلا زرّي تعديل وحذف
  */
 export async function openDocument(kind, doc, settings, hooks = {}) {
   const label = kind === 'receipt' ? 'وصل' : 'عقد';
@@ -56,11 +58,15 @@ export async function openDocument(kind, doc, settings, hooks = {}) {
   };
 
   const overlay = h('div', { class: 'docview' });
-  const close = () => {
+  let afterClose = null;
+  // الإغلاق الفعلي — يأتي من زر الرجوع (popstate) أو من ✕ عبر history.back()
+  const teardown = () => {
     window.removeEventListener('resize', fit);
     document.removeEventListener('keydown', onKey);
     overlay.remove();
+    if (afterClose) afterClose();
   };
+  const close = () => history.back();
   const onKey = (e) => {
     if (e.key === 'Escape') close();
   };
@@ -77,7 +83,7 @@ export async function openDocument(kind, doc, settings, hooks = {}) {
 
   overlay.append(
     h('header', { class: 'docview__bar' },
-      h('button', { type: 'button', class: 'docview__x', 'aria-label': 'إغلاق', onclick: close }, '✕'),
+      h('button', { type: 'button', class: 'docview__x', 'aria-label': 'خروج من المعاينة', onclick: close }, '✕ خروج'),
       h('div', { class: 'docview__title' },
         h('b', { text: `${label} رقم ${formatDocNumber(doc.number)}` }),
         h('small', { text: kind === 'receipt' ? doc.buyerName || '' : `${doc.buyer?.name || ''} ← ${doc.seller?.name || ''}` }),
@@ -109,26 +115,32 @@ export async function openDocument(kind, doc, settings, hooks = {}) {
           if (ok) toast('جاهز للمشاركة', 'ok');
         }),
       }, '📤 مشاركة'),
-      h('button', {
+      hooks.preview ? null : h('button', {
         type: 'button', class: 'btn btn--ghost',
-        onclick: () => { close(); go(kind === 'receipt' ? 'receipt' : 'contract', { id: doc.id }); },
+        onclick: () => {
+          // خطوة العارض في السجل تُستبدل بشاشة التعديل بدل الرجوع عنها
+          forgetOverlay(teardown);
+          teardown();
+          go(kind === 'receipt' ? 'receipt' : 'contract', { id: doc.id }, { replace: true });
+        },
       }, '✎ تعديل'),
-      h('button', {
+      hooks.preview ? null : h('button', {
         type: 'button', class: 'btn btn--ghost btn--danger',
         onclick: () => act(async () => {
           const yes = await ask(`حذف ${label} رقم ${formatDocNumber(doc.number)}؟ لا يمكن التراجع.`,
             { yes: 'احذف', no: 'تراجع' });
           if (!yes) return;
           await db.remove(kind === 'receipt' ? 'receipts' : 'contracts', doc.id);
-          close();
           toast('حُذف', 'ok');
-          if (hooks.onDeleted) hooks.onDeleted();
+          afterClose = hooks.onDeleted || null;
+          close();
         }),
       }, '🗑 حذف'),
     ),
   );
 
   document.body.append(overlay);
+  openOverlay(teardown);
   document.addEventListener('keydown', onKey);
   window.addEventListener('resize', fit);
   frame.srcdoc = html;

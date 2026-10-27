@@ -312,7 +312,6 @@ html, body {
   pointer-events: none;
   z-index: 2;
 }
-.stamp svg { width: 100%; height: 100%; display: block; }
 .stamp--receipt {
   width: var(--stamp-size-receipt);
   height: var(--stamp-size-receipt);

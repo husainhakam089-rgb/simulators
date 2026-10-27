@@ -99,50 +99,14 @@ function headerBlock(s) {
 }
 
 /**
- * ختم المعرض الإلكتروني.
- *
- * يُرسم بالكود لا كصورة: يطلع حادّاً على أي مقاس طباعة، ويتبع بيانات
- * المعرض في الإعدادات. وإن رُفعت صورة ختم حقيقي فهي تعلو على المرسوم.
- *
- * النصّ أفقي داخل الدائرة لا منحنياً على محيطها: الحروف العربية تتقطّع
- * أوصالها في بعض محرّكات العرض حين تُرصف على مسار.
+ * ختم المعرض: صورة الختم الحقيقي إن رُفعت من الإعدادات، وإلا لا شيء.
+ * كان هنا ختم مرسوم بالكود، وأُزيل بطلب صاحب المعرض — لا يُطبع على
+ * العقد ختمٌ غير ختمه الحقيقي.
  */
 function stampBlock(s, variant = '') {
-  if (s.stampEnabled === false) return '';
+  if (s.stampEnabled === false || !s.stampImage) return '';
   const cls = variant ? `stamp stamp--${variant}` : 'stamp';
-
-  if (s.stampImage) {
-    return `<img class="${cls} stamp--photo" src="${escapeHtml(s.stampImage)}" alt="ختم المعرض">`;
-  }
-
-  const name = s.stampName || s.shopName || '';
-  const subtitle = s.stampSubtitle || '';
-  const note = s.stampNote || (s.manager ? `إدارة: ${s.manager}` : '');
-
-  // نجمة خماسية صغيرة أسفل النص، كما في الأختام الرسمية
-  const points = [];
-  for (let i = 0; i < 10; i++) {
-    const radius = i % 2 === 0 ? 7 : 7 / 2.4;
-    const angle = (Math.PI / 5) * i - Math.PI / 2;
-    points.push(`${(100 + radius * Math.cos(angle)).toFixed(1)},${(146 + radius * Math.sin(angle)).toFixed(1)}`);
-  }
-
-  return `
-  <div class="${cls}">
-    <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-label="ختم المعرض">
-      <g fill="none" stroke="currentColor">
-        <circle cx="100" cy="100" r="95" stroke-width="3.4"/>
-        <circle cx="100" cy="100" r="86" stroke-width="1.1"/>
-        <circle cx="100" cy="100" r="70" stroke-width="0.8" stroke-dasharray="2.5 2.5"/>
-      </g>
-      <g text-anchor="middle" fill="currentColor" direction="rtl">
-        <text x="100" y="84" font-size="18" font-weight="700">${escapeHtml(name)}</text>
-        ${subtitle ? `<text x="100" y="104" font-size="11">${escapeHtml(subtitle)}</text>` : ''}
-        ${note ? `<text x="100" y="127" font-size="10.5">${escapeHtml(note)}</text>` : ''}
-      </g>
-      <polygon points="${points.join(' ')}" fill="currentColor"/>
-    </svg>
-  </div>`;
+  return `<img class="${cls} stamp--photo" src="${escapeHtml(s.stampImage)}" alt="ختم المعرض">`;
 }
 
 /**
@@ -228,7 +192,7 @@ export function renderContractPage(c, s, copyKey) {
         </div>
         <div class="row">
           <div class="cell"><span class="lbl">رقم الشاصي</span><span class="val">${serial(c.chassis)}</span></div>
-          <div class="cell"><span class="lbl">رقم المحرك</span><span class="val">${serial(c.engineNo)}</span></div>
+          <div class="cell"><span class="lbl">الحجم</span><span class="val">${dots(c.size)}</span></div>
         </div>
         <div class="row">
           <div class="cell"><span class="lbl">والسنوية بأسم</span><span class="val">${dots(c.annualName)}</span></div>

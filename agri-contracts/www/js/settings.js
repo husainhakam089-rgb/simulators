@@ -48,13 +48,9 @@ export const DEFAULTS = {
   // الختم الإلكتروني — يُطبع مع العقد فلا يحتاج ختماً يدوياً
   stampEnabled: true,
   stampOnReceipt: true,   // الوصل يُختم أيضاً
-  stampImage: null,       // صورة ختم حقيقي تعلو على المرسوم
-  stampName: 'معرض البركة',
-  stampSubtitle: 'لتجارة السيارات الحديثة',
-  stampNote: '',          // فارغ = يُشتق من اسم الإدارة
+  stampImage: null,       // صورة الختم الحقيقي — لا يُطبع ختم بدونها
   digitStyle: 'arabic', // 'arabic' = ٠١٢٣ أو 'latin' = 0123
   subjectWord: 'الآلية', // قرار معلّق: «الآلية» أم «السيارة»
-  engineNoRequired: false, // قرار معلّق: رقم المحرك إلزامي؟
   conditionsReviewed: true, // النص الافتراضي هو نص الدفتر نفسه
 };
 

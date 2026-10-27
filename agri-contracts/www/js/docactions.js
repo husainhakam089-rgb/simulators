@@ -1,7 +1,9 @@
 // شريط النسخ والطباعة والمشاركة — مشترك بين العقد والوصل.
 
 import { h, toast } from './ui.js';
-import { COPY_LABELS, buildDocument, printDocument, renderContractPage, renderReceiptSheets, shareDocument } from './print.js';
+import { buildHtml } from './docbuild.js';
+import { openDocument } from './docviewer.js';
+import { COPY_LABELS, printDocument, shareDocument } from './print.js';
 import { formatDocNumber } from './util.js';
 
 const ORDER = ['buyer', 'seller', 'shop'];
@@ -34,25 +36,6 @@ export function copiesPicker(selected = []) {
     ),
     get: () => ORDER.filter((k) => value.includes(k)),
   };
-}
-
-async function contractHtml(contract, settings, copies) {
-  const pages = (copies.length ? copies : [null]).map((k) => renderContractPage(contract, settings, k)).join('');
-  return buildDocument(pages, { title: `عقد ${formatDocNumber(contract.number)}` });
-}
-
-async function receiptHtml(receipt, settings, copies) {
-  const entries = (copies.length ? copies : [null]).map((copy) => ({ receipt, copy }));
-  return buildDocument(renderReceiptSheets(entries, settings), { title: `وصل ${formatDocNumber(receipt.number)}` });
-}
-
-export async function buildHtml(kind, doc, settings, copies) {
-  return kind === 'receipt' ? receiptHtml(doc, settings, copies) : contractHtml(doc, settings, copies);
-}
-
-/** نسخة واحدة بلا ختم «نسخة …» — للعرض على الشاشة لا للطباعة. */
-export async function buildViewHtml(kind, doc, settings) {
-  return buildHtml(kind, doc, settings, [null]);
 }
 
 /**
@@ -103,18 +86,22 @@ export function printActions(kind, getDoc, getSettings, getCopies) {
     }),
   }, '📤 مشاركة PDF');
 
+  // المعاينة داخل التطبيق نفسه: window.open في تطبيق الهاتف كان يستبدل
+  // صفحة التطبيق بالعقد غير مصغَّر، بلا زر رجوع ولا طريقة للخروج.
   const previewBtn = h('button', {
     type: 'button', class: 'btn btn--ghost',
-    onclick: () => withHtml(async (html) => {
-      const win = window.open('', '_blank');
-      if (!win) {
-        toast('تعذّر فتح المعاينة', 'error');
+    onclick: async () => {
+      const doc = getDoc();
+      if (!doc) {
+        toast(`احفظ ${label} أولاً`, 'warn');
         return;
       }
-      win.document.open();
-      win.document.write(html);
-      win.document.close();
-    }),
+      try {
+        await openDocument(kind, { ...doc, copies: getCopies() }, getSettings(), { preview: true });
+      } catch (err) {
+        toast(err && err.message ? err.message : 'تعذّرت المعاينة', 'error');
+      }
+    },
   }, '👁 معاينة');
 
   return h('div', { class: 'actions' }, printBtn, shareBtn, previewBtn);
