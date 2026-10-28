@@ -21,7 +21,11 @@ const DRAW_ORDER = {
   eth_cub:  ['connBelow', 'basem', 'tCubS', 'eNuc'],
   eth_col:  ['connBelow', 'basem', 'tColS', 'eNuc'],
   eth_pse:  ['connBelow', 'basem', 'tPse', 'eNuc', 'cilia'],
-  eth_str:  ['connBelow', 'basem', 'tSqStr', 'eNuc']
+  eth_str:  ['connBelow', 'basem', 'tSqStr', 'eNuc'],
+  con_loose: ['matrixC', 'colFib', 'elaFib', 'fibro'],
+  con_cart:  ['cartHy', 'cartEl', 'cartFi', 'lacuna', 'chondro'],
+  con_bone:  ['lamella', 'havers', 'lacuna', 'osteo', 'canalic'],
+  con_blood: ['plasma', 'rbc', 'wbc', 'platelet']
 };
 /* كيف يُرسم كل جزء (وصف الشكل فقط؛ الموقع من الرسم نفسه) */
 const DRAW_SHAPE = {
@@ -51,7 +55,12 @@ const DRAW_SHAPE = {
   connBelow: 'مستطيلاً في الأسفل فيه وعاء دموي', basem: 'خطاً سميكاً فوقه', tSqS: 'صفاً واحداً من خلايا مسطحة رقيقة',
   tCubS: 'صفاً واحداً من مربعات متساوية', tColS: 'صفاً واحداً من مستطيلات طويلة', eNuc: 'نواة في كل خلية بشكل يناسبها',
   tPse: 'خلايا مختلفة الأطوال كلها تلامس الخط القاعدي', cilia: 'شعيرات قصيرة على سطح الخلايا الطويلة',
-  tSqStr: 'عدة صفوف: القاعدية مربعة والسطحية مسطحة'
+  tSqStr: 'عدة صفوف: القاعدية مربعة والسطحية مسطحة',
+  matrixC: 'مستطيلاً كبيراً (المادة بين الخلوية)', colFib: 'أشرطة سميكة متموجة', elaFib: 'خطوطاً رفيعة متفرعة',
+  fibro: 'خلايا مغزلية بنوى', cartHy: 'دائرة بمادة متجانسة', cartEl: 'دائرة فيها خطوط رفيعة متشابكة', cartFi: 'دائرة فيها حزم ألياف متوازية',
+  lacuna: 'تجاويف بيضوية صغيرة', chondro: 'خلية أو خليتين داخل كل تجويف', lamella: 'دوائر متحدة المركز',
+  havers: 'دائرة صغيرة في المركز فيها وعاء دموي', osteo: 'خلايا صغيرة بين الدوائر', canalic: 'خطوطاً دقيقة متشعبة من التجاويف',
+  plasma: 'وعاءً بسائل فاتح', rbc: 'أقراصاً حمراء مقعرة الوسط', wbc: 'خلايا أكبر بنواة مفصصة', platelet: 'أجساماً صغيرة جداً'
 };
 const drApi = host => ({ playing: true, dragSlider: false, sliderVal: 0,
   el: q => host.querySelector(q), all: q => Array.from(host.querySelectorAll(q)),
@@ -67,5 +76,7 @@ const DR_GROUPS = [
   { g: 'epi', t: 'البشرة والثغور', items: CH.exam.filter(d => d.k.indexOf('epi_') === 0).map(d => ({
       k: d.k, t: d.t, scene: () => SCENES[d.k].build(), order: DRAW_ORDER[d.k] })) },
   { g: 'eth', t: 'النسيج الظهاري', items: CH.exam.filter(d => d.k.indexOf('eth_') === 0).map(d => ({
+      k: d.k, t: d.t, scene: () => SCENES[d.k].build(), order: DRAW_ORDER[d.k] })) },
+  { g: 'con', t: 'النسيج الضام', items: CH.exam.filter(d => d.k.indexOf('con_') === 0).map(d => ({
       k: d.k, t: d.t, scene: () => SCENES[d.k].build(), order: DRAW_ORDER[d.k] })) }
 ];
