@@ -1,0 +1,197 @@
+<body>
+
+<!-- ═══ أيقونات الواجهة (SVG داخلي) ═══ -->
+<svg id="icons" aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden">
+  <symbol id="ic-play" viewBox="0 0 24 24"><path d="M7 4.5v15l13-7.5z"/></symbol>
+  <symbol id="ic-pause" viewBox="0 0 24 24"><path d="M8 4.5v15M16 4.5v15"/></symbol>
+  <symbol id="ic-reset" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 3.5V9h-5.5"/></symbol>
+  <symbol id="ic-table" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M3.5 14.5h17M9.5 9.5v10"/></symbol>
+  <symbol id="ic-route" viewBox="0 0 24 24"><path d="M5 19c6 0 4-7 9-7"/><circle cx="5" cy="19" r="2.2"/><path d="M14 8.5 18 12l-4 3.5"/></symbol>
+  <symbol id="ic-drop" viewBox="0 0 24 24"><path d="M12 3.5s6 6.4 6 10.2A6 6 0 0 1 6 13.7C6 9.9 12 3.5 12 3.5z"/></symbol>
+  <symbol id="ic-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"/></symbol>
+  <symbol id="ic-leaf" viewBox="0 0 24 24"><path d="M4 20c0-8 5-14 16-14 0 10-6 15-13 15"/><path d="M8 17c3-4 6-6 10-7"/></symbol>
+  <symbol id="ic-cross" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/><circle cx="12" cy="12" r="9"/></symbol>
+  <symbol id="ic-flask" viewBox="0 0 24 24"><path d="M9.5 3v6.2L4.6 18a2 2 0 0 0 1.7 3h11.4a2 2 0 0 0 1.7-3l-4.9-8.8V3"/><path d="M8 3h8M7 15h10"/></symbol>
+  <symbol id="ic-mol" viewBox="0 0 24 24"><circle cx="6" cy="17" r="2.6"/><circle cx="18" cy="16" r="2.2"/><circle cx="12" cy="6" r="2.8"/><path d="M8.2 15.4 10.3 8.4M14.2 7.7 17 13.9"/></symbol>
+  <symbol id="ic-cell" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="10" cy="10.5" r="3.2"/><path d="M15.5 15.5c1.2-.6 2-1.4 2.5-2.4"/></symbol>
+  <symbol id="ic-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="ic-spark" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M18.5 16.5l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z"/></symbol>
+  <symbol id="ic-close" viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></symbol>
+  <symbol id="ic-check" viewBox="0 0 24 24"><path d="M4.5 12.5l5 5 10-11"/></symbol>
+  <symbol id="ic-list" viewBox="0 0 24 24"><path d="M4 6.5h16M4 12h16M4 17.5h10"/></symbol>
+  <symbol id="ic-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3"/></symbol>
+  <symbol id="ic-moon" viewBox="0 0 24 24"><path d="M20.5 14.8A8.6 8.6 0 0 1 9.2 3.5a8.6 8.6 0 1 0 11.3 11.3z"/></symbol>
+  <symbol id="ic-expand" viewBox="0 0 24 24"><path d="M9 3.5H3.5V9M15 3.5h5.5V9M9 20.5H3.5V15M15 20.5h5.5V15"/></symbol>
+  <symbol id="ic-shrink" viewBox="0 0 24 24"><path d="M3.5 9H9V3.5M20.5 9H15V3.5M3.5 15H9v5.5M20.5 15H15v5.5"/></symbol>
+  <symbol id="ic-cube" viewBox="0 0 24 24"><path d="M12 2.8 20.5 7.5v9L12 21.2 3.5 16.5v-9z"/><path d="M3.5 7.5 12 12.2l8.5-4.7M12 12.2v9"/></symbol>
+  <symbol id="ic-next" viewBox="0 0 24 24"><path d="M15 5 8 12l7 7"/></symbol>
+  <symbol id="ic-prev" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></symbol>
+  <symbol id="ic-compare" viewBox="0 0 24 24"><path d="M4 5h6.5v14H4zM13.5 5H20v14h-6.5z"/></symbol>
+  <symbol id="ic-grow" viewBox="0 0 24 24"><path d="M12 20V5M6.5 10.5 12 5l5.5 5.5"/></symbol>
+  <symbol id="ic-layers" viewBox="0 0 24 24"><path d="M12 3.5 21 8l-9 4.5L3 8z"/><path d="M3 12.5 12 17l9-4.5M3 16.5 12 21l9-4.5"/></symbol>
+</svg>
+
+<!-- ═══ الواجهة الترحيبية: بوستر الأستاذ ═══ -->
+<div id="welcome">
+  <div class="welCard">
+    <div class="welKicker">أحياء السادس العلمي · الفصل الثاني</div>
+    <h2 class="welTitle">الأنسجة</h2>
+    <div class="welSub">محاكي تفاعلي ثلاثي الأبعاد للأنسجة النباتية والحيوانية</div>
+    <div class="welName"><b>د. أحمد الحسن</b><span>مدرس أحياء · السادس العلمي</span></div>
+    <button id="welGo" class="btn3d welGo">ابدأ المحاكاة</button>
+    <div class="welRow">
+      <button id="welExam" class="btn3d ghost3d">وضع الامتحان</button>
+      <button id="welDraw" class="btn3d ghost3d">الرسم اليدوي</button>
+    </div>
+  </div>
+</div>
+
+<header id="top">
+  <div id="titleRow">
+    <h1 id="brandBtn" title="الواجهة الترحيبية" role="button" tabindex="0">الأنسجة</h1>
+    <div class="sub">الفصل الثاني · أحياء السادس العلمي · محاكي تفاعلي</div>
+    <div class="src"><b>د. أحمد الحسن</b><span>مدرس أحياء · السادس العلمي</span></div>
+  </div>
+  <div id="tabsWrap"><nav id="tabs"></nav></div>
+</header>
+
+<button id="fsExit" class="iconBtn" title="خروج من ملء الشاشة" aria-label="خروج من ملء الشاشة"><svg class="ic"><use href="#ic-shrink"/></svg></button>
+<button id="fsTabsBtn" class="iconBtn" title="المواضيع" aria-label="المواضيع"><svg class="ic"><use href="#ic-list"/></svg></button>
+<div id="rotHint">لفّ الموبايل بالعرض حتى يكبر الرسم ⟲</div>
+
+<main id="wrap">
+  <section id="stage">
+    <svg id="svgHost" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid meet"
+         role="img" aria-label="مشهد تفاعلي"></svg>
+    <canvas id="fx" aria-hidden="true"></canvas>
+    <canvas id="gl3d" aria-label="مجسّم ثلاثي الأبعاد — اسحب لتدويره"></canvas>
+    <svg id="lbl3d" aria-hidden="true"><g id="lbl3dG"></g></svg>
+
+    <div id="sceneHead">
+      <div id="sceneName"></div>
+      <div id="sceneHint"></div>
+    </div>
+
+    <div id="phaseBar" class="panel">
+      <div class="phTop"><div class="pname" id="phaseName"></div>
+        <span class="phNav"><button id="phPrev" class="phBtn" aria-label="المرحلة السابقة" title="السابقة"><svg class="ic"><use href="#ic-prev"/></svg></button><button id="phNext" class="phBtn" aria-label="المرحلة التالية" title="التالية"><svg class="ic"><use href="#ic-next"/></svg></button></span></div>
+      <div class="pdesc" id="phaseDesc"></div>
+      <div class="pchrom" id="phaseChrom"></div>
+      <div class="pcap" id="phaseCap"></div>
+      <div class="psrc" id="phaseSrc"></div>
+    </div>
+
+    <div id="sceneTools"></div>
+
+    <div id="sheet" class="panel">
+      <div id="sheetHead">
+        <h4 id="sheetTitle"></h4>
+        <button id="sheetClose" title="إغلاق" aria-label="إغلاق"><svg class="ic"><use href="#ic-close"/></svg></button>
+      </div>
+      <div id="sheetBody"></div>
+    </div>
+
+    <!-- ═══════════ وضع الامتحان ═══════════ -->
+    <div id="exam">
+      <div id="examTop">
+        <div class="segbar">
+          <button id="mLabel" class="segb on"><svg class="ic"><use href="#ic-target"/></svg><span>أشّر الأجزاء</span></button>
+          <button id="mQuiz" class="segb"><svg class="ic"><use href="#ic-list"/></svg><span>اختبر نفسك</span></button>
+        </div>
+        <div id="score"></div>
+      </div>
+
+      <div id="examBody">
+        <div id="dragWrap">
+          <div id="pickRow"><span>اختر الرسم:</span></div>
+          <div id="dragStage">
+            <svg id="dragSvgHost" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid meet"
+                 role="img" aria-label="رسم بدون أسماء للتأشير"></svg>
+          </div>
+          <div id="dragDone"></div>
+          <div id="tray"></div>
+        </div>
+
+        <div id="quiz">
+          <div id="qMeta"></div>
+          <div id="qText"></div>
+          <div id="qOpts"></div>
+          <div id="qWhy" class="panel"></div>
+          <button id="qNext" class="btn primary"><span>السؤال التالي</span><svg class="ic"><use href="#ic-route"/></svg></button>
+        </div>
+      </div>
+    </div>
+    <div id="drawM">
+      <div id="drPick"></div>
+      <div id="drBody">
+        <div id="drStage">
+          <svg id="drSvg" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid meet" role="img" aria-label="رسم يدوي خطوة بخطوة"></svg>
+          <canvas id="drPad" aria-label="لوح الرسم"></canvas>
+        </div>
+        <div id="drSide" class="panel">
+          <div id="drStepNo"></div>
+          <div id="drStepName"></div>
+          <div id="drStepTxt"></div>
+          <div id="drDots"></div>
+        </div>
+      </div>
+      <div id="drCtl">
+        <div class="grp">
+          <button id="drPrev" class="stool"><svg class="ic"><use href="#ic-route"/></svg><span>السابق</span></button>
+          <button id="drPlay" class="stool on"><svg class="ic"><use href="#ic-pause"/></svg><span>إيقاف</span></button>
+          <button id="drNext" class="stool"><svg class="ic"><use href="#ic-route"/></svg><span>التالي</span></button>
+          <button id="drRestart" class="stool"><svg class="ic"><use href="#ic-reset"/></svg><span>من البداية</span></button>
+        </div>
+        <div id="drSpeed" class="segbar">
+          <button class="stool" data-v="0.5">بطيء</button><button class="stool on" data-v="1">عادي</button><button class="stool" data-v="2">سريع</button>
+        </div>
+        <div class="grp">
+          <button id="drNamesBtn" class="stool on"><svg class="ic"><use href="#ic-list"/></svg><span>الأسماء</span></button>
+          <button id="drColorBtn" class="stool"><svg class="ic"><use href="#ic-spark"/></svg><span>لوّن الرسم</span></button>
+          <button id="drPracBtn" class="stool"><svg class="ic"><use href="#ic-leaf"/></svg><span>ارسم بنفسك</span></button>
+          <button id="drGuideBtn" class="stool drPracOnly"><svg class="ic"><use href="#ic-eye"/></svg><span>أخفِ الدليل</span></button>
+          <button id="drClearBtn" class="stool drPracOnly"><svg class="ic"><use href="#ic-close"/></svg><span>امسح رسمي</span></button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <aside id="info" class="closed">
+    <div id="infoHead">
+      <div>
+        <div id="infoName">لوحة المعلومات</div>
+        <div id="infoSrc"></div>
+      </div>
+      <button id="infoClose" title="إغلاق" aria-label="إغلاق"><svg class="ic"><use href="#ic-close"/></svg></button>
+    </div>
+    <div id="infoEmpty">
+      اضغط على أي <b>نسيج</b> أو جزء داخل الرسم، وتطلعلك هنا: الموقع والتركيب
+      والوظيفة وملاحظة مهمة للامتحان — من منهج السادس العلمي.
+      <div class="hintCard">النصوص حالياً من المنهج، وتُطابَق مع ملزمة الفصل الثاني وأرقام صفحاتها حال وصولها.</div>
+    </div>
+    <div id="infoBody" hidden></div>
+    <div id="infoFoot" hidden>
+      <button id="seeFn" class="btn primary"><svg class="ic"><use href="#ic-play"/></svg><span>شوف الوظيفة</span></button>
+    </div>
+  </aside>
+</main>
+
+<div id="bar">
+  <button id="playBtn" class="btn"><svg class="ic"><use href="#ic-pause" id="playIcon"/></svg><span id="playTxt">إيقاف</span></button>
+  <div class="ctl">
+    <label for="spd">السرعة</label>
+    <input id="spd" type="range" min="0.2" max="2.5" step="0.1" value="1">
+    <output id="spdOut">1.0×</output>
+  </div>
+  <label class="tgl"><input id="lblTgl" type="checkbox" checked><svg class="ic"><use href="#ic-eye"/></svg><span>الأسماء</span></label>
+  <label class="tgl"><input id="glowTgl" type="checkbox" checked><svg class="ic"><use href="#ic-spark"/></svg><span>تأثيرات</span></label>
+  <div id="barSpacer"></div>
+  <button id="v3Btn" class="btn ghost" title="عرض الرسم مجسّماً ثلاثي الأبعاد"><svg class="ic"><use href="#ic-cube"/></svg><span id="v3Txt">ثلاثي الأبعاد</span></button>
+  <button id="themeBtn" class="btn ghost" title="تبديل الوضع نهاري/ليلي"><svg class="ic"><use id="themeIcon" href="#ic-sun"/></svg><span id="themeTxt">نهاري</span></button>
+  <button id="fsBtn" class="btn ghost" title="ملء الشاشة للرسم"><svg class="ic"><use id="fsIcon" href="#ic-expand"/></svg><span id="fsTxt">ملء الشاشة</span></button>
+  <button id="tblBtn" class="btn ghost"><svg class="ic"><use href="#ic-table"/></svg><span>كل الجداول</span></button>
+  <button id="resetBtn" class="btn ghost"><svg class="ic"><use href="#ic-reset"/></svg><span>إعادة المشهد</span></button>
+</div>
+
+<script>
+"use strict";
