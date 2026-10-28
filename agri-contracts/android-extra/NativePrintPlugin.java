@@ -290,8 +290,17 @@ public class NativePrintPlugin extends Plugin {
         getContext().startActivity(chooser);
     }
 
+    /** دقة الصورة المرسومة لكل صفحة: 200 نقطة/إنش تكفي لطباعة نص صغير بوضوح. */
+    private static final int RASTER_DPI = 200;
+
     /**
      * رسم صفحات المستند في ملف PDF بمقاس A4 بالضبط.
+     *
+     * كل صفحة تُرسم أولاً في صورة (Bitmap) ثم توضع الصورة في صفحة الـ PDF.
+     * رسم الـ WebView مباشرة على لوحة PdfDocument كان يُخرج صفحة بيضاء: محرّك
+     * Chromium لا يرسم برمجياً إلا على لوحة مدعومة بصورة، فكان فحص الصفحة
+     * (وهو على صورة) ينجح والـ PDF نفسه يخرج فارغاً. الآن ما يُفحص هو نفسه
+     * ما يُكتب في الملف.
      * @return رسالة الخطأ، أو null عند النجاح.
      */
     private String renderToPdf(WebView webView, File out, int pageCount) {
@@ -308,70 +317,70 @@ public class NativePrintPlugin extends Plugin {
                 View.MeasureSpec.makeMeasureSpec(viewHeight, View.MeasureSpec.EXACTLY));
         webView.layout(0, 0, viewWidth, viewHeight);
 
-        if (isBlank(webView, viewWidth, pageHeightPx)) {
-            return "خرجت الصفحة بيضاء. استعمل زر الطباعة ثم اختر «حفظ كـ PDF».";
-        }
+        int bmpWidth = Math.round(210f / 25.4f * RASTER_DPI);
+        int bmpHeight = Math.round(297f / 25.4f * RASTER_DPI);
+        float toBitmap = (float) bmpWidth / (float) viewWidth;
 
         PdfDocument document = new PdfDocument();
+        Bitmap bitmap = null;
         try {
-            float scale = (float) A4_PT_WIDTH / (float) viewWidth;
+            bitmap = Bitmap.createBitmap(bmpWidth, bmpHeight, Bitmap.Config.ARGB_8888);
+            Canvas bmpCanvas = new Canvas(bitmap);
+            android.graphics.Rect dest = new android.graphics.Rect(0, 0, A4_PT_WIDTH, A4_PT_HEIGHT);
+            android.graphics.Paint paint = new android.graphics.Paint(android.graphics.Paint.FILTER_BITMAP_FLAG);
             for (int i = 0; i < pages; i++) {
+                bmpCanvas.save();
+                bmpCanvas.drawColor(Color.WHITE);
+                bmpCanvas.scale(toBitmap, toBitmap);
+                bmpCanvas.translate(0, -i * pageHeightPx);
+                webView.draw(bmpCanvas);
+                bmpCanvas.restore();
+
+                if (i == 0 && isBlank(bitmap)) {
+                    return "خرجت الصفحة بيضاء. استعمل زر الطباعة ثم اختر «حفظ كـ PDF».";
+                }
+
                 PdfDocument.PageInfo info =
                         new PdfDocument.PageInfo.Builder(A4_PT_WIDTH, A4_PT_HEIGHT, i + 1).create();
                 PdfDocument.Page page = document.startPage(info);
-                Canvas canvas = page.getCanvas();
-                canvas.scale(scale, scale);
-                canvas.translate(0, -i * pageHeightPx);
-                webView.draw(canvas);
+                page.getCanvas().drawBitmap(bitmap, null, dest, paint);
                 document.finishPage(page);
             }
             try (FileOutputStream stream = new FileOutputStream(out)) {
                 document.writeTo(stream);
             }
             return out.length() > 0 ? null : "خرج ملف PDF فارغاً";
+        } catch (OutOfMemoryError e) {
+            return "الذاكرة لا تكفي لتوليد PDF. استعمل زر الطباعة ثم اختر «حفظ كـ PDF».";
         } catch (Exception e) {
             return "تعذّر توليد ملف PDF: " + e.getMessage();
         } finally {
             document.close();
+            if (bitmap != null) {
+                bitmap.recycle();
+            }
         }
     }
 
     /**
-     * فحص أن الصفحة الأولى رُسمت فعلاً.
-     * بدونه تخرج ورقة بيضاء صامتة إن امتنع الـ WebView عن الرسم، وهو ما
-     * يحصل حين لا يكون مُلحقاً بنافذة أو حين يُرصف بمقاس صفري.
+     * هل الصورة المرسومة بيضاء كلها؟ تُفحص عيّنة من البكسلات لا كلها.
+     * بدونه تخرج ورقة بيضاء صامتة إن امتنع الـ WebView عن الرسم.
      */
-    private boolean isBlank(WebView webView, int viewWidth, float pageHeightPx) {
-        final int probeWidth = 120;
-        int probeHeight = Math.max(1, Math.round(probeWidth * pageHeightPx / viewWidth));
-        Bitmap probe = Bitmap.createBitmap(probeWidth, probeHeight, Bitmap.Config.ARGB_8888);
-        try {
-            Canvas canvas = new Canvas(probe);
-            canvas.drawColor(Color.WHITE);
-            float scale = (float) probeWidth / (float) viewWidth;
-            canvas.scale(scale, scale);
-            webView.draw(canvas);
-
-            int[] pixels = new int[probeWidth * probeHeight];
-            probe.getPixels(pixels, 0, probeWidth, 0, 0, probeWidth, probeHeight);
-            int inked = 0;
-            for (int pixel : pixels) {
-                int r = Color.red(pixel);
-                int g = Color.green(pixel);
-                int b = Color.blue(pixel);
-                if (r < 235 || g < 235 || b < 235) {
-                    inked++;
-                    if (inked > 40) {
+    private boolean isBlank(Bitmap bitmap) {
+        int w = bitmap.getWidth();
+        int h = bitmap.getHeight();
+        int inked = 0;
+        for (int y = 0; y < h; y += 8) {
+            for (int x = 0; x < w; x += 8) {
+                int pixel = bitmap.getPixel(x, y);
+                if (Color.red(pixel) < 235 || Color.green(pixel) < 235 || Color.blue(pixel) < 235) {
+                    if (++inked > 40) {
                         return false;
                     }
                 }
             }
-            return true;
-        } catch (Exception e) {
-            return false; // الفحص نفسه ليس سبباً لمنع المحاولة
-        } finally {
-            probe.recycle();
         }
+        return true;
     }
 
     /** اسم ملف صالح: بلا فواصل مسار ولا محارف تكسر مزوّد الملفات. */
