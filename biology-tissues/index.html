@@ -1242,15 +1242,17 @@ const CH = {
     { k: 'vasc', t: 'الأنسجة المعقدة' },
     { k: 'epid', t: 'البشرة والثغور' },
     { k: 'epith', t: 'النسيج الظهاري' },
-    { k: 'conn', t: 'النسيج الضام' }
+    { k: 'conn', t: 'النسيج الضام' },
+    { k: 'musc', t: 'النسيج العضلي' }
   ],
-  sel: { merv: 'loc', simv: 'sloc', vasv: 'vbun', epiv: 'eleaf', ethv: 'esq', conv: 'cloose' },
+  sel: { merv: 'loc', simv: 'sloc', vasv: 'vbun', epiv: 'eleaf', ethv: 'esq', conv: 'cloose', musv: 'mskel' },
   toolIcons: { loc: 'leaf', root: 'grow', cell: 'cell', cmp: 'compare', stPrev: 'prev', stNext: 'next',
     sloc: 'leaf', par: 'cell', col: 'layers', scl: 'cross', scmp: 'compare',
     vbun: 'layers', xyl: 'drop', phl: 'mol', vcmp: 'compare',
     eleaf: 'leaf', esec: 'layers', estom: 'eye',
     esq: 'mol', ecub: 'cell', ecol: 'drop', epse: 'spark', estr: 'layers', ecmp: 'compare',
-    cloose: 'route', ccart: 'cell', cbone: 'target', cblood: 'drop', ccmp: 'compare' },
+    cloose: 'route', ccart: 'cell', cbone: 'target', cblood: 'drop', ccmp: 'compare',
+    mskel: 'layers', msmooth: 'route', mcard: 'spark', mcmp: 'compare', contract: 'play' },
   exam: [
     { k: 'mer_loc',  t: 'مواقع المرستيمات في النبات' },
     { k: 'mer_root', t: 'مقطع طولي في قمة الجذر' },
@@ -1273,7 +1275,10 @@ const CH = {
     { k: 'con_loose', t: 'النسيج الضام الأصيل' },
     { k: 'con_cart',  t: 'الغضروف' },
     { k: 'con_bone',  t: 'العظم (جهاز هافرس)' },
-    { k: 'con_blood', t: 'الدم' }
+    { k: 'con_blood', t: 'الدم' },
+    { k: 'mus_skel',   t: 'العضلي الهيكلي (المخطط الإرادي)' },
+    { k: 'mus_smooth', t: 'العضلي الأملس (اللاإرادي)' },
+    { k: 'mus_card',   t: 'العضلي القلبي' }
   ]
 };
 
@@ -1880,6 +1885,66 @@ Object.assign(INFO, {
   }
 });
 
+/* ───────────── النسيج العضلي ───────────── */
+Object.assign(INFO, {
+  tMuscle: {
+    name: 'النسيج العضلي', src: SRC_WAIT,
+    loc: 'العضلات المرتبطة بالهيكل العظمي، وجدران الأعضاء الداخلية، وجدار القلب.',
+    struct: 'خلايا طويلة تسمى الألياف العضلية، قادرة على التقلص والانبساط.',
+    fn: 'الحركة: حركة الجسم وأجزائه، وحركة الأعضاء الداخلية، وضربات القلب.',
+    note: 'ثلاثة أنواع: الهيكلي (المخطط الإرادي)، الأملس (اللاإرادي)، القلبي (المخطط اللاإرادي).'
+  },
+  tSkel: {
+    name: 'العضلي الهيكلي (المخطط الإرادي)', src: SRC_WAIT,
+    loc: 'العضلات المرتبطة بالعظام (عضلات الأطراف والجذع).',
+    struct: 'ألياف طويلة أسطوانية غير متفرعة، متعددة النوى (النوى على أطراف الليف)، مخططة بأشرطة فاتحة وداكنة متعاقبة.',
+    fn: 'حركة الجسم وأجزائه؛ يتقلص بإرادة الإنسان.',
+    note: 'يسمى «إرادياً» لأنه يتقلص بإرادتنا، و«مخططاً» لظهور أشرطة فاتحة وداكنة على أليافه.'
+  },
+  tSmooth: {
+    name: 'العضلي الأملس (اللاإرادي)', src: SRC_WAIT,
+    loc: 'جدران الأعضاء الداخلية: القناة الهضمية (المعدة والأمعاء)، الأوعية الدموية، المثانة.',
+    struct: 'خلايا مغزلية الشكل، لكل منها نواة واحدة في الوسط، وغير مخططة.',
+    fn: 'حركة الأعضاء الداخلية (مثل دفع الطعام في القناة الهضمية)؛ يتقلص ببطء دون إرادتنا.',
+    note: 'يسمى «أملس» لعدم وجود التخطط، و«لاإرادياً» لأنه لا يخضع لإرادتنا.'
+  },
+  tCard: {
+    name: 'العضلي القلبي', src: SRC_WAIT,
+    loc: 'جدار القلب فقط.',
+    struct: 'ألياف مخططة متفرعة، لكل خلية نواة واحدة (أو اثنتان) في الوسط، تتصل بعضها ببعض بالأقراص البينية.',
+    fn: 'ضخ الدم: يتقلص بانتظام وباستمرار دون إرادتنا ودون تعب.',
+    note: 'القلبي مخطط مثل الهيكلي لكنه لاإرادي مثل الأملس، ويتميز بالأقراص البينية والتفرع.'
+  },
+  mNuc: {
+    name: 'النوى', src: SRC_WAIT,
+    loc: 'داخل الألياف العضلية.',
+    struct: 'في الهيكلي: نوى كثيرة على أطراف الليف؛ في الأملس: نواة واحدة وسطية؛ في القلبي: نواة واحدة (أو اثنتان) وسطية.',
+    fn: 'السيطرة على فعاليات الليف العضلي.',
+    note: 'تعدد النوى من صفات الألياف الهيكلية.'
+  },
+  mStri: {
+    name: 'التخطط', src: SRC_WAIT,
+    loc: 'على الألياف العضلية الهيكلية والقلبية.',
+    struct: 'أشرطة (أقراص) فاتحة وداكنة متعاقبة على طول الليف.',
+    fn: 'تتقارب عند التقلص فيقصر الليف.',
+    note: 'الأملس هو النوع الوحيد غير المخطط.'
+  },
+  icDisc: {
+    name: 'الأقراص البينية', src: SRC_WAIT,
+    loc: 'بين نهايات خلايا العضلة القلبية المتجاورة.',
+    struct: 'خطوط داكنة سميكة عرضية.',
+    fn: 'تربط خلايا القلب بعضها ببعض فتنتقل الإشارة بينها وتتقلص معاً.',
+    note: 'الأقراص البينية توجد في العضلة القلبية فقط.'
+  },
+  mFiber: {
+    name: 'الليف العضلي', src: SRC_WAIT,
+    loc: 'الوحدة البنائية للنسيج العضلي.',
+    struct: 'خلية عضلية طويلة.',
+    fn: 'يتقلص فيقصر طوله ثم ينبسط.',
+    note: 'الخلية العضلية تسمى الليف العضلي لطولها.'
+  }
+});
+
 const TABLES = {
   merTypes: {
     title: 'أنواع المرستيمات حسب موقعها',
@@ -2016,6 +2081,19 @@ const TABLES = {
       ['الصفيحات الدموية', 'أجزاء صغيرة من خلايا', 'تخثر الدم']
     ]
   },
+  muscleCmp: {
+    title: 'مقارنة أنواع النسيج العضلي',
+    head: ['وجه المقارنة', 'الهيكلي', 'الأملس', 'القلبي'],
+    rows: [
+      ['شكل الخلايا', 'ألياف أسطوانية طويلة غير متفرعة', 'مغزلية', 'ألياف متفرعة'],
+      ['النوى', 'متعددة، على الأطراف', 'نواة واحدة وسطية', 'نواة واحدة (أو اثنتان) وسطية'],
+      ['التخطط', 'مخطط', 'غير مخطط', 'مخطط'],
+      ['التحكم', 'إرادي', 'لاإرادي', 'لاإرادي'],
+      ['الأقراص البينية', 'لا توجد', 'لا توجد', 'توجد'],
+      ['الموقع', 'مرتبط بالعظام', 'جدران الأعضاء الداخلية', 'جدار القلب'],
+      ['سرعة التقلص', 'سريع', 'بطيء', 'منتظم مستمر']
+    ]
+  },
   rootZones: {
     title: 'مناطق قمة الجذر',
     head: ['المنطقة', 'صفات خلاياها', 'ما يحدث فيها'],
@@ -2127,7 +2205,23 @@ const QUIZ = [
   { topic: 'conn', q: 'تساعد على تخثر الدم:', o: ['الصفيحات الدموية', 'كريات الدم الحمر', 'كريات الدم البيض', 'الخلايا الليفية'], c: 0,
     why: 'الصفيحات الدموية أجزاء من خلايا تساعد على تخثر الدم عند الجروح.' },
   { topic: 'conn', q: 'نسيج ضام خالٍ من الأوعية الدموية:', o: ['الغضروف', 'العظم', 'الدم', 'الضام الأصيل'], c: 0,
-    why: 'الغضروف لا يحتوي على أوعية دموية فتتغذى خلاياه بالانتشار.' }
+    why: 'الغضروف لا يحتوي على أوعية دموية فتتغذى خلاياه بالانتشار.' },
+  { topic: 'musc', q: 'النسيج العضلي المخطط الإرادي هو:', o: ['الهيكلي', 'الأملس', 'القلبي', 'الظهاري'], c: 0,
+    why: 'العضلي الهيكلي مخطط ويتقلص بإرادتنا.' },
+  { topic: 'musc', q: 'ألياف عضلية متعددة النوى:', o: ['الهيكلية', 'الملساء', 'القلبية', 'جميعها'], c: 0,
+    why: 'الألياف الهيكلية متعددة النوى وتقع نواها على أطراف الليف.' },
+  { topic: 'musc', q: 'تتميز العضلة القلبية بوجود:', o: ['الأقراص البينية', 'نوى كثيرة على الأطراف', 'خلايا مغزلية غير مخططة', 'الأهداب'], c: 0,
+    why: 'الأقراص البينية تربط خلايا العضلة القلبية بعضها ببعض، وتوجد فيها فقط.' },
+  { topic: 'musc', q: 'النسيج العضلي غير المخطط هو:', o: ['الأملس', 'الهيكلي', 'القلبي', 'لا يوجد'], c: 0,
+    why: 'الأملس خلاياه مغزلية بلا تخطط، ولهذا سمي أملس.' },
+  { topic: 'musc', q: 'يوجد العضلي الأملس في:', o: ['جدران القناة الهضمية والأوعية الدموية', 'العضلات المرتبطة بالعظام', 'جدار القلب فقط', 'الجلد فقط'], c: 0,
+    why: 'العضلي الأملس في جدران الأعضاء الداخلية كالقناة الهضمية والأوعية الدموية والمثانة.' },
+  { topic: 'musc', q: 'العضلي القلبي:', o: ['مخطط لاإرادي', 'مخطط إرادي', 'أملس إرادي', 'أملس لاإرادي'], c: 0,
+    why: 'القلبي مخطط مثل الهيكلي لكنه لاإرادي.' },
+  { topic: 'musc', q: 'خلايا العضلي الأملس:', o: ['مغزلية بنواة واحدة وسطية', 'أسطوانية متعددة النوى', 'متفرعة بأقراص بينية', 'مسطحة'], c: 0,
+    why: 'خلايا الأملس مغزلية الشكل، لكل منها نواة واحدة في الوسط.' },
+  { topic: 'musc', q: 'الخلية العضلية تسمى:', o: ['الليف العضلي', 'الخلية الليفية', 'الخلية الغضروفية', 'العصبون'], c: 0,
+    why: 'الخلية العضلية طويلة لذلك تسمى الليف العضلي.' }
 ];
 
 /* «رتّب المراحل»: مراحل كل موضوع بترتيبها الصحيح */
@@ -2163,6 +2257,8 @@ const ORDER_SETS = [
    - النسيج الضام: لم يُبنَ النسيج الدهني ولا الشبكي ولا الضام الكثيف (الأوتار
      والأربطة) ولا اللمف لاختلاف المصادر في تصنيفها؛ تُضاف كما تذكرها الملزمة.
      التأكد من ذكر «القنيوات» و«جهاز هافرس» وأنواع الغضروف الثلاثة بهذه الأسماء.
+   - النسيج العضلي: التأكد من وصف نوى العضلة القلبية (واحدة أو اثنتان) كما في
+     الملزمة، ومن ذكر «الأقراص البينية» بهذا الاسم.
    - مراحل «تكوّن الخلية السكلرنكيمية» مبنية من وصف المنهج (خلية حية ← تلجنن
      ← موت)؛ تُعدَّل إذا عرضتها الملزمة بشكل آخر.
 */
@@ -4123,6 +4219,172 @@ function conCmp(){
     tools: [{ id: 'tbl:connTypes', label: 'جدول الفروقات' }, { id: 'tbl:cartBone', label: 'الغضروف × العظم' }],
     init(){ if (!opened){ opened = true; setTimeout(() => { if (curKey === 'conn' && SEL.conv === 'ccmp' && !(window.__v3 && window.__v3.active())) openSheet(TABLES.connTypes); }, 700); } },
     tick(dt, t, a){ a.all('.dHi').forEach((e, i) => e.style.filter = `drop-shadow(0 0 ${n2(3 + 5 * (0.5 + 0.5 * Math.sin(t * 2.2 + i)))}px #ffd166)`); }
+  };
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   4.7 · النسيج العضلي: الهيكلي (يتقلص بزر «تقلّص» لأنه إرادي)، الأملس
+         (موجة تقلص بطيئة لاإرادية)، القلبي (ينبض باستمرار)، والمقارنة
+   ══════════════════════════════════════════════════════════════════════════ */
+const MUS_VIEWS = [
+  { id: 'mskel',   label: 'الهيكلي' },
+  { id: 'msmooth', label: 'الأملس' },
+  { id: 'mcard',   label: 'القلبي' },
+  { id: 'mcmp',    label: 'قارن' }
+];
+const MUS_PAL = { skel: '#c9505a', skelL: '#ffc8c8', band: '#7a2430', smooth: '#d97c84', card: '#b8434f', disc: '#3a0f18' };
+/* حالة التقلص المشتركة بين الرسم المسطّح والمجسّم: k من 0 (منبسط) إلى 1 (متقلص) */
+const MUS = { k: 0, pulse: -9 };
+const musPulse = t => { const d = t - MUS.pulse; return d < 0 || d > 1.8 ? 0 : d < 0.35 ? d / 0.35 : d < 1.0 ? 1 : 1 - (d - 1.0) / 0.8; };
+const heartBeat = t => { const p = (t * 1.15) % 1; return p < 0.12 ? Math.sin(p / 0.12 * Math.PI) : p < 0.3 ? 0.55 * Math.sin((p - 0.12) / 0.18 * Math.PI) : 0; };
+
+SCENES.musc = {
+  title: 'النسيج العضلي',
+  get src(){ return SRC_WAIT; },
+  tint: ['rgba(180,70,80,.24)', 'rgba(120,80,120,.16)'],
+  model3d: () => 'mus_' + SEL.musv,
+  build(){
+    const v = SEL.musv || 'mskel';
+    const s = v === 'msmooth' ? musSmooth() : v === 'mcard' ? musCard() : v === 'mcmp' ? musCmp() : musSkel();
+    s.rebuildOnRadio = 'musv';
+    s.tools = MUS_VIEWS.map(x => ({ id: x.id, label: x.label, radio: 'musv', on: x.id === v })).concat(s.tools || []);
+    return s;
+  }
+};
+SCENES.mus_skel   = { title: 'العضلي الهيكلي (المخطط الإرادي)', build: () => musSkel() };
+SCENES.mus_smooth = { title: 'العضلي الأملس (اللاإرادي)', build: () => musSmooth() };
+SCENES.mus_card   = { title: 'العضلي القلبي', build: () => musCard() };
+
+/* ───────── 1) الهيكلي: ألياف طويلة مخططة متعددة النوى ───────── */
+function musSkel(){
+  const X0 = 200, X1 = 800, H = 62, rows = [150, 230, 310, 390], rr = rng(17);
+  const fibers = [], stripes = [], nucs = [];
+  rows.forEach((y, r) => {
+    fibers.push(`<rect x="${X0}" y="${y}" width="${X1 - X0}" height="${H}" rx="28" fill="${MUS_PAL.skel}" stroke="${MUS_PAL.skelL}" stroke-width="1.6"/>`);
+    for (let x = X0 + 18; x < X1 - 18; x += 18) stripes.push(`<rect x="${x}" y="${y + 6}" width="7" height="${H - 12}" fill="${MUS_PAL.band}" opacity=".55"/>`);
+    for (let i = 0; i < 7; i++){ const x = X0 + 50 + i * 82 + rr() * 20, top = (i + r) % 2 === 0;
+      nucs.push(`<ellipse cx="${n2(x)}" cy="${top ? y + 7 : y + H - 7}" rx="17" ry="5.5" fill="url(#gNucl)"/>`); }
+  });
+  const body = `
+    <rect x="150" y="130" width="50" height="340" rx="14" fill="#e9dcc0" stroke="#fff6e0" stroke-width="2"/>
+    <text class="cap sm" x="175" y="500" text-anchor="middle">عظم</text>
+    <g id="skelG">
+      ${part('mFiber', fibers[0])}
+      ${part('tSkel', fibers.slice(1).join(''))}
+      ${part('mStri', stripes.join(''))}
+      ${part('mNuc', nucs.join(''))}
+    </g>
+    <g id="pullArr" opacity="0"><path d="M860,300 L920,300 M872,288 L860,300 L872,312" fill="none" stroke="#ffe08a" stroke-width="3" stroke-linecap="round"/></g>
+    <text id="skelHint" class="cap sm" x="500" y="510" text-anchor="middle">اضغط «تقلّص» — العضلة الهيكلية إرادية تتقلص عندما نريد</text>`;
+  return {
+    body, fnParts: ['tSkel', 'mStri'],
+    parts: [
+      /* المؤشرات قرب الطرف الثابت (عند العظم) حتى تبقى على الألياف أثناء التقلص */
+      { id: 'mFiber', anchor: [X0 + 40, rows[0] + 10], label: [134, 120], side: 'L' },
+      { id: 'mNuc', anchor: [X0 + 50, rows[1] + H - 7], label: [134, 280], side: 'L' },
+      { id: 'tSkel', anchor: [X0 + 30, rows[3] + 40], label: [134, 440], side: 'L' },
+      { id: 'mStri', anchor: [X0 + 18 * 6 + 3, rows[2] + 30], label: [866, 330], side: 'R' }
+    ],
+    tools: [{ id: 'contract', label: 'تقلّص' }, { id: 'tbl:muscleCmp', label: 'مقارنة الأنواع' }],
+    onTool(id){ if (id === 'contract') MUS.pulse = tAcc; },
+    tick(dt, t, a){
+      if (focusOwner && t - MUS.pulse > 2.2) MUS.pulse = t;
+      MUS.k = musPulse(t);
+      const sx = 1 - 0.18 * MUS.k, sy = 1 + 0.12 * MUS.k;
+      const g = a.el('#skelG'); if (g) g.setAttribute('transform', `translate(${X0},300) scale(${n2(sx)},${n2(sy)}) translate(${-X0},-300)`);
+      const p = a.el('#pullArr'); if (p) p.setAttribute('opacity', n2(MUS.k));
+    }
+  };
+}
+
+/* ───────── 2) الأملس: خلايا مغزلية بنواة وسطية، موجة تقلص بطيئة ───────── */
+function musSmooth(){
+  const cells = [], nucs = [], CL = 230, CH = 46;
+  let k = 0;
+  for (let r = 0; r < 6; r++) for (let i = -1; i < 4; i++){
+    const cx = 230 + i * 200 + (r % 2 ? 100 : 0), cy = 150 + r * 56;
+    if (cx < 150 || cx > 850) continue;
+    cells.push(`<g class="smc" data-x="${cx}" data-y="${cy}"><path d="M${cx - CL / 2},${cy} Q${cx},${cy - CH} ${cx + CL / 2},${cy} Q${cx},${cy + CH} ${cx - CL / 2},${cy}Z" fill="${MUS_PAL.smooth}" stroke="#ffd8dc" stroke-width="1.4"/>
+      <ellipse cx="${cx}" cy="${cy}" rx="26" ry="7" fill="url(#gNucl)"/></g>`);
+    k++;
+  }
+  const body = `
+    ${part('tSmooth', `<g id="smG">${cells.slice(1).join('')}</g>`)}
+    ${part('mFiber', cells[0])}
+    <g id="nucMark">${part('mNuc', `<circle cx="${230 + 200}" cy="${150 + 2 * 56}" r="30" fill="none" stroke="#ffe08a" stroke-width="2" stroke-dasharray="4 4"/>`)}</g>
+    <text class="cap sm" x="500" y="510" text-anchor="middle">العضلة الملساء لاإرادية: تتقلص ببطء بموجة متتابعة (مثل دفع الطعام في الأمعاء)</text>`;
+  return {
+    body, fnParts: ['tSmooth'],
+    parts: [
+      { id: 'mFiber', anchor: [230 - 60, 150], label: [134, 140], side: 'L' },
+      { id: 'mNuc', anchor: [430 - 26, 150 + 2 * 56], label: [134, 330], side: 'L' },
+      { id: 'tSmooth', anchor: [790, 400], label: [866, 420], side: 'R' }
+    ],
+    tools: [{ id: 'tbl:muscleCmp', label: 'مقارنة الأنواع' }],
+    tick(dt, t, a){
+      const sp = focusOwner === 'tSmooth' ? 1.6 : 1;
+      a.all('.smc').forEach(e => { const x = +e.dataset.x, y = +e.dataset.y, w = Math.max(0, Math.sin(t * 1.1 * sp - x * 0.012)), sx = 1 - 0.22 * w, sy = 1 + 0.3 * w;
+        e.setAttribute('transform', `translate(${x},${y}) scale(${n2(sx)},${n2(sy)}) translate(${-x},${-y})`); });
+    }
+  };
+}
+
+/* ───────── 3) القلبي: ألياف متفرعة مخططة، نوى وسطية، أقراص بينية ───────── */
+function musCard(){
+  const Y = [180, 300, 420], H = 52, X0 = 170, X1 = 830, fib = [], str = [], nuc = [], disc = [];
+  Y.forEach((y, r) => {
+    fib.push(`<rect x="${X0}" y="${y - H / 2}" width="${X1 - X0}" height="${H}" rx="22" fill="${MUS_PAL.card}" stroke="#ffc8c8" stroke-width="1.6"/>`);
+    for (let x = X0 + 14; x < X1 - 14; x += 16) str.push(`<rect x="${x}" y="${y - H / 2 + 6}" width="6" height="${H - 12}" fill="${MUS_PAL.band}" opacity=".5"/>`);
+    const D = [X0 + 140 + r * 40, X0 + 330 + r * 30, X0 + 520 + r * 20];
+    D.forEach(x => disc.push(`<path d="M${x},${y - H / 2 + 2} l6,8 l-6,8 l6,8 l-6,8 l6,8 l-6,8" fill="none" stroke="${MUS_PAL.disc}" stroke-width="5"/>`));
+    [X0 + 70, X0 + 240, X0 + 430, X0 + 610].forEach(x => nuc.push(`<ellipse cx="${x + r * 14}" cy="${y}" rx="15" ry="9" fill="url(#gNucl)"/>`));
+  });
+  /* تفرعات بين الألياف */
+  const br = [[300, 180, 380, 300], [560, 300, 640, 420], [700, 180, 760, 300], [250, 300, 320, 420]].map(([x0, y0, x1, y1]) =>
+    `<path d="M${x0 - 20},${y0 + 10} L${x1 - 20},${y1 - 10} L${x1 + 20},${y1 - 10} L${x0 + 20},${y0 + 10}Z" fill="${MUS_PAL.card}" stroke="#ffc8c8" stroke-width="1.4"/>`);
+  const body = `<g id="cardG">
+    ${part('tCard', br.join('') + fib.join(''))}
+    ${part('mStri', str.join(''))}
+    ${part('icDisc', disc.join(''))}
+    ${part('mNuc', nuc.join(''))}</g>
+    <text class="cap sm" x="500" y="510" text-anchor="middle">العضلة القلبية: مخططة متفرعة لاإرادية، تتقلص بانتظام وباستمرار</text>`;
+  return {
+    body, fnParts: ['tCard', 'icDisc'],
+    parts: [
+      { id: 'tCard', anchor: [X1 - 20, 180], label: [866, 150], side: 'R' },
+      { id: 'icDisc', anchor: [X0 + 330 + 30 + 3, 300 - 6], label: [866, 300], side: 'R' },
+      { id: 'mStri', anchor: [X0 + 14 + 16 * 36 + 3, 420 + 14], label: [866, 450], side: 'R' },
+      { id: 'mNuc', anchor: [X0 + 70, 180], label: [134, 200], side: 'L' }
+    ],
+    tools: [{ id: 'tbl:muscleCmp', label: 'مقارنة الأنواع' }],
+    tick(dt, t, a){ MUS.k = heartBeat(t); const s = 1 - 0.05 * MUS.k; const g = a.el('#cardG'); if (g) g.setAttribute('transform', `translate(500,300) scale(${n2(s)},${n2(1 + 0.04 * MUS.k)}) translate(-500,-300)`); }
+  };
+}
+
+/* ───────── 4) قارن: الأنواع الثلاثة ───────── */
+function musCmp(){
+  const Y = 290, X = [220, 500, 780];
+  const sk = `<rect x="${X[0] - 120}" y="${Y - 34}" width="240" height="68" rx="30" fill="${MUS_PAL.skel}"/>` +
+    Array.from({ length: 12 }, (_, i) => `<rect x="${X[0] - 104 + i * 18}" y="${Y - 28}" width="7" height="56" fill="${MUS_PAL.band}" opacity=".55"/>`).join('') +
+    [-80, -10, 60].map((dx, i) => `<ellipse cx="${X[0] + dx}" cy="${i % 2 ? Y + 27 : Y - 27}" rx="15" ry="5" fill="url(#gNucl)"/>`).join('');
+  const sm = `<path d="M${X[1] - 120},${Y} Q${X[1]},${Y - 50} ${X[1] + 120},${Y} Q${X[1]},${Y + 50} ${X[1] - 120},${Y}Z" fill="${MUS_PAL.smooth}"/><ellipse cx="${X[1]}" cy="${Y}" rx="24" ry="7" fill="url(#gNucl)"/>`;
+  const cd = `<rect x="${X[2] - 120}" y="${Y - 30}" width="240" height="60" rx="24" fill="${MUS_PAL.card}"/><path d="M${X[2] - 40},${Y - 30} L${X[2] - 10},${Y - 90} L${X[2] + 20},${Y - 90} L${X[2] + 10},${Y - 30}Z" fill="${MUS_PAL.card}"/>` +
+    Array.from({ length: 13 }, (_, i) => `<rect x="${X[2] - 108 + i * 17}" y="${Y - 25}" width="6" height="50" fill="${MUS_PAL.band}" opacity=".5"/>`).join('') +
+    `<path class="dHi" d="M${X[2] + 40},${Y - 28} l6,9 l-6,9 l6,9 l-6,9 l6,9 l-6,9" fill="none" stroke="${MUS_PAL.disc}" stroke-width="5"/><ellipse cx="${X[2] - 50}" cy="${Y}" rx="14" ry="8" fill="url(#gNucl)"/>`;
+  const cap = (x, a, b) => `<text class="cap" x="${x}" y="${Y + 100}" text-anchor="middle">${a}</text><text class="cap sm" x="${x}" y="${Y + 126}" text-anchor="middle">${b}</text>`;
+  const body = part('tSkel', sk) + part('tSmooth', sm) + part('tCard', cd) +
+    cap(X[0], 'الهيكلي', 'مخطط · متعدد النوى · إرادي') + cap(X[1], 'الأملس', 'غير مخطط · نواة وسطية · لاإرادي') + cap(X[2], 'القلبي', 'مخطط · متفرع · أقراص بينية · لاإرادي');
+  let opened = false;
+  return {
+    body, fnParts: [],
+    parts: [
+      { id: 'tSkel', anchor: [X[0] - 100, Y - 30], label: [134, 140], side: 'L' },
+      { id: 'tSmooth', anchor: [X[1], Y - 36], label: [500, 140], side: 'C' },
+      { id: 'tCard', anchor: [X[2] + 100, Y - 26], label: [866, 140], side: 'R' }
+    ],
+    tools: [{ id: 'tbl:muscleCmp', label: 'جدول الفروقات' }],
+    init(){ if (!opened){ opened = true; setTimeout(() => { if (curKey === 'musc' && SEL.musv === 'mcmp' && !(window.__v3 && window.__v3.active())) openSheet(TABLES.muscleCmp); }, 700); } },
+    tick(dt, t, a){ a.all('.dHi').forEach(e => e.style.filter = `drop-shadow(0 0 ${n2(3 + 5 * (0.5 + 0.5 * Math.sin(t * 2.4)))}px #ffd166)`); }
   };
 }
 
@@ -7418,6 +7680,116 @@ Object.assign(G3.models, { con_cloose: looseModel, con_ccart: cartModel, con_cbo
 })();
 
 /* ══════════════════════════════════════════════════════════════════════════
+   9.7 · مجسّمات النسيج العضلي: ألياف هيكلية مخططة تتقلص بالزر، خلايا ملساء
+         بموجة تقلص، ألياف قلبية متفرعة تنبض، والمقارنة
+   ══════════════════════════════════════════════════════════════════════════ */
+(function(){
+const { add, ellipsoid, capsule, tube, place, merge, srng, computeNormals, mk } = G3;
+const SKEL = '#c9505a', BAND = '#7a2430', NUC = '#7565c2';
+function lathe(prof, cols){
+  const m = mk(), R = prof.length, C = cols || 20;
+  for (let i = 0; i < R; i++){ const [r, y] = prof[i]; for (let j = 0; j < C; j++){ const a = j / C * 6.2832, p = [r * Math.cos(a), y, r * Math.sin(a)]; m.p.push(p[0], p[1], p[2]); m.l.push(p[0], p[1], p[2]); m.n.push(0, 0, 0); } }
+  for (let i = 0; i < R - 1; i++) for (let j = 0; j < C; j++){ const a = i * C + j, b = i * C + (j + 1) % C, c = a + C, d = b + C; m.i.push(a, b, c, b, d, c); }
+  return computeNormals(m);
+}
+const spindle = (R, H) => { const p = []; for (let i = 0; i <= 18; i++){ const u = i / 18; p.push([Math.max(0.001, R * Math.sin(Math.PI * u)), -H / 2 + H * u]); } return lathe(p, 16); };
+const toX = [0, 0, Math.PI / 2];   /* تدوير المحور y إلى المحور x (التخطط يبقى على طول الليف) */
+
+/* ═════ 1) الهيكلي ═════ */
+function skelModel(B){
+  const L = 4.6, X0 = -2.4, rnd = srng(4);
+  const F = [[0.9, 0.3], [0.2, -0.35], [-0.5, 0.25], [-0.2, 0.85], [0.55, -0.9]];
+  const fibs = F.map(([y, z]) => place(capsule({ r: 0.3, len: L, rows: 6, cols: 20 }), { rot: toX, at: [X0 + L / 2 + 0.3, y, z] }));
+  B.add(fibs[0], { part: 'mFiber', color: SKEL, rim: 0.6, rimColor: '#ffc8c8', pat: 1, patColor: BAND, patK: 26 });
+  B.add(merge(fibs.slice(1)), { part: 'tSkel', color: SKEL, rim: 0.6, rimColor: '#ffc8c8', pat: 1, patColor: BAND, patK: 26 });
+  /* نوى كثيرة على أطراف (محيط) كل ليف */
+  const nuc = [];
+  F.forEach(([y, z], k) => { for (let i = 0; i < 7; i++){ const a = rnd() * 6.28; nuc.push(place(ellipsoid({ r: [0.16, 0.05, 0.07], rows: 5, cols: 10 }), { at: [X0 + 0.7 + i * 0.6 + rnd() * 0.2, y + Math.cos(a) * 0.29, z + Math.sin(a) * 0.29], rot: [a, 0, 0] })); } });
+  B.add(merge(nuc), { part: 'mNuc', color: NUC, rim: 0.5, rimColor: '#d8d0ff' });
+  /* عظم عند الطرف الثابت */
+  B.add(place(capsule({ r: 0.35, len: 2.6, rows: 6, cols: 16 }), { at: [X0, 0, 0], rot: [Math.PI / 2, 0, 0] }), { color: '#e9dcc0', rim: 0.5, rimColor: '#fff6e0', pop: false, fixed: true });
+  /* شريط تأشير على التخطط */
+  B.add(place(capsule({ r: 0.305, len: 0.06, rows: 3, cols: 20 }), { rot: toX, at: [X0 + 3.2, F[3][0], F[3][1]] }), { part: 'mStri', color: BAND, rim: 0.6, rimColor: '#ffb0b8' });
+  B.label('mFiber', [X0 + L, F[0][0] + 0.25, F[0][1]], [0.5, 1, 0.3]);
+  B.label('tSkel', [X0 + L - 0.2, F[2][0], F[2][1] + 0.3], [0.5, 0, 1]);
+  B.label('mStri', [X0 + 3.2, F[3][0], F[3][1] + 0.3], [0, 0.4, 1]);
+  B.label('mNuc', [X0 + 1.3, F[1][0] + 0.29, F[1][1]], [0, 1, 0.3]);
+  B.caption([0, -1.4, 1], () => ['', MUS.k > 0.05 ? 'الليف يقصر ويثخن عند التقلص' : 'اضغط «تقلّص»: العضلة الهيكلية إرادية']);
+  return {
+    dist: 8.2, yaw: 0.35, pitch: 0.3, live2d: true, tools: ['contract'],
+    xf: () => { const k = MUS.k, sx = 1 - 0.18 * k, sy = 1 + 0.12 * k; return [sx, 0, 0, 0, 0, sy, 0, 0, 0, 0, sy, 0, X0 * (1 - sx), 0, 0, 1]; }
+  };
+}
+
+/* ═════ 2) الأملس ═════ */
+function smoothModel(B){
+  const C = [];
+  for (let r = 0; r < 5; r++) for (let i = -1; i < 4; i++) for (const z of [-0.35, 0.35]){
+    const x = -2.6 + i * 1.6 + (r % 2 ? 0.8 : 0), y = -1.2 + r * 0.55;
+    if (x < -3 || x > 3) continue; C.push([x, y, z + (r % 2 ? 0.18 : 0)]); }
+  const cellsAt = t => C.map(([x, y, z], i) => { const w = Math.max(0, Math.sin(t * 1.1 - x * 1.2)), sx = 1 - 0.22 * w, sy = 1 + 0.3 * w;
+    return { m: place(spindle(0.26, 1.9), { rot: toX, at: [x, y, z], s: [sy, sx, sy] }), n: place(ellipsoid({ r: [0.22, 0.06, 0.07], rows: 5, cols: 10 }), { at: [x, y, z + 0.2 * sy], s: [sx, 1, 1] }), i }; });
+  const A = cellsAt(0);
+  const one = B.add(A[0].m, { part: 'mFiber', color: '#d97c84', alpha: 0.85, rim: 0.7, rimColor: '#ffd8dc', center: C[0] });
+  const rest = B.add(merge(A.slice(1).map(o => o.m)), { part: 'tSmooth', color: '#d97c84', alpha: 0.85, rim: 0.7, rimColor: '#ffd8dc', center: [0, 0, 0] });
+  const nuc = B.add(merge(A.map(o => o.n)), { part: 'mNuc', color: NUC, rim: 0.5, rimColor: '#d8d0ff', pop: false, center: [0, 0, 0] });
+  B.label('mFiber', add(C[0], [-0.6, 0, 0.2]), [0, 0, 1]);
+  B.label('mNuc', add(C[6], [0, 0, 0.25]), [0, 0, 1]);
+  B.label('tSmooth', [2.4, 0.9, 0.5], [0, 0, 1]);
+  B.caption([0, -1.9, 0.8], () => ['', 'لاإرادية: موجة تقلص بطيئة متتابعة']);
+  let last = -1;
+  return {
+    dist: 8, yaw: 0.25, pitch: 0.25, live2d: true,
+    anim(t){ if (t - last < 0.033) return; last = t; const sp = focusOwner === 'tSmooth' ? 1.6 : 1, S = cellsAt(t * sp);
+      B.update(one, S[0].m); B.update(rest, merge(S.slice(1).map(o => o.m))); B.update(nuc, merge(S.map(o => o.n))); }
+  };
+}
+
+/* ═════ 3) القلبي ═════ */
+function cardModel(B){
+  /* تُبنى الألياف عمودية (حتى يمتد التخطط على طولها) ثم تُدار أفقياً */
+  const L = 5.0, Ys = [-1.2, 0, 1.2], R = 0.27;
+  const fib = Ys.map(z => tube({ pts: [[z, -L / 2, 0], [z, L / 2, 0]], r: R, sides: 16 }));
+  const br = [[-1.2, -0.6, 0, 0.4], [0, 0.9, 1.2, 1.7], [1.2, -1.4, 0, -0.8], [0, -1.8, -1.2, -1.2]].map(([z0, y0, z1, y1]) => tube({ pts: [[z0, y0, 0], [z1, y1, 0]], r: R * 0.85, sides: 14 }));
+  B.add(place(merge(fib.concat(br)), { rot: toX }), { part: 'tCard', color: '#b8434f', rim: 0.6, rimColor: '#ffc8c8', pat: 1, patColor: BAND, patK: 28 });
+  const discs = [], nuc = [];
+  Ys.forEach((z, k) => { [-1.3 + k * 0.3, 0.2 + k * 0.2, 1.6 - k * 0.2].forEach(y => discs.push(place(lathe([[0.001, -0.035], [R * 1.04, -0.035], [R * 1.04, 0.035], [0.001, 0.035]], 18), { at: [z, y, 0] })));
+    [-1.9, -0.6, 0.9, 2.1].forEach(y => nuc.push(place(ellipsoid({ r: [0.07, 0.15, 0.05], rows: 6, cols: 10 }), { at: [z, y + k * 0.15, R * 0.98] }))); });
+  B.add(place(merge(discs), { rot: toX }), { part: 'icDisc', color: '#3a0f18', rim: 0.6, rimColor: '#ff8090' });
+  B.add(place(merge(nuc), { rot: toX }), { part: 'mNuc', color: NUC, rim: 0.5, rimColor: '#d8d0ff' });
+  const rot = p => [-p[1], p[0], p[2]];
+  B.label('tCard', rot([1.2, 2.3, 0.25]), [0, 0, 1]);
+  B.label('icDisc', rot([0, 0.2, R]), [0, 0, 1]);
+  B.label('mNuc', rot([-1.2, -1.9, R]), [0, 0, 1]);
+  B.caption([0, -2.0, 0.8], () => ['', 'لاإرادية: تنبض بانتظام وباستمرار']);
+  return {
+    dist: 8.2, yaw: 0.25, pitch: 0.3, live2d: true,
+    xf: () => { const s = 1 - 0.05 * MUS.k, y = 1 + 0.04 * MUS.k; return [s, 0, 0, 0, 0, y, 0, 0, 0, 0, y, 0, 0, 0, 0, 1]; }
+  };
+}
+
+/* ═════ 4) قارن ═════ */
+function cmpModel(B){
+  const X = [-3.0, 0, 3.0];
+  B.add(merge([0.25, -0.35].map(y => place(capsule({ r: 0.26, len: 2.0, rows: 6, cols: 18 }), { rot: toX, at: [X[0], y, 0] }))), { part: 'tSkel', color: SKEL, rim: 0.6, rimColor: '#ffc8c8', pat: 1, patColor: BAND, patK: 26 });
+  B.add(merge([-0.6, 0, 0.6].map((x, i) => place(ellipsoid({ r: [0.14, 0.045, 0.06], rows: 5, cols: 8 }), { at: [X[0] + x, i % 2 ? 0.5 : -0.1, 0.12] }))), { part: 'tSkel', color: NUC, rim: 0.5, rimColor: '#d8d0ff' });
+  B.add(place(spindle(0.32, 2.4), { rot: toX, at: [X[1], 0, 0] }), { part: 'tSmooth', color: '#d97c84', alpha: 0.85, rim: 0.7, rimColor: '#ffd8dc' });
+  B.add(place(ellipsoid({ r: [0.24, 0.07, 0.08], rows: 6, cols: 10 }), { at: [X[1], 0, 0.22] }), { part: 'tSmooth', color: NUC, rim: 0.5, rimColor: '#d8d0ff' });
+  B.add(place(merge([tube({ pts: [[0, -1.1, 0], [0, 1.1, 0]], r: 0.28, sides: 14 }), tube({ pts: [[0, 0.1, 0], [0.8, 0.7, 0]], r: 0.24, sides: 12 })]), { rot: toX, at: [X[2], 0, 0] }), { part: 'tCard', color: '#b8434f', rim: 0.6, rimColor: '#ffc8c8', pat: 1, patColor: BAND, patK: 28 });
+  const disc = B.add(place(lathe([[0.001, -0.04], [0.3, -0.04], [0.3, 0.04], [0.001, 0.04]], 18), { rot: toX, at: [X[2] + 0.35, 0, 0] }), { part: 'tCard', color: '#3a0f18', rim: 0.8, rimColor: '#ffd166' });
+  B.label('tSkel', [X[0], 0.55, 0.2], [0, 1, 0.4]);
+  B.label('tSmooth', [X[1], 0.35, 0.2], [0, 1, 0.4]);
+  B.label('tCard', [X[2] - 0.6, -0.8, 0.2], [0, 1, 0.4]);
+  B.caption([X[0], -1.1, 0.5], () => ['الهيكلي', 'مخطط · متعدد النوى · إرادي']);
+  B.caption([X[1], -1.1, 0.5], () => ['الأملس', 'غير مخطط · نواة وسطية · لاإرادي']);
+  B.caption([X[2], -1.1, 0.5], () => ['القلبي', 'مخطط · متفرع · أقراص بينية']);
+  return { dist: 9.4, yaw: 0.1, pitch: 0.3, live2d: true, compactK: 1.25, anim(t){ disc.rim = 0.6 + 0.9 * (0.5 + 0.5 * Math.sin(t * 2.4)); } };
+}
+
+Object.assign(G3.models, { mus_mskel: skelModel, mus_msmooth: smoothModel, mus_mcard: cardModel, mus_mcmp: cmpModel });
+})();
+
+/* ══════════════════════════════════════════════════════════════════════════
    8 · وضع الرسم اليدوي — رسوم الفصل الثاني (نفس محرك الفصل الأول)
    ══════════════════════════════════════════════════════════════════════════ */
 /* ترتيب الرسم: الإطار والأجزاء الكبيرة أولاً ثم التفاصيل */
@@ -7443,7 +7815,10 @@ const DRAW_ORDER = {
   con_loose: ['matrixC', 'colFib', 'elaFib', 'fibro'],
   con_cart:  ['cartHy', 'cartEl', 'cartFi', 'lacuna', 'chondro'],
   con_bone:  ['lamella', 'havers', 'lacuna', 'osteo', 'canalic'],
-  con_blood: ['plasma', 'rbc', 'wbc', 'platelet']
+  con_blood: ['plasma', 'rbc', 'wbc', 'platelet'],
+  mus_skel:   ['mFiber', 'tSkel', 'mStri', 'mNuc'],
+  mus_smooth: ['mFiber', 'tSmooth', 'mNuc'],
+  mus_card:   ['tCard', 'mStri', 'icDisc', 'mNuc']
 };
 /* كيف يُرسم كل جزء (وصف الشكل فقط؛ الموقع من الرسم نفسه) */
 const DRAW_SHAPE = {
@@ -7478,7 +7853,9 @@ const DRAW_SHAPE = {
   fibro: 'خلايا مغزلية بنوى', cartHy: 'دائرة بمادة متجانسة', cartEl: 'دائرة فيها خطوط رفيعة متشابكة', cartFi: 'دائرة فيها حزم ألياف متوازية',
   lacuna: 'تجاويف بيضوية صغيرة', chondro: 'خلية أو خليتين داخل كل تجويف', lamella: 'دوائر متحدة المركز',
   havers: 'دائرة صغيرة في المركز فيها وعاء دموي', osteo: 'خلايا صغيرة بين الدوائر', canalic: 'خطوطاً دقيقة متشعبة من التجاويف',
-  plasma: 'وعاءً بسائل فاتح', rbc: 'أقراصاً حمراء مقعرة الوسط', wbc: 'خلايا أكبر بنواة مفصصة', platelet: 'أجساماً صغيرة جداً'
+  plasma: 'وعاءً بسائل فاتح', rbc: 'أقراصاً حمراء مقعرة الوسط', wbc: 'خلايا أكبر بنواة مفصصة', platelet: 'أجساماً صغيرة جداً',
+  mFiber: 'ليفاً طويلاً واحداً', tSkel: 'أليافاً أسطوانية طويلة متوازية', mStri: 'خطوطاً عرضية متعاقبة على الألياف',
+  mNuc: 'نوى بيضوية صغيرة', tSmooth: 'خلايا مغزلية متداخلة', tCard: 'أليافاً متفرعة متصلة', icDisc: 'خطوطاً عرضية سميكة متعرجة'
 };
 const drApi = host => ({ playing: true, dragSlider: false, sliderVal: 0,
   el: q => host.querySelector(q), all: q => Array.from(host.querySelectorAll(q)),
@@ -7496,6 +7873,8 @@ const DR_GROUPS = [
   { g: 'eth', t: 'النسيج الظهاري', items: CH.exam.filter(d => d.k.indexOf('eth_') === 0).map(d => ({
       k: d.k, t: d.t, scene: () => SCENES[d.k].build(), order: DRAW_ORDER[d.k] })) },
   { g: 'con', t: 'النسيج الضام', items: CH.exam.filter(d => d.k.indexOf('con_') === 0).map(d => ({
+      k: d.k, t: d.t, scene: () => SCENES[d.k].build(), order: DRAW_ORDER[d.k] })) },
+  { g: 'mus', t: 'النسيج العضلي', items: CH.exam.filter(d => d.k.indexOf('mus_') === 0).map(d => ({
       k: d.k, t: d.t, scene: () => SCENES[d.k].build(), order: DRAW_ORDER[d.k] })) }
 ];
 const drItem = k => { for (const G of DR_GROUPS) for (const it of G.items) if (it.k === k) return it; return DR_GROUPS[0].items[0]; };

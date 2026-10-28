@@ -25,7 +25,10 @@ const DRAW_ORDER = {
   con_loose: ['matrixC', 'colFib', 'elaFib', 'fibro'],
   con_cart:  ['cartHy', 'cartEl', 'cartFi', 'lacuna', 'chondro'],
   con_bone:  ['lamella', 'havers', 'lacuna', 'osteo', 'canalic'],
-  con_blood: ['plasma', 'rbc', 'wbc', 'platelet']
+  con_blood: ['plasma', 'rbc', 'wbc', 'platelet'],
+  mus_skel:   ['mFiber', 'tSkel', 'mStri', 'mNuc'],
+  mus_smooth: ['mFiber', 'tSmooth', 'mNuc'],
+  mus_card:   ['tCard', 'mStri', 'icDisc', 'mNuc']
 };
 /* كيف يُرسم كل جزء (وصف الشكل فقط؛ الموقع من الرسم نفسه) */
 const DRAW_SHAPE = {
@@ -60,7 +63,9 @@ const DRAW_SHAPE = {
   fibro: 'خلايا مغزلية بنوى', cartHy: 'دائرة بمادة متجانسة', cartEl: 'دائرة فيها خطوط رفيعة متشابكة', cartFi: 'دائرة فيها حزم ألياف متوازية',
   lacuna: 'تجاويف بيضوية صغيرة', chondro: 'خلية أو خليتين داخل كل تجويف', lamella: 'دوائر متحدة المركز',
   havers: 'دائرة صغيرة في المركز فيها وعاء دموي', osteo: 'خلايا صغيرة بين الدوائر', canalic: 'خطوطاً دقيقة متشعبة من التجاويف',
-  plasma: 'وعاءً بسائل فاتح', rbc: 'أقراصاً حمراء مقعرة الوسط', wbc: 'خلايا أكبر بنواة مفصصة', platelet: 'أجساماً صغيرة جداً'
+  plasma: 'وعاءً بسائل فاتح', rbc: 'أقراصاً حمراء مقعرة الوسط', wbc: 'خلايا أكبر بنواة مفصصة', platelet: 'أجساماً صغيرة جداً',
+  mFiber: 'ليفاً طويلاً واحداً', tSkel: 'أليافاً أسطوانية طويلة متوازية', mStri: 'خطوطاً عرضية متعاقبة على الألياف',
+  mNuc: 'نوى بيضوية صغيرة', tSmooth: 'خلايا مغزلية متداخلة', tCard: 'أليافاً متفرعة متصلة', icDisc: 'خطوطاً عرضية سميكة متعرجة'
 };
 const drApi = host => ({ playing: true, dragSlider: false, sliderVal: 0,
   el: q => host.querySelector(q), all: q => Array.from(host.querySelectorAll(q)),
@@ -78,5 +83,7 @@ const DR_GROUPS = [
   { g: 'eth', t: 'النسيج الظهاري', items: CH.exam.filter(d => d.k.indexOf('eth_') === 0).map(d => ({
       k: d.k, t: d.t, scene: () => SCENES[d.k].build(), order: DRAW_ORDER[d.k] })) },
   { g: 'con', t: 'النسيج الضام', items: CH.exam.filter(d => d.k.indexOf('con_') === 0).map(d => ({
+      k: d.k, t: d.t, scene: () => SCENES[d.k].build(), order: DRAW_ORDER[d.k] })) },
+  { g: 'mus', t: 'النسيج العضلي', items: CH.exam.filter(d => d.k.indexOf('mus_') === 0).map(d => ({
       k: d.k, t: d.t, scene: () => SCENES[d.k].build(), order: DRAW_ORDER[d.k] })) }
 ];
