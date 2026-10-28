@@ -10,7 +10,10 @@ const DRAW_ORDER = {
   sim_loc:  ['epidermis', 'tColl', 'tParen', 'vBundle', 'tScler'],
   sim_par:  ['parWall', 'matVac', 'nucleus', 'parChl', 'interSp'],
   sim_col:  ['epidermis', 'colProto', 'colCorner', 'tColl'],
-  sim_scl:  ['sclFiber', 'sclWall', 'sclLumen', 'sclPit', 'sclStone']
+  sim_scl:  ['sclFiber', 'sclWall', 'sclLumen', 'sclPit', 'sclStone'],
+  vas_bun:  ['pFiber', 'tPhloem', 'pSieve', 'pComp', 'vascCamb', 'tXylem', 'xVessel'],
+  vas_xyl:  ['xVessel', 'xTrach', 'xFiber', 'xPar'],
+  vas_phl:  ['pSieve', 'pPlate', 'pComp', 'pFiber', 'pPar']
 };
 /* كيف يُرسم كل جزء (وصف الشكل فقط؛ الموقع من الرسم نفسه) */
 const DRAW_SHAPE = {
@@ -29,7 +32,12 @@ const DRAW_SHAPE = {
   parChl: 'أشكالاً بيضوية صغيرة حول الفجوة', interSp: 'مثلثات صغيرة حيث تلتقي الخلايا',
   colProto: 'خلايا سداسية متجاورة', colCorner: 'دوائر سميكة عند زوايا الخلايا',
   sclFiber: 'خلايا مغزلية طويلة مدببة الطرفين', sclWall: 'دائرة كبيرة بجدار سميك', sclLumen: 'دائرة صغيرة في الوسط',
-  sclPit: 'خطوطاً متفرعة من الوسط إلى الجدار', sclStone: 'خلايا دائرية صغيرة سميكة الجدار'
+  sclPit: 'خطوطاً متفرعة من الوسط إلى الجدار', sclStone: 'خلايا دائرية صغيرة سميكة الجدار',
+  pFiber: 'هلالاً من خلايا صغيرة سميكة الجدار في الأعلى (أو خلية مغزلية طويلة)', tPhloem: 'منطقة تحت الألياف',
+  pSieve: 'خلايا كبيرة في اللحاء (أو عموداً من خلايا طويلة متتالية)', pComp: 'خلايا صغيرة ضيقة ملاصقة لها وفيها نواة',
+  tXylem: 'منطقة كبيرة في الأسفل', xVessel: 'دوائر كبيرة سميكة الجدار (أو أنبوباً طويلاً عريضاً بلا جدران فاصلة)',
+  xTrach: 'خليتين مغزليتين متداخلتين فيهما نقر', xFiber: 'خلية مغزلية رفيعة طويلة', xPar: 'خلايا مستطيلة صغيرة بنوى',
+  pPlate: 'خطاً مثقباً بين خلايا الأنبوب الغربالي', pPar: 'خلايا مستطيلة صغيرة بنوى'
 };
 const drApi = host => ({ playing: true, dragSlider: false, sliderVal: 0,
   el: q => host.querySelector(q), all: q => Array.from(host.querySelectorAll(q)),
@@ -39,5 +47,7 @@ const DR_GROUPS = [
       k: d.k, t: d.t, scene: () => SCENES[d.k].build(), order: DRAW_ORDER[d.k],
       base: d.k === 'mer_loc' ? ['النبات', 'نباتاً بساق وأوراق وجذور تحت خط التربة، ونباتاً عشبياً بعقد، ودائرة لمقطع الساق'] : null })) },
   { g: 'sim', t: 'الأنسجة البسيطة', items: CH.exam.filter(d => d.k.indexOf('sim_') === 0).map(d => ({
+      k: d.k, t: d.t, scene: () => SCENES[d.k].build(), order: DRAW_ORDER[d.k] })) },
+  { g: 'vas', t: 'الأنسجة المعقدة', items: CH.exam.filter(d => d.k.indexOf('vas_') === 0).map(d => ({
       k: d.k, t: d.t, scene: () => SCENES[d.k].build(), order: DRAW_ORDER[d.k] })) }
 ];
