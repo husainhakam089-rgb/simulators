@@ -1240,13 +1240,15 @@ const CH = {
     { k: 'mer', t: 'الأنسجة المرستيمية' },
     { k: 'simple', t: 'الأنسجة البسيطة' },
     { k: 'vasc', t: 'الأنسجة المعقدة' },
-    { k: 'epid', t: 'البشرة والثغور' }
+    { k: 'epid', t: 'البشرة والثغور' },
+    { k: 'epith', t: 'النسيج الظهاري' }
   ],
-  sel: { merv: 'loc', simv: 'sloc', vasv: 'vbun', epiv: 'eleaf' },
+  sel: { merv: 'loc', simv: 'sloc', vasv: 'vbun', epiv: 'eleaf', ethv: 'esq' },
   toolIcons: { loc: 'leaf', root: 'grow', cell: 'cell', cmp: 'compare', stPrev: 'prev', stNext: 'next',
     sloc: 'leaf', par: 'cell', col: 'layers', scl: 'cross', scmp: 'compare',
     vbun: 'layers', xyl: 'drop', phl: 'mol', vcmp: 'compare',
-    eleaf: 'leaf', esec: 'layers', estom: 'eye' },
+    eleaf: 'leaf', esec: 'layers', estom: 'eye',
+    esq: 'mol', ecub: 'cell', ecol: 'drop', epse: 'spark', estr: 'layers', ecmp: 'compare' },
   exam: [
     { k: 'mer_loc',  t: 'مواقع المرستيمات في النبات' },
     { k: 'mer_root', t: 'مقطع طولي في قمة الجذر' },
@@ -1260,7 +1262,12 @@ const CH = {
     { k: 'vas_phl',  t: 'عناصر اللحاء' },
     { k: 'epi_leaf', t: 'سطح البشرة السفلى للورقة' },
     { k: 'epi_sec',  t: 'مقطع في البشرة' },
-    { k: 'epi_stom', t: 'الثغر والخليتان الحارستان' }
+    { k: 'epi_stom', t: 'الثغر والخليتان الحارستان' },
+    { k: 'eth_sq',   t: 'الظهاري الحرشفي البسيط' },
+    { k: 'eth_cub',  t: 'الظهاري المكعبي البسيط' },
+    { k: 'eth_col',  t: 'الظهاري العمودي البسيط' },
+    { k: 'eth_pse',  t: 'الظهاري العمودي المطبق الكاذب المهدب' },
+    { k: 'eth_str',  t: 'الظهاري الحرشفي المطبق' }
   ]
 };
 
@@ -1635,6 +1642,80 @@ Object.assign(INFO, {
 });
 INFO.epidermis.note = 'البشرة طبقة واحدة متراصّة بلا مسافات بينية، يغطيها الكيوتكل، وفيها الثغور والشعيرات.';
 
+/* ───────────── النسيج الظهاري (أول الأنسجة الحيوانية) ───────────── */
+Object.assign(INFO, {
+  tEpith: {
+    name: 'النسيج الظهاري', src: SRC_WAIT,
+    loc: 'يغطي سطح الجسم ويبطن تجاويفه وأعضاءه الداخلية.',
+    struct: 'خلايا متراصّة بينها مادة بين خلوية قليلة جداً، تستند على غشاء قاعدي، ولا يحتوي على أوعية دموية.',
+    fn: 'الحماية، والإفراز، والامتصاص.',
+    note: 'يُصنّف حسب عدد طبقاته (بسيط، مطبق) وحسب شكل خلاياه (حرشفي، مكعبي، عمودي).'
+  },
+  tSqS: {
+    name: 'الظهاري الحرشفي البسيط', src: SRC_WAIT,
+    loc: 'يبطن الحويصلات الهوائية في الرئتين، والأوعية الدموية.',
+    struct: 'طبقة واحدة من خلايا مسطحة رقيقة، نواتها مسطحة في وسطها.',
+    fn: 'يسمح بمرور المواد (تبادل الغازات بالانتشار) لأنه رقيق.',
+    note: 'علل: يبطن الحرشفي البسيط الحويصلات الهوائية — لأنه رقيق فيسهّل تبادل الغازات بالانتشار.'
+  },
+  tCubS: {
+    name: 'الظهاري المكعبي البسيط', src: SRC_WAIT,
+    loc: 'يبطن نبيبات الكلية، ويوجد في الغدد.',
+    struct: 'طبقة واحدة من خلايا مكعبة الشكل، نواتها كروية في وسط الخلية.',
+    fn: 'الإفراز والامتصاص.',
+    note: 'خلايا المكعبي متساوية الطول والعرض تقريباً.'
+  },
+  tColS: {
+    name: 'الظهاري العمودي البسيط', src: SRC_WAIT,
+    loc: 'يبطن المعدة والأمعاء.',
+    struct: 'طبقة واحدة من خلايا طويلة عمودية، نواتها بيضوية قريبة من قاعدة الخلية.',
+    fn: 'الإفراز والامتصاص.',
+    note: 'يبطن الأمعاء حيث يُمتص الغذاء المهضوم.'
+  },
+  tPse: {
+    name: 'الظهاري العمودي المطبق الكاذب المهدب', src: SRC_WAIT,
+    loc: 'يبطن القصبة الهوائية (الرغامى) والممرات التنفسية.',
+    struct: 'طبقة واحدة من خلايا مختلفة الأطوال تستند جميعها على الغشاء القاعدي، ونواها بمستويات مختلفة فيبدو كأنه طبقات، وسطحه مهدب.',
+    fn: 'تتحرك الأهداب فتدفع المخاط وما علق به من غبار وجراثيم بعيداً عن الرئتين.',
+    note: 'علل: سُمّي «مطبقاً كاذباً» — لأنه طبقة واحدة لكن اختلاف أطوال خلاياه ومستويات نواها يجعله يبدو متعدد الطبقات.'
+  },
+  tSqStr: {
+    name: 'الظهاري الحرشفي المطبق', src: SRC_WAIT,
+    loc: 'الجلد (البشرة)، وبطانة تجويف الفم والمريء.',
+    struct: 'عدة طبقات من الخلايا: القاعدية مكعبة أو عمودية تنقسم، والسطحية مسطحة (حرشفية).',
+    fn: 'الحماية في المناطق المعرّضة للاحتكاك؛ تتساقط الخلايا السطحية وتُعوَّض من انقسام الخلايا القاعدية.',
+    note: 'يُسمّى المطبق باسم شكل خلايا طبقته السطحية (حرشفية).'
+  },
+  basem: {
+    name: 'الغشاء القاعدي', src: SRC_WAIT,
+    loc: 'تحت خلايا النسيج الظهاري، يفصلها عن النسيج الضام.',
+    struct: 'طبقة رقيقة غير خلوية.',
+    fn: 'تستند عليه خلايا النسيج الظهاري ويربطها بالنسيج الضام تحته.',
+    note: 'في المطبق الكاذب تستند كل الخلايا على الغشاء القاعدي (دليل أنه طبقة واحدة).'
+  },
+  connBelow: {
+    name: 'نسيج ضام (تحت الظهاري)', src: SRC_WAIT,
+    loc: 'تحت الغشاء القاعدي.',
+    struct: 'نسيج ضام فيه أوعية دموية شعرية.',
+    fn: 'يغذي النسيج الظهاري بالانتشار، لأن الظهاري خالٍ من الأوعية الدموية.',
+    note: 'تفاصيل النسيج الضام في تبويبه.'
+  },
+  eNuc: {
+    name: 'النواة', src: SRC_WAIT,
+    loc: 'داخل خلايا النسيج الظهاري.',
+    struct: 'يختلف شكلها حسب شكل الخلية: مسطحة في الحرشفي، كروية وسطية في المكعبي، بيضوية قاعدية في العمودي.',
+    fn: 'السيطرة على فعاليات الخلية.',
+    note: 'في المطبق الكاذب تقع النوى بمستويات مختلفة.'
+  },
+  cilia: {
+    name: 'الأهداب', src: SRC_WAIT,
+    loc: 'على السطح الحر لخلايا الظهاري العمودي المطبق الكاذب في القصبة الهوائية.',
+    struct: 'زوائد شعرية دقيقة متحركة.',
+    fn: 'تتحرك حركة منتظمة فتدفع المخاط والغبار العالق به إلى الأعلى بعيداً عن الرئتين.',
+    note: 'الأهداب تحمي الجهاز التنفسي من الغبار والجراثيم.'
+  }
+});
+
 const TABLES = {
   merTypes: {
     title: 'أنواع المرستيمات حسب موقعها',
@@ -1709,6 +1790,27 @@ const TABLES = {
     rows: [
       ['امتلاء الخليتين الحارستين بالماء', 'تنتفخان وتنحنيان', 'ينفتح'],
       ['فقدان الخليتين الحارستين للماء', 'ترتخيان وتستقيمان', 'ينغلق']
+    ]
+  },
+  epiTypes: {
+    title: 'أنواع النسيج الظهاري',
+    head: ['النوع', 'الخلايا', 'أماكن وجوده', 'الوظيفة'],
+    rows: [
+      ['الحرشفي البسيط', 'طبقة واحدة مسطحة', 'الحويصلات الهوائية، الأوعية الدموية', 'تبادل الغازات (الانتشار)'],
+      ['المكعبي البسيط', 'طبقة واحدة مكعبة', 'نبيبات الكلية، الغدد', 'الإفراز والامتصاص'],
+      ['العمودي البسيط', 'طبقة واحدة عمودية', 'المعدة والأمعاء', 'الإفراز والامتصاص'],
+      ['العمودي المطبق الكاذب المهدب', 'طبقة واحدة مختلفة الأطوال ومهدبة', 'القصبة الهوائية', 'دفع المخاط والغبار بالأهداب'],
+      ['الحرشفي المطبق', 'عدة طبقات، السطحية مسطحة', 'الجلد، الفم، المريء', 'الحماية من الاحتكاك']
+    ]
+  },
+  simpStrat: {
+    title: 'مقارنة: الظهاري البسيط × المطبق',
+    head: ['وجه المقارنة', 'البسيط', 'المطبق'],
+    rows: [
+      ['عدد الطبقات', 'طبقة واحدة', 'أكثر من طبقة'],
+      ['علاقة الخلايا بالغشاء القاعدي', 'كل الخلايا تستند عليه', 'الطبقة القاعدية فقط تستند عليه'],
+      ['الوظيفة الغالبة', 'تبادل المواد، الإفراز، الامتصاص', 'الحماية من الاحتكاك'],
+      ['مثال', 'الحويصلات الهوائية، الأمعاء', 'الجلد، المريء']
     ]
   },
   rootZones: {
@@ -1788,7 +1890,23 @@ const QUIZ = [
   { topic: 'epid', q: 'خلايا البشرة:', o: ['متراصّة بلا مسافات بينية', 'بينها مسافات بينية كبيرة', 'ميتة عند النضج', 'ملجننة الجدران'], c: 0,
     why: 'البشرة طبقة واحدة من الخلايا المتراصّة بلا مسافات بينية.' },
   { topic: 'epid', q: 'الشعيرات على سطح البشرة:', o: ['زوائد من خلايا البشرة تقلل فقدان الماء', 'خلايا ميتة ملجننة', 'جزء من اللحاء', 'فتحات لتبادل الغازات'], c: 0,
-    why: 'الشعيرات زوائد تنمو من خلايا البشرة، من وظائفها تقليل فقدان الماء والحماية.' }
+    why: 'الشعيرات زوائد تنمو من خلايا البشرة، من وظائفها تقليل فقدان الماء والحماية.' },
+  { topic: 'epith', q: 'يبطن الحويصلات الهوائية في الرئتين النسيج الظهاري:', o: ['الحرشفي البسيط', 'العمودي البسيط', 'الحرشفي المطبق', 'المكعبي البسيط'], c: 0,
+    why: 'الحرشفي البسيط رقيق فيسهّل تبادل الغازات بالانتشار.' },
+  { topic: 'epith', q: 'يبطن القصبة الهوائية النسيج الظهاري:', o: ['العمودي المطبق الكاذب المهدب', 'الحرشفي البسيط', 'المكعبي البسيط', 'الحرشفي المطبق'], c: 0,
+    why: 'العمودي المطبق الكاذب المهدب يدفع بأهدابه المخاط والغبار بعيداً عن الرئتين.' },
+  { topic: 'epith', q: 'تستند خلايا النسيج الظهاري على:', o: ['الغشاء القاعدي', 'الكيوتكل', 'الصفيحة الغربالية', 'الجدار الخلوي'], c: 0,
+    why: 'خلايا النسيج الظهاري تستند على غشاء قاعدي يفصلها عن النسيج الضام.' },
+  { topic: 'epith', q: 'الجلد وبطانة المريء من النسيج الظهاري:', o: ['الحرشفي المطبق', 'الحرشفي البسيط', 'المكعبي البسيط', 'العمودي البسيط'], c: 0,
+    why: 'الحرشفي المطبق متعدد الطبقات فيحمي المناطق المعرّضة للاحتكاك.' },
+  { topic: 'epith', q: 'يُسمّى النسيج الظهاري العمودي «مطبقاً كاذباً» لأن:', o: ['خلاياه مختلفة الأطوال ونواها بمستويات مختلفة وهو طبقة واحدة', 'يتكون من طبقات حقيقية', 'خلاياه مسطحة', 'لا يستند على غشاء قاعدي'], c: 0,
+    why: 'كل خلاياه تستند على الغشاء القاعدي (طبقة واحدة) لكنه يبدو متعدد الطبقات.' },
+  { topic: 'epith', q: 'يبطن نبيبات الكلية النسيج الظهاري:', o: ['المكعبي البسيط', 'الحرشفي المطبق', 'العمودي المطبق الكاذب', 'الحرشفي البسيط'], c: 0,
+    why: 'المكعبي البسيط يقوم بالإفراز والامتصاص في نبيبات الكلية.' },
+  { topic: 'epith', q: 'يتغذى النسيج الظهاري:', o: ['بالانتشار من النسيج الضام تحته', 'من أوعية دموية بين خلاياه', 'بالبناء الضوئي', 'من الأهداب'], c: 0,
+    why: 'النسيج الظهاري خالٍ من الأوعية الدموية فيتغذى بالانتشار من النسيج الضام تحت الغشاء القاعدي.' },
+  { topic: 'epith', q: 'يبطن المعدة والأمعاء النسيج الظهاري:', o: ['العمودي البسيط', 'الحرشفي البسيط', 'الحرشفي المطبق', 'المكعبي البسيط'], c: 0,
+    why: 'العمودي البسيط يقوم بالإفراز والامتصاص في المعدة والأمعاء.' }
 ];
 
 /* «رتّب المراحل»: مراحل كل موضوع بترتيبها الصحيح */
@@ -1798,6 +1916,7 @@ const ORDER_SETS = [
   { topic: 'simple', t: 'تكوّن الخلية السكلرنكيمية', items: ['خلية حية بجدار ابتدائي رقيق', 'ترسّب جدار ثانوي ثخين ملجنن تاركاً النقر', 'موت البروتوبلاست وبقاء تجويف فارغ'] },
   { topic: 'simple', t: 'طبقات ساق النبات العشبي من الخارج إلى الداخل', items: ['البشرة', 'الكولنكيمي', 'برنكيمة القشرة', 'الحزم الوعائية', 'برنكيمة اللب'] },
   { topic: 'vasc', t: 'مكونات الحزمة الوعائية من الخارج إلى الداخل', items: ['الألياف', 'اللحاء', 'الكامبيوم الوعائي', 'الخشب'] },
+  { topic: 'epith', t: 'تجدد الظهاري الحرشفي المطبق', items: ['تنقسم الخلايا القاعدية', 'تُدفع الخلايا الجديدة نحو السطح', 'تتسطح الخلايا كلما اقتربت من السطح', 'تتساقط الخلايا السطحية'] },
   { topic: 'epid', t: 'فتح الثغر وغلقه', items: ['الثغر مغلق والخليتان الحارستان رخوتان', 'دخول الماء إلى الخليتين الحارستين فتنتفخان', 'انفتاح الثغر وتبادل الغازات', 'فقدان الخليتين للماء فينغلق الثغر'] }
 ];
 
@@ -1816,6 +1935,9 @@ const ORDER_SETS = [
    - البشرة: لم يُبنَ البريدرم (الفلين) كنسيج واقٍ ثانوي لعدم التأكد من وروده؛
      ومراحل «فتح الثغر وغلقه» مبنية من وصف المنهج (امتلاء الخليتين الحارستين
      بالماء يفتح الثغر وفقدانه يغلقه)؛ تُطابَق مع الملزمة.
+   - النسيج الظهاري: لم يُبنَ الظهاري الغدي (الغدد) ولا المكعبي/العمودي
+     المطبق والانتقالي لعدم التأكد من ورودها؛ والتأكد من أن المنهج يذكر
+     «العمودي المطبق الكاذب المهدب» بهذا الاسم وأمثلة المواقع نفسها.
    - مراحل «تكوّن الخلية السكلرنكيمية» مبنية من وصف المنهج (خلية حية ← تلجنن
      ← موت)؛ تُعدَّل إذا عرضتها الملزمة بشكل آخر.
 */
@@ -3298,6 +3420,267 @@ function epiStom(){
         e.setAttribute('opacity', n2(st === 2 ? Math.sin(p * Math.PI) * 0.9 : 0)); });
       void k;
     }
+  };
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   4.5 · النسيج الظهاري: الحرشفي البسيط، المكعبي البسيط، العمودي البسيط،
+         العمودي المطبق الكاذب المهدب، الحرشفي المطبق، والمقارنة
+   ══════════════════════════════════════════════════════════════════════════ */
+const ETH_VIEWS = [
+  { id: 'esq',  label: 'حرشفي بسيط' },
+  { id: 'ecub', label: 'مكعبي بسيط' },
+  { id: 'ecol', label: 'عمودي بسيط' },
+  { id: 'epse', label: 'مطبق كاذب مهدب' },
+  { id: 'estr', label: 'حرشفي مطبق' },
+  { id: 'ecmp', label: 'قارن' }
+];
+const ETH_PAL = { cell: '#e8b4b8', cellL: '#fff0f0', nuc: 'url(#gNucl)', bm: '#e9d29a', ct: '#4a3442', cap: '#c0392b', o2: '#9fe9ff', co2: '#b8c2cc', food: '#ffb347', sec: '#f7d774', mucus: '#cfe6b8', dust: '#8a7a6a' };
+const ETH_X0 = 160, ETH_X1 = 840, ETH_BY = 400;
+
+SCENES.epith = {
+  title: 'النسيج الظهاري',
+  get src(){ return SRC_WAIT; },
+  tint: ['rgba(170,90,100,.24)', 'rgba(110,90,150,.16)'],
+  model3d: () => 'eth_' + SEL.ethv,
+  build(){
+    const v = SEL.ethv || 'esq';
+    const s = v === 'ecub' ? ethCub() : v === 'ecol' ? ethCol() : v === 'epse' ? ethPse() : v === 'estr' ? ethStr() : v === 'ecmp' ? ethCmp() : ethSq();
+    s.rebuildOnRadio = 'ethv';
+    s.tools = ETH_VIEWS.map(x => ({ id: x.id, label: x.label, radio: 'ethv', on: x.id === v })).concat(s.tools || []);
+    return s;
+  }
+};
+SCENES.eth_sq  = { title: 'الظهاري الحرشفي البسيط', build: () => ethSq() };
+SCENES.eth_cub = { title: 'الظهاري المكعبي البسيط', build: () => ethCub() };
+SCENES.eth_col = { title: 'الظهاري العمودي البسيط', build: () => ethCol() };
+SCENES.eth_pse = { title: 'الظهاري العمودي المطبق الكاذب المهدب', build: () => ethPse() };
+SCENES.eth_str = { title: 'الظهاري الحرشفي المطبق', build: () => ethStr() };
+
+/* الغشاء القاعدي والنسيج الضام تحته (مع وعاء شعري) */
+function ethBase(x0, x1, by){
+  const fib = []; for (let i = 0; i < 9; i++){ const y = by + 24 + i * 11; fib.push(`<path d="M${x0 + 10},${y} Q${(x0 + x1) / 2},${y + (i % 2 ? 9 : -9)} ${x1 - 10},${y}" fill="none" stroke="#a07a90" stroke-width="1.3" opacity=".5"/>`); }
+  return {
+    ct: part('connBelow', `<rect x="${x0}" y="${by + 6}" width="${x1 - x0}" height="120" rx="10" fill="${ETH_PAL.ct}"/>${fib.join('')}
+      <rect x="${x0 + 30}" y="${by + 70}" width="${x1 - x0 - 60}" height="26" rx="13" fill="${ETH_PAL.cap}" stroke="#ffb3a8" stroke-width="2"/>
+      ${[0, 1, 2, 3, 4, 5].map(i => `<ellipse class="rbc" data-i="${i}" cx="${x0 + 60 + i * 100}" cy="${by + 83}" rx="9" ry="6" fill="#ff7a6a"/>`).join('')}`),
+    bm: part('basem', `<rect x="${x0}" y="${by - 3}" width="${x1 - x0}" height="8" rx="4" fill="${ETH_PAL.bm}"/>`)
+  };
+}
+const ethCap = (t, sub) => `<text class="cap" x="500" y="${ETH_BY + 168}" text-anchor="middle">${t}</text><text class="cap sm" x="500" y="${ETH_BY + 194}" text-anchor="middle">${sub}</text>`;
+const ethLumen = t => `<text class="cap sm" x="500" y="70" text-anchor="middle">${t}</text>`;
+/* جزيئات متحركة عمودياً عبر النسيج */
+const ethDots = (cls, n, fill, r, shape) => { const o = []; for (let i = 0; i < n; i++) o.push(shape === 'sq' ? `<rect class="${cls}" data-i="${i}" width="${r * 2}" height="${r * 2}" rx="2" fill="${fill}" stroke="#fff" stroke-width="1" opacity="0"/>` : `<circle class="${cls}" data-i="${i}" r="${r}" fill="${fill}" stroke="#fff" stroke-width="1" opacity="0"/>`); return o.join(''); };
+function moveDots(a, cls, n, t, y0, y1, speed, xs){
+  a.all('.' + cls).forEach(e => { const i = +e.dataset.i, p = (t * speed + i / n) % 1, y = y0 + (y1 - y0) * p, x = xs(i, p);
+    if (e.tagName === 'rect'){ e.setAttribute('x', n2(x - 5)); e.setAttribute('y', n2(y - 5)); } else { e.setAttribute('cx', n2(x)); e.setAttribute('cy', n2(y)); }
+    e.setAttribute('opacity', n2(Math.sin(p * Math.PI) * 0.95)); });
+}
+const rbcTick = (a, t) => a.all('.rbc').forEach(e => { const i = +e.dataset.i; e.setAttribute('cx', n2(ETH_X0 + 50 + ((i * 100 + t * 60) % (ETH_X1 - ETH_X0 - 100)))); });
+
+/* ───────── 1) الحرشفي البسيط (الحويصلات الهوائية) ───────── */
+function ethSq(){
+  const B = ethBase(ETH_X0, ETH_X1, ETH_BY), H = 24, W = 113, cells = [], nucs = [];
+  for (let x = ETH_X0; x < ETH_X1 - 2; x += W){
+    cells.push(`<path d="M${x + 2},${ETH_BY - 3} L${x + 2},${ETH_BY - H + 6} Q${x + W / 2},${ETH_BY - H - 6} ${x + W - 2},${ETH_BY - H + 6} L${x + W - 2},${ETH_BY - 3}Z" fill="${ETH_PAL.cell}" stroke="${ETH_PAL.cellL}" stroke-width="1.6"/>`);
+    nucs.push(`<ellipse cx="${x + W / 2}" cy="${ETH_BY - H / 2 - 2}" rx="20" ry="7" fill="${ETH_PAL.nuc}"/>`);
+  }
+  const body = `${ethLumen('هواء الحويصلة الهوائية')}
+    ${B.ct}${B.bm}
+    ${part('tSqS', cells.join(''))}${part('eNuc', nucs.join(''))}
+    <g>${ethDots('o2d', 10, ETH_PAL.o2, 6)}${ethDots('co2d', 8, ETH_PAL.co2, 6)}</g>
+    <g font-size="13" fill="#e6f1ea"><circle cx="125" cy="120" r="6" fill="${ETH_PAL.o2}"/><text x="113" y="125" text-anchor="start">O₂ ينتشر للدم</text>
+      <circle cx="125" cy="146" r="6" fill="${ETH_PAL.co2}"/><text x="113" y="151" text-anchor="start">CO₂ ينتشر للهواء</text></g>
+    ${ethCap('الظهاري الحرشفي البسيط', 'طبقة واحدة من خلايا مسطحة رقيقة — تبادل الغازات بالانتشار')}`;
+  return {
+    body, fnParts: ['tSqS'],
+    parts: [
+      { id: 'tSqS', anchor: [ETH_X1 - 60, ETH_BY - 14], label: [866, 300], side: 'R' },
+      { id: 'eNuc', anchor: [ETH_X0 + W * 1.5, ETH_BY - 14], label: [134, 300], side: 'L' },
+      { id: 'basem', anchor: [ETH_X1 - 30, ETH_BY], label: [866, 400], side: 'R' },
+      { id: 'connBelow', anchor: [ETH_X0 + 30, ETH_BY + 83], label: [134, 480], side: 'L' }
+    ],
+    tools: [{ id: 'tbl:epiTypes', label: 'أنواع النسيج الظهاري' }],
+    tick(dt, t, a){
+      moveDots(a, 'o2d', 10, t, 120, ETH_BY + 80, 0.22, i => 220 + i * 60);
+      moveDots(a, 'co2d', 8, t, ETH_BY + 80, 120, 0.2, i => 250 + i * 70);
+      rbcTick(a, t);
+    }
+  };
+}
+
+/* ───────── 2) المكعبي البسيط (نبيبات الكلية) ───────── */
+function ethCub(){
+  const B = ethBase(ETH_X0, ETH_X1, ETH_BY), S = 68, cells = [], nucs = [];
+  for (let x = ETH_X0; x < ETH_X1 - 2; x += S){
+    cells.push(`<rect x="${x + 2}" y="${ETH_BY - S}" width="${S - 4}" height="${S - 3}" rx="6" fill="${ETH_PAL.cell}" stroke="${ETH_PAL.cellL}" stroke-width="1.6"/>`);
+    nucs.push(`<circle cx="${x + S / 2}" cy="${ETH_BY - S / 2}" r="14" fill="${ETH_PAL.nuc}"/>`);
+  }
+  const body = `${ethLumen('تجويف نبيب الكلية')}
+    ${B.ct}${B.bm}
+    ${part('tCubS', cells.join(''))}${part('eNuc', nucs.join(''))}
+    <g>${ethDots('secd', 8, ETH_PAL.sec, 6)}${ethDots('absd', 8, ETH_PAL.o2, 5)}</g>
+    <g font-size="13" fill="#e6f1ea"><circle cx="125" cy="120" r="6" fill="${ETH_PAL.sec}"/><text x="113" y="125" text-anchor="start">إفراز</text>
+      <circle cx="125" cy="146" r="5" fill="${ETH_PAL.o2}"/><text x="113" y="151" text-anchor="start">امتصاص</text></g>
+    ${ethCap('الظهاري المكعبي البسيط', 'طبقة واحدة من خلايا مكعبة، نواتها كروية وسطية — الإفراز والامتصاص')}`;
+  return {
+    body, fnParts: ['tCubS'],
+    parts: [
+      { id: 'tCubS', anchor: [ETH_X1 - 40, ETH_BY - 50], label: [866, 270], side: 'R' },
+      { id: 'eNuc', anchor: [ETH_X0 + S * 1.5, ETH_BY - S / 2], label: [134, 300], side: 'L' },
+      { id: 'basem', anchor: [ETH_X1 - 30, ETH_BY], label: [866, 400], side: 'R' },
+      { id: 'connBelow', anchor: [ETH_X0 + 30, ETH_BY + 83], label: [134, 480], side: 'L' }
+    ],
+    tools: [{ id: 'tbl:epiTypes', label: 'أنواع النسيج الظهاري' }],
+    tick(dt, t, a){
+      moveDots(a, 'secd', 8, t, ETH_BY - S / 2, 110, 0.2, i => ETH_X0 + S * (i + 1.5));
+      moveDots(a, 'absd', 8, t, 110, ETH_BY + 80, 0.18, i => ETH_X0 + S * (i + 1) + 20);
+      rbcTick(a, t);
+    }
+  };
+}
+
+/* ───────── 3) العمودي البسيط (بطانة الأمعاء) ───────── */
+function ethCol(){
+  const B = ethBase(ETH_X0, ETH_X1, ETH_BY), W = 48, H = 170, cells = [], nucs = [];
+  for (let x = ETH_X0; x < ETH_X1 - 2; x += W){
+    cells.push(`<rect x="${x + 2}" y="${ETH_BY - H}" width="${W - 4}" height="${H - 3}" rx="8" fill="${ETH_PAL.cell}" stroke="${ETH_PAL.cellL}" stroke-width="1.6"/>`);
+    nucs.push(`<ellipse cx="${x + W / 2}" cy="${ETH_BY - 40}" rx="11" ry="19" fill="${ETH_PAL.nuc}"/>`);
+  }
+  const body = `${ethLumen('تجويف الأمعاء (غذاء مهضوم)')}
+    ${B.ct}${B.bm}
+    ${part('tColS', cells.join(''))}${part('eNuc', nucs.join(''))}
+    <g>${ethDots('fd', 12, ETH_PAL.food, 5, 'sq')}</g>
+    ${ethCap('الظهاري العمودي البسيط', 'طبقة واحدة من خلايا طويلة، نواتها قرب القاعدة — الإفراز والامتصاص')}`;
+  return {
+    body, fnParts: ['tColS'],
+    parts: [
+      { id: 'tColS', anchor: [ETH_X1 - 30, ETH_BY - 120], label: [866, 230], side: 'R' },
+      { id: 'eNuc', anchor: [ETH_X0 + W * 1.5, ETH_BY - 40], label: [134, 330], side: 'L' },
+      { id: 'basem', anchor: [ETH_X1 - 30, ETH_BY], label: [866, 400], side: 'R' },
+      { id: 'connBelow', anchor: [ETH_X0 + 30, ETH_BY + 83], label: [134, 480], side: 'L' }
+    ],
+    tools: [{ id: 'tbl:epiTypes', label: 'أنواع النسيج الظهاري' }],
+    tick(dt, t, a){ moveDots(a, 'fd', 12, t, 120, ETH_BY + 80, 0.16, i => ETH_X0 + W * (i + 1) + 10); rbcTick(a, t); }
+  };
+}
+
+/* ───────── 4) العمودي المطبق الكاذب المهدب (القصبة الهوائية) ───────── */
+function ethPse(){
+  const B = ethBase(ETH_X0, ETH_X1, ETH_BY), W = 44, cells = [], nucs = [], cil = [];
+  let k = 0;
+  for (let x = ETH_X0; x < ETH_X1 - 2; x += W, k++){
+    const tall = k % 3 !== 1, H = tall ? 190 : 95 + (k % 2) * 20;
+    /* الطويلة تصل السطح وعليها أهداب، والقصيرة لا تصل؛ كلها على الغشاء القاعدي */
+    cells.push(`<path d="M${x + 2},${ETH_BY - 3} L${x + 2},${ETH_BY - H + 10} Q${x + W / 2},${ETH_BY - H - 6} ${x + W - 2},${ETH_BY - H + 10} L${x + W - 2},${ETH_BY - 3}Z" fill="${tall ? ETH_PAL.cell : '#d99aa0'}" stroke="${ETH_PAL.cellL}" stroke-width="1.6"/>`);
+    nucs.push(`<ellipse cx="${x + W / 2}" cy="${ETH_BY - (tall ? 70 + (k % 2) * 40 : 40)}" rx="10" ry="16" fill="${ETH_PAL.nuc}"/>`);
+    if (tall) for (let c = 0; c < 4; c++) cil.push(`<line class="cl" data-x="${x + 8 + c * 9}" x1="${x + 8 + c * 9}" y1="${ETH_BY - H - 2}" x2="${x + 8 + c * 9}" y2="${ETH_BY - H - 26}" stroke="#fff3c8" stroke-width="2.4" stroke-linecap="round"/>`);
+  }
+  const body = `${ethLumen('تجويف القصبة الهوائية')}
+    <rect x="${ETH_X0}" y="${ETH_BY - 250}" width="${ETH_X1 - ETH_X0}" height="38" rx="12" fill="${ETH_PAL.mucus}" opacity=".35"/>
+    <text class="cap sm" x="${ETH_X1 - 12}" y="${ETH_BY - 258}" text-anchor="end">مخاط وغبار</text>
+    ${B.ct}${B.bm}
+    ${part('tPse', cells.join(''))}${part('eNuc', nucs.join(''))}
+    ${part('cilia', `<g id="cils">${cil.join('')}</g>`)}
+    <g>${ethDots('dust', 9, ETH_PAL.dust, 5)}</g>
+    ${ethCap('الظهاري العمودي المطبق الكاذب المهدب', 'طبقة واحدة مختلفة الأطوال تبدو كأنها طبقات — الأهداب تدفع المخاط والغبار')}`;
+  return {
+    body, fnParts: ['cilia', 'tPse'],
+    parts: [
+      { id: 'cilia', anchor: [ETH_X1 - 34, ETH_BY - 205], label: [866, 140], side: 'R' },
+      { id: 'tPse', anchor: [ETH_X1 - 30, ETH_BY - 140], label: [866, 260], side: 'R' },
+      { id: 'eNuc', anchor: [ETH_X0 + W * 1.5, ETH_BY - 40], label: [134, 350], side: 'L' },
+      { id: 'basem', anchor: [ETH_X1 - 30, ETH_BY], label: [866, 400], side: 'R' },
+      { id: 'connBelow', anchor: [ETH_X0 + 30, ETH_BY + 83], label: [134, 480], side: 'L' }
+    ],
+    tools: [{ id: 'tbl:epiTypes', label: 'أنواع النسيج الظهاري' }],
+    tick(dt, t, a){
+      const sp = focusOwner === 'cilia' ? 1.8 : 1;
+      a.all('#cils .cl').forEach(e => { const x = +e.dataset.x, ang = Math.sin(t * 5 * sp - x * 0.05) * 0.5;
+        e.setAttribute('x2', n2(x + Math.sin(ang) * 24)); e.setAttribute('y2', n2(+e.getAttribute('y1') - Math.cos(ang) * 24)); });
+      /* الغبار يتحرك مع المخاط بعيداً عن الرئتين */
+      a.all('.dust').forEach(e => { const i = +e.dataset.i, p = (t * 0.08 * sp + i / 9) % 1;
+        e.setAttribute('cx', n2(ETH_X0 + 10 + p * (ETH_X1 - ETH_X0 - 20))); e.setAttribute('cy', n2(ETH_BY - 232 + Math.sin(i * 2) * 10)); e.setAttribute('opacity', n2(Math.sin(p * Math.PI))); });
+      rbcTick(a, t);
+    }
+  };
+}
+
+/* ───────── 5) الحرشفي المطبق (الجلد، الفم، المريء) ───────── */
+function ethStr(){
+  const B = ethBase(ETH_X0, ETH_X1, ETH_BY), rows = [], nucs = [];
+  /* من القاعدة إلى السطح: مكعبة ← متعددة الأوجه ← مسطحة */
+  const LAY = [[52, 34, 'basal'], [80, 30], [86, 28], [100, 24], [140, 15], [160, 12], [180, 10]];
+  let y = ETH_BY - 3;
+  LAY.forEach(([w, h, tag], r) => {
+    y -= h;
+    const off = r % 2 ? w / 2 : 0;
+    for (let x = ETH_X0 - off; x < ETH_X1; x += w){
+      const xa = Math.max(ETH_X0, x), xb = Math.min(ETH_X1, x + w);
+      if (xb - xa < 10) continue;
+      rows.push(`<rect class="${tag === 'basal' ? 'bas' : ''}" x="${n2(xa + 1.5)}" y="${n2(y + 1)}" width="${n2(xb - xa - 3)}" height="${h - 2}" rx="${Math.min(8, h / 2.5)}" fill="${r === 0 ? '#d98a92' : r < 4 ? ETH_PAL.cell : '#f2d0d2'}" stroke="${ETH_PAL.cellL}" stroke-width="1.3"/>`);
+      if (xb - xa > 24) nucs.push(`<ellipse cx="${n2((xa + xb) / 2)}" cy="${n2(y + h / 2)}" rx="${n2(Math.min(9, w * 0.12) + (r > 3 ? 6 : 0))}" ry="${n2(Math.max(2.5, h * 0.3))}" fill="${ETH_PAL.nuc}" opacity="${r > 4 ? 0.55 : 0.95}"/>`);
+    }
+  });
+  const topY = y;
+  const flakes = [0, 1, 2].map(i => `<rect class="flake" data-i="${i}" width="120" height="9" rx="4" fill="#f2d0d2" stroke="${ETH_PAL.cellL}" stroke-width="1" opacity="0"/>`).join('');
+  const body = `${ethLumen('السطح (معرّض للاحتكاك)')}
+    ${B.ct}${B.bm}
+    ${part('tSqStr', rows.join(''))}${part('eNuc', nucs.join(''))}
+    ${flakes}
+    ${ethCap('الظهاري الحرشفي المطبق', 'عدة طبقات — الخلايا القاعدية تنقسم، والسطحية تتسطح وتتساقط')}`;
+  let fl = 0, fi = -1;
+  return {
+    body, fnParts: ['tSqStr'],
+    parts: [
+      { id: 'tSqStr', anchor: [ETH_X1 - 60, topY + 30], label: [866, 220], side: 'R' },
+      { id: 'eNuc', anchor: [ETH_X0 + 50, ETH_BY - 20], label: [134, 360], side: 'L' },
+      { id: 'basem', anchor: [ETH_X1 - 30, ETH_BY], label: [866, 400], side: 'R' },
+      { id: 'connBelow', anchor: [ETH_X0 + 30, ETH_BY + 83], label: [134, 480], side: 'L' }
+    ],
+    tools: [{ id: 'info:basem', label: 'الغشاء القاعدي' }, { id: 'tbl:simpStrat', label: 'البسيط × المطبق' }],
+    tick(dt, t, a){
+      /* خلايا قاعدية تنقسم (تومض) */
+      fl -= dt; const bs = a.all('.bas');
+      if (fl <= 0 && bs.length){ if (fi >= 0 && bs[fi]) bs[fi].setAttribute('fill', '#d98a92'); fi = Math.floor(Math.random() * bs.length); bs[fi].setAttribute('fill', '#ffd98a'); fl = 0.6; }
+      /* الخلايا السطحية تتساقط */
+      a.all('.flake').forEach(e => { const i = +e.dataset.i, p = (t * 0.18 + i / 3) % 1;
+        e.setAttribute('x', n2(ETH_X0 + 80 + i * 220 + p * 40)); e.setAttribute('y', n2(topY - 6 - p * 120));
+        e.setAttribute('transform', `rotate(${n2(p * -14)} ${n2(ETH_X0 + 140 + i * 220)} ${n2(topY - p * 120)})`); e.setAttribute('opacity', n2((1 - p) * 0.9)); });
+      rbcTick(a, t);
+    }
+  };
+}
+
+/* ───────── 6) قارن: البسيط × المطبق ───────── */
+function ethCmp(){
+  const BY = 430, L0 = 120, L1 = 470, R0 = 530, R1 = 880;
+  const simp = [], sn = []; for (let x = L0; x < L1 - 2; x += 58){ simp.push(`<rect x="${x + 2}" y="${BY - 58}" width="54" height="55" rx="6" fill="${ETH_PAL.cell}" stroke="${ETH_PAL.cellL}" stroke-width="1.6"/>`); sn.push(`<circle cx="${x + 29}" cy="${BY - 30}" r="12" fill="${ETH_PAL.nuc}"/>`); }
+  const strat = []; let y = BY - 3;
+  [[52, 32], [80, 28], [100, 24], [140, 15], [170, 11]].forEach(([w, h], r) => { y -= h; const off = r % 2 ? w / 2 : 0;
+    for (let x = R0 - off; x < R1; x += w){ const xa = Math.max(R0, x), xb = Math.min(R1, x + w); if (xb - xa < 10) continue;
+      strat.push(`<rect x="${n2(xa + 1.5)}" y="${n2(y + 1)}" width="${n2(xb - xa - 3)}" height="${h - 2}" rx="${Math.min(8, h / 2.5)}" fill="${r === 0 ? '#d98a92' : r < 3 ? ETH_PAL.cell : '#f2d0d2'}" stroke="${ETH_PAL.cellL}" stroke-width="1.3"/>`); } });
+  const bm = (a, b) => `<rect class="dHi" x="${a}" y="${BY - 3}" width="${b - a}" height="8" rx="4" fill="${ETH_PAL.bm}"/>`;
+  const ct = (a, b) => `<rect x="${a}" y="${BY + 6}" width="${b - a}" height="70" rx="10" fill="${ETH_PAL.ct}"/>`;
+  const body = `${ct(L0, L1)}${ct(R0, R1)}
+    ${part('basem', bm(L0, L1) + bm(R0, R1))}
+    ${part('tCubS', simp.join('') + sn.join(''))}
+    ${part('tSqStr', strat.join(''))}
+    <text class="cap" x="${(L0 + L1) / 2}" y="${BY + 112}" text-anchor="middle">بسيط: طبقة واحدة</text>
+    <text class="cap sm" x="${(L0 + L1) / 2}" y="${BY + 138}" text-anchor="middle">كل خلاياه على الغشاء القاعدي</text>
+    <text class="cap" x="${(R0 + R1) / 2}" y="${BY + 112}" text-anchor="middle">مطبق: عدة طبقات</text>
+    <text class="cap sm" x="${(R0 + R1) / 2}" y="${BY + 138}" text-anchor="middle">الطبقة القاعدية فقط على الغشاء القاعدي</text>`;
+  let opened = false;
+  return {
+    body, fnParts: ['basem'],
+    parts: [
+      { id: 'tCubS', anchor: [L0 + 30, BY - 50], label: [134, 250], side: 'L' },
+      { id: 'tSqStr', anchor: [R1 - 40, y + 8], label: [866, 250], side: 'R' },
+      { id: 'basem', anchor: [L1 - 20, BY], label: [500, 560], side: 'C' }
+    ],
+    tools: [{ id: 'tbl:simpStrat', label: 'جدول الفروقات' }, { id: 'tbl:epiTypes', label: 'أنواع النسيج الظهاري' }],
+    init(){ if (!opened){ opened = true; setTimeout(() => { if (curKey === 'epith' && SEL.ethv === 'ecmp' && !(window.__v3 && window.__v3.active())) openSheet(TABLES.simpStrat); }, 700); } },
+    tick(dt, t, a){ a.all('.dHi').forEach((e, i) => e.style.filter = `drop-shadow(0 0 ${n2(3 + 5 * (0.5 + 0.5 * Math.sin(t * 2.4 + i)))}px #ffd166)`); }
   };
 }
 
@@ -6210,6 +6593,185 @@ Object.assign(G3.models, { epi_eleaf: leafModel, epi_esec: secModel, epi_estom: 
 })();
 
 /* ══════════════════════════════════════════════════════════════════════════
+   9.5 · مجسّمات النسيج الظهاري: كتلة نسيج على غشاء قاعدي وتحته نسيج ضام
+         بوعاء شعري؛ كل نوع بشكل خلاياه ووظيفته المتحركة
+   ══════════════════════════════════════════════════════════════════════════ */
+(function(){
+const { add, ellipsoid, superEll, tube, place, merge, srng } = G3;
+const CELL = '#e8b4b8', CELL2 = '#d98a92', CELLT = '#f2d0d2', NUC = '#7565c2';
+const box = (w, h, d, e) => superEll({ h: [w / 2, h / 2, d / 2], e: e || 0.25, rows: 6, cols: 10 });
+const ball = ellipsoid({ r: 1, rows: 5, cols: 8 });
+const cube = superEll({ h: [1, 1, 1], e: 0.4, rows: 4, cols: 6 });
+const dots = (list, r, mesh) => merge(list.map(p => place(mesh || ball, { at: p ? p : [0, -60, 0], s: p ? (p.s || r) : 0.0001 })));
+const X = 3.0, Z = 1.1;
+
+/* الغشاء القاعدي + النسيج الضام تحته بوعاء شعري وكريات دم تجري */
+function base(B, o){
+  o = o || {};
+  const x0 = o.x0 === undefined ? -X : o.x0, x1 = o.x1 === undefined ? X : o.x1, cx = (x0 + x1) / 2, w = x1 - x0;
+  B.add(place(box(w, 0.06, 2 * Z + 0.1, 0.2), { at: [cx, 0, 0] }), { part: 'basem', color: '#e9d29a', rim: 0.7, rimColor: '#fff3c8' });
+  if (o.noCT) return null;
+  B.add(place(box(w, 0.95, 2 * Z + 0.1, 0.15), { at: [cx, -0.52, 0] }), { part: 'connBelow', color: '#4a3442', alpha: 0.55, rim: 0.6, rimColor: '#c9a0b4', pat: 1, patColor: '#7a5a6a', patK: 18, shell: { size: 4 } });
+  B.add(tube({ pts: [[x0 + 0.15, -0.55, 0.2], [x1 - 0.15, -0.55, 0.2]], r: 0.16, sides: 14 }), { part: 'connBelow', color: '#c0392b', alpha: 0.6, rim: 0.8, rimColor: '#ffb3a8', shell: { size: 0.6 } });
+  const rbc = t => Array.from({ length: 8 }, (_, i) => [x0 + 0.3 + (((i / 8) + t * 0.12) % 1) * (w - 0.6), -0.55, 0.2]);
+  const r = B.add(dots(rbc(0), 0.08), { color: '#ff7a6a', rim: 0.6, rimColor: '#ffd0c8', pop: false, center: [0, 0, 0] });
+  return t => B.update(r, dots(rbc(t), 0.08));
+}
+/* شبكة خلايا على الغشاء القاعدي */
+function grid(nx, nz, fn){ const out = []; for (let i = 0; i < nx; i++) for (let j = 0; j < nz; j++) out.push(fn(-X + (i + 0.5) * 2 * X / nx, -Z + (j + 0.5) * 2 * Z / nz, i, j)); return out; }
+const labelsCommon = (B, nucAt) => {
+  B.label('basem', [X - 0.2, 0.03, Z], [0, 0, 1]);
+  B.label('connBelow', [-X + 0.3, -0.7, Z], [0, -0.3, 1]);
+  if (nucAt) B.label('eNuc', nucAt, [0, 0, 1]);
+};
+
+/* ═════ 1) الحرشفي البسيط ═════ */
+function sqModel(B){
+  const rb = base(B);
+  const nx = 6, nz = 3, w = 2 * X / nx, d = 2 * Z / nz;
+  B.add(merge(grid(nx, nz, (x, z) => place(box(w * 0.97, 0.16, d * 0.96, 0.35), { at: [x, 0.11, z] }))), { part: 'tSqS', color: CELL, rim: 0.7, rimColor: '#fff0f0' });
+  B.add(merge(grid(nx, nz, (x, z) => place(ellipsoid({ r: [0.2, 0.05, 0.14], rows: 5, cols: 10 }), { at: [x, 0.2, z] }))), { part: 'eNuc', color: NUC, rim: 0.5, rimColor: '#d8d0ff' });
+  const gas = t => { const a = [], b = [];
+    for (let i = 0; i < 12; i++){ const p = (t * 0.22 + i / 12) % 1; a.push(Object.assign([-2.5 + i * 0.45, 1.9 - p * 2.45, Math.sin(i) * 0.6], { s: 0.07 * Math.sin(p * Math.PI) + 0.001 })); }
+    for (let i = 0; i < 9; i++){ const p = (t * 0.2 + i / 9) % 1; b.push(Object.assign([-2.3 + i * 0.55, -0.55 + p * 2.45, -0.3 + Math.cos(i) * 0.5], { s: 0.07 * Math.sin(p * Math.PI) + 0.001 })); }
+    return [a, b]; };
+  const G = gas(0);
+  const oO = B.add(dots(G[0], 0.07), { color: '#9fe9ff', rim: 0.8, rimColor: '#ffffff', pop: false, center: [0, 0, 0] });
+  const cO = B.add(dots(G[1], 0.07), { color: '#b8c2cc', rim: 0.8, rimColor: '#ffffff', pop: false, center: [0, 0, 0] });
+  B.label('tSqS', [X - 0.5, 0.18, Z * 0.7], [0, 1, 0.5]);
+  labelsCommon(B, [-X + w * 1.5, 0.22, -Z + d * 2.5]);
+  B.caption([0, 2.3, 0], () => ['هواء الحويصلة الهوائية', 'O₂ ينتشر للدم · CO₂ ينتشر للهواء']);
+  return { dist: 8.4, yaw: 0.35, pitch: 0.45, target: [0, 0.4, 0], live2d: true,
+    anim(t){ const g = gas(t); B.update(oO, dots(g[0], 0.07)); B.update(cO, dots(g[1], 0.07)); if (rb) rb(t); } };
+}
+
+/* ═════ 2) المكعبي البسيط ═════ */
+function cubModel(B){
+  const rb = base(B), nx = 9, nz = 3, w = 2 * X / nx, d = 2 * Z / nz, H = 0.62;
+  B.add(merge(grid(nx, nz, (x, z) => place(box(w * 0.96, H, d * 0.95, 0.3), { at: [x, H / 2 + 0.03, z] }))), { part: 'tCubS', color: CELL, rim: 0.7, rimColor: '#fff0f0' });
+  /* النوى تظهر على الوجه الأمامي للصف الأمامي (كمقطع) */
+  B.add(merge(grid(nx, nz, (x, z, i, j) => j === nz - 1 ? place(ellipsoid({ r: [0.13, 0.13, 0.03], rows: 8, cols: 10 }), { at: [x, H / 2 + 0.03, z + d * 0.48] }) : null).filter(Boolean)), { part: 'eNuc', color: NUC, rim: 0.5, rimColor: '#d8d0ff' });
+  const mv = t => { const a = [], b = [];
+    for (let i = 0; i < 9; i++){ const p = (t * 0.2 + i / 9) % 1; a.push(Object.assign([-X + (i + 0.5) * w, 0.4 + p * 1.6, Z * 0.6], { s: 0.07 * Math.sin(p * Math.PI) + 0.001 })); }
+    for (let i = 0; i < 9; i++){ const p = (t * 0.18 + i / 9) % 1; b.push(Object.assign([-X + (i + 0.9) * w, 2.0 - p * 2.55, -Z * 0.3], { s: 0.06 * Math.sin(p * Math.PI) + 0.001 })); }
+    return [a, b]; };
+  const M = mv(0);
+  const sO = B.add(dots(M[0], 0.07), { color: '#f7d774', rim: 0.8, rimColor: '#ffffff', pop: false, center: [0, 0, 0] });
+  const aO = B.add(dots(M[1], 0.06), { color: '#9fe9ff', rim: 0.8, rimColor: '#ffffff', pop: false, center: [0, 0, 0] });
+  B.label('tCubS', [X - 0.35, H, Z * 0.7], [0, 1, 0.5]);
+  labelsCommon(B, [-X + w * 1.5, H / 2 + 0.03, -Z + d * 2.5 + d * 0.5]);
+  B.caption([0, 2.3, 0], () => ['تجويف نبيب الكلية', 'الأصفر: إفراز · الأزرق: امتصاص']);
+  return { dist: 8.4, yaw: 0.35, pitch: 0.42, target: [0, 0.5, 0], live2d: true,
+    anim(t){ const m = mv(t); B.update(sO, dots(m[0], 0.07)); B.update(aO, dots(m[1], 0.06)); if (rb) rb(t); } };
+}
+
+/* ═════ 3) العمودي البسيط ═════ */
+function colModel(B){
+  const rb = base(B), nx = 13, nz = 3, w = 2 * X / nx, d = 2 * Z / nz, H = 1.6;
+  B.add(merge(grid(nx, nz, (x, z) => place(box(w * 0.94, H, d * 0.93, 0.3), { at: [x, H / 2 + 0.03, z] }))), { part: 'tColS', color: CELL, rim: 0.7, rimColor: '#fff0f0' });
+  B.add(merge(grid(nx, nz, (x, z, i, j) => j === nz - 1 ? place(ellipsoid({ r: [0.1, 0.18, 0.03], rows: 8, cols: 10 }), { at: [x, 0.38, z + d * 0.47] }) : null).filter(Boolean)), { part: 'eNuc', color: NUC, rim: 0.5, rimColor: '#d8d0ff' });
+  const fd = t => Array.from({ length: 13 }, (_, i) => { const p = (t * 0.16 + i / 13) % 1; return Object.assign([-X + (i + 0.7) * w, 2.6 - p * 3.15, Z * 0.55], { s: 0.065 * Math.sin(p * Math.PI) + 0.001 }); });
+  const fO = B.add(dots(fd(0), 0.065, cube), { color: '#ffb347', rim: 0.8, rimColor: '#fff1d6', pop: false, center: [0, 0, 0] });
+  B.label('tColS', [X - 0.25, H * 0.8, Z * 0.7], [0, 0.3, 1]);
+  labelsCommon(B, [-X + w * 1.5, 0.38, -Z + d * 2.5 + d * 0.5]);
+  B.caption([0, 2.9, 0], () => ['تجويف الأمعاء', 'امتصاص الغذاء المهضوم']);
+  return { dist: 8.8, yaw: 0.35, pitch: 0.35, target: [0, 0.8, 0], live2d: true,
+    anim(t){ B.update(fO, dots(fd(t), 0.065, cube)); if (rb) rb(t); } };
+}
+
+/* ═════ 4) العمودي المطبق الكاذب المهدب ═════ */
+function pseModel(B){
+  const rb = base(B), nx = 14, nz = 3, w = 2 * X / nx, d = 2 * Z / nz, H = 1.8;
+  const tall = (i, j) => (i + j) % 3 !== 1;
+  const cells = [], nucs = [], tops = [];
+  grid(nx, nz, (x, z, i, j) => {
+    const h = tall(i, j) ? H : 0.85 + ((i * 7 + j) % 3) * 0.15;
+    cells.push(place(box(w * 0.94, h, d * 0.93, 0.3), { at: [x, h / 2 + 0.03, z] }));
+    if (j === nz - 1) nucs.push(place(ellipsoid({ r: [0.09, 0.16, 0.03], rows: 8, cols: 10 }), { at: [x, tall(i, j) ? 0.55 + ((i + j) % 2) * 0.45 : 0.32, z + d * 0.47] }));
+    if (tall(i, j)) tops.push([x, H + 0.05, z]);
+  });
+  B.add(merge(cells), { part: 'tPse', color: CELL, rim: 0.7, rimColor: '#fff0f0' });
+  B.add(merge(nucs), { part: 'eNuc', color: NUC, rim: 0.5, rimColor: '#d8d0ff' });
+  /* الأهداب: تتحرك بموجة منتظمة */
+  const cil = [];
+  tops.forEach(([x, y, z]) => { for (let k = 0; k < 4; k++) cil.push([x - w * 0.3 + k * w * 0.2, y, z + (k % 2 ? 0.08 : -0.08)]); });
+  const ciliaMesh = t => merge(cil.map(([x, y, z]) => { const a = Math.sin(t * 5 - x * 1.2) * 0.5;
+    return tube({ pts: [[x, y, z], [x + Math.sin(a) * 0.12, y + Math.cos(a) * 0.12, z], [x + Math.sin(a) * 0.26, y + Math.cos(a * 1.2) * 0.22, z]], r: 0.012, sides: 4, caps: false }); }));
+  const cO = B.add(ciliaMesh(0), { part: 'cilia', color: '#fff3c8', rim: 0.8, rimColor: '#ffffff', pop: false, center: [0, H, 0] });
+  B.add(place(box(2 * X, 0.28, 2 * Z, 0.2), { at: [0, H + 0.42, 0] }), { color: '#cfe6b8', alpha: 0.18, rim: 0.5, rimColor: '#efffd8', shell: { size: 5 }, pop: false });
+  const dust = t => Array.from({ length: 10 }, (_, i) => { const p = (t * 0.08 + i / 10) % 1; return Object.assign([-X + 0.1 + p * (2 * X - 0.2), H + 0.42, -Z * 0.6 + (i % 3) * 0.6], { s: 0.08 * Math.sin(p * Math.PI) + 0.001 }); });
+  const dO = B.add(dots(dust(0), 0.08), { color: '#8a7a6a', rim: 0.5, rimColor: '#d8c8b8', pop: false, center: [0, 0, 0] });
+  B.label('cilia', [tops[tops.length - 1][0], H + 0.2, tops[tops.length - 1][2]], [0, 1, 0.5]);
+  B.label('tPse', [X - 0.2, H * 0.7, Z * 0.7], [0, 0.3, 1]);
+  labelsCommon(B, [-X + w * 1.5, 1.0, -Z + d * 2.5 + d * 0.5]);
+  B.caption([0, H + 1.0, 0], () => ['تجويف القصبة الهوائية', 'الأهداب تدفع المخاط والغبار']);
+  return { dist: 8.6, yaw: 0.35, pitch: 0.38, target: [0, 0.9, 0], live2d: true,
+    anim(t){ const sp = focusOwner === 'cilia' ? 1.8 : 1; B.update(cO, ciliaMesh(t * sp)); B.update(dO, dots(dust(t * sp), 0.08)); if (rb) rb(t); } };
+}
+
+/* ═════ 5) الحرشفي المطبق ═════ */
+function strModel(B, o){
+  o = o || {};
+  const x0 = o.x0 === undefined ? -X : o.x0, x1 = o.x1 === undefined ? X : o.x1, W = x1 - x0;
+  const rb = base(B, { x0, x1, noCT: o.noCT });
+  const LAY = [[0.4, 0.34], [0.55, 0.28], [0.62, 0.24], [0.8, 0.18], [1.05, 0.11], [1.3, 0.08]];
+  const cells = [], basal = [], nucs = []; let y = 0.03;
+  LAY.forEach(([cw, h], r) => {
+    const nx = Math.max(2, Math.round(W / cw)), w = W / nx, nz = Math.max(2, Math.round(2 * Z / cw)), d = 2 * Z / nz;
+    for (let i = 0; i < nx; i++) for (let j = 0; j < nz; j++){
+      const at = [x0 + (i + 0.5) * w + (r % 2 ? w * 0.25 : 0) * (i < nx - 1 ? 1 : 0), y + h / 2, -Z + (j + 0.5) * d];
+      (r === 0 ? basal : cells).push(place(box(w * 0.95, h * 0.94, d * 0.95, 0.35), { at }));
+      if (r < 5 && j === nz - 1) nucs.push(place(ellipsoid({ r: [Math.min(0.1, w * 0.18) + r * 0.02, Math.max(0.03, h * 0.28), 0.025], rows: 5, cols: 8 }), { at: [at[0], at[1], at[2] + d * 0.48] }));
+    }
+    y += h;
+  });
+  const bO = B.add(merge(basal), { part: 'tSqStr', color: CELL2, rim: 0.7, rimColor: '#fff0f0' });
+  B.add(merge(cells), { part: 'tSqStr', color: CELL, rim: 0.6, rimColor: '#fff0f0' });
+  B.add(merge(nucs), { part: 'eNuc', color: NUC, rim: 0.5, rimColor: '#d8d0ff' });
+  const topY = y;
+  /* خلايا سطحية تتساقط، وخلية قاعدية تنقسم */
+  const fl = t => [0, 1, 2].map(i => { const p = (t * 0.18 + i / 3) % 1; return place(box(1.1, 0.07, 0.8, 0.4), { at: [x0 + W * (0.2 + i * 0.3) + p * 0.3, topY + 0.05 + p * 1.2, -0.3 + i * 0.3], rot: [0, 0, -p * 0.4], s: 1 - p * 0.3 }); });
+  const fO = B.add(merge(fl(0)), { color: CELLT, alpha: 0.85, rim: 0.6, rimColor: '#fff0f0', pop: false, center: [0, 0, 0] });
+  const flash = B.add(place(box(0.42, 0.35, 0.42, 0.35), { at: [0, -60, 0] }), { color: '#ffd98a', alpha: 0.8, rim: 1.2, rimColor: '#fff6d0', pop: false, center: [0, 0, 0] });
+  if (!o.noLabels){
+    B.label('tSqStr', [x1 - 0.3, topY * 0.7, Z * 0.95], [0, 0.3, 1]);
+    labelsCommon(B, [x0 + 0.3, 0.2, Z]);
+    B.caption([0, topY + 1.6, 0], () => ['السطح (معرّض للاحتكاك)', 'القاعدية تنقسم · السطحية تتسطح وتتساقط']);
+  }
+  let ft = 0, last = 0;
+  const anim = t => { const dt = Math.max(0, t - last); last = t; ft -= dt;
+    B.update(fO, merge(fl(t)));
+    if (ft <= 0){ ft = 0.6; const i = Math.floor(Math.random() * 12), j = Math.floor(Math.random() * 4);
+      B.update(flash, place(box(0.42, 0.35, 0.42, 0.35), { at: [x0 + 0.2 + (i % Math.round(W / 0.4)) * 0.4, 0.2, -Z + 0.27 + j * 0.55] })); }
+    flash.alpha = 0.5 + 0.3 * Math.sin(t * 9); if (rb) rb(t); };
+  void bO;
+  return { dist: 8.4, yaw: 0.35, pitch: 0.4, target: [0, 0.6, 0], live2d: true, anim };
+}
+
+/* ═════ 6) قارن: البسيط × المطبق ═════ */
+function cmpModel(B){
+  /* بسيط (مكعبي) يسار */
+  const L0 = -3.2, L1 = -0.4, nx = 5, nz = 3, w = (L1 - L0) / nx, d = 2 * Z / nz;
+  base(B, { x0: L0, x1: L1, noCT: true });
+  const cells = [], nuc = [];
+  for (let i = 0; i < nx; i++) for (let j = 0; j < nz; j++){ const x = L0 + (i + 0.5) * w, z = -Z + (j + 0.5) * d;
+    cells.push(place(box(w * 0.95, 0.55, d * 0.95, 0.3), { at: [x, 0.31, z] })); if (j === nz - 1) nuc.push(place(ellipsoid({ r: [0.12, 0.12, 0.03], rows: 6, cols: 8 }), { at: [x, 0.31, z + d * 0.48] })); }
+  B.add(merge(cells), { part: 'tCubS', color: CELL, rim: 0.7, rimColor: '#fff0f0' });
+  B.add(merge(nuc), { part: 'tCubS', color: NUC, rim: 0.5, rimColor: '#d8d0ff' });
+  /* مطبق (حرشفي) يمين */
+  const S = strModel(B, { x0: 0.4, x1: 3.2, noCT: true, noLabels: true });
+  B.label('tCubS', [L0 + 0.3, 0.6, Z], [0, 0.3, 1]);
+  B.label('tSqStr', [3.0, 1.0, Z], [0, 0.3, 1]);
+  B.label('basem', [L1 - 0.2, 0.03, Z], [0, 0, 1]);
+  B.caption([(L0 + L1) / 2, -0.6, Z], () => ['بسيط: طبقة واحدة', 'كل خلاياه على الغشاء القاعدي']);
+  B.caption([1.8, -0.6, Z], () => ['مطبق: عدة طبقات', 'القاعدية فقط على الغشاء القاعدي']);
+  return { dist: 9.2, yaw: 0.2, pitch: 0.38, target: [0, 0.4, 0], live2d: true, compactK: 1.2, anim: S.anim };
+}
+
+Object.assign(G3.models, { eth_esq: sqModel, eth_ecub: cubModel, eth_ecol: colModel, eth_epse: pseModel, eth_estr: B => strModel(B), eth_ecmp: cmpModel });
+})();
+
+/* ══════════════════════════════════════════════════════════════════════════
    8 · وضع الرسم اليدوي — رسوم الفصل الثاني (نفس محرك الفصل الأول)
    ══════════════════════════════════════════════════════════════════════════ */
 /* ترتيب الرسم: الإطار والأجزاء الكبيرة أولاً ثم التفاصيل */
@@ -6226,7 +6788,12 @@ const DRAW_ORDER = {
   vas_phl:  ['pSieve', 'pPlate', 'pComp', 'pFiber', 'pPar'],
   epi_leaf: ['epidermis', 'guard', 'stoma'],
   epi_sec:  ['mesoph', 'epidermis', 'guard', 'stoma', 'cuticle', 'trich'],
-  epi_stom: ['epidermis', 'guard', 'stoma']
+  epi_stom: ['epidermis', 'guard', 'stoma'],
+  eth_sq:   ['connBelow', 'basem', 'tSqS', 'eNuc'],
+  eth_cub:  ['connBelow', 'basem', 'tCubS', 'eNuc'],
+  eth_col:  ['connBelow', 'basem', 'tColS', 'eNuc'],
+  eth_pse:  ['connBelow', 'basem', 'tPse', 'eNuc', 'cilia'],
+  eth_str:  ['connBelow', 'basem', 'tSqStr', 'eNuc']
 };
 /* كيف يُرسم كل جزء (وصف الشكل فقط؛ الموقع من الرسم نفسه) */
 const DRAW_SHAPE = {
@@ -6252,7 +6819,11 @@ const DRAW_SHAPE = {
   xTrach: 'خليتين مغزليتين متداخلتين فيهما نقر', xFiber: 'خلية مغزلية رفيعة طويلة', xPar: 'خلايا مستطيلة صغيرة بنوى',
   pPlate: 'خطاً مثقباً بين خلايا الأنبوب الغربالي', pPar: 'خلايا مستطيلة صغيرة بنوى',
   guard: 'خليتين كلويتين متقابلتين', stoma: 'فتحة بين الخليتين الحارستين', cuticle: 'طبقة سميكة على السطح الخارجي للبشرة',
-  trich: 'زوائد طويلة تخرج من خلايا البشرة', mesoph: 'خلايا دائرية بداخلها بلاستيدات'
+  trich: 'زوائد طويلة تخرج من خلايا البشرة', mesoph: 'خلايا دائرية بداخلها بلاستيدات',
+  connBelow: 'مستطيلاً في الأسفل فيه وعاء دموي', basem: 'خطاً سميكاً فوقه', tSqS: 'صفاً واحداً من خلايا مسطحة رقيقة',
+  tCubS: 'صفاً واحداً من مربعات متساوية', tColS: 'صفاً واحداً من مستطيلات طويلة', eNuc: 'نواة في كل خلية بشكل يناسبها',
+  tPse: 'خلايا مختلفة الأطوال كلها تلامس الخط القاعدي', cilia: 'شعيرات قصيرة على سطح الخلايا الطويلة',
+  tSqStr: 'عدة صفوف: القاعدية مربعة والسطحية مسطحة'
 };
 const drApi = host => ({ playing: true, dragSlider: false, sliderVal: 0,
   el: q => host.querySelector(q), all: q => Array.from(host.querySelectorAll(q)),
@@ -6266,6 +6837,8 @@ const DR_GROUPS = [
   { g: 'vas', t: 'الأنسجة المعقدة', items: CH.exam.filter(d => d.k.indexOf('vas_') === 0).map(d => ({
       k: d.k, t: d.t, scene: () => SCENES[d.k].build(), order: DRAW_ORDER[d.k] })) },
   { g: 'epi', t: 'البشرة والثغور', items: CH.exam.filter(d => d.k.indexOf('epi_') === 0).map(d => ({
+      k: d.k, t: d.t, scene: () => SCENES[d.k].build(), order: DRAW_ORDER[d.k] })) },
+  { g: 'eth', t: 'النسيج الظهاري', items: CH.exam.filter(d => d.k.indexOf('eth_') === 0).map(d => ({
       k: d.k, t: d.t, scene: () => SCENES[d.k].build(), order: DRAW_ORDER[d.k] })) }
 ];
 const drItem = k => { for (const G of DR_GROUPS) for (const it of G.items) if (it.k === k) return it; return DR_GROUPS[0].items[0]; };

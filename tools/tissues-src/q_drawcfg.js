@@ -16,7 +16,12 @@ const DRAW_ORDER = {
   vas_phl:  ['pSieve', 'pPlate', 'pComp', 'pFiber', 'pPar'],
   epi_leaf: ['epidermis', 'guard', 'stoma'],
   epi_sec:  ['mesoph', 'epidermis', 'guard', 'stoma', 'cuticle', 'trich'],
-  epi_stom: ['epidermis', 'guard', 'stoma']
+  epi_stom: ['epidermis', 'guard', 'stoma'],
+  eth_sq:   ['connBelow', 'basem', 'tSqS', 'eNuc'],
+  eth_cub:  ['connBelow', 'basem', 'tCubS', 'eNuc'],
+  eth_col:  ['connBelow', 'basem', 'tColS', 'eNuc'],
+  eth_pse:  ['connBelow', 'basem', 'tPse', 'eNuc', 'cilia'],
+  eth_str:  ['connBelow', 'basem', 'tSqStr', 'eNuc']
 };
 /* كيف يُرسم كل جزء (وصف الشكل فقط؛ الموقع من الرسم نفسه) */
 const DRAW_SHAPE = {
@@ -42,7 +47,11 @@ const DRAW_SHAPE = {
   xTrach: 'خليتين مغزليتين متداخلتين فيهما نقر', xFiber: 'خلية مغزلية رفيعة طويلة', xPar: 'خلايا مستطيلة صغيرة بنوى',
   pPlate: 'خطاً مثقباً بين خلايا الأنبوب الغربالي', pPar: 'خلايا مستطيلة صغيرة بنوى',
   guard: 'خليتين كلويتين متقابلتين', stoma: 'فتحة بين الخليتين الحارستين', cuticle: 'طبقة سميكة على السطح الخارجي للبشرة',
-  trich: 'زوائد طويلة تخرج من خلايا البشرة', mesoph: 'خلايا دائرية بداخلها بلاستيدات'
+  trich: 'زوائد طويلة تخرج من خلايا البشرة', mesoph: 'خلايا دائرية بداخلها بلاستيدات',
+  connBelow: 'مستطيلاً في الأسفل فيه وعاء دموي', basem: 'خطاً سميكاً فوقه', tSqS: 'صفاً واحداً من خلايا مسطحة رقيقة',
+  tCubS: 'صفاً واحداً من مربعات متساوية', tColS: 'صفاً واحداً من مستطيلات طويلة', eNuc: 'نواة في كل خلية بشكل يناسبها',
+  tPse: 'خلايا مختلفة الأطوال كلها تلامس الخط القاعدي', cilia: 'شعيرات قصيرة على سطح الخلايا الطويلة',
+  tSqStr: 'عدة صفوف: القاعدية مربعة والسطحية مسطحة'
 };
 const drApi = host => ({ playing: true, dragSlider: false, sliderVal: 0,
   el: q => host.querySelector(q), all: q => Array.from(host.querySelectorAll(q)),
@@ -56,5 +65,7 @@ const DR_GROUPS = [
   { g: 'vas', t: 'الأنسجة المعقدة', items: CH.exam.filter(d => d.k.indexOf('vas_') === 0).map(d => ({
       k: d.k, t: d.t, scene: () => SCENES[d.k].build(), order: DRAW_ORDER[d.k] })) },
   { g: 'epi', t: 'البشرة والثغور', items: CH.exam.filter(d => d.k.indexOf('epi_') === 0).map(d => ({
+      k: d.k, t: d.t, scene: () => SCENES[d.k].build(), order: DRAW_ORDER[d.k] })) },
+  { g: 'eth', t: 'النسيج الظهاري', items: CH.exam.filter(d => d.k.indexOf('eth_') === 0).map(d => ({
       k: d.k, t: d.t, scene: () => SCENES[d.k].build(), order: DRAW_ORDER[d.k] })) }
 ];
