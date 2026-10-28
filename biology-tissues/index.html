@@ -1239,12 +1239,14 @@ const CH = {
   tabs: [
     { k: 'mer', t: 'الأنسجة المرستيمية' },
     { k: 'simple', t: 'الأنسجة البسيطة' },
-    { k: 'vasc', t: 'الأنسجة المعقدة' }
+    { k: 'vasc', t: 'الأنسجة المعقدة' },
+    { k: 'epid', t: 'البشرة والثغور' }
   ],
-  sel: { merv: 'loc', simv: 'sloc', vasv: 'vbun' },
+  sel: { merv: 'loc', simv: 'sloc', vasv: 'vbun', epiv: 'eleaf' },
   toolIcons: { loc: 'leaf', root: 'grow', cell: 'cell', cmp: 'compare', stPrev: 'prev', stNext: 'next',
     sloc: 'leaf', par: 'cell', col: 'layers', scl: 'cross', scmp: 'compare',
-    vbun: 'layers', xyl: 'drop', phl: 'mol', vcmp: 'compare' },
+    vbun: 'layers', xyl: 'drop', phl: 'mol', vcmp: 'compare',
+    eleaf: 'leaf', esec: 'layers', estom: 'eye' },
   exam: [
     { k: 'mer_loc',  t: 'مواقع المرستيمات في النبات' },
     { k: 'mer_root', t: 'مقطع طولي في قمة الجذر' },
@@ -1255,7 +1257,10 @@ const CH = {
     { k: 'sim_scl',  t: 'النسيج السكلرنكيمي' },
     { k: 'vas_bun',  t: 'مقطع عرضي في حزمة وعائية' },
     { k: 'vas_xyl',  t: 'عناصر الخشب' },
-    { k: 'vas_phl',  t: 'عناصر اللحاء' }
+    { k: 'vas_phl',  t: 'عناصر اللحاء' },
+    { k: 'epi_leaf', t: 'سطح البشرة السفلى للورقة' },
+    { k: 'epi_sec',  t: 'مقطع في البشرة' },
+    { k: 'epi_stom', t: 'الثغر والخليتان الحارستان' }
   ]
 };
 
@@ -1590,6 +1595,46 @@ Object.assign(INFO, {
   }
 });
 
+/* ───────────── البشرة والثغور ───────────── */
+Object.assign(INFO, {
+  cuticle: {
+    name: 'الكيوتكل', src: SRC_WAIT,
+    loc: 'يغطي الجدران الخارجية لخلايا البشرة في الأوراق والسيقان الفتية.',
+    struct: 'طبقة شمعية من مادة الكيوتين.',
+    fn: 'تقليل فقدان الماء من النبات، وحماية الأنسجة الداخلية.',
+    note: 'يكون الكيوتكل أسمك في نباتات المناطق الجافة لتقليل فقدان الماء.'
+  },
+  stoma: {
+    name: 'الثغر', src: SRC_WAIT,
+    loc: 'فتحات صغيرة في البشرة، وأكثرها في البشرة السفلى للأوراق.',
+    struct: 'فتحة يحيط بها خليتان حارستان.',
+    fn: 'تبادل الغازات (دخول ثنائي أوكسيد الكاربون وخروج الأوكسجين) وخروج بخار الماء (النتح).',
+    note: 'الثغر هو الفتحة، والخليتان الحارستان تتحكمان بفتحه وغلقه.'
+  },
+  guard: {
+    name: 'الخليتان الحارستان', src: SRC_WAIT,
+    loc: 'تحيطان بكل ثغر في البشرة.',
+    struct: 'خليتان كلويتا الشكل، فيهما بلاستيدات خضراء (بعكس باقي خلايا البشرة)، وجدارهما المحيط بالفتحة سميك والجدار الخارجي رقيق.',
+    fn: 'التحكم بفتح الثغر وغلقه: عندما تمتلئان بالماء تنتفخان فينفتح الثغر، وعندما تفقدان الماء ينغلق.',
+    note: 'الخليتان الحارستان هما خلايا البشرة الوحيدة التي تحتوي على بلاستيدات خضراء.'
+  },
+  trich: {
+    name: 'الشعيرات', src: SRC_WAIT,
+    loc: 'على سطح البشرة في الأوراق والسيقان.',
+    struct: 'زوائد تنمو من خلايا البشرة، قد تكون وحيدة الخلية أو متعددة الخلايا.',
+    fn: 'تقليل فقدان الماء وحماية النبات.',
+    note: 'الشعيرات الجذرية أيضاً امتدادات من خلايا البشرة، لكن وظيفتها امتصاص الماء والأملاح.'
+  },
+  mesoph: {
+    name: 'خلايا تحت البشرة', src: SRC_WAIT,
+    loc: 'تحت البشرة في الورقة.',
+    struct: 'خلايا برنكيمية فيها بلاستيدات خضراء، وبينها مسافات بينية.',
+    fn: 'البناء الضوئي؛ وتتبادل الغازات مع الهواء عبر الثغور.',
+    note: 'تفاصيلها في تبويب «الأنسجة البسيطة» (البرنكيمي).'
+  }
+});
+INFO.epidermis.note = 'البشرة طبقة واحدة متراصّة بلا مسافات بينية، يغطيها الكيوتكل، وفيها الثغور والشعيرات.';
+
 const TABLES = {
   merTypes: {
     title: 'أنواع المرستيمات حسب موقعها',
@@ -1645,6 +1690,25 @@ const TABLES = {
       ['العناصر', 'القصيبات، الأوعية الخشبية، الألياف الخشبية، البرنكيمة الخشبية', 'الأنابيب الغربالية، الخلايا المرافقة، الألياف اللحائية، البرنكيمة اللحائية'],
       ['العناصر الناقلة', 'القصيبات والأوعية (ميتة)', 'الأنابيب الغربالية (حية بلا نواة)'],
       ['موقعه في الحزمة', 'نحو الداخل', 'نحو الخارج']
+    ]
+  },
+  epiParts: {
+    title: 'تراكيب البشرة ووظائفها',
+    head: ['التركيب', 'الوصف', 'الوظيفة'],
+    rows: [
+      ['خلايا البشرة', 'طبقة واحدة متراصّة بلا مسافات بينية', 'حماية الأنسجة الداخلية'],
+      ['الكيوتكل', 'طبقة شمعية من الكيوتين على الجدار الخارجي', 'تقليل فقدان الماء'],
+      ['الثغر', 'فتحة تحيط بها خليتان حارستان', 'تبادل الغازات وخروج بخار الماء'],
+      ['الخليتان الحارستان', 'كلويتا الشكل وفيهما بلاستيدات خضراء', 'فتح الثغر وغلقه'],
+      ['الشعيرات', 'زوائد من خلايا البشرة', 'تقليل فقدان الماء والحماية']
+    ]
+  },
+  stomaState: {
+    title: 'الثغر: مفتوح × مغلق',
+    head: ['الحالة', 'الخليتان الحارستان', 'الثغر'],
+    rows: [
+      ['امتلاء الخليتين الحارستين بالماء', 'تنتفخان وتنحنيان', 'ينفتح'],
+      ['فقدان الخليتين الحارستين للماء', 'ترتخيان وتستقيمان', 'ينغلق']
     ]
   },
   rootZones: {
@@ -1710,7 +1774,21 @@ const QUIZ = [
   { topic: 'vasc', q: 'اتجاه النقل في اللحاء:', o: ['بالاتجاهين', 'إلى الأعلى فقط', 'إلى الأسفل فقط', 'لا ينقل'], c: 0,
     why: 'اللحاء ينقل الغذاء المصنّع من الأوراق إلى أجزاء النبات المختلفة بالاتجاهين.' },
   { topic: 'vasc', q: 'يقع الخشب في الحزمة الوعائية:', o: ['نحو الداخل', 'نحو الخارج', 'فوق الألياف', 'خارج البشرة'], c: 0,
-    why: 'في الحزمة الوعائية يكون الخشب نحو الداخل واللحاء نحو الخارج وبينهما الكامبيوم الوعائي.' }
+    why: 'في الحزمة الوعائية يكون الخشب نحو الداخل واللحاء نحو الخارج وبينهما الكامبيوم الوعائي.' },
+  { topic: 'epid', q: 'وظيفة الكيوتكل:', o: ['تقليل فقدان الماء', 'تبادل الغازات', 'امتصاص الأملاح', 'نقل الغذاء'], c: 0,
+    why: 'الكيوتكل طبقة شمعية من الكيوتين تغطي البشرة فتقلل فقدان الماء.' },
+  { topic: 'epid', q: 'خلايا البشرة الوحيدة التي تحتوي على بلاستيدات خضراء هي:', o: ['الخليتان الحارستان', 'الشعيرات', 'خلايا البشرة العادية', 'الكيوتكل'], c: 0,
+    why: 'الخليتان الحارستان تحتويان على بلاستيدات خضراء بعكس باقي خلايا البشرة.' },
+  { topic: 'epid', q: 'ينفتح الثغر عندما:', o: ['تمتلئ الخليتان الحارستان بالماء', 'تفقد الخليتان الحارستان الماء', 'يزداد سمك الكيوتكل', 'تموت الخليتان الحارستان'], c: 0,
+    why: 'امتلاء الخليتين الحارستين بالماء يجعلهما تنتفخان وتنحنيان فينفتح الثغر.' },
+  { topic: 'epid', q: 'تكثر الثغور في:', o: ['البشرة السفلى للأوراق', 'الجذور', 'قمة الساق', 'القلنسوة'], c: 0,
+    why: 'أكثر الثغور توجد في البشرة السفلى للأوراق.' },
+  { topic: 'epid', q: 'عبر الثغور يحدث:', o: ['تبادل الغازات وخروج بخار الماء', 'نقل الغذاء المصنّع', 'امتصاص الأملاح المعدنية', 'انقسام الخلايا'], c: 0,
+    why: 'الثغور تسمح بدخول CO₂ وخروج O₂ وبخار الماء.' },
+  { topic: 'epid', q: 'خلايا البشرة:', o: ['متراصّة بلا مسافات بينية', 'بينها مسافات بينية كبيرة', 'ميتة عند النضج', 'ملجننة الجدران'], c: 0,
+    why: 'البشرة طبقة واحدة من الخلايا المتراصّة بلا مسافات بينية.' },
+  { topic: 'epid', q: 'الشعيرات على سطح البشرة:', o: ['زوائد من خلايا البشرة تقلل فقدان الماء', 'خلايا ميتة ملجننة', 'جزء من اللحاء', 'فتحات لتبادل الغازات'], c: 0,
+    why: 'الشعيرات زوائد تنمو من خلايا البشرة، من وظائفها تقليل فقدان الماء والحماية.' }
 ];
 
 /* «رتّب المراحل»: مراحل كل موضوع بترتيبها الصحيح */
@@ -1719,7 +1797,8 @@ const ORDER_SETS = [
   { topic: 'mer', t: 'ما يحدث للخلية الجديدة في قمة الجذر', items: ['تنتج من الانقسام في المرستيم القمي', 'تستطيل وتكبر فجواتها', 'تتمايز إلى خلية متخصصة'] },
   { topic: 'simple', t: 'تكوّن الخلية السكلرنكيمية', items: ['خلية حية بجدار ابتدائي رقيق', 'ترسّب جدار ثانوي ثخين ملجنن تاركاً النقر', 'موت البروتوبلاست وبقاء تجويف فارغ'] },
   { topic: 'simple', t: 'طبقات ساق النبات العشبي من الخارج إلى الداخل', items: ['البشرة', 'الكولنكيمي', 'برنكيمة القشرة', 'الحزم الوعائية', 'برنكيمة اللب'] },
-  { topic: 'vasc', t: 'مكونات الحزمة الوعائية من الخارج إلى الداخل', items: ['الألياف', 'اللحاء', 'الكامبيوم الوعائي', 'الخشب'] }
+  { topic: 'vasc', t: 'مكونات الحزمة الوعائية من الخارج إلى الداخل', items: ['الألياف', 'اللحاء', 'الكامبيوم الوعائي', 'الخشب'] },
+  { topic: 'epid', t: 'فتح الثغر وغلقه', items: ['الثغر مغلق والخليتان الحارستان رخوتان', 'دخول الماء إلى الخليتين الحارستين فتنتفخان', 'انفتاح الثغر وتبادل الغازات', 'فقدان الخليتين للماء فينغلق الثغر'] }
 ];
 
 /* ══════════ TODO — بانتظار ملزمة الفصل الثاني ══════════
@@ -1734,6 +1813,9 @@ const ORDER_SETS = [
    - الأنسجة المعقدة: لم تُبنَ أنواع تغلظ الأوعية (الحلقي، الحلزوني، السلمي،
      الشبكي، المنقر) لعدم التأكد من ورودها في منهج السادس؛ تُضاف إذا ذكرتها
      الملزمة. التأكد من رسوم «عناصر الخشب» و«عناصر اللحاء» وتأشيراتها.
+   - البشرة: لم يُبنَ البريدرم (الفلين) كنسيج واقٍ ثانوي لعدم التأكد من وروده؛
+     ومراحل «فتح الثغر وغلقه» مبنية من وصف المنهج (امتلاء الخليتين الحارستين
+     بالماء يفتح الثغر وفقدانه يغلقه)؛ تُطابَق مع الملزمة.
    - مراحل «تكوّن الخلية السكلرنكيمية» مبنية من وصف المنهج (خلية حية ← تلجنن
      ← موت)؛ تُعدَّل إذا عرضتها الملزمة بشكل آخر.
 */
@@ -2982,6 +3064,239 @@ function vasCmp(){
       a.all('.sg').forEach(e => { const i = +e.dataset.i, dn = i % 2 === 0, p = (t * 0.11 + i / 8) % 1, y = dn ? Y0 + 10 + p * (Y1 - Y0 - 20) : Y1 - 10 - p * (Y1 - Y0 - 20);
         e.setAttribute('x', n2(SX + (dn ? -18 : 8) - 5)); e.setAttribute('y', n2(y - 5)); });
       a.all('.dHi').forEach((e, i) => e.style.filter = `drop-shadow(0 0 ${n2(3 + 5 * (0.5 + 0.5 * Math.sin(t * 2.4 + i)))}px #ffd166)`);
+    }
+  };
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   4.4 · البشرة والثغور: سطح البشرة السفلى بثغورها، مقطع في البشرة
+         (الكيوتكل والشعيرات)، وحركة الثغر بمراحلها
+   ══════════════════════════════════════════════════════════════════════════ */
+const EPI_VIEWS = [
+  { id: 'eleaf', label: 'سطح البشرة' },
+  { id: 'esec',  label: 'مقطع في البشرة' },
+  { id: 'estom', label: 'فتح الثغر وغلقه' }
+];
+const STOMA_STAGES = [
+  { n: 'الثغر مغلق', d: 'الخليتان الحارستان رخوتان ومستقيمتان، فتتلامسان والثغر مغلق.',
+    cam: { yaw: 0.1, pitch: 1.0, dist: 6.4, target: [0, 0, 0] } },
+  { n: 'دخول الماء', d: 'يدخل الماء إلى الخليتين الحارستين فتنتفخان وتنحنيان (جدارهما المحيط بالفتحة سميك والخارجي رقيق)، فيبدأ الثغر بالانفتاح.',
+    cam: { yaw: 0.35, pitch: 0.8, dist: 5.8, target: [0, 0, 0] } },
+  { n: 'الثغر مفتوح', d: 'عبر الثغر المفتوح يدخل ثنائي أوكسيد الكاربون ويخرج الأوكسجين وبخار الماء.',
+    cam: { yaw: 0.0, pitch: 0.55, dist: 6.8, target: [0, -0.2, 0] } },
+  { n: 'فقدان الماء', d: 'تفقد الخليتان الحارستان الماء فترتخيان وتستقيمان، فينغلق الثغر.',
+    cam: { yaw: -0.3, pitch: 0.9, dist: 6.2, target: [0, 0, 0] } }
+];
+const EPI_PAL = { cell: '#cfe7c0', line: '#6f9a5c', guard: '#5aa85a', guardL: '#e6ffd8', pore: '#13221a', cut: '#f2d675', co2: '#b8c2cc', o2: '#9fe9ff', h2o: '#6fc3ff' };
+
+SCENES.epid = {
+  title: 'البشرة والثغور',
+  get src(){ return SRC_WAIT; },
+  tint: ['rgba(100,160,90,.26)', 'rgba(90,140,170,.16)'],
+  model3d: () => 'epi_' + SEL.epiv,
+  build(){
+    const v = SEL.epiv || 'eleaf';
+    const s = v === 'esec' ? epiSec() : v === 'estom' ? epiStom() : epiLeaf();
+    s.rebuildOnRadio = 'epiv';
+    s.tools = EPI_VIEWS.map(x => ({ id: x.id, label: x.label, radio: 'epiv', on: x.id === v })).concat(s.tools || []);
+    return s;
+  }
+};
+SCENES.epi_leaf = { title: 'سطح البشرة السفلى للورقة', build: () => epiLeaf() };
+SCENES.epi_sec  = { title: 'مقطع في البشرة', build: () => epiSec() };
+SCENES.epi_stom = { title: 'الثغر والخليتان الحارستان', build: () => epiStom() };
+
+/* خلية حارسة كلوية: s = -1 يسار، 1 يمين؛ o = مقدار فتح الثغر (0..1) */
+function guardPath(cx, cy, s, L, o, W){
+  const a = 1.5 + 0.34 * W * o, N = 16, inn = [], out = [];
+  for (let i = 0; i <= N; i++){
+    const u = i / N, sn = Math.sin(Math.PI * u), y = cy - L * Math.cos(Math.PI * u);
+    inn.push([cx + s * a * sn, y]);
+    out.push([cx + s * (a * sn + W * Math.pow(sn, 0.65) * (1 - 0.12 * o) + 2), y]);
+  }
+  const pts = inn.concat(out.reverse());
+  return 'M' + pts.map(p => n2(p[0]) + ',' + n2(p[1])).join(' L') + 'Z';
+}
+const porePath = (cx, cy, L, o, W) => { const a = 1.5 + 0.34 * W * o; return `M${n2(cx)},${n2(cy - L * 0.92)} Q${n2(cx + a * 1.9)},${n2(cy)} ${n2(cx)},${n2(cy + L * 0.92)} Q${n2(cx - a * 1.9)},${n2(cy)} ${n2(cx)},${n2(cy - L * 0.92)}Z`; };
+/* ثغر كامل: الخليتان والفتحة (العناصر تُحدَّث بالحركة عبر data) */
+function stomaSvg(id, cx, cy, L, W, o){
+  const chl = []; [-1, 1].forEach(s => { for (let k = 0; k < 4; k++){ const u = 0.2 + k * 0.2, y = cy - L * Math.cos(Math.PI * u);
+    chl.push(`<ellipse class="gc" data-s="${s}" data-u="${u}" cx="${n2(cx + s * (W * 0.55 + 4))}" cy="${n2(y)}" rx="${n2(W * 0.13)}" ry="${n2(W * 0.08)}" fill="#2f8f3a"/>`); } });
+  return { pore: `<path class="pore" data-id="${id}" d="${porePath(cx, cy, L, o, W)}" fill="${EPI_PAL.pore}"/>`,
+    guard: `<g class="stomaG" data-id="${id}" data-cx="${cx}" data-cy="${cy}" data-l="${L}" data-w="${W}">
+      <path class="gL" d="${guardPath(cx, cy, -1, L, o, W)}" fill="${EPI_PAL.guard}" stroke="${EPI_PAL.guardL}" stroke-width="1.6"/>
+      <path class="gR" d="${guardPath(cx, cy, 1, L, o, W)}" fill="${EPI_PAL.guard}" stroke="${EPI_PAL.guardL}" stroke-width="1.6"/>
+      ${chl.join('')}</g>` };
+}
+function setStoma(g, pore, o){
+  const cx = +g.dataset.cx, cy = +g.dataset.cy, L = +g.dataset.l, W = +g.dataset.w;
+  g.querySelector('.gL').setAttribute('d', guardPath(cx, cy, -1, L, o, W));
+  g.querySelector('.gR').setAttribute('d', guardPath(cx, cy, 1, L, o, W));
+  if (pore) pore.setAttribute('d', porePath(cx, cy, L, o, W));
+  const a = 1.5 + 0.34 * W * o;
+  g.querySelectorAll('.gc').forEach(e => { const s = +e.dataset.s, u = +e.dataset.u, sn = Math.sin(Math.PI * u);
+    e.setAttribute('cx', n2(cx + s * (a * sn + W * Math.pow(sn, 0.65) * 0.5 + 2))); });
+}
+/* خلايا بشرة متعرّجة الحدود (منظر سطحي) */
+function wavyCells(x0, y0, x1, y1, cw, ch, seed){
+  const rr = rng(seed), lines = [];
+  for (let y = y0 + ch; y < y1; y += ch){
+    let d = `M${x0},${n2(y)}`; for (let x = x0; x <= x1; x += 10) d += ` L${x},${n2(y + Math.sin(x * 0.11 + y) * 5)}`;
+    lines.push(d);
+  }
+  let row = 0;
+  for (let y = y0; y < y1; y += ch, row++){
+    for (let x = x0 + (row % 2 ? cw / 2 : 0) + cw; x < x1; x += cw){
+      let d = `M${n2(x)},${n2(y)}`; for (let yy = y; yy <= Math.min(y1, y + ch); yy += 8) d += ` L${n2(x + Math.sin(yy * 0.16 + x) * 6 + (rr() - 0.5) * 2)},${n2(yy)}`;
+      lines.push(d);
+    }
+  }
+  return lines.map(d => `<path d="${d}" fill="none" stroke="${EPI_PAL.line}" stroke-width="2.2"/>`).join('');
+}
+/* جزيئات غازات تدخل وتخرج من الثغور المفتوحة */
+function gasDots(n){ const o = []; for (let i = 0; i < n; i++){ const k = i % 3;
+  o.push(`<circle class="gas" data-i="${i}" data-k="${k}" r="${k === 0 ? 6 : 5}" fill="${k === 0 ? EPI_PAL.co2 : k === 1 ? EPI_PAL.o2 : EPI_PAL.h2o}" stroke="#fff" stroke-width="1" opacity="0"/>`); } return o.join(''); }
+const GAS_LEGEND = (x, y) => `<g class="gasLeg" font-size="13" fill="#e6f1ea">
+  <circle cx="${x}" cy="${y}" r="6" fill="${EPI_PAL.co2}"/><text x="${x - 12}" y="${y + 5}" text-anchor="start">CO₂ يدخل</text>
+  <circle cx="${x}" cy="${y + 24}" r="5" fill="${EPI_PAL.o2}"/><text x="${x - 12}" y="${y + 29}" text-anchor="start">O₂ يخرج</text>
+  <circle cx="${x}" cy="${y + 48}" r="5" fill="${EPI_PAL.h2o}"/><text x="${x - 12}" y="${y + 53}" text-anchor="start">بخار الماء يخرج</text></g>`;
+
+/* ───────── 1) سطح البشرة السفلى للورقة ───────── */
+function epiLeaf(){
+  const X0 = 170, Y0 = 70, X1 = 830, Y1 = 540;
+  const ST = [[300, 170], [520, 140], [700, 230], [400, 360], [620, 420], [260, 470]];
+  const pores = [], guards = [];
+  ST.forEach(([x, y], i) => { const s = stomaSvg('s' + i, x, y, 34, 20, 0.6); pores.push(s.pore); guards.push(s.guard); });
+  const body = `
+    ${part('epidermis', `<rect x="${X0}" y="${Y0}" width="${X1 - X0}" height="${Y1 - Y0}" rx="18" fill="${EPI_PAL.cell}"/>${wavyCells(X0, Y0, X1, Y1, 110, 90, 4)}
+      <rect x="${X0}" y="${Y0}" width="${X1 - X0}" height="${Y1 - Y0}" rx="18" fill="none" stroke="#9fc48a" stroke-width="3"/>`)}
+    ${part('stoma', pores.join(''))}
+    ${part('guard', guards.join(''))}
+    <g id="gasL">${gasDots(36)}</g>
+    ${GAS_LEGEND(125, 470)}
+    <text class="cap sm" x="500" y="${Y1 + 40}" text-anchor="middle">سطح البشرة السفلى للورقة (منظر مكبّر) — الثغور تنفتح وتنغلق</text>`;
+  return {
+    body, fnParts: ['stoma', 'guard'],
+    parts: [
+      { id: 'epidermis', anchor: [780, 110], label: [866, 90], side: 'R' },
+      { id: 'guard', anchor: [700 + 22, 230], label: [866, 240], side: 'R' },
+      { id: 'stoma', anchor: [300, 170], label: [134, 170], side: 'L' }
+    ],
+    tools: [{ id: 'tbl:epiParts', label: 'تراكيب البشرة' }],
+    tick(dt, t, a){
+      const o = 0.5 + 0.5 * Math.sin(t * 0.8);
+      const gs = a.all('.stomaG'), ps = a.all('.pore');
+      gs.forEach((g, i) => setStoma(g, ps[i], Math.max(0, Math.min(1, o + Math.sin(i * 1.7) * 0.15))));
+      a.all('#gasL .gas').forEach(e => { const i = +e.dataset.i, k = +e.dataset.k, [x, y] = ST[i % ST.length], p = (t * 0.35 + i / 36 * 3) % 1;
+        const inward = k === 0, d = inward ? 60 * (1 - p) : 60 * p, ang = i * 2.4;
+        e.setAttribute('cx', n2(x + Math.cos(ang) * d)); e.setAttribute('cy', n2(y + Math.sin(ang) * d));
+        e.setAttribute('opacity', n2(o > 0.3 ? Math.sin(p * Math.PI) * 0.9 : 0)); });
+    }
+  };
+}
+
+/* ───────── 2) مقطع في البشرة السفلى للورقة ───────── */
+function epiSec(){
+  const Y = 360, H = 70, X0 = 140, X1 = 860, rr = rng(9);
+  /* خلايا تحت البشرة (أعلى) */
+  const mes = []; for (let i = 0; i < 9; i++) for (let j = 0; j < 2; j++){ const x = X0 + 40 + i * 82 + (j % 2) * 30, y = 150 + j * 90 + (rr() - 0.5) * 10;
+    if (Math.abs(x - 500) < 70 && j === 1) continue;
+    mes.push(`<ellipse cx="${n2(x)}" cy="${n2(y)}" rx="36" ry="38" fill="#5f9a5c" stroke="#d6f5c4" stroke-width="1.4"/>` +
+      [0, 1, 2, 3].map(k => `<ellipse cx="${n2(x + Math.cos(k * 1.6) * 24)}" cy="${n2(y + Math.sin(k * 1.6) * 24)}" rx="6" ry="4" fill="#2f8f3a"/>`).join('')); }
+  /* خلايا البشرة: صف واحد متراص، والثغر في الوسط */
+  const ep = []; for (let x = X0; x < X1; x += 72){ if (x > 430 && x < 560) continue;
+    ep.push(`<rect x="${x + 1}" y="${Y}" width="70" height="${H}" rx="8" fill="${EPI_PAL.cell}" stroke="${EPI_PAL.line}" stroke-width="2"/><circle cx="${x + 36}" cy="${Y + 40}" r="7" fill="url(#gNucl)"/>`); }
+  const guards = [-1, 1].map(s => `<ellipse class="gsec" data-s="${s}" cx="${500 + s * 36}" cy="${Y + 28}" rx="30" ry="26" fill="${EPI_PAL.guard}" stroke="${EPI_PAL.guardL}" stroke-width="1.6"/>
+    <ellipse cx="${500 + s * 40}" cy="${Y + 20}" rx="6" ry="4" fill="#2f8f3a"/><ellipse cx="${500 + s * 30}" cy="${Y + 38}" rx="6" ry="4" fill="#2f8f3a"/>`).join('');
+  /* الكيوتكل: طبقة شمعية أسفل البشرة (السطح الخارجي) */
+  const cut = `<path d="M${X0},${Y + H} L430,${Y + H} Q470,${Y + H + 4} 474,${Y + 54} M526,${Y + 54} Q530,${Y + H + 4} 570,${Y + H} L${X1},${Y + H}" fill="none" stroke="${EPI_PAL.cut}" stroke-width="9" stroke-linecap="round"/>`;
+  /* الشعيرات: زوائد متعددة الخلايا من خلايا البشرة */
+  const hairs = [[220, -1], [690, 1], [790, -1]].map(([x, s]) => `<g class="hair" data-x="${x}"><path d="M${x},${Y + H + 4} q${s * 6},40 ${s * 2},80 q${s * -4},30 ${s * 10},60" fill="none" stroke="#e8f2d8" stroke-width="12" stroke-linecap="round"/>
+    <line x1="${x - 7}" y1="${Y + H + 52}" x2="${x + 7}" y2="${Y + H + 52}" stroke="${EPI_PAL.line}" stroke-width="2"/><line x1="${x + s * 2 - 7}" y1="${Y + H + 110}" x2="${x + s * 2 + 7}" y2="${Y + H + 110}" stroke="${EPI_PAL.line}" stroke-width="2"/></g>`).join('');
+  const body = `
+    ${part('mesoph', mes.join(''))}
+    <path d="M440,${Y - 4} Q500,${Y - 90} 560,${Y - 4}Z" fill="#0f1d16" opacity=".7"/>
+    ${part('epidermis', ep.join(''))}
+    ${part('stoma', `<rect x="488" y="${Y}" width="24" height="${H}" fill="${EPI_PAL.pore}"/>`)}
+    ${part('guard', guards)}
+    ${part('cuticle', cut)}
+    ${part('trich', hairs)}
+    <g id="gasS">${gasDots(15)}</g>
+    ${GAS_LEGEND(125, 90)}
+    <text class="cap sm" x="500" y="40" text-anchor="middle">داخل الورقة</text>
+    <text class="cap sm" x="500" y="${Y + H + 190}" text-anchor="middle">خارج الورقة — مقطع في البشرة السفلى</text>`;
+  return {
+    body, fnParts: ['stoma', 'guard', 'trich'],
+    parts: [
+      { id: 'mesoph', anchor: [X0 + 40 + 82 * 7, 150], label: [866, 150], side: 'R' },
+      { id: 'epidermis', anchor: [X1 - 30, Y + 35], label: [866, 330], side: 'R' },
+      { id: 'cuticle', anchor: [X1 - 60, Y + H + 2], label: [866, 450], side: 'R' },
+      { id: 'trich', anchor: [790, Y + H + 100], label: [866, 560], side: 'R' },
+      { id: 'guard', anchor: [500 - 50, Y + 28], label: [134, 320], side: 'L' },
+      { id: 'stoma', anchor: [500, Y + H - 8], label: [134, 470], side: 'L' }
+    ],
+    tools: [{ id: 'tbl:epiParts', label: 'تراكيب البشرة' }],
+    tick(dt, t, a){
+      a.all('#gasS .gas').forEach(e => { const i = +e.dataset.i, k = +e.dataset.k, p = (t * 0.3 + i / 15 * 2) % 1;
+        const out = k !== 0, y = out ? Y - 30 + p * 200 : Y + 170 - p * 200, x = 500 + Math.sin(i * 1.9 + p * 3) * (Math.abs(y - Y - 35) > 50 ? 40 : 6);
+        e.setAttribute('cx', n2(x)); e.setAttribute('cy', n2(y)); e.setAttribute('opacity', n2(Math.sin(p * Math.PI) * 0.9)); });
+      a.all('.hair').forEach((e, i) => e.setAttribute('transform', `rotate(${n2(Math.sin(t * 1.4 + i) * 4)} ${e.dataset.x} ${Y + H})`));
+    }
+  };
+}
+
+/* ───────── 3) فتح الثغر وغلقه (المراحل) ───────── */
+function epiStom(){
+  const CX = 500, CY = 300, L = 150, W = 92;
+  const s = stomaSvg('big', CX, CY, L, W, 0);
+  const nuc = [-1, 1].map(k => `<circle class="gn" data-s="${k}" cx="${CX + k * 60}" cy="${CY}" r="12" fill="url(#gNucl)"/>`).join('');
+  const thick = [-1, 1].map(k => `<path class="gThick" data-s="${k}" d="" fill="none" stroke="#f3ffe8" stroke-width="6" stroke-linecap="round"/>`).join('');
+  const cells = `<rect x="200" y="80" width="600" height="440" rx="26" fill="${EPI_PAL.cell}"/>${wavyCells(200, 80, 800, 520, 150, 110, 12)}
+    <rect x="200" y="80" width="600" height="440" rx="26" fill="none" stroke="#9fc48a" stroke-width="3"/>`;
+  const waters = []; for (let i = 0; i < 10; i++) waters.push(`<circle class="wtr" data-i="${i}" r="7" fill="${EPI_PAL.h2o}" stroke="#e8f7ff" stroke-width="1.2" opacity="0"/>`);
+  const body = `
+    ${part('epidermis', cells)}
+    <ellipse cx="${CX}" cy="${CY}" rx="${W * 1.4}" ry="${L * 1.12}" fill="${EPI_PAL.cell}"/>
+    ${part('stoma', s.pore)}
+    ${part('guard', s.guard + nuc + thick)}
+    <g id="wtrs">${waters.join('')}</g>
+    <g id="gasT">${gasDots(18)}</g>
+    ${GAS_LEGEND(125, 440)}
+    <text class="cap sm" x="${CX}" y="560" text-anchor="middle">ثغر وخليتان حارستان (منظر سطحي مكبّر)</text>`;
+  const ctl = stageCtl(STOMA_STAGES, { label: 'المرحلة', dur: 4 * 6 });
+  const openAt = () => { const st = STG.idx, k = STG.k; return st === 0 ? 0 : st === 1 ? k : st === 2 ? 1 : 1 - k; };
+  return {
+    body, stages: STOMA_STAGES, fnParts: ['stoma', 'guard'],
+    parts: [
+      { id: 'epidermis', anchor: [760, 120], label: [866, 110], side: 'R' },
+      { id: 'guard', anchor: [CX + W * 0.9, CY - 40], label: [866, 280], side: 'R' },
+      { id: 'stoma', anchor: [CX, CY - L * 0.5], label: [134, 200], side: 'L' }
+    ],
+    tools: ctl.tools.concat([{ id: 'tbl:stomaState', label: 'الثغر: مفتوح × مغلق' }]),
+    init(){ ctl.start(); },
+    onSlider: v => ctl.onSlider(v),
+    onTool: id => ctl.onTool(id),
+    tick(dt, t, a){
+      ctl.tick(dt);
+      const st = STG.idx, k = STG.k, o = openAt();
+      const g = a.el('.stomaG'), pore = a.el('.pore'); if (g) setStoma(g, pore, o);
+      const ap = 1.5 + 0.34 * W * o;
+      a.all('.gn').forEach(e => e.setAttribute('cx', n2(CX + +e.dataset.s * (ap + W * 0.5 + 2))));
+      /* الجدار السميك المحيط بالفتحة */
+      a.all('.gThick').forEach(e => { const sd = +e.dataset.s; let d = '';
+        for (let i = 0; i <= 12; i++){ const u = 0.08 + i / 12 * 0.84, y = CY - L * Math.cos(Math.PI * u); d += (i ? ' L' : 'M') + n2(CX + sd * (ap * Math.sin(Math.PI * u) + 4)) + ',' + n2(y); }
+        e.setAttribute('d', d); });
+      /* الماء يدخل الخليتين (المرحلة 2) أو يخرج منهما (المرحلة 4) */
+      a.all('#wtrs .wtr').forEach(e => { const i = +e.dataset.i, sd = i % 2 ? 1 : -1, p = (t * 0.5 + i / 10) % 1;
+        const show = st === 1 || st === 3, inward = st === 1, f = inward ? p : 1 - p;
+        const x = CX + sd * (W * 2.2 - f * (W * 1.4)), y = CY + Math.sin(i * 1.3) * L * 0.6;
+        e.setAttribute('cx', n2(x)); e.setAttribute('cy', n2(y)); e.setAttribute('opacity', show ? n2(Math.sin(p * Math.PI) * 0.95) : '0'); });
+      /* تبادل الغازات عبر الفتحة (المرحلة 3) */
+      a.all('#gasT .gas').forEach(e => { const i = +e.dataset.i, kk = +e.dataset.k, p = (t * 0.35 + i / 18 * 3) % 1;
+        const inward = kk === 0, d = inward ? 160 * (1 - p) : 160 * p, ang = i * 2.1;
+        e.setAttribute('cx', n2(CX + Math.cos(ang) * d * 0.6)); e.setAttribute('cy', n2(CY + Math.sin(ang) * d));
+        e.setAttribute('opacity', n2(st === 2 ? Math.sin(p * Math.PI) * 0.9 : 0)); });
+      void k;
     }
   };
 }
@@ -5741,6 +6056,160 @@ Object.assign(G3.models, { vas_vbun: bunModel, vas_xyl: xylModel, vas_phl: phlMo
 })();
 
 /* ══════════════════════════════════════════════════════════════════════════
+   9.4 · مجسّمات البشرة والثغور: سطح البشرة بثغور تنفتح وتنغلق وتبادل
+         الغازات، مقطع في البشرة (الكيوتكل والشعيرات)، وثغر مكبّر بمراحل حركته
+   ══════════════════════════════════════════════════════════════════════════ */
+(function(){
+const { add, mul, ellipsoid, superEll, tube, place, merge, srng, computeNormals, mk } = G3;
+const { blobDisp } = G3.parts;
+const CO2 = '#b8c2cc', O2 = '#9fe9ff', H2O = '#6fc3ff';
+const box = (w, h, d, e) => superEll({ h: [w / 2, h / 2, d / 2], e: e || 0.3, rows: 6, cols: 10 });
+const ball = ellipsoid({ r: 1, rows: 5, cols: 8 });
+const dots = (list, r) => merge(list.map(p => place(ball, { at: p ? p : [0, -60, 0], s: p ? (p.s || r) : 0.0001 })));
+
+/* خلية حارسة كلوية: أنبوب على قوس حول الفتحة؛ السطح في المستوى xz، o = مقدار الفتح */
+function guardMesh(c, s, L, o, W){
+  const a = 0.02 + 0.3 * W * o, pts = [], N = 18;
+  for (let i = 0; i <= N; i++){ const u = 0.04 + i / N * 0.92, sn = Math.sin(Math.PI * u);
+    pts.push([c[0] + s * (a * sn + W * 0.5 * Math.pow(sn, 0.6)), c[1], c[2] - L * Math.cos(Math.PI * u)]); }
+  return tube({ pts, r: u => W * 0.5 * (0.55 + 0.45 * Math.sin(Math.PI * u)) * (1 + 0.12 * o), sides: 12 });
+}
+const poreMesh = (c, L, o, W) => { const a = 0.02 + 0.3 * W * o; return place(ellipsoid({ r: [Math.max(0.01, a * 1.6), 0.03, L * 0.82], rows: 6, cols: 16 }), { at: c }); };
+function stomaObjs(B, c, L, W, o, withLabel){
+  const gl = B.add(guardMesh(c, -1, L, o, W), { part: 'guard', color: '#5aa85a', rim: 0.8, rimColor: '#e6ffd8', pat: 2, patColor: '#2f8f3a', patK: 16, center: c });
+  const gr = B.add(guardMesh(c, 1, L, o, W), { part: 'guard', color: '#5aa85a', rim: 0.8, rimColor: '#e6ffd8', pat: 2, patColor: '#2f8f3a', patK: 16, center: c });
+  const pr = B.add(poreMesh(c, L, o, W), { part: 'stoma', color: '#13221a', rim: 0.4, rimColor: '#4f7f3a', center: c });
+  return { set(o2){ B.update(gl, guardMesh(c, -1, L, o2, W)); B.update(gr, guardMesh(c, 1, L, o2, W)); B.update(pr, poreMesh(c, L, o2, W)); }, gl, gr, pr };
+}
+/* بلاطة بشرة بخلايا متعرّجة (منظر سطحي) */
+function epiSlab(B, X, Z, y, seed){
+  const rnd = srng(seed), cells = [];
+  for (let i = 0; i < 6; i++) for (let j = 0; j < 4; j++){
+    const x = -X + (i + 0.5) * (2 * X / 6) + (j % 2 ? 0.25 : 0), z = -Z + (j + 0.5) * (2 * Z / 4);
+    if (Math.abs(x) > X - 0.1) continue;
+    cells.push(place(ellipsoid({ r: [X / 6 * 1.12, 0.09, Z / 4 * 1.12], rows: 6, cols: 20, disp: blobDisp(seed + i * 7 + j, 0.09) }), { at: [x, y, z] }));
+  }
+  /* الخلايا متراصّة بلا مسافات بينية: طبقة متصلة تحتها */
+  cells.push(place(box(2 * X, 0.12, 2 * Z, 0.12), { at: [0, y - 0.03, 0] }));
+  return B.add(merge(cells), { part: 'epidermis', color: '#cfe7c0', rim: 0.6, rimColor: '#f4ffe8', pat: 3, patK: 6 });
+}
+
+/* ═════════════ 1) سطح البشرة السفلى للورقة ═════════════ */
+function leafModel(B){
+  const X = 2.8, Z = 1.9;
+  epiSlab(B, X, Z, 0, 11);
+  B.add(place(box(2 * X + 0.1, 0.03, 2 * Z + 0.1, 0.15), { at: [0, 0.1, 0] }), { color: '#f2d675', alpha: 0.14, rim: 0.5, rimColor: '#fff3c8', shell: { size: 6 }, pop: false });
+  const ST = [[-1.7, -0.9], [-0.2, -1.1], [1.6, -0.4], [-1.0, 0.6], [0.7, 0.9], [2.1, 1.1]];
+  const stomata = ST.map(([x, z]) => stomaObjs(B, [x, 0.12, z], 0.32, 0.17, 0.6));
+  /* الغازات: CO₂ يدخل، O₂ وبخار الماء يخرجان */
+  const N = 36;
+  const gas = (t, o) => { const out = [], col = [[], [], []];
+    for (let i = 0; i < N; i++){ const k = i % 3, [x, z] = ST[i % ST.length], p = (t * 0.35 + i / N * 3) % 1, inward = k === 0, d = inward ? 1 - p : p, ang = i * 2.4;
+      col[k].push(o > 0.3 ? Object.assign([x + Math.cos(ang) * d * 0.5, 0.15 + d * 0.9, z + Math.sin(ang) * d * 0.5], { s: 0.055 * Math.sin(p * Math.PI) + 0.001 }) : null); }
+    return col; };
+  const G0 = gas(0, 1);
+  const gO = [CO2, O2, H2O].map((c, k) => B.add(dots(G0[k], 0.055), { color: c, rim: 0.8, rimColor: '#ffffff', pop: false, center: [0, 0, 0] }));
+  B.label('epidermis', [X - 0.6, 0.1, -Z + 0.4], [0, 1, 0]);
+  B.label('guard', [ST[2][0] + 0.2, 0.2, ST[2][1]], [0, 1, 0]);
+  B.label('stoma', [ST[0][0], 0.14, ST[0][1]], [0, 1, 0]);
+  B.caption([0, 0.1, Z + 0.45], () => ['', 'CO₂ يدخل · O₂ وبخار الماء يخرجان من الثغور المفتوحة']);
+  let lastO = -1;
+  return {
+    dist: 8.2, yaw: 0.1, pitch: 0.95, live2d: true, noSpin: true,
+    anim(t){
+      const o = 0.5 + 0.5 * Math.sin(t * 0.8);
+      if (Math.abs(o - lastO) > 0.02){ lastO = o; stomata.forEach((s, i) => s.set(Math.max(0, Math.min(1, o + Math.sin(i * 1.7) * 0.15)))); }
+      const G = gas(t, o); gO.forEach((obj, k) => B.update(obj, dots(G[k], 0.055)));
+    }
+  };
+}
+
+/* ═════════════ 2) مقطع في البشرة السفلى للورقة ═════════════ */
+function secModel(B){
+  /* الداخل للأعلى، والخارج (الكيوتكل والشعيرات) للأسفل */
+  const rnd = srng(5), D = 1.2, ep = [], en = [], mes = [], chl = [];
+  for (let i = -5; i <= 5; i++){ if (Math.abs(i) < 1) continue;
+    const x = i * 0.42; ep.push(place(box(0.4, 0.42, D * 2), { at: [x, 0, 0] })); en.push(place(ellipsoid({ r: 0.06, rows: 5, cols: 8 }), { at: [x, 0, D] })); }
+  for (let i = -4; i <= 4; i++) for (let j = 0; j < 2; j++) for (const z of [-0.65, 0, 0.65]){ const x = i * 0.5 + j * 0.2, y = 0.75 + j * 0.62;
+    if (Math.abs(x) < 0.5 && j === 0) continue;
+    mes.push(place(ellipsoid({ r: [0.24, 0.26, 0.26], rows: 8, cols: 12, disp: blobDisp(i * 3 + j, 0.06) }), { at: [x, y, z] }));
+    if (z > 0) for (let k = 0; k < 4; k++) chl.push(place(ellipsoid({ r: [0.05, 0.03, 0.04], rows: 4, cols: 6 }), { at: [x + Math.cos(k * 1.6) * 0.16, y + Math.sin(k * 1.6) * 0.17, z + 0.22] })); }
+  B.add(merge(mes), { part: 'mesoph', color: '#5f9a5c', alpha: 0.85, rim: 0.6, rimColor: '#d6f5c4' });
+  B.add(merge(chl), { part: 'mesoph', color: '#2f8f3a', rim: 0.5, rimColor: '#b6f0a0' });
+  B.add(merge(ep), { part: 'epidermis', color: '#cfe7c0', rim: 0.6, rimColor: '#f4ffe8' });
+  B.add(merge(en), { part: 'epidermis', color: '#7565c2', rim: 0.5, rimColor: '#d8d0ff' });
+  /* الخليتان الحارستان في المقطع والفتحة بينهما */
+  B.add(merge([-1, 1].map(s => place(ellipsoid({ r: [0.17, 0.17, D], rows: 8, cols: 14 }), { at: [s * 0.2, 0.06, 0] }))), { part: 'guard', color: '#5aa85a', rim: 0.8, rimColor: '#e6ffd8', pat: 2, patColor: '#2f8f3a', patK: 16 });
+  B.add(place(box(0.1, 0.44, D * 2, 0.4), { at: [0, 0, 0] }), { part: 'stoma', color: '#13221a', rim: 0.3, rimColor: '#4f7f3a' });
+  /* الكيوتكل أسفل البشرة */
+  const cut = B.add(merge([-1, 1].map(s => place(box(1.95, 0.07, D * 2 + 0.02, 0.2), { at: [s * 1.38, -0.25, 0] }))), { part: 'cuticle', color: '#f2d675', rim: 0.7, rimColor: '#fff3c8' });
+  /* الشعيرات */
+  const H = [[-1.65, -1], [1.25, 1], [1.95, -1]];
+  const hairMesh = t => merge(H.map(([x, s], i) => { const w = Math.sin(t * 1.4 + i) * 0.12;
+    return tube({ pts: [[x, -0.28, 0.3], [x + s * 0.05 + w * 0.3, -0.7, 0.3], [x + s * 0.02 + w * 0.7, -1.05, 0.3], [x + s * 0.12 + w, -1.35, 0.3]], r: u => 0.07 * (1 - u * 0.5), sides: 8 }); }));
+  const hairO = B.add(hairMesh(0), { part: 'trich', color: '#e8f2d8', rim: 0.7, rimColor: '#ffffff', pop: false, center: [0, -0.8, 0] });
+  /* بخار الماء والأوكسجين يخرجان، CO₂ يدخل عبر الثغر */
+  const N = 15;
+  const gas = t => { const col = [[], [], []];
+    for (let i = 0; i < N; i++){ const k = i % 3, p = (t * 0.3 + i / N * 2) % 1, out = k !== 0, y = out ? 0.6 - p * 2.0 : -1.4 + p * 2.0;
+      col[k].push(Object.assign([Math.sin(i * 1.9 + p * 3) * (Math.abs(y) > 0.4 ? 0.4 : 0.03), y, Math.cos(i) * 0.4], { s: 0.06 * Math.sin(p * Math.PI) + 0.001 })); }
+    return col; };
+  const G0 = gas(0);
+  const gO = [CO2, O2, H2O].map((c, k) => B.add(dots(G0[k], 0.06), { color: c, rim: 0.8, rimColor: '#ffffff', pop: false, center: [0, 0, 0] }));
+  B.label('mesoph', [1.5, 1.4, D * 0.9], [0, 0, 1]);
+  B.label('epidermis', [-1.68, 0.1, D], [0, 0, 1]);
+  B.label('cuticle', [-1.0, -0.29, D], [0, -0.4, 1]);
+  B.label('trich', [1.95, -1.0, 0.35], [0, 0, 1]);
+  B.label('guard', [-0.24, 0.12, D * 0.95], [0, 0, 1]);
+  B.label('stoma', [0, -0.15, D], [0, 0, 1]);
+  B.caption([0, 2.1, 0.8], () => ['', 'داخل الورقة']);
+  B.caption([0, -1.75, 0.8], () => ['', 'خارج الورقة']);
+  return {
+    dist: 7.6, yaw: 0.3, pitch: 0.2, target: [0, 0.1, 0], live2d: true, maxDist: 14,
+    anim(t){ B.update(hairO, hairMesh(t)); const G = gas(t); gO.forEach((o, k) => B.update(o, dots(G[k], 0.06))); cut.rim = 0.5 + 0.5 * (0.5 + 0.5 * Math.sin(t * 2)); }
+  };
+}
+
+/* ═════════════ 3) ثغر مكبّر بمراحل فتحه وغلقه ═════════════ */
+function stomModel(B){
+  const C = [0, 0.18, 0], L = 1.15, W = 0.62;
+  epiSlab(B, 2.8, 1.9, 0, 23);
+  const S = stomaObjs(B, C, L, W, 0);
+  const nuc = B.add(dots([[-0.3, 0.2, 0], [0.3, 0.2, 0]], 0.09), { part: 'guard', color: '#7565c2', rim: 0.6, rimColor: '#d8d0ff', center: C });
+  /* الماء يدخل الخليتين أو يخرج منهما */
+  const NW = 12, rnd = srng(2);
+  const W0 = Array.from({ length: NW }, (_, i) => ({ s: i % 2 ? 1 : -1, z: (rnd() - 0.5) * L * 1.4, ph: i / NW }));
+  const wtr = (t, mode) => W0.map(w => { if (!mode) return null; const p = (t * 0.5 + w.ph) % 1, f = mode > 0 ? p : 1 - p;
+    return Object.assign([w.s * (1.9 - f * 1.4), 0.32, w.z], { s: 0.07 * Math.sin(p * Math.PI) + 0.001 }); });
+  const wO = B.add(dots(wtr(0, 0), 0.07), { color: H2O, rim: 0.9, rimColor: '#e8f7ff', pop: false, center: [0, 0, 0] });
+  const NG = 18;
+  const gas = (t, on) => { const col = [[], [], []];
+    for (let i = 0; i < NG; i++){ const k = i % 3, p = (t * 0.35 + i / NG * 3) % 1, inward = k === 0, d = inward ? 1 - p : p, ang = i * 2.1;
+      col[k].push(on ? Object.assign([Math.cos(ang) * d * 0.25, 0.25 + d * 1.4, Math.sin(ang) * d * 0.5], { s: 0.07 * Math.sin(p * Math.PI) + 0.001 }) : null); }
+    return col; };
+  const gO = [CO2, O2, H2O].map((c, k) => B.add(dots(gas(0, false)[k], 0.07), { color: c, rim: 0.8, rimColor: '#ffffff', pop: false, center: [0, 0, 0] }));
+  B.label('epidermis', [2.0, 0.1, -1.3], [0, 1, 0]);
+  B.label('guard', [W * 0.9, 0.5, -0.3], [0, 1, 0.2]);
+  B.label('stoma', [0, 0.2, 0.55], [0, 1, 0.3]);
+  B.caption([0, 0.2, 2.3], () => { const s = STOMA_STAGES[STG.idx]; return s ? ['المرحلة ' + (STG.idx + 1) + ': ' + s.n] : []; });
+  let lastO = -1;
+  return {
+    dist: 6.4, yaw: 0.1, pitch: 1.0, live2d: true, noSpin: true, minDist: 3,
+    camGoal: () => STOMA_STAGES[STG.idx] && STOMA_STAGES[STG.idx].cam,
+    anim(t){
+      const st = STG.idx, k = STG.k, o = st === 0 ? 0 : st === 1 ? k : st === 2 ? 1 : 1 - k;
+      if (Math.abs(o - lastO) > 0.01){ lastO = o; S.set(o); const a = 0.02 + 0.3 * W * o;
+        B.update(nuc, dots([[-(a + W * 0.5), 0.2 + W * 0.3, 0], [a + W * 0.5, 0.2 + W * 0.3, 0]], 0.09)); }
+      B.update(wO, dots(wtr(t, st === 1 ? 1 : st === 3 ? -1 : 0), 0.07));
+      const G = gas(t, st === 2); gO.forEach((obj, i) => B.update(obj, dots(G[i], 0.07)));
+    }
+  };
+}
+
+Object.assign(G3.models, { epi_eleaf: leafModel, epi_esec: secModel, epi_estom: stomModel });
+})();
+
+/* ══════════════════════════════════════════════════════════════════════════
    8 · وضع الرسم اليدوي — رسوم الفصل الثاني (نفس محرك الفصل الأول)
    ══════════════════════════════════════════════════════════════════════════ */
 /* ترتيب الرسم: الإطار والأجزاء الكبيرة أولاً ثم التفاصيل */
@@ -5754,7 +6223,10 @@ const DRAW_ORDER = {
   sim_scl:  ['sclFiber', 'sclWall', 'sclLumen', 'sclPit', 'sclStone'],
   vas_bun:  ['pFiber', 'tPhloem', 'pSieve', 'pComp', 'vascCamb', 'tXylem', 'xVessel'],
   vas_xyl:  ['xVessel', 'xTrach', 'xFiber', 'xPar'],
-  vas_phl:  ['pSieve', 'pPlate', 'pComp', 'pFiber', 'pPar']
+  vas_phl:  ['pSieve', 'pPlate', 'pComp', 'pFiber', 'pPar'],
+  epi_leaf: ['epidermis', 'guard', 'stoma'],
+  epi_sec:  ['mesoph', 'epidermis', 'guard', 'stoma', 'cuticle', 'trich'],
+  epi_stom: ['epidermis', 'guard', 'stoma']
 };
 /* كيف يُرسم كل جزء (وصف الشكل فقط؛ الموقع من الرسم نفسه) */
 const DRAW_SHAPE = {
@@ -5778,7 +6250,9 @@ const DRAW_SHAPE = {
   pSieve: 'خلايا كبيرة في اللحاء (أو عموداً من خلايا طويلة متتالية)', pComp: 'خلايا صغيرة ضيقة ملاصقة لها وفيها نواة',
   tXylem: 'منطقة كبيرة في الأسفل', xVessel: 'دوائر كبيرة سميكة الجدار (أو أنبوباً طويلاً عريضاً بلا جدران فاصلة)',
   xTrach: 'خليتين مغزليتين متداخلتين فيهما نقر', xFiber: 'خلية مغزلية رفيعة طويلة', xPar: 'خلايا مستطيلة صغيرة بنوى',
-  pPlate: 'خطاً مثقباً بين خلايا الأنبوب الغربالي', pPar: 'خلايا مستطيلة صغيرة بنوى'
+  pPlate: 'خطاً مثقباً بين خلايا الأنبوب الغربالي', pPar: 'خلايا مستطيلة صغيرة بنوى',
+  guard: 'خليتين كلويتين متقابلتين', stoma: 'فتحة بين الخليتين الحارستين', cuticle: 'طبقة سميكة على السطح الخارجي للبشرة',
+  trich: 'زوائد طويلة تخرج من خلايا البشرة', mesoph: 'خلايا دائرية بداخلها بلاستيدات'
 };
 const drApi = host => ({ playing: true, dragSlider: false, sliderVal: 0,
   el: q => host.querySelector(q), all: q => Array.from(host.querySelectorAll(q)),
@@ -5790,6 +6264,8 @@ const DR_GROUPS = [
   { g: 'sim', t: 'الأنسجة البسيطة', items: CH.exam.filter(d => d.k.indexOf('sim_') === 0).map(d => ({
       k: d.k, t: d.t, scene: () => SCENES[d.k].build(), order: DRAW_ORDER[d.k] })) },
   { g: 'vas', t: 'الأنسجة المعقدة', items: CH.exam.filter(d => d.k.indexOf('vas_') === 0).map(d => ({
+      k: d.k, t: d.t, scene: () => SCENES[d.k].build(), order: DRAW_ORDER[d.k] })) },
+  { g: 'epi', t: 'البشرة والثغور', items: CH.exam.filter(d => d.k.indexOf('epi_') === 0).map(d => ({
       k: d.k, t: d.t, scene: () => SCENES[d.k].build(), order: DRAW_ORDER[d.k] })) }
 ];
 const drItem = k => { for (const G of DR_GROUPS) for (const it of G.items) if (it.k === k) return it; return DR_GROUPS[0].items[0]; };

@@ -13,7 +13,10 @@ const DRAW_ORDER = {
   sim_scl:  ['sclFiber', 'sclWall', 'sclLumen', 'sclPit', 'sclStone'],
   vas_bun:  ['pFiber', 'tPhloem', 'pSieve', 'pComp', 'vascCamb', 'tXylem', 'xVessel'],
   vas_xyl:  ['xVessel', 'xTrach', 'xFiber', 'xPar'],
-  vas_phl:  ['pSieve', 'pPlate', 'pComp', 'pFiber', 'pPar']
+  vas_phl:  ['pSieve', 'pPlate', 'pComp', 'pFiber', 'pPar'],
+  epi_leaf: ['epidermis', 'guard', 'stoma'],
+  epi_sec:  ['mesoph', 'epidermis', 'guard', 'stoma', 'cuticle', 'trich'],
+  epi_stom: ['epidermis', 'guard', 'stoma']
 };
 /* كيف يُرسم كل جزء (وصف الشكل فقط؛ الموقع من الرسم نفسه) */
 const DRAW_SHAPE = {
@@ -37,7 +40,9 @@ const DRAW_SHAPE = {
   pSieve: 'خلايا كبيرة في اللحاء (أو عموداً من خلايا طويلة متتالية)', pComp: 'خلايا صغيرة ضيقة ملاصقة لها وفيها نواة',
   tXylem: 'منطقة كبيرة في الأسفل', xVessel: 'دوائر كبيرة سميكة الجدار (أو أنبوباً طويلاً عريضاً بلا جدران فاصلة)',
   xTrach: 'خليتين مغزليتين متداخلتين فيهما نقر', xFiber: 'خلية مغزلية رفيعة طويلة', xPar: 'خلايا مستطيلة صغيرة بنوى',
-  pPlate: 'خطاً مثقباً بين خلايا الأنبوب الغربالي', pPar: 'خلايا مستطيلة صغيرة بنوى'
+  pPlate: 'خطاً مثقباً بين خلايا الأنبوب الغربالي', pPar: 'خلايا مستطيلة صغيرة بنوى',
+  guard: 'خليتين كلويتين متقابلتين', stoma: 'فتحة بين الخليتين الحارستين', cuticle: 'طبقة سميكة على السطح الخارجي للبشرة',
+  trich: 'زوائد طويلة تخرج من خلايا البشرة', mesoph: 'خلايا دائرية بداخلها بلاستيدات'
 };
 const drApi = host => ({ playing: true, dragSlider: false, sliderVal: 0,
   el: q => host.querySelector(q), all: q => Array.from(host.querySelectorAll(q)),
@@ -49,5 +54,7 @@ const DR_GROUPS = [
   { g: 'sim', t: 'الأنسجة البسيطة', items: CH.exam.filter(d => d.k.indexOf('sim_') === 0).map(d => ({
       k: d.k, t: d.t, scene: () => SCENES[d.k].build(), order: DRAW_ORDER[d.k] })) },
   { g: 'vas', t: 'الأنسجة المعقدة', items: CH.exam.filter(d => d.k.indexOf('vas_') === 0).map(d => ({
+      k: d.k, t: d.t, scene: () => SCENES[d.k].build(), order: DRAW_ORDER[d.k] })) },
+  { g: 'epi', t: 'البشرة والثغور', items: CH.exam.filter(d => d.k.indexOf('epi_') === 0).map(d => ({
       k: d.k, t: d.t, scene: () => SCENES[d.k].build(), order: DRAW_ORDER[d.k] })) }
 ];
