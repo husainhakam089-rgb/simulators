@@ -28,7 +28,10 @@ const DRAW_ORDER = {
   con_blood: ['plasma', 'rbc', 'wbc', 'platelet'],
   mus_skel:   ['mFiber', 'tSkel', 'mStri', 'mNuc'],
   mus_smooth: ['mFiber', 'tSmooth', 'mNuc'],
-  mus_card:   ['tCard', 'mStri', 'icDisc', 'mNuc']
+  mus_card:   ['tCard', 'mStri', 'icDisc', 'mNuc'],
+  nrv_neuron: ['soma', 'nNuc', 'dendr', 'axon', 'myelin', 'ranvier', 'axTerm'],
+  nrv_axon:   ['axon', 'myelin', 'ranvier'],
+  nrv_tissue: ['tNerve', 'neuron', 'glia']
 };
 /* كيف يُرسم كل جزء (وصف الشكل فقط؛ الموقع من الرسم نفسه) */
 const DRAW_SHAPE = {
@@ -65,7 +68,11 @@ const DRAW_SHAPE = {
   havers: 'دائرة صغيرة في المركز فيها وعاء دموي', osteo: 'خلايا صغيرة بين الدوائر', canalic: 'خطوطاً دقيقة متشعبة من التجاويف',
   plasma: 'وعاءً بسائل فاتح', rbc: 'أقراصاً حمراء مقعرة الوسط', wbc: 'خلايا أكبر بنواة مفصصة', platelet: 'أجساماً صغيرة جداً',
   mFiber: 'ليفاً طويلاً واحداً', tSkel: 'أليافاً أسطوانية طويلة متوازية', mStri: 'خطوطاً عرضية متعاقبة على الألياف',
-  mNuc: 'نوى بيضوية صغيرة', tSmooth: 'خلايا مغزلية متداخلة', tCard: 'أليافاً متفرعة متصلة', icDisc: 'خطوطاً عرضية سميكة متعرجة'
+  mNuc: 'نوى بيضوية صغيرة', tSmooth: 'خلايا مغزلية متداخلة', tCard: 'أليافاً متفرعة متصلة', icDisc: 'خطوطاً عرضية سميكة متعرجة',
+  soma: 'جسماً كبيراً غير منتظم', nNuc: 'نواة مستديرة في وسط جسم الخلية', dendr: 'زوائد قصيرة متفرعة حول جسم الخلية',
+  axon: 'خطاً طويلاً واحداً يخرج من جسم الخلية', myelin: 'قطعاً بيضوية تغلف المحور', ranvier: 'فراغات ضيقة بين قطع الغمد',
+  axTerm: 'تفرعات في نهاية المحور تنتهي بانتفاخات', neuron: 'عصبونات متصلة: نهايات كل واحد قرب زوائد التالي',
+  glia: 'خلايا صغيرة مستديرة بين العصبونات', tNerve: 'إطاراً يحيط بالنسيج'
 };
 const drApi = host => ({ playing: true, dragSlider: false, sliderVal: 0,
   el: q => host.querySelector(q), all: q => Array.from(host.querySelectorAll(q)),
@@ -85,5 +92,7 @@ const DR_GROUPS = [
   { g: 'con', t: 'النسيج الضام', items: CH.exam.filter(d => d.k.indexOf('con_') === 0).map(d => ({
       k: d.k, t: d.t, scene: () => SCENES[d.k].build(), order: DRAW_ORDER[d.k] })) },
   { g: 'mus', t: 'النسيج العضلي', items: CH.exam.filter(d => d.k.indexOf('mus_') === 0).map(d => ({
+      k: d.k, t: d.t, scene: () => SCENES[d.k].build(), order: DRAW_ORDER[d.k] })) },
+  { g: 'nrv', t: 'النسيج العصبي', items: CH.exam.filter(d => d.k.indexOf('nrv_') === 0).map(d => ({
       k: d.k, t: d.t, scene: () => SCENES[d.k].build(), order: DRAW_ORDER[d.k] })) }
 ];
