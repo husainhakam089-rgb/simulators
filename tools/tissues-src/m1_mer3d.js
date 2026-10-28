@@ -144,7 +144,7 @@ function rootModel(B){
   const pcO = B.add(merge(div.pc), { part: 'procamb', color: '#8c80c8', rim: 0.6, rimColor: '#e6e0ff' });
   B.add(merge(div.nuc), { color: '#6a5bb0', rim: 0.5, rimColor: '#d8d0ff', pop: false });
   /* غلاف منطقة الانقسام (شفاف) — يُلتقط من الجوانب أو من اسمه */
-  B.add(place(lathe([[RR + 0.03, RZ.div[0]], [RR + 0.03, RZ.div[1]]], 36), { at: [0, 0, 0] }), { part: 'zoneDiv', color: '#ffd166', alpha: 0.12, rim: 0.9, rimColor: '#ffe7a8', shell: { size: 1.1 } });
+  B.add(place(lathe([[RR + 0.1, RZ.div[0]], [RR + 0.1, RZ.div[1]]], 36), { at: [0, 0, 0] }), { part: 'zoneDiv', color: '#ffd166', alpha: 0.12, rim: 0.9, rimColor: '#ffe7a8', shell: { size: 1.1 } });
 
   /* منطقة الاستطالة: الخلايا تطول (تُعاد بناءً مع الاستطالة) */
   const elongCells = k => { const out = [], nuc = []; let y = RZ.elong[0], h = CW * 1.15;
@@ -198,7 +198,7 @@ function rootModel(B){
   B.label('rootHair', add(hairs[2].a, mul(hairs[2].d, 0.3)), [0, 0, 1]);
   B.label('zoneMat', [-RR + CW * 1.5, 1.6, SLAB / 2], [0, 0, 1]);
   B.label('zoneElong', [-RR + CW * 1.5, -0.3, SLAB / 2], [0, 0, 1]);
-  B.label('zoneDiv', [RR + 0.03, -1.5, 0.05], [1, 0, 0.4]);
+  B.label('zoneDiv', [RR + 0.1, -1.5, 0.05], [1, 0, 0.4]);
   B.label('protoderm', [-RR + CW * 0.5, -1.25, SLAB / 2], [0, 0, 1]);
   B.label('groundMer', [-RR + CW * 1.5, -1.7, SLAB / 2], [0, 0, 1]);
   B.label('procamb', [0, -1.45, SLAB / 2], [0, 0, 1]);

@@ -25,8 +25,13 @@ let flows = [], stream = null, streamParts = [];
 /* إطار العرض: يتوسّع على الشاشات الضيقة ليفسح مجالاً لأسماء الأجزاء */
 let VB = { x: 0, y: 0, w: 1000, h: 700 };
 function fitViewBox(){
-  const w = stage.getBoundingClientRect().width;
+  const rs = stage.getBoundingClientRect(), w = rs.width;
   VB = w < 760 ? { x: -132, y: -10, w: 1264, h: 720 } : { x: 0, y: 0, w: 1000, h: 700 };
+  /* حين يحدّ الارتفاعُ الرسمَ (بالعرض على الموبايل) نترك أسفله مكاناً لشريط أدوات المشهد
+     حتى لا تختفي الأجزاء السفلى تحته */
+  const tl = document.getElementById('sceneTools');
+  const T = tl && tl.offsetHeight && !document.body.classList.contains('examMode') ? tl.offsetHeight + 8 : 0;
+  if (T && rs.height > T + 80 && w / VB.w > rs.height / VB.h) VB.h = VB.h * rs.height / (rs.height - T);
   const vb = `${VB.x} ${VB.y} ${VB.w} ${VB.h}`;
   svgHost.setAttribute('viewBox', vb);
   const d = document.getElementById('dragSvgHost');
@@ -141,6 +146,7 @@ function loadScene(key){
   fitViewBox();
   svgHost.innerHTML = DEFS + cur.body + labelLayer(cur.parts || []) + '<g id="fxLayer"></g>';
   buildTools(cur.tools || []);
+  fitViewBox();
   addHitAreas(svgHost);
   bindParts();
   bindLabels();
