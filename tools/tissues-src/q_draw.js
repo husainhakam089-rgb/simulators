@@ -2,7 +2,7 @@ const drItem = k => { for (const G of DR_GROUPS) for (const it of G.items) if (i
 const drGroupOf = k => DR_GROUPS.find(G => G.items.some(it => it.k === k)) || DR_GROUPS[0];
 
 const drSvg = $('#drSvg'), drPad = $('#drPad');
-let drKey = DR_GROUPS[0].items[0].k, drSteps = [], drIdx = 0, drT = 0, drPlay = true, drSpeed = 1, drRun = false, drLast = 0;
+let drKey = DR_GROUPS[0].items[0].k, drSteps = [], drIdx = 0, drT = 0, drPlay = true, drSpeed = 0.6, drRun = false, drLast = 0;
 let drDesc = '', drNames = true, drColor = false, drPractice = false, drGuide = true;
 const SHAPE_SEL = 'path,circle,ellipse,rect,line,polygon,polyline';
 const PENCIL = '#2d2a26', NOW_INK = '#a8432b';
