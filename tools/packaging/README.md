@@ -8,3 +8,6 @@
    نفسه للتحديثات)، ثم `python3 apkbuild.py <index.html> <icon256.png> <out.apk> cell.jks <pass>`.
 4. EXE: انسخ `index.html` إلى `exe/`، ثم `python3 gen_syso.py <icon512.png> rsrc_windows_amd64.syso`
    و`GOOS=windows GOARCH=amd64 go build -ldflags "-H=windowsgui -s -w" -o الخلية.exe .`
+5. نسخة أستاذ آخر: `make_naimi.py` مثل `make_sajjad.py`. لكل نسخة معرّف APK خاص
+   (`APK_PKG=com.naimi.cell`) ومفتاح توقيع خاص، ومجلد حفظ خاص للـ EXE
+   (`-ldflags "... -X main.appDir=AlKhaliaNaimi"`).

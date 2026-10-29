@@ -15,6 +15,9 @@ import (
 //go:embed index.html
 var page []byte
 
+// مجلد الحفظ: يتغيّر لكل نسخة عند البناء (-X main.appDir=...) حتى لا تتداخل نسخ الأساتذة
+var appDir = "AlKhaliaSimulator"
+
 func exists(p string) bool { st, err := os.Stat(p); return err == nil && !st.IsDir() }
 
 func main() {
@@ -22,7 +25,7 @@ func main() {
 	if base == "" {
 		base = os.TempDir()
 	}
-	dir := filepath.Join(base, "AlKhaliaSimulator")
+	dir := filepath.Join(base, appDir)
 	_ = os.MkdirAll(dir, 0o755)
 	f := filepath.Join(dir, "index.html")
 	if old, err := os.ReadFile(f); err != nil || !bytes.Equal(old, page) {

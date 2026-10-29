@@ -2,8 +2,8 @@
 # مانيفست ثنائي (AXML) + resources.arsc للأيقونة + classes.dex مكتوب يدوياً + توقيع v1 بـ jarsigner
 import struct, zlib, hashlib, sys, os, zipfile, subprocess
 
-PKG = 'com.sajjad.cell'
-CLS = 'Lcom/sajjad/cell/Main;'
+PKG = os.environ.get('APK_PKG', 'com.sajjad.cell')   # معرّف مختلف لكل أستاذ حتى تتثبت النسخ جنب بعض
+CLS = 'L' + PKG.replace('.', '/') + '/Main;'
 LABEL = 'الخلية'
 
 # ───────────────────────── أدوات ترميز ─────────────────────────

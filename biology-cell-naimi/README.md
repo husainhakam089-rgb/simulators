@@ -14,3 +14,19 @@
 ملف واحد `index.html` يعمل بلا إنترنت (الصورة مضمّنة داخله)، ونسخة الصورة بعد
 حذف الأيقونات بجانبه باسم `poster-source.jpg`. تُبنى بـ
 `python3 tools/packaging/make_naimi.py biology-cell/index.html biology-cell-naimi/poster-source.jpg biology-cell-naimi/index.html`.
+
+## تطبيقا أندرويد وويندوز (`apps/`)
+
+- **`الخلية.apk` (أندرويد 5 فما فوق):** تطبيق باسم «الخلية» وأيقونة خلية، يفتح
+  المحاكي نفسه داخل التطبيق بلا إنترنت (WebView). معرّفه `com.naimi.cell`، فيتثبت
+  جنب نسخة الأستاذ سجاد إذا كانت على نفس الموبايل. التثبيت: انقل الملف للموبايل
+  وافتحه، واسمح بـ«تثبيت التطبيقات من مصادر غير معروفة» عند السؤال (قد يظهر
+  تحذير Play Protect: «تثبيت على أي حال»).
+- **`الخلية.exe` (ويندوز 10 و11، 64 بت):** يحفظ صفحة المحاكي المضمّنة داخله في
+  `AppData\Local\AlKhaliaNaimi` ويفتحها في نافذة تطبيق مستقلة عبر Edge (أو Chrome)،
+  وإلا في المتصفح الافتراضي. لا يحتاج تثبيتاً ولا إنترنت. قد يظهر تحذير
+  SmartScreen: «مزيد من المعلومات ← تشغيل على أي حال».
+
+البناء: `APK_PKG=com.naimi.cell python3 tools/packaging/apkbuild.py ...` و
+`go build -ldflags "-H=windowsgui -s -w -X main.appDir=AlKhaliaNaimi"` (انظر
+`tools/packaging/README.md`). مفتاح التوقيع غير مرفوع على المستودع.
