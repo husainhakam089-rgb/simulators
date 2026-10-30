@@ -5,16 +5,8 @@
 /* ترتيب الرسم: الإطار والأجزاء الكبيرة أولاً ثم التفاصيل */
 const DRAW_ORDER = {
   mer_loc:  ['apicalShoot', 'apicalRoot', 'intercal', 'corkCamb', 'vascCamb'],
-  sim_loc:  ['epidermis', 'tColl', 'tParen', 'vBundle', 'tScler'],
-  sim_par:  ['parWall', 'matVac', 'nucleus', 'parChl', 'interSp'],
-  sim_col:  ['epidermis', 'colProto', 'colCorner', 'tColl'],
-  sim_scl:  ['sclFiber', 'sclWall', 'sclLumen', 'sclPit', 'sclStone'],
-  vas_bun:  ['pFiber', 'tPhloem', 'pSieve', 'pComp', 'vascCamb', 'tXylem', 'xVessel'],
-  vas_xyl:  ['xVessel', 'xTrach', 'xFiber', 'xPar'],
-  vas_phl:  ['pSieve', 'pPlate', 'pComp', 'pFiber', 'pPar'],
-  epi_leaf: ['epidermis', 'guard', 'stoma'],
-  epi_sec:  ['mesoph', 'epidermis', 'guard', 'stoma', 'cuticle', 'trich'],
-  epi_stom: ['epidermis', 'guard', 'stoma'],
+  /* خطوات رسم نسيج اللحاء كما في الملزمة ص16–17: (1) الأنبوب المنخلي (2) الصفائح المنخلية (3) الخلايا المرافقة (4) التأشير */
+  vas_phl:  ['pSieve', 'pPlate', 'pComp'],
   eth_sq:   ['connBelow', 'basem', 'tSqS', 'eNuc'],
   eth_cub:  ['connBelow', 'basem', 'tCubS', 'eNuc'],
   eth_col:  ['connBelow', 'basem', 'tColS', 'eNuc'],
@@ -50,10 +42,10 @@ const DRAW_SHAPE = {
   sclFiber: 'خلايا مغزلية طويلة مدببة الطرفين', sclWall: 'دائرة كبيرة بجدار سميك', sclLumen: 'دائرة صغيرة في الوسط',
   sclPit: 'خطوطاً متفرعة من الوسط إلى الجدار', sclStone: 'خلايا دائرية صغيرة سميكة الجدار',
   pFiber: 'هلالاً من خلايا صغيرة سميكة الجدار في الأعلى (أو خلية مغزلية طويلة)', tPhloem: 'منطقة تحت الألياف',
-  pSieve: 'خلايا كبيرة في اللحاء (أو عموداً من خلايا طويلة متتالية)', pComp: 'خلايا صغيرة ضيقة ملاصقة لها وفيها نواة',
+  pSieve: 'الخطوة (1): أنبوباً طويلاً جانباه متموجان (يضيق ويتسع)', pComp: 'الخطوة (3): خلايا مرافقة متطاولة على جانبي الأنبوب، في كل منها نواة داكنة',
   tXylem: 'منطقة كبيرة في الأسفل', xVessel: 'دوائر كبيرة سميكة الجدار (أو أنبوباً طويلاً عريضاً بلا جدران فاصلة)',
   xTrach: 'خليتين مغزليتين متداخلتين فيهما نقر', xFiber: 'خلية مغزلية رفيعة طويلة', xPar: 'خلايا مستطيلة صغيرة بنوى',
-  pPlate: 'خطاً مثقباً بين خلايا الأنبوب الغربالي', pPar: 'خلايا مستطيلة صغيرة بنوى',
+  pPlate: 'الخطوة (2): ثلاث صفائح بيضوية مائلة داخل الأنبوب (أعلى ووسط وأسفل) وعليها نقاط', pPar: 'خلايا مستطيلة صغيرة بنوى',
   guard: 'خليتين كلويتين متقابلتين', stoma: 'فتحة بين الخليتين الحارستين', cuticle: 'طبقة سميكة على السطح الخارجي للبشرة',
   trich: 'زوائد طويلة تخرج من خلايا البشرة', mesoph: 'خلايا دائرية بداخلها بلاستيدات',
   connBelow: 'مستطيلاً في الأسفل فيه وعاء دموي', basem: 'خطاً سميكاً فوقه', tSqS: 'صفاً واحداً من خلايا مسطحة رقيقة',
@@ -77,11 +69,8 @@ const drApi = host => ({ playing: true, dragSlider: false, sliderVal: 0,
   tool: () => false, setTool(){}, radio: () => null, setRadio(){}, setSlider(){}, setCap(){}, setPhase(){}, flowEnabled(){}, hideLabels(){}, g(){} });
 const DR_GROUPS = [
   /* النسيج المرستيمي: لا يوجد له رسم في الملزمة، فلا يدخل الرسم اليدوي */
-  { g: 'sim', t: 'النسيج الأساس', items: CH.exam.filter(d => d.k.indexOf('sim_') === 0).map(d => ({
-      k: d.k, t: d.t, scene: () => SCENES[d.k].build(), order: DRAW_ORDER[d.k] })) },
-  { g: 'epi', t: 'نسيج البشرة', items: CH.exam.filter(d => d.k.indexOf('epi_') === 0).map(d => ({
-      k: d.k, t: d.t, scene: () => SCENES[d.k].build(), order: DRAW_ORDER[d.k] })) },
-  { g: 'vas', t: 'النسيج الوعائي', items: CH.exam.filter(d => d.k.indexOf('vas_') === 0).map(d => ({
+  /* النسيج الأساس ونسيج البشرة: الملزمة فيها صور مجهرية فقط بلا رسم، فلا يدخلان الرسم اليدوي */
+  { g: 'vas', t: 'النسيج الوعائي', items: CH.exam.filter(d => d.k === 'vas_phl').map(d => ({
       k: d.k, t: d.t, scene: () => SCENES[d.k].build(), order: DRAW_ORDER[d.k] })) },
   { g: 'eth', t: 'النسيج الظهاري', items: CH.exam.filter(d => d.k.indexOf('eth_') === 0).map(d => ({
       k: d.k, t: d.t, scene: () => SCENES[d.k].build(), order: DRAW_ORDER[d.k] })) },

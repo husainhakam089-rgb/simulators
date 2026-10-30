@@ -1,28 +1,20 @@
 
 /* ══════════════════════════════════════════════════════════════════════════
-   4.2 · الأنسجة البسيطة: مواقعها في ساق عشبية، البرنكيمي، الكولنكيمي،
-         السكلرنكيمي (مراحل تكوّنه)، والمقارنة بين الثلاثة
+   4.2 · النسيج الأساس — ملزمة ص10–14 وص23: موقعه في الساق (القشرة واللب
+         والأشعة اللبية)، البرنكيمي، الكولنكيمي، السكلرنكيمي، والمقارنة
    ══════════════════════════════════════════════════════════════════════════ */
 const SIM_VIEWS = [
-  { id: 'sloc', label: 'مواقعها في الساق' },
+  { id: 'sloc', label: 'موقعه في الساق' },
   { id: 'par',  label: 'البرنكيمي' },
   { id: 'col',  label: 'الكولنكيمي' },
   { id: 'scl',  label: 'السكلرنكيمي' },
   { id: 'scmp', label: 'قارن' }
 ];
-const SCL_STAGES = [
-  { n: 'خلية حية', d: 'الخلية في البداية حية: جدارها ابتدائي رقيق وفيها سايتوبلازم ونواة.',
-    cam: { yaw: 0.5, pitch: 0.25, dist: 7.6, target: [0.9, 0, 0] } },
-  { n: 'ترسّب اللكنين', d: 'يترسّب جدار ثانوي ثخين مشبع باللكنين طبقة بعد طبقة، وتبقى مناطق رقيقة هي النقر.',
-    cam: { yaw: 0.25, pitch: 0.2, dist: 6.4, target: [1.2, 0, 0] } },
-  { n: 'موت البروتوبلاست', d: 'اللكنين يمنع وصول الماء والغذاء فيموت البروتوبلاست، وتبقى الخلية ميتة بتجويف فارغ تؤدي وظيفة الدعامة والصلابة.',
-    cam: { yaw: 0.55, pitch: 0.3, dist: 7.2, target: [0.6, 0, 0] } }
-];
 const SIM_PAL = { par: '#6fae6a', parV: '#bfe3ef', col: '#7fae78', colC: '#f2d9e6', scl: '#c9a46a', sclD: '#3a2a18' };
 
 SCENES.simple = {
-  title: 'الأنسجة البسيطة',
-  get src(){ return SRC_WAIT; },
+  title: 'النسيج الأساس',
+  get src(){ return ({ sloc: 'ملزمة ص10 وص12 وص23', par: 'ملزمة ص10–13', col: 'ملزمة ص10–13', scl: 'ملزمة ص10 وص14', scmp: 'ملزمة ص10–11' })[SEL.simv] || 'ملزمة ص10'; },
   tint: ['rgba(110,150,80,.26)', 'rgba(170,130,70,.16)'],
   model3d: () => 'sim_' + SEL.simv,
   build(){
@@ -33,7 +25,7 @@ SCENES.simple = {
     return s;
   }
 };
-SCENES.sim_loc = { title: 'مقطع عرضي في ساق عشبية', build: () => simLoc() };
+SCENES.sim_loc = { title: 'موقع النسيج الأساس في الساق', build: () => simLoc() };
 SCENES.sim_par = { title: 'النسيج البرنكيمي', build: () => simPar() };
 SCENES.sim_col = { title: 'النسيج الكولنكيمي', build: () => simCol() };
 SCENES.sim_scl = { title: 'النسيج السكلرنكيمي', build: () => simScl() };
@@ -52,7 +44,7 @@ function ringCells(cx, cy, r0, r1, size, fill, stroke, rr, gap){
   return out.join('');
 }
 
-/* ───────── 1) مواقع الأنسجة البسيطة في مقطع عرضي لساق عشبية ───────── */
+/* ───────── 1) موقع النسيج الأساس: القشرة واللب والأشعة اللبية (ص10، ص12، ص23) ───────── */
 function simLoc(){
   const rr = rng(44), CX = 500, CY = 300, R = 232;
   const NB = 8, bundles = [], caps = [];
@@ -68,31 +60,31 @@ function simLoc(){
   }
   const body = `
     <circle cx="${CX}" cy="${CY}" r="${R + 6}" fill="#22351f"/>
-    ${part('tParen', `<circle cx="${CX}" cy="${CY}" r="${R - 30}" fill="#406b3d"/>
+    ${part('tCortex', `<circle cx="${CX}" cy="${CY}" r="${R - 4}" fill="#406b3d"/>
        <g>${ringCells(CX, CY, 186, R - 30, 18, '#78b46d', '#cfeec0', rr, 1.4)}</g>
-       <circle cx="${CX}" cy="${CY}" r="100" fill="#4f7f48"/>
-       <g>${ringCells(CX, CY, 0, 100, 26, '#9fcf8c', '#e6ffd8', rr, 1.6)}</g>`)}
-    ${part('vBundle', bundles.join(''))}
-    ${part('tScler', caps.join(''))}
-    ${part('tColl', `<circle cx="${CX}" cy="${CY}" r="${R - 8}" fill="none" stroke="#e7d2df" stroke-width="22" opacity=".9"/>
+       <circle cx="${CX}" cy="${CY}" r="${R - 8}" fill="none" stroke="#e7d2df" stroke-width="22" opacity=".55"/>
        <g>${ringCells(CX, CY, R - 30, R - 8, 11, '#8fbf86', '#ffe6f2', rr, 0.4)}</g>`)}
+    ${part('tRays', `<circle cx="${CX}" cy="${CY}" r="186" fill="#4f7f48"/>
+       <g>${ringCells(CX, CY, 100, 186, 16, '#8fc47c', '#dff7cf', rr, 1.2)}</g>`)}
+    ${part('tPith', `<circle cx="${CX}" cy="${CY}" r="100" fill="#4f7f48"/>
+       <g>${ringCells(CX, CY, 0, 100, 26, '#9fcf8c', '#e6ffd8', rr, 1.6)}</g>`)}
+    ${part('vBundle', bundles.join('') + caps.join(''))}
     ${part('epidermis', `<circle cx="${CX}" cy="${CY}" r="${R - 3}" fill="none" stroke="#d9f2a8" stroke-width="7"/>
        <circle cx="${CX}" cy="${CY}" r="${R + 1}" fill="none" stroke="#f2ffd8" stroke-width="2"/>`)}
-    <circle class="sHi" cx="${CX}" cy="${CY}" r="${R + 14}" fill="none" stroke="#ffd166" stroke-width="5" opacity="0"/>
-    <text class="cap sm" x="${CX}" y="${CY + R + 46}" text-anchor="middle">مقطع عرضي في ساق نبات عشبي ذي فلقتين</text>`;
-  const cyc = ['tColl', 'tParen', 'tScler'];
+    <text class="cap sm" x="${CX}" y="${CY + R + 46}" text-anchor="middle">مقطع عرضي في ساق: النسيج الأساس يشكّل كتلاً نسيجية داخلية (القشرة واللب والأشعة اللبية)</text>`;
+  const cyc = ['tCortex', 'tRays', 'tPith'];
   return {
-    body, fnParts: ['tParen', 'tColl', 'tScler'],
+    body, fnParts: ['tCortex', 'tRays', 'tPith'],
     parts: [
       { id: 'epidermis', anchor: [CX + (R - 2) * 0.8, CY - (R - 2) * 0.6], label: [866, 80], side: 'R' },
-      { id: 'tColl', anchor: [CX + (R - 18) * 0.97, CY - (R - 18) * 0.25], label: [866, 200], side: 'R' },
-      { id: 'tParen', anchor: [CX + 205 * 0.9, CY + 205 * 0.44], label: [866, 400], side: 'R' },
-      { id: 'tScler', anchor: [CX + Math.cos(-1.57 + 6.283 * 3 / 8) * 176, CY + Math.sin(-1.57 + 6.283 * 3 / 8) * 176], label: [866, 540], side: 'R' },
+      { id: 'tCortex', anchor: [CX + 205 * 0.9, CY + 205 * 0.44], label: [866, 250], side: 'R' },
+      { id: 'tRays', anchor: [CX + Math.cos(-1.57 + 6.283 * 2.5 / 8) * 140, CY + Math.sin(-1.57 + 6.283 * 2.5 / 8) * 140], label: [866, 420], side: 'R' },
+      { id: 'tPith', anchor: [CX - 40, CY + 30], label: [134, 420], side: 'L' },
       { id: 'vBundle', anchor: [CX + Math.cos(-1.57 + 6.283 * 6 / 8) * 135, CY + Math.sin(-1.57 + 6.283 * 6 / 8) * 135], label: [134, 260], side: 'L' }
     ],
-    tools: [{ id: 'tbl:simpleCmp', label: 'مقارنة الأنسجة البسيطة' }],
+    tools: [{ id: 'info:tGround', label: 'عن النسيج الأساس' }, { id: 'tbl:plantTissues', label: 'أنسجة النبات (ص5)' }],
     tick(dt, t, a){
-      /* إبراز الأنسجة البسيطة بالتناوب */
+      /* إبراز كتل النسيج الأساس بالتناوب */
       const cur = focusOwner || cyc[Math.floor(t / 2.6) % 3];
       a.all('.part').forEach(p => { const on = p.dataset.part === cur;
         p.style.filter = on ? `drop-shadow(0 0 ${n2(5 + 4 * Math.sin(t * 4))}px #ffd166)` : ''; });
@@ -130,7 +122,7 @@ function simPar(){
     ${part('parChl', `<g id="chls">${chls.join('')}</g>`)}
     ${part('interSp', gaps.join(''))}
     ${part('parWall', walls.join(''))}
-    <text class="cap sm" x="500" y="610" text-anchor="middle">خلايا حية رقيقة الجدران، فجواتها كبيرة، وبينها مسافات بينية — البلاستيدات تتحرك مع جريان السايتوبلازم</text>`;
+    <text class="cap sm" x="500" y="610" text-anchor="middle">خلايا حية رقيقة الجدران، كروية أو مضلعة بسبب ضغط الخلايا المجاورة، فجواتها العصارية كبيرة وبينها مسافات بينية</text>`;
   const CH = cells.map(c => c);
   return {
     body, fnParts: ['parChl'],
@@ -141,7 +133,7 @@ function simPar(){
       { id: 'nucleus', anchor: [cells[3][0] + Math.cos(2.2 + 3 * 0.9) * 64, cells[3][1] + Math.sin(2.2 + 3 * 0.9) * 58], label: [134, 360], side: 'L' },
       { id: 'parChl', anchor: [cells[4][0] - 70, cells[4][1] + 10], label: [134, 200], side: 'L' }
     ],
-    tools: [{ id: 'info:tParen', label: 'عن النسيج البرنكيمي' }, { id: 'tbl:simpleCmp', label: 'مقارنة الأنسجة البسيطة' }],
+    tools: [{ id: 'info:tParen', label: 'عن النسيج البرنكيمي' }, { id: 'tbl:simpleCmp', label: 'مقارنة أنواعه (ص10–11)' }],
     tick(dt, t, a){
       const slow = focusOwner === 'parChl' ? 1.8 : 1;
       a.all('#chls .chl').forEach(e => {
@@ -185,7 +177,7 @@ function simCol(){
     ${part('colCorner', corn.join(''))}
     <g id="colBend">${part('tColl', longC.join(''))}</g>
     <text class="cap sm" x="${X0 + CW * 2.5}" y="${Y0 + CH * 4 + 44}" text-anchor="middle">مقطع عرضي</text>
-    <text class="cap sm" x="${LX + LW * 2}" y="${LY + LH * 3 + 44}" text-anchor="middle">مقطع طولي — دعامة مع مرونة</text>`;
+    <text class="cap sm" x="${LX + LW * 2}" y="${LY + LH * 3 + 44}" text-anchor="middle">مقطع طولي — خلايا متطاولة (إسناد مرن)</text>`;
   return {
     body, fnParts: ['tColl', 'colCorner'],
     parts: [
@@ -194,7 +186,7 @@ function simCol(){
       { id: 'colProto', anchor: [X0 + CW * 0.5, Y0 + CH * 2.5], label: [134, 420], side: 'L' },
       { id: 'tColl', anchor: [LX + LW * 3.5, LY + LH * 0.6], label: [866, 200], side: 'R' }
     ],
-    tools: [{ id: 'info:tColl', label: 'عن النسيج الكولنكيمي' }, { id: 'tbl:simpleCmp', label: 'مقارنة الأنسجة البسيطة' }],
+    tools: [{ id: 'info:tColl', label: 'عن النسيج الكولنكيمي' }, { id: 'tbl:simpleCmp', label: 'مقارنة أنواعه (ص10–11)' }],
     tick(dt, t, a){
       /* المرونة: المقطع الطولي ينحني ويرجع مثل ساق عشبية بالهواء */
       const k = Math.sin(t * 1.6) * (focusOwner === 'tColl' ? 9 : 6);
@@ -203,7 +195,7 @@ function simCol(){
   };
 }
 
-/* ───────── 4) النسيج السكلرنكيمي: الألياف والخلايا الحجرية + مراحل التكوّن ───────── */
+/* ───────── 4) النسيج السكلرنكيمي: الألياف والخلايا الصخرية (الحجرية) — ص10 وص14 ───────── */
 function simScl(){
   /* الألياف: مقطع طولي (خلايا مغزلية طويلة) */
   const FX = 230, FY = 160, fibers = [];
@@ -224,40 +216,24 @@ function simScl(){
   const body = `
     ${part('sclFiber', fibers.join(''))}
     ${part('sclStone', small)}
-    ${part('sclWall', `<circle cx="${SX}" cy="${SY}" r="${SR}" fill="${SIM_PAL.scl}" stroke="#ffe7b8" stroke-width="2.4"/>${layers}`)}
-    ${part('sclPit', `<g id="pitsG" opacity="1">${pits.join('')}</g>`)}
-    ${part('sclLumen', `<circle id="lumen" cx="${SX}" cy="${SY}" r="26" fill="${SIM_PAL.sclD}"/>`)}
-    <g id="proto"><circle id="protoC" cx="${SX}" cy="${SY}" r="22" fill="#5f9a5c" opacity="0"/><circle id="protoN" cx="${SX - 8}" cy="${SY - 20}" r="10" fill="url(#gNucl)" opacity="0"/></g>
-    <text class="cap sm" x="${FX + 80}" y="${FY + 400}" text-anchor="middle">الألياف (مقطع طولي)</text>
-    <text class="cap sm" x="${SX}" y="${SY + SR + 36}" text-anchor="middle">خلية حجرية</text>`;
-  const ctl = stageCtl(SCL_STAGES, { label: 'المرحلة' });
+    ${part('sclWall', `<circle cx="${SX}" cy="${SY}" r="${SR}" fill="${SIM_PAL.scl}" stroke="#ffe7b8" stroke-width="2.4"/>${layers}
+       <g>${pits.join('')}</g><circle cx="${SX}" cy="${SY}" r="26" fill="${SIM_PAL.sclD}"/>`)}
+    <text class="cap sm" x="${FX + 80}" y="${FY + 400}" text-anchor="middle">أ- ألياف: خلايا طويلة مدببة النهايات</text>
+    <text class="cap sm" x="${SX}" y="${SY + SR + 36}" text-anchor="middle">ب- خلايا صخرية (حجرية): قصيرة، كما في ثمار الكمثرى</text>
+    <text class="cap sm" x="500" y="640" text-anchor="middle">خلايا ميتة جدرانها مغلظة لاحتوائها على اللكنين (الخشبين) — وظيفتها الدعم والتقوية</text>`;
   return {
-    body, stages: SCL_STAGES, fnParts: ['sclWall', 'sclPit'],
+    body, fnParts: ['sclFiber', 'sclStone'],
     parts: [
       { id: 'sclFiber', anchor: [FX + 40, FY + 160], label: [134, 260], side: 'L' },
       { id: 'sclStone', anchor: [SX - 160, SY + 170], label: [134, 520], side: 'L' },
-      { id: 'sclWall', anchor: [SX + SR * 0.7, SY - SR * 0.7], label: [866, 120], side: 'R' },
-      { id: 'sclPit', anchor: [SX + Math.cos(0.2 + 6.283 * 0.1) * 80, SY + Math.sin(0.2 + 6.283 * 0.1) * 80], label: [866, 330], side: 'R' },
-      { id: 'sclLumen', anchor: [SX, SY], label: [866, 480], side: 'R' }
+      { id: 'sclWall', anchor: [SX + SR * 0.7, SY - SR * 0.7], label: [866, 120], side: 'R' }
     ],
-    tools: ctl.tools.concat([{ id: 'info:tScler', label: 'عن النسيج السكلرنكيمي' }]),
-    init(){ ctl.start(); },
-    onSlider: v => ctl.onSlider(v),
-    onTool: id => ctl.onTool(id),
+    tools: [{ id: 'info:tScler', label: 'عن النسيج السكلرنكيمي' }, { id: 'tbl:sclTypes', label: 'الألياف × الخلايا الصخرية (ص14)' }],
     tick(dt, t, a){
-      ctl.tick(dt);
-      const st = STG.idx, k = STG.k;
-      /* سمك الجدار: رقيق ← ثخين؛ البروتوبلاست يختفي في المرحلة الأخيرة */
-      const thick = st === 0 ? 0 : st === 1 ? k : 1;
-      const lr = (SR - 8) - thick * (SR - 34);
-      const lum = a.el('#lumen'); if (lum) lum.setAttribute('r', n2(lr));
-      const pc = a.el('#protoC'), pn = a.el('#protoN');
-      const alive = st < 2 ? 1 : Math.max(0, 1 - k * 1.6);
-      if (pc){ pc.setAttribute('r', n2(Math.max(4, lr - 4))); pc.setAttribute('opacity', n2(0.95 * alive)); }
-      if (pn){ pn.setAttribute('opacity', n2(alive)); pn.setAttribute('cx', n2(SX - Math.min(30, lr * 0.3))); pn.setAttribute('r', n2(Math.min(22, lr * 0.4))); }
-      a.all('.sLay').forEach(e => { const r = +e.getAttribute('r'); e.setAttribute('opacity', r > lr + 3 ? '0.75' : '0'); });
-      const pg = a.el('#pitsG'); if (pg) pg.setAttribute('opacity', n2(Math.min(1, thick * 1.4)));
-      a.all('.fLum').forEach(e => e.setAttribute('transform', ''));
+      /* الدعم والتقوية: النوعان يتوهجان بالتناوب */
+      const cur = focusOwner || (Math.floor(t / 2.4) % 2 ? 'sclStone' : 'sclFiber');
+      a.all('.part').forEach(p => { const on = p.dataset.part === cur;
+        p.style.filter = on ? `drop-shadow(0 0 ${n2(4 + 4 * Math.sin(t * 4))}px #ffd166)` : ''; });
     }
   };
 }
@@ -279,9 +255,9 @@ function simCmp(){
     <circle class="dHi" cx="${X[2]}" cy="${Y}" r="22" fill="${SIM_PAL.sclD}"/>`;
   const cap = (x, a, b) => `<text class="cap" x="${x}" y="${Y + 150}" text-anchor="middle">${a}</text><text class="cap sm" x="${x}" y="${Y + 178}" text-anchor="middle">${b}</text>`;
   const body = `${part('tParen', par)}${part('tColl', col)}${part('tScler', scl)}
-    ${cap(X[0], 'البرنكيمي', 'حية · جدار رقيق · فجوة كبيرة')}
-    ${cap(X[1], 'الكولنكيمي', 'حية · تغلظ في الزوايا')}
-    ${cap(X[2], 'السكلرنكيمي', 'ميتة · جدار ثخين ملجنن')}`;
+    ${cap(X[0], 'البرنكيمي', 'حية · رقيقة الجدران · فجوات عصارية كبيرة')}
+    ${cap(X[1], 'الكولنكيمي', 'حية · جدرانها مغلظة بشكل غير منتظم')}
+    ${cap(X[2], 'السكلرنكيمي', 'ميتة · جدرانها مغلظة باللكنين (الخشبين)')}`;
   let opened = false;
   return {
     body, fnParts: ['tParen', 'tColl', 'tScler'],

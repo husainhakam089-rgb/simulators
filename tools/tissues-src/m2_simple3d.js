@@ -51,12 +51,12 @@ function stemModel(B){
   const H = 1.5, R = 2.2;
   const cyl = (r0, r1, h, col, o) => B.add(lathe([[r0, -h / 2], [r1, -h / 2], [r1, h / 2], [r0, h / 2], [r0, -h / 2]], 56), Object.assign({ color: col, rim: 0.4, rimColor: '#ffffff' }, o));
   const epi = cyl(R - 0.06, R, H, '#bfe08a', { part: 'epidermis', rim: 0.7, rimColor: '#f2ffd8' });
-  const coll = cyl(R - 0.3, R - 0.06, H - 0.02, '#e7d2df', { part: 'tColl', pat: 2, patColor: '#8fbf86', patK: 22, rimColor: '#ffe6f2' });
-  const cort = cyl(1.42, R - 0.3, H - 0.04, '#78b46d', { part: 'tParen', pat: 2, patColor: '#3f6b3a', patK: 12, rimColor: '#cfeec0' });
+  const coll = cyl(R - 0.3, R - 0.06, H - 0.02, '#cfe0c4', { part: 'tCortex', pat: 2, patColor: '#8fbf86', patK: 22, rimColor: '#ffe6f2' });
+  const cort = cyl(1.66, R - 0.3, H - 0.04, '#78b46d', { part: 'tCortex', pat: 2, patColor: '#3f6b3a', patK: 12, rimColor: '#cfeec0' });
   const pith = B.add(lathe([[0.001, -H / 2 + 0.03], [0.98, -H / 2 + 0.03], [0.98, H / 2 - 0.03], [0.001, H / 2 - 0.03]], 48),
-    { part: 'tParen', color: '#9fcf8c', pat: 2, patColor: '#5f8f52', patK: 9, rim: 0.4, rimColor: '#e6ffd8' });
-  B.add(lathe([[0.98, -H / 2 + 0.03], [1.42, -H / 2 + 0.03], [1.42, H / 2 - 0.03], [0.98, H / 2 - 0.03], [0.98, -H / 2 + 0.03]], 56),
-    { color: '#4f7f48', rim: 0.3, rimColor: '#cfeec0', pop: false });
+    { part: 'tPith', color: '#9fcf8c', pat: 2, patColor: '#5f8f52', patK: 9, rim: 0.4, rimColor: '#e6ffd8' });
+  const rays = B.add(lathe([[0.98, -H / 2 + 0.03], [1.66, -H / 2 + 0.03], [1.66, H / 2 - 0.03], [0.98, H / 2 - 0.03], [0.98, -H / 2 + 0.03]], 56),
+    { part: 'tRays', color: '#8fc47c', pat: 2, patColor: '#4f7f48', patK: 14, rim: 0.4, rimColor: '#dff7cf' });
   /* حزم وعائية: خشب للداخل ولحاء للخارج وغطاء ألياف */
   const NB = 8, xy = [], ph = [], fc = [];
   for (let i = 0; i < NB; i++){
@@ -65,15 +65,14 @@ function stemModel(B){
     ph.push(place(superEll({ h: [0.12, H / 2 + 0.015, 0.17], e: 0.5, rows: 6, cols: 14 }), { R: R3, at: mul(d, 1.38) }));
     fc.push(place(superEll({ h: [0.07, H / 2 + 0.02, 0.2], e: 0.45, rows: 6, cols: 14, }), { R: R3, at: mul(d, 1.57) }));
   }
-  const vb = B.add(merge(xy.concat(ph)), { part: 'vBundle', color: '#c06a62', rim: 0.6, rimColor: '#ffd2c8', pat: 3, patK: 10 });
-  const scl = B.add(merge(fc), { part: 'tScler', color: '#d9b06e', rim: 0.7, rimColor: '#ffe7b8' });
+  B.add(merge(xy.concat(ph, fc)), { part: 'vBundle', color: '#c06a62', rim: 0.6, rimColor: '#ffd2c8', pat: 3, patK: 10 });
   B.label('epidermis', [R * 0.7, H / 2, R * 0.7], [0.5, 0.5, 0.7]);
-  B.label('tColl', [0, H / 2, R - 0.18], [0, 1, 0.6]);
-  B.label('tParen', [-1.0, H / 2, 1.25], [0, 1, 0.5]);
-  B.label('tScler', [1.57 * Math.cos(1.57), H / 2 + 0.02, 1.57 * Math.sin(1.57)], [0, 1, 0.4]);
+  B.label('tCortex', [0, H / 2, R - 0.35], [0, 1, 0.6]);
+  B.label('tRays', [1.3 * Math.cos(0.4), H / 2 - 0.02, 1.3 * Math.sin(0.4)], [0, 1, 0.4]);
+  B.label('tPith', [-0.35, H / 2 - 0.02, 0.4], [0, 1, 0.5]);
   B.label('vBundle', [1.12 * Math.cos(3.93), H / 2 + 0.01, 1.12 * Math.sin(3.93)], [0, 1, 0.2]);
-  B.caption([0, -H / 2 - 0.45, R], () => ['', 'مقطع عرضي في ساق نبات عشبي ذي فلقتين']);
-  const cyc = [[coll], [cort, pith], [scl]], ids = ['tColl', 'tParen', 'tScler'];
+  B.caption([0, -H / 2 - 0.45, R], () => ['', 'النسيج الأساس: القشرة واللب والأشعة اللبية']);
+  const cyc = [[coll, cort], [rays], [pith]], ids = ['tCortex', 'tRays', 'tPith'];
   return {
     dist: 9.6, yaw: 0.2, pitch: 0.75, live2d: true,
     anim(t){
@@ -158,49 +157,32 @@ function sclModel(B){
     const Hf = 3.4 - (i % 2) * 0.4;
     fibers.push(place(i === 1 ? shellCut(spindleProf(0.22, Hf, 24), spindleProf(0.05, Hf - 0.3, 24), CUT0, CUT1, 18) : lathe(spindleProf(0.22, Hf, 24), 16), { at: [FX + dx, (i % 2) * 0.2, dz] }));
   });
-  B.add(merge(fibers), { part: 'sclFiber', color: '#c9a46a', rim: 0.6, rimColor: '#ffe7b8', pat: 1, patColor: '#9c7a46', patK: 40 });
+  const fibO = B.add(merge(fibers), { part: 'sclFiber', color: '#c9a46a', rim: 0.6, rimColor: '#ffe7b8', pat: 1, patColor: '#9c7a46', patK: 40 });
   /* الخلية الحجرية الكبيرة (مقطوعة) */
   const SX = 1.2, R = 1.25;
   const wallMesh = rin => shellCut(sphereProf(R, 24), sphereProf(rin, 24), CUT0, CUT1, 30);
-  const wall = B.add(place(wallMesh(R - 0.08), { at: [SX, 0, 0] }), { part: 'sclWall', color: '#c9a46a', rim: 0.6, rimColor: '#ffe7b8', pat: 1, patColor: '#a8834e', patK: 26, center: [SX, 0, 0] });
-  const lumen = B.add(place(ellipsoid({ r: 1, rows: 14, cols: 20 }), { at: [SX, 0, 0], s: R - 0.1 }), { part: 'sclLumen', color: '#2a1d12', rim: 0.3, rimColor: '#7a5a34', center: [SX, 0, 0] });
-  const proto = B.add(place(ellipsoid({ r: 1, rows: 14, cols: 20, disp: blobDisp(5, 0.05) }), { at: [SX, 0, 0], s: R - 0.14 }), { color: '#5f9a5c', alpha: 0.85, rim: 0.6, rimColor: '#d6f5c4', center: [SX, 0, 0], pop: false });
-  const pnuc = B.add(place(ellipsoid({ r: 0.22, rows: 10, cols: 14 }), { at: [SX - 0.3, 0.25, 0.5] }), { color: '#7565c2', rim: 0.6, rimColor: '#d8d0ff', pop: false });
-  /* قنوات النقر: على وجهي القطع حتى تُرى */
-  const pitMesh = (rin, k) => merge([CUT0, CUT1].map(a => {
+  const wall = B.add(place(wallMesh(0.3), { at: [SX, 0, 0] }), { part: 'sclWall', color: '#c9a46a', rim: 0.6, rimColor: '#ffe7b8', pat: 1, patColor: '#a8834e', patK: 26, center: [SX, 0, 0] });
+  B.add(place(ellipsoid({ r: 1, rows: 14, cols: 20 }), { at: [SX, 0, 0], s: 0.28 }), { color: '#2a1d12', rim: 0.3, rimColor: '#7a5a34', center: [SX, 0, 0], pop: false });
+  /* قنوات على وجهي القطع (جزء من الجدار) */
+  const pitMesh = rin => merge([CUT0, CUT1].map(a => {
     const out = []; for (let i = 0; i < 7; i++){ const ph = -1.3 + i * 0.43, d = [Math.cos(ph) * Math.cos(a), Math.sin(ph), Math.cos(ph) * Math.sin(a)];
-      out.push(tube({ pts: [add([SX, 0, 0], mul(d, rin)), add([SX, 0, 0], mul(d, rin + (R - rin) * k))], r: 0.035, sides: 5 })); }
+      out.push(tube({ pts: [add([SX, 0, 0], mul(d, rin)), add([SX, 0, 0], mul(d, R))], r: 0.035, sides: 5 })); }
     return merge(out); }));
-  const pits = B.add(pitMesh(0.3, 1), { part: 'sclPit', color: '#3a2a18', rim: 0.5, rimColor: '#8a6a3a', pop: false, center: [SX, 0, 0] });
-  /* خلايا حجرية صغيرة مجاورة */
+  B.add(pitMesh(0.3), { color: '#3a2a18', rim: 0.5, rimColor: '#8a6a3a', pop: false, center: [SX, 0, 0] });
+  /* خلايا صخرية صغيرة مجاورة */
   const small = [[SX + 1.4, -1.0, -0.6, 0.45], [SX - 0.6, -1.45, -0.4, 0.4], [SX + 1.3, 1.1, -0.5, 0.42]].map(([x, y, z, r]) => place(ellipsoid({ r, rows: 10, cols: 14, disp: blobDisp(x * 10 | 0, 0.08) }), { at: [x, y, z] }));
-  B.add(merge(small), { part: 'sclStone', color: '#c9a46a', rim: 0.6, rimColor: '#ffe7b8', pat: 1, patColor: '#a8834e', patK: 30 });
+  const stoneO = B.add(merge(small), { part: 'sclStone', color: '#c9a46a', rim: 0.6, rimColor: '#ffe7b8', pat: 1, patColor: '#a8834e', patK: 30 });
   B.label('sclFiber', [FX + 0.3, 0.9, 0.2], [0, 0, 1]);
   B.label('sclWall', [SX + R * 0.7, R * 0.6, 0.1], [0.7, 0.6, 0.3]);
-  B.label('sclPit', [SX + Math.cos(CUT1) * 0.8, 0.0, Math.sin(CUT1) * 0.8], [0.5, 0, 1]);
-  B.label('sclLumen', [SX, 0, 0.32], [0, 0, 1]);
   B.label('sclStone', [SX + 1.4, -1.0, -0.15], [0.5, -0.3, 1]);
-  B.caption([SX, -R - 0.4, 0.6], () => { const s = SCL_STAGES[STG.idx]; return s ? ['المرحلة ' + (STG.idx + 1) + ': ' + s.n] : []; });
-  let lastK = -1;
+  B.caption([FX, -1.95, 0.6], () => ['', 'أ- ألياف']);
+  B.caption([SX, -R - 0.45, 0.6], () => ['', 'ب- خلايا صخرية (حجرية)']);
   return {
-    dist: 8.4, yaw: 0.45, pitch: 0.22, target: [0.4, 0, 0], live2d: true, noSpin: true, maxDist: 16,
-    camGoal: () => SCL_STAGES[STG.idx] && SCL_STAGES[STG.idx].cam,
+    dist: 8.4, yaw: 0.45, pitch: 0.22, target: [0.4, 0, 0], live2d: true, maxDist: 16,
     anim(t){
-      const st = STG.idx, k = STG.k;
-      const thick = st === 0 ? 0 : st === 1 ? k : 1;
-      const rin = (R - 0.08) - thick * (R - 0.38);
-      if (Math.abs(thick - lastK) > 0.01){ lastK = thick;
-        B.update(wall, place(wallMesh(rin), { at: [SX, 0, 0] }));
-        B.update(lumen, place(ellipsoid({ r: 1, rows: 14, cols: 20 }), { at: [SX, 0, 0], s: rin - 0.02 }));
-        B.update(proto, place(ellipsoid({ r: 1, rows: 14, cols: 20, disp: blobDisp(5, 0.05) }), { at: [SX, 0, 0], s: Math.max(0.05, rin - 0.06) }));
-        B.update(pnuc, place(ellipsoid({ r: 0.22, rows: 10, cols: 14 }), { at: [SX - Math.min(0.3, rin * 0.3), 0.15, Math.min(0.5, rin * 0.5)], s: Math.min(1, rin / 0.6) }));
-        B.update(pits, pitMesh(rin, Math.min(1, thick * 1.2)));
-      }
-      const alive = st < 2 ? 1 : Math.max(0, 1 - k * 1.6);
-      proto.alpha = 0.85 * alive; proto.hide = alive < 0.02; pnuc.hide = alive < 0.3;
-      pits.hide = thick < 0.05;
-      /* التجويف الفارغ يظهر فقط بعد موت البروتوبلاست */
-      lumen.hide = alive > 0.6;
+      const f = typeof focusOwner !== 'undefined' ? focusOwner : null, on = f || (Math.floor(t / 2.4) % 2 ? 'sclStone' : 'sclFiber');
+      fibO.rim = on === 'sclFiber' ? 0.6 + 1 * (0.5 + 0.5 * Math.sin(t * 4)) : 0.6;
+      stoneO.rim = on === 'sclStone' ? 0.6 + 1 * (0.5 + 0.5 * Math.sin(t * 4)) : 0.6;
     }
   };
 }
@@ -226,9 +208,9 @@ function cmpModel(B){
   B.label('tParen', [X[0], 0.82, 0.2], [0, 1, 0.3]);
   B.label('tColl', [X[1], 0.95, 0.68], [0, 1, 0.3]);
   B.label('tScler', [X[2] + 0.6, 0.6, 0.1], [0.5, 1, 0.3]);
-  B.caption([X[0], -1.25, 0.5], () => ['البرنكيمي', 'حية · جدار رقيق']);
-  B.caption([X[1], -1.4, 0.5], () => ['الكولنكيمي', 'حية · تغلظ في الزوايا']);
-  B.caption([X[2], -1.25, 0.5], () => ['السكلرنكيمي', 'ميتة · جدار ثخين ملجنن']);
+  B.caption([X[0], -1.25, 0.5], () => ['البرنكيمي', 'حية · رقيقة الجدران']);
+  B.caption([X[1], -1.4, 0.5], () => ['الكولنكيمي', 'حية · مغلظة بشكل غير منتظم']);
+  B.caption([X[2], -1.25, 0.5], () => ['السكلرنكيمي', 'ميتة · مغلظة باللكنين']);
   return {
     dist: 10.2, yaw: 0.15, pitch: 0.25, live2d: true, maxDist: 18, compactK: 1.25,
     anim(t){ cor.rim = 0.6 + 0.9 * (0.5 + 0.5 * Math.sin(t * 2.4)); lum.rim = 0.6 + 0.9 * (0.5 + 0.5 * Math.sin(t * 2.4 + 1.5)); }
