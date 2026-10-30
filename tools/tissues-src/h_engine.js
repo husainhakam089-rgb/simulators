@@ -330,10 +330,10 @@ function selectPart(id){
   $('#infoFoot').hidden = false;
   $('#info').classList.remove('closed');
   body.innerHTML = `
-    <div class="fld"><h5>الموقع</h5><p>${d.loc}</p></div>
-    <div class="fld"><h5>التركيب</h5><p>${d.struct}</p></div>
-    <div class="fld"><h5>الوظيفة</h5><p>${d.fn}</p></div>
-    <div class="fld note"><h5>ملاحظة مهمة للامتحان</h5><p>${d.note}</p></div>`;
+    ${d.loc ? `<div class="fld"><h5>الموقع</h5><p>${d.loc}</p></div>` : ''}
+    ${d.struct ? `<div class="fld"><h5>التركيب</h5><p>${d.struct}</p></div>` : ''}
+    ${d.fn ? `<div class="fld"><h5>الوظيفة أو الأهمية</h5><p>${d.fn}</p></div>` : ''}
+    ${d.note ? `<div class="fld note"><h5>ملاحظة مهمة للامتحان</h5><p>${d.note}</p></div>` : ''}`;
   body.scrollTop = 0;
   const hasFn = flows.some(f => f.owner === id) || !!(cur && cur.fnParts && cur.fnParts.indexOf(id) >= 0);
   $('#seeFn').disabled = !hasFn;

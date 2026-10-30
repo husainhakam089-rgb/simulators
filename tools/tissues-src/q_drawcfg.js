@@ -5,8 +5,6 @@
 /* ترتيب الرسم: الإطار والأجزاء الكبيرة أولاً ثم التفاصيل */
 const DRAW_ORDER = {
   mer_loc:  ['apicalShoot', 'apicalRoot', 'intercal', 'corkCamb', 'vascCamb'],
-  mer_root: ['rootCap', 'zoneDiv', 'protoderm', 'groundMer', 'procamb', 'zoneElong', 'zoneMat', 'rootHair'],
-  mer_cell: ['merWall', 'merCyto', 'merNuc', 'merVac'],
   sim_loc:  ['epidermis', 'tColl', 'tParen', 'vBundle', 'tScler'],
   sim_par:  ['parWall', 'matVac', 'nucleus', 'parChl', 'interSp'],
   sim_col:  ['epidermis', 'colProto', 'colCorner', 'tColl'],
@@ -78,14 +76,12 @@ const drApi = host => ({ playing: true, dragSlider: false, sliderVal: 0,
   el: q => host.querySelector(q), all: q => Array.from(host.querySelectorAll(q)),
   tool: () => false, setTool(){}, radio: () => null, setRadio(){}, setSlider(){}, setCap(){}, setPhase(){}, flowEnabled(){}, hideLabels(){}, g(){} });
 const DR_GROUPS = [
-  { g: 'mer', t: 'الأنسجة المرستيمية', items: CH.exam.filter(d => d.k.indexOf('mer_') === 0).map(d => ({
-      k: d.k, t: d.t, scene: () => SCENES[d.k].build(), order: DRAW_ORDER[d.k],
-      base: d.k === 'mer_loc' ? ['النبات', 'نباتاً بساق وأوراق وجذور تحت خط التربة، ونباتاً عشبياً بعقد، ودائرة لمقطع الساق'] : null })) },
-  { g: 'sim', t: 'الأنسجة البسيطة', items: CH.exam.filter(d => d.k.indexOf('sim_') === 0).map(d => ({
+  /* النسيج المرستيمي: لا يوجد له رسم في الملزمة، فلا يدخل الرسم اليدوي */
+  { g: 'sim', t: 'النسيج الأساس', items: CH.exam.filter(d => d.k.indexOf('sim_') === 0).map(d => ({
       k: d.k, t: d.t, scene: () => SCENES[d.k].build(), order: DRAW_ORDER[d.k] })) },
-  { g: 'vas', t: 'الأنسجة المعقدة', items: CH.exam.filter(d => d.k.indexOf('vas_') === 0).map(d => ({
+  { g: 'epi', t: 'نسيج البشرة', items: CH.exam.filter(d => d.k.indexOf('epi_') === 0).map(d => ({
       k: d.k, t: d.t, scene: () => SCENES[d.k].build(), order: DRAW_ORDER[d.k] })) },
-  { g: 'epi', t: 'البشرة والثغور', items: CH.exam.filter(d => d.k.indexOf('epi_') === 0).map(d => ({
+  { g: 'vas', t: 'النسيج الوعائي', items: CH.exam.filter(d => d.k.indexOf('vas_') === 0).map(d => ({
       k: d.k, t: d.t, scene: () => SCENES[d.k].build(), order: DRAW_ORDER[d.k] })) },
   { g: 'eth', t: 'النسيج الظهاري', items: CH.exam.filter(d => d.k.indexOf('eth_') === 0).map(d => ({
       k: d.k, t: d.t, scene: () => SCENES[d.k].build(), order: DRAW_ORDER[d.k] })) },
