@@ -113,7 +113,8 @@ function drLoad(k){
   /* حدود الرسم لتقدير موقع كل جزء (أعلى/وسط/أسفل · يمين/يسار) */
   const bbAll = src.getBBox();
   const order = (it.order || (it.steps ? it.steps.map(x => x.id) : [])).slice();
-  (s.parts || []).forEach(p => { if (order.indexOf(p.id) < 0) order.push(p.id); });
+  const inLbl = id => it.steps && it.steps.some(x => (x.labels || []).indexOf(id) >= 0);
+  (s.parts || []).forEach(p => { if (order.indexOf(p.id) < 0 && !inLbl(p.id)) order.push(p.id); });
   if (byPart._base && order.indexOf('_base') < 0) order.unshift('_base');
   const partDef = {}; (s.parts || []).forEach(p => { partDef[p.id] = p; });
   const stepName = id => id === '_base' ? (it.base ? it.base[0] : 'الرسم') : (it.steps && (it.steps.find(x => x.id === id) || {}).name) || (INFO[id] ? INFO[id].name : (partDef[id] ? nameOf(partDef[id]) : id));
@@ -144,7 +145,8 @@ function drLoad(k){
         loc = ' ' + v + h;
       }
     }
-    const shape = id === '_base' && it.base ? it.base[1] : (DRAW_SHAPE[id] || 'الجزء');
+    const sdef = it.steps ? it.steps.find(x => x.id === id) : null;
+    const shape = id === '_base' && it.base ? it.base[1] : ((sdef && sdef.shape) || DRAW_SHAPE[id] || 'الجزء');
     const noShape = !els.length;
     /* أسماء تلقائية للرسوم التي ليس لها أسماء جاهزة (أطوار الانقسام): خط من الجزء إلى عمود جانبي */
     let pp = p;
@@ -161,9 +163,13 @@ function drLoad(k){
         pp = { id, anchor: [ax, ay], label: [left ? bbAll.x - 40 : bbAll.x + bbAll.width + 40, ay], side: left ? 'L' : 'R', short: name };
       }
     }
-    const txt = noShape ? shape + (pp ? '، فقط أشّر عليه واكتب اسمه.' : '.')
-                        : 'ارسم ' + shape + loc + (pp ? '، ثم أشّر عليه بخط واكتب: «' + name + '».' : '.');
-    return { id, name, els, p: pp, drawT, txt, lbl: null };
+    /* خطوة الملزمة قد تؤشّر أكثر من جزء (labels): تُكتب الأسماء واحداً بعد الآخر */
+    const ps = pp ? [pp] : [];
+    if (sdef && sdef.labels) sdef.labels.forEach(pid => { if (partDef[pid] && !ps.some(q => q.id === pid)) ps.push(partDef[pid]); });
+    const names = ps.map((q, k) => k === 0 && q === pp ? name : nameOf(q));
+    const txt = noShape ? shape + (ps.length ? '، فقط أشّر عليه واكتب اسمه.' : '.')
+                        : (/^الخطوة/.test(shape) ? shape : 'ارسم ' + shape + loc) + (ps.length ? '، ثم أشّر بخط واكتب: ' + names.map(x => '«' + x + '»').join(' و') + '.' : '.');
+    return { id, name, els, p: ps[0] || null, ps, names, drawT, txt, lbl: null, lbls: [] };
   });
 
   /* أسماء الأجزاء بخطوط تأشير (بقلم أزرق كما في ورقة الامتحان) — أكبر على الموبايل حتى تُقرأ */
@@ -171,35 +177,35 @@ function drLoad(k){
   const fs = Math.max(17, Math.min(27, 9.5 * 1000 / stW)), lh = fs * 1.2, small = fs > 20;
   drSvg.style.setProperty('--drFs', fs.toFixed(1) + 'px');
   /* تباعد الأسماء في كل عمود حتى لا يركب اسم على اسم (الأسطر تكثر على الموبايل) */
-  const LY = {};
+  const LY = {}, ALL = [];
+  drSteps.forEach(st => st.ps.forEach((p, k) => ALL.push({ st, k, p, name: st.names[k], key: st.id + ':' + k })));
   ['L', 'R'].forEach(side => {
-    const col = drSteps.filter(st => st.p && st.p.side === side).map(st => ({ st, n: wrapName(st.name, small ? 11 : 16).length, y: st.p.label[1] }))
+    const col = ALL.filter(o => o.p.side === side).map(o => ({ o, n: wrapName(o.name, small ? 11 : 16).length, y: o.p.label[1] }))
       .sort((a, b) => a.y - b.y);
     for (let i = 1; i < col.length; i++){
       const need = col[i - 1].y + (col[i - 1].n + col[i].n) * lh / 2 + fs * 0.45;
       if (col[i].y < need) col[i].y = need;
     }
-    col.forEach(o => { LY[o.st.id] = o.y; });
+    col.forEach(c => { LY[c.o.key] = c.y; });
   });
-  drSteps.forEach(st => {
-    const p0 = st.p; if (!p0) return;
-    const p = Object.assign({}, p0, { label: [p0.label[0], LY[st.id] !== undefined ? LY[st.id] : p0.label[1]] });
-    const lines2 = wrapName(st.name, p.side === 'C' ? 26 : small ? 11 : 16);
+  ALL.forEach(({ st, k, p: p0, name: nm, key }) => {
+    const p = Object.assign({}, p0, { label: [p0.label[0], LY[key] !== undefined ? LY[key] : p0.label[1]] });
+    const lines2 = wrapName(nm, p.side === 'C' ? 26 : small ? 11 : 16);
     const anch = p.side === 'R' ? 'start' : p.side === 'L' ? 'end' : 'middle';
     const tx = p.side === 'R' ? p.label[0] + 8 : p.side === 'L' ? p.label[0] - 8 : p.label[0];
     const ty = p.label[1] + fs * 0.35 - (lines2.length - 1) * lh / 2;
     const g = document.createElementNS(SVGNS, 'g');
     g.setAttribute('class', 'drL');
-    const cid = 'drClip' + st.id.replace(/[^a-zA-Z0-9]/g, '');
+    const cid = 'drClip' + st.id.replace(/[^a-zA-Z0-9]/g, '') + k;
     g.innerHTML = `<line pathLength="1" stroke-dasharray="1.002 2" stroke-dashoffset="1" x1="${n2(p.anchor[0])}" y1="${n2(p.anchor[1])}" x2="${n2(p.label[0])}" y2="${n2(p.label[1])}"/>
       <circle cx="${n2(p.anchor[0])}" cy="${n2(p.anchor[1])}" r="3.2"/>
       <clipPath id="${cid}"><rect x="0" y="0" width="0" height="0"/></clipPath>
       <text direction="ltr" text-anchor="${anch}" x="${n2(tx)}" y="${n2(ty)}" clip-path="url(#${cid})">${lines2.map((l, i) => `<tspan x="${n2(tx)}" dy="${i ? n2(lh) : 0}">${l}</tspan>`).join('')}</text>`;
     lbls.appendChild(g);
     const tb = g.querySelector('text').getBBox();
-    st.lbl = { g, line: g.querySelector('line'), dot: g.querySelector('circle'), text: g.querySelector('text'), clip: g.querySelector('clipPath rect'), tb, p };
+    st.lbls[k] = { g, line: g.querySelector('line'), dot: g.querySelector('circle'), text: g.querySelector('text'), clip: g.querySelector('clipPath rect'), tb, p };
   });
-  drSteps.forEach(st => { st.lblT = st.lbl ? 1.1 : 0; st.total = st.drawT + st.lblT + 0.7; });
+  drSteps.forEach(st => { st.lbl = st.lbls[0] || null; st.lblT = st.lbls.length * 1.1; st.total = st.drawT + st.lblT + 0.7; });
 
   /* إطار العرض: الرسم مع أسمائه بهامش */
   const bb = drSvg.querySelector('#drLines').getBBox(), lb = lbls.getBBox();
@@ -207,7 +213,7 @@ function drLoad(k){
   const X1 = Math.max(bb.x + bb.width, lb.width ? lb.x + lb.width : 0) + 30, Y1 = Math.max(bb.y + bb.height, lb.height ? lb.y + lb.height : 0) + 30;
   drSvg.setAttribute('viewBox', `${n2(X0)} ${n2(Y0)} ${n2(X1 - X0)} ${n2(Y1 - Y0)}`);
   drSvg.querySelector('#drPen').setAttribute('data-s', String(Math.max(0.7, (X1 - X0) / 1000)));
-  drSteps.forEach(st => { if (st.lbl) st.lbl.g.style.display = 'none'; });   // تُقاس الأسماء أولاً ثم تُخفى حتى يحين دورها
+  drSteps.forEach(st => st.lbls.forEach(L => { L.g.style.display = 'none'; }));   // تُقاس الأسماء أولاً ثم تُخفى حتى يحين دورها
 
   $('#drDots').innerHTML = drSteps.map((st, i) => `<button data-i="${i}" title="${st.name}">${i + 1}</button>`).join('');
   $('#drDots').querySelectorAll('button').forEach(b => b.addEventListener('click', () => drGo(+b.dataset.i, true)));
@@ -232,8 +238,8 @@ function drStepState(st, t, now){
     }
     e.el.classList.toggle('drNow', !!now);
   });
-  const L = st.lbl; if (!L) return;
-  const u = t - st.drawT;
+  st.lbls.forEach((L, k) => {
+  const u = t - st.drawT - k * 1.1;
   L.g.style.display = u > 0 ? '' : 'none';
   if (u <= 0) return;
   const a = Math.min(1, u / 0.35), w = Math.min(1, Math.max(0, (u - 0.35) / 0.75));
@@ -243,6 +249,7 @@ function drStepState(st, t, now){
   const tb = L.tb, ww = tb.width + 8;
   L.clip.setAttribute('x', n2(tb.x + tb.width + 4 - ww * w)); L.clip.setAttribute('y', n2(tb.y - 4));
   L.clip.setAttribute('width', n2(ww * w)); L.clip.setAttribute('height', n2(tb.height + 8));
+  });
 }
 function drGo(i, user){
   drIdx = Math.max(0, Math.min(drSteps.length - 1, i)); drT = 0;

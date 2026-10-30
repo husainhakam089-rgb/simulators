@@ -7,11 +7,6 @@ const DRAW_ORDER = {
   mer_loc:  ['apicalShoot', 'apicalRoot', 'intercal', 'corkCamb', 'vascCamb'],
   /* خطوات رسم نسيج اللحاء كما في الملزمة ص16–17: (1) الأنبوب المنخلي (2) الصفائح المنخلية (3) الخلايا المرافقة (4) التأشير */
   vas_phl:  ['pSieve', 'pPlate', 'pComp'],
-  eth_sq:   ['connBelow', 'basem', 'tSqS', 'eNuc'],
-  eth_cub:  ['connBelow', 'basem', 'tCubS', 'eNuc'],
-  eth_col:  ['connBelow', 'basem', 'tColS', 'eNuc'],
-  eth_pse:  ['connBelow', 'basem', 'tPse', 'eNuc', 'cilia'],
-  eth_str:  ['connBelow', 'basem', 'tSqStr', 'eNuc'],
   con_loose: ['matrixC', 'colFib', 'elaFib', 'fibro'],
   con_cart:  ['cartHy', 'cartEl', 'cartFi', 'lacuna', 'chondro'],
   con_bone:  ['lamella', 'havers', 'lacuna', 'osteo', 'canalic'],
@@ -42,10 +37,10 @@ const DRAW_SHAPE = {
   sclFiber: 'خلايا مغزلية طويلة مدببة الطرفين', sclWall: 'دائرة كبيرة بجدار سميك', sclLumen: 'دائرة صغيرة في الوسط',
   sclPit: 'خطوطاً متفرعة من الوسط إلى الجدار', sclStone: 'خلايا دائرية صغيرة سميكة الجدار',
   pFiber: 'هلالاً من خلايا صغيرة سميكة الجدار في الأعلى (أو خلية مغزلية طويلة)', tPhloem: 'منطقة تحت الألياف',
-  pSieve: 'الخطوة (1): أنبوباً طويلاً جانباه متموجان (يضيق ويتسع)', pComp: 'الخطوة (3): خلايا مرافقة متطاولة على جانبي الأنبوب، في كل منها نواة داكنة',
+  pSieve: 'الخطوة (1): ارسم أنبوباً طويلاً جانباه متموجان (يضيق ويتسع)', pComp: 'الخطوة (3): ارسم خلايا مرافقة متطاولة على جانبي الأنبوب، في كل منها نواة داكنة',
   tXylem: 'منطقة كبيرة في الأسفل', xVessel: 'دوائر كبيرة سميكة الجدار (أو أنبوباً طويلاً عريضاً بلا جدران فاصلة)',
   xTrach: 'خليتين مغزليتين متداخلتين فيهما نقر', xFiber: 'خلية مغزلية رفيعة طويلة', xPar: 'خلايا مستطيلة صغيرة بنوى',
-  pPlate: 'الخطوة (2): ثلاث صفائح بيضوية مائلة داخل الأنبوب (أعلى ووسط وأسفل) وعليها نقاط', pPar: 'خلايا مستطيلة صغيرة بنوى',
+  pPlate: 'الخطوة (2): ارسم ثلاث صفائح بيضوية مائلة داخل الأنبوب (أعلى ووسط وأسفل) وعليها نقاط', pPar: 'خلايا مستطيلة صغيرة بنوى',
   guard: 'خليتين كلويتين متقابلتين', stoma: 'فتحة بين الخليتين الحارستين', cuticle: 'طبقة سميكة على السطح الخارجي للبشرة',
   trich: 'زوائد طويلة تخرج من خلايا البشرة', mesoph: 'خلايا دائرية بداخلها بلاستيدات',
   connBelow: 'مستطيلاً في الأسفل فيه وعاء دموي', basem: 'خطاً سميكاً فوقه', tSqS: 'صفاً واحداً من خلايا مسطحة رقيقة',
@@ -64,6 +59,49 @@ const DRAW_SHAPE = {
   axTerm: 'تفرعات في نهاية المحور تنتهي بانتفاخات', neuron: 'عصبونات متصلة: نهايات كل واحد قرب زوائد التالي',
   glia: 'خلايا صغيرة مستديرة بين العصبونات', tNerve: 'إطاراً يحيط بالنسيج'
 };
+/* خطوات رسم الأنسجة الظهارية من الملزمة: كل خطوة {sel: ما يُرسم، id، name، shape: وصف الخطوة، labels: التأشيرات} */
+const ETH_DRAW = {
+  eth_sq: [
+    { sel: '.st1', id: 'eSq1', name: 'الخطوة (1): الإطار', shape: 'الخطوة (1): ارسم متوازي مستطيلات مائلاً (صفيحة النسيج) بخطوط خفيفة' },
+    { sel: '[data-part=basem]', id: 'basem', shape: 'الخطوة (2): ارسم شريطاً رفيعاً في أسفل الصفيحة (الغشاء القاعدي)' },
+    { sel: '[data-part=connBelow]', id: 'connBelow', shape: 'الخطوة (3): ارسم طبقة تحته فيها خطوط متموجة (النسيج الضام)' },
+    { sel: '[data-part=cSquam]', id: 'cSquam', shape: 'الخطوة (4): ارسم خلايا مضلعة متجاورة على السطح العلوي' },
+    { sel: '[data-part=eNuc]', id: 'eNuc', shape: 'الخطوة (5): ارسم نواة مسطحة في وسط الخلايا' }
+  ],
+  eth_cub: [
+    { sel: '.st1', id: 'eCb1', name: 'الخطوة (1): الشريط', shape: 'الخطوة (1): ارسم شريطاً أفقياً في الأسفل' },
+    { sel: '[data-part=connBelow]', id: 'connBelow', shape: 'الخطوة (2): ارسم قوساً عريضاً فوقه (النسيج الضام)' },
+    { sel: '[data-part=basem]', id: 'basem', shape: 'الخطوة (3): ارسم خطاً منحنياً رفيعاً داخل القوس (الغشاء القاعدي)' },
+    { sel: '[data-part=cCube]', id: 'cCube', shape: 'الخطوة (4): ارسم صفاً من المكعبات على طول القوس' },
+    { sel: '[data-part=eNuc]', id: 'eNuc', shape: 'الخطوة (5): ارسم نواة كروية في وسط كل مكعب' }
+  ],
+  eth_col: [
+    { sel: '[data-part=connBelow]', id: 'connBelow', shape: 'الخطوة (1): ارسم مستطيلاً في الأسفل فيه خطوط متموجة (النسيج الضام)' },
+    { sel: '[data-part=cColumn], [data-part=basem]', id: 'cColumn', labels: ['basem'], shape: 'الخطوة (2): ارسم صفاً من الأعمدة الطويلة على خط قاعدي (الغشاء القاعدي)' },
+    { sel: '[data-part=cilia], [data-part=eNuc]', id: 'cilia', labels: ['eNuc'], shape: 'الخطوة (3): ارسم أهداباً على سطح الأعمدة ونواة بيضوية قرب قاعدة كل عمود' }
+  ],
+  eth_pse: [
+    { sel: '[data-part=basem], [data-part=connBelow], .basal', id: 'basem', labels: ['connBelow'], shape: 'الخطوة (1): ارسم خلايا قصيرة بشكل قباب على الشريط القاعدي، وتحتها النسيج الضام' },
+    { sel: '[data-part=cColumn]', id: 'cColumn', shape: 'الخطوة (2): ارسم أعمدة طويلة بين الخلايا القصيرة كلها تلامس الشريط القاعدي' },
+    { sel: '[data-part=cilia], [data-part=eNuc]', id: 'cilia', labels: ['eNuc'], shape: 'الخطوة (3): ارسم أهداباً على سطح الأعمدة، وأنوية بمستويات مختلفة' }
+  ],
+  eth_str: [
+    { sel: '.st1', id: 'eSt1', name: 'الخطوة (1): الصندوق', shape: 'الخطوة (1): ارسم صندوقاً (متوازي مستطيلات) مائلاً' },
+    { sel: '[data-part=basem], [data-part=connBelow]', id: 'basem', labels: ['connBelow'], shape: 'الخطوة (2): ارسم في أسفل الصندوق الغشاء القاعدي وتحته النسيج الضام' },
+    { sel: '[data-part=cBasal], [data-part=cPoly], [data-part=cSquam]', id: 'cSquam', labels: ['cPoly', 'cBasal'], shape: 'الخطوة (3): ارسم صفوف الخلايا: القاعدية مكعبة أو عمودية، والوسطى متعددة السطوح، والسطحية مسطحة حرشفية' }
+  ],
+  eth_scb: [
+    { sel: '.st1', id: 'eSc1', name: 'الخطوة (1): متوازي الأضلاع', shape: 'الخطوة (1): ارسم متوازي أضلاع (السطح العلوي)' },
+    { sel: '.st2', id: 'eSc2', name: 'الخطوة (2): الصندوق', shape: 'الخطوة (2): أكمل الصندوق بخطوط عمودية للأسفل' },
+    { sel: '[data-part=cCube], [data-part=basem], [data-part=connBelow]', id: 'cCube', labels: ['basem', 'connBelow'], shape: 'الخطوة (3): ارسم صفين من المكعبات في الواجهة وقباباً على السطح، وتحتها الغشاء القاعدي والنسيج الضام' }
+  ],
+  eth_scl: [
+    { sel: '.st1', id: 'eSl1', name: 'الخطوة (1): الصندوق المفتوح', shape: 'الخطوة (1): ارسم صندوقاً مفتوحاً (السطح العلوي والجانبان)' },
+    { sel: '.st2', id: 'eSl2', name: 'الخطوة (2): خط الطبقتين', shape: 'الخطوة (2): أغلق الصندوق وارسم خطاً أفقياً يفصل الطبقتين' },
+    { sel: '[data-part=cColumn], [data-part=cPoly], [data-part=eNuc], [data-part=basem], [data-part=connBelow]', id: 'cColumn', labels: ['cPoly', 'eNuc', 'basem', 'connBelow'],
+      shape: 'الخطوة (3): ارسم صفين من الخلايا بأنويتها: العلوي خلايا عمودية والسفلي أصغر، ثم الغشاء القاعدي والنسيج الضام' }
+  ]
+};
 const drApi = host => ({ playing: true, dragSlider: false, sliderVal: 0,
   el: q => host.querySelector(q), all: q => Array.from(host.querySelectorAll(q)),
   tool: () => false, setTool(){}, radio: () => null, setRadio(){}, setSlider(){}, setCap(){}, setPhase(){}, flowEnabled(){}, hideLabels(){}, g(){} });
@@ -72,8 +110,9 @@ const DR_GROUPS = [
   /* النسيج الأساس ونسيج البشرة: الملزمة فيها صور مجهرية فقط بلا رسم، فلا يدخلان الرسم اليدوي */
   { g: 'vas', t: 'النسيج الوعائي', items: CH.exam.filter(d => d.k === 'vas_phl').map(d => ({
       k: d.k, t: d.t, scene: () => SCENES[d.k].build(), order: DRAW_ORDER[d.k] })) },
-  { g: 'eth', t: 'النسيج الظهاري', items: CH.exam.filter(d => d.k.indexOf('eth_') === 0).map(d => ({
-      k: d.k, t: d.t, scene: () => SCENES[d.k].build(), order: DRAW_ORDER[d.k] })) },
+  /* النسيج الظهاري: خطوات الرسم كما في الملزمة ص29 وص31 وص33 وص35 (المتحول بلا رسم في الملزمة) */
+  { g: 'eth', t: 'النسيج الظهاري', items: CH.exam.filter(d => d.k.indexOf('eth_') === 0 && ETH_DRAW[d.k]).map(d => ({
+      k: d.k, t: d.t, scene: () => SCENES[d.k].build(), steps: ETH_DRAW[d.k] })) },
   { g: 'con', t: 'النسيج الضام', items: CH.exam.filter(d => d.k.indexOf('con_') === 0).map(d => ({
       k: d.k, t: d.t, scene: () => SCENES[d.k].build(), order: DRAW_ORDER[d.k] })) },
   { g: 'mus', t: 'النسيج العضلي', items: CH.exam.filter(d => d.k.indexOf('mus_') === 0).map(d => ({
