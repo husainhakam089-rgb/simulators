@@ -403,6 +403,15 @@
   .cap{pointer-events:none;font-size:14px;fill:var(--gold2);direction:rtl;
     paint-order:stroke;stroke:rgba(8,7,10,.8);stroke-width:3px;stroke-linejoin:round}
   .cap.sm{font-size:12px}
+  /* اسم الطور الحالي أعلى رسم الانقسام */
+  .phTitle{pointer-events:none;direction:rtl;paint-order:stroke;stroke:rgba(8,7,10,.85);stroke-linejoin:round}
+  .phTitle .t1{font-size:30px;font-weight:800;fill:#ffd98a;stroke-width:5px}
+  .phTitle .t2{font-size:15px;font-weight:600;fill:var(--gold2);stroke-width:3.5px;opacity:.9}
+  .phTitle.pop{animation:phPop .55s ease-out}
+  @keyframes phPop{0%{opacity:0;transform:translateY(-10px)}100%{opacity:1;transform:none}}
+  html[data-theme=day] .phTitle{stroke:rgba(255,255,255,.9)}
+  html[data-theme=day] .phTitle .t1{fill:#8a5a10}
+  html[data-theme=day] .phTitle .t2{fill:#6e4c0e}
 
   /* ═══════════ الجداول ═══════════ */
   #sheet{position:absolute;inset:auto 14px 62px 14px;max-height:68%;display:none;
@@ -607,6 +616,9 @@
   #lbl3d .cap3d{fill:var(--bone);paint-order:stroke;stroke:rgba(10,12,18,.75);stroke-width:3px;pointer-events:none}
   #lbl3d .cap3d .c1{font-size:14px;font-weight:700;fill:var(--gold2)}
   #lbl3d .cap3d .c2{font-size:11.5px;opacity:.9}
+  #lbl3d .cap3d.capTop .c1{font-size:26px;font-weight:800;fill:#ffd98a;stroke-width:5px}
+  #lbl3d.compact .cap3d.capTop .c1{font-size:17px}
+  html[data-theme=day] #lbl3d .cap3d.capTop .c1{fill:#8a5a10}
   #lbl3d.compact .cap3d .c1{font-size:11px}
   #lbl3d.compact .cap3d .c2{font-size:9.5px}
   html[data-theme=day] #lbl3d .cap3d{stroke:rgba(255,255,255,.85)}
@@ -3201,6 +3213,29 @@ function cellShape(c){
   }
   return smoothClosed(pts);
 }
+/* خيوط المغزل: ألياف قطبية مقوّسة بين كل قطبين، ومن الطور الاستوائي يرتبط كل كروماتيد
+   (عند جزئه المركزي) بالقطب الأقرب الذي يواجهه فقط — لا بالقطبين معاً */
+function divSpindle(S){
+  const out = [], poles = S.poles2 || S.poles;
+  if (!poles || !(S.spindleOp > 0.02)) return out;
+  const pairs = S.poles2 ? [[S.poles2[0], S.poles2[1]], [S.poles2[2], S.poles2[3]]] : [[S.poles[0], S.poles[1]]];
+  pairs.forEach(([a, b]) => {
+    const dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy), nx = -dy / L, ny = dx / L, w = L * (S.poles2 ? 0.2 : 0.26);
+    [-1, -0.45, 0.45, 1].forEach(k => {
+      const cx = (a[0] + b[0]) / 2 + nx * w * k, cy = (a[1] + b[1]) / 2 + ny * w * k;
+      let px = a[0], py = a[1];
+      for (let j = 1; j <= 4; j++){ const t = j / 4, x = (1 - t) * (1 - t) * a[0] + 2 * t * (1 - t) * cx + t * t * b[0], y = (1 - t) * (1 - t) * a[1] + 2 * t * (1 - t) * cy + t * t * b[1];
+        out.push([px, py, x, y, -1]); px = x; py = y; }
+    });
+  });
+  if (S.kin) S.chr.forEach((c, i) => {
+    if (!c || c.op < 0.2) return;
+    let best = null, bd = 1e9;
+    poles.forEach(p => { if (S.poles2 && Math.abs(p[0] - c.x) > 170) return; const d = Math.hypot(p[0] - c.x, p[1] - c.y); if (d < bd){ bd = d; best = p; } });
+    if (best) out.push([best[0], best[1], c.x, c.y, i]);
+  });
+  return out;
+}
 function chromatidMarkup(){
   return `
     <rect class="armT" x="-5.4" y="-31" width="10.8" height="25" rx="5.2"/>
@@ -3245,6 +3280,11 @@ function divisionScene(mode){
       d:'تتجمع الكروموسومات عند قطبي الخلية فتزداد طولاً وتقل سمكاً، وتظهر المادة الكروماتينية بشكل خيوط دقيقة، ويظهر الغشاء النووي والنويات، وينتج في نهاية هذا الطور أربع خلايا أحادية المجموعة الكروموسومية. ويحدث الانقسام الاختزالي في الخصى وفي المبايض عند تكوين الأمشاج وفي تكوين البيوض وحبوب اللقاح في النبات.' }
   ];
   const PH = isMei ? MEI : MIT;
+  /* وزن كل طور من زمن الشريط: الطور التمهيدي الأول أطول (خمسة أدوار) */
+  const W = PH.map(p => p.k === 'pro1' ? 2.5 : 1), WS = W.reduce((a, b) => a + b, 0);
+  const locate = T => { let x = Math.min(0.99999, Math.max(0, T)) * WS;
+    for (let i = 0; i < PH.length; i++){ if (x < W[i] || i === PH.length - 1) return [i, Math.min(0.9999, x / W[i])]; x -= W[i]; } };
+  const phaseT = (i, u) => { let x = 0; for (let j = 0; j < i; j++) x += W[j]; return (x + u * W[i]) / WS; };
 
   return {
     title: isMei ? 'الانقسام الاختزالي' : 'الانقسام غير المباشر (الخيطي)',
@@ -3263,7 +3303,9 @@ function divisionScene(mode){
         <g id="chromatinG" opacity="0"></g>
         <g id="centrs"></g>
         <g id="chrs" class="part" data-part="chromosome"></g>
-        <g id="xover"></g>`;
+        <g id="xover"></g>
+        <g class="phTitle"><text class="t1" id="phTitle" x="500" y="100" text-anchor="middle"></text>
+          <text class="t2" id="phStep" x="500" y="126" text-anchor="middle"></text></g>`;
 
       return {
         body, stream: null, flows: [], parts: [],
@@ -3274,7 +3316,7 @@ function divisionScene(mode){
           { id: 'slider', slider: true },
           { id: 'plant', label: 'خلية نباتية', toggle: true }
         ],
-        isDivision: true, phases: PH,
+        isDivision: true, phases: PH, phaseT,
         state: { T: 0 },
         init(api){
           /* تجميع العناصر مرة واحدة ثم تحديث خصائصها كل إطار */
@@ -3308,14 +3350,19 @@ function divisionScene(mode){
 
         /* حساب الحالة الهندسية عند تقدّم T ∈ [0,1] */
         compute(T, plant){
-          const nP = PH.length, raw = Math.min(nP - 0.0001, T * nP);
-          const pi = Math.floor(raw), u = raw - pi, e = ease(u), ph = PH[pi].k;
+          /* الحركة تكتمل في أول 80% من الطور ثم تثبت قليلاً حتى يتأملها الطالب */
+          const [pi, u] = locate(T), e = ease(Math.min(1, u / 0.8)), ph = PH[pi].k;
           const S = { cells: [], envs: [], chr: [], cent: [], plates: [], spindle: [], cap: '', xo: 0 };
           const mk = (cx, cy, rx, ry, waist, axis) => ({ cx, cy, rx, ry, waist: waist || 0, axis: axis || 'x' });
           /* الكروماتيدات: 8 = 4 كروموسومات × 2 */
           const CH = i => ({ i, col: i < 4 ? CLR.a : CLR.b });
+          /* الزوج المتماثل الأول (0،1) طويل والثاني (2،3) قصير حتى يُميَّز كل زوج */
+          const SZ = c => c < 2 ? 1 : 0.72;
           const put = (i, x, y, rot, op, main, tip, sc) =>
-            S.chr[i] = { x, y, rot: rot || 0, op: op === undefined ? 1 : op, main, tip: tip || main, sc: sc || 1 };
+            S.chr[i] = { x, y, rot: rot || 0, op: op === undefined ? 1 : op, main, tip: tip || main, sc: (sc || 1) * SZ(i >> 1) };
+          /* التعابر يحصل بين الكروماتيدين غير الشقيقين المتجاورين: كروماتيد واحد من كل كروموسوم */
+          const XO = [1, 0, 0, 1];
+          const swapT = c => (c === 0 || c === 2) ? CLR.bT : CLR.aT;
 
           /* لون الكروماتيدات: الزوج الأول (0،1 أمي) و(2،3 أبوي) — لكل كروموسوم كروماتيدتان */
           const colOf = c => (c === 0 || c === 2) ? CLR.a : CLR.b;
@@ -3331,19 +3378,29 @@ function divisionScene(mode){
           }
           else if (ph === 'pro' || ph === 'pro1'){
             S.cells.push(mk(CX, CY, RX, RY, 0));
-            S.envs.push({ cx: CX, cy: CY, r: 112, op: 1 - e, nx: CX - 30, ny: CY + 22, nr: 34 });
-            S.chromatin = { x: CX, y: CY, op: 1 - Math.min(1, e * 2) };
-            const homePos = isMei
-              ? [[CX - 54, CY - 58], [CX - 16, CY - 58], [CX + 18, CY + 52], [CX + 56, CY + 52]]
-              : [[CX - 62, CY - 52], [CX + 44, CY - 66], [CX - 30, CY + 58], [CX + 68, CY + 30]];
+            /* الاختزالي: أدوار الطور التمهيدي الأول الخمسة (كل دور خُمس الطور) */
+            const sub = Math.min(4, Math.floor(u * 5)), su = u * 5 - sub;
+            const envOp = isMei ? (sub < 4 ? 1 : 1 - su) : 1 - e;
+            S.envs.push({ cx: CX, cy: CY, r: 112, op: envOp, nx: CX - 30, ny: CY + 22, nr: 34 });
+            S.chromatin = { x: CX, y: CY, op: isMei ? 1 - Math.min(1, u * 6) : 1 - Math.min(1, e * 2) };
+            const freePos = [[CX - 62, CY - 52], [CX + 44, CY - 66], [CX + 68, CY + 30], [CX - 30, CY + 58]];
+            /* أماكن التزاوج: (0،1) في الأعلى و(3،2) في الأسفل — نفس ترتيبها لاحقاً على خط الاستواء */
+            const pairPos = [[CX - 54, CY - 58], [CX - 16, CY - 58], [CX + 56, CY + 52], [CX + 18, CY + 52]];
+            const zy = isMei ? (sub < 1 ? 0 : sub > 1 ? 1 : ease(su)) : 0;        /* الإيثاق في الدور الازدواجي */
+            const gap = isMei ? (sub < 2 ? 2.5 : sub > 2 ? 7 : lerp(2.5, 7, ease(su))) : 7;   /* الرباعي يظهر في التغلظي */
             for (let c = 0; c < 4; c++){
-              const [hx, hy] = homePos[c];
+              const hx = isMei ? lerp(freePos[c][0], pairPos[c][0], zy) : [CX - 62, CX + 44, CX - 30, CX + 68][c];
+              const hy = isMei ? lerp(freePos[c][1], pairPos[c][1], zy) : [CY - 52, CY - 66, CY + 58, CY + 30][c];
               for (let s = 0; s < 2; s++){
                 const i = c * 2 + s;
                 let tip = tipOf(c);
-                /* التصالب: تبادل أطراف الكروماتيدات بين المتماثلين */
-                if (isMei && u > 0.62 && s === 1) tip = (c === 0 || c === 2) ? CLR.bT : CLR.aT;
-                put(i, hx + (s ? 7 : -7), hy, isMei ? 0 : (c * 37 % 60 - 30), Math.min(1, e * 2.2), colOf(c), tip);
+                /* التصالبات وتبادل القطع في الدور الانفراجي */
+                if (isMei && u > 0.62 && s === XO[c]) tip = swapT(c);
+                const op = isMei ? Math.min(1, u * 8) : Math.min(1, e * 2.2);
+                const rot = isMei ? (1 - zy) * (c * 37 % 60 - 30) : (c * 37 % 60 - 30);
+                /* القلادي: خيوط نحيفة طويلة · الحركي: تقصر وتتغلظ */
+                const sc = isMei ? (sub === 0 ? 0.9 : sub === 4 ? 1 + 0.08 * su : 1) : 1;
+                put(i, hx + (s ? gap : -gap), hy, rot, op, colOf(c), tip, sc);
               }
             }
             if (isMei && u > 0.45){ S.xo = Math.min(1, (u - 0.45) * 4); }
@@ -3351,18 +3408,21 @@ function divisionScene(mode){
               S.cent.push({ x: lerp(CX + 60, CX - RX + 52, e), y: lerp(CY - 70, CY, e), op: 1, s: .85 });
               S.cent.push({ x: lerp(CX + 80, CX + RX - 52, e), y: lerp(CY - 70, CY, e), op: 1, s: .85 });
             }
-            S.spindleOp = e * 0.7;
+            S.spindleOp = isMei ? Math.max(0, (u - 0.6) / 0.4) * 0.7 : e * 0.7;
             S.poles = [[CX - RX + 52, CY], [CX + RX - 52, CY]];
-            S.cap = isMei ? 'تزاوج الكروموسومات المتماثلة وحدوث التصالب' : 'تكاثف الكروموسومات وتلاشي الغلاف النووي';
+            S.cap = isMei ? ['خيوط طويلة نحيفة مفردة (القلادي)', 'تزاوج الكروموسومات المتماثلة — الإيثاق (الازدواجي)',
+                             'الرباعي: أربعة كروماتيدات، ويحصل التعابر (التغلظي)', 'ظهور التصالبات وتبادل قطع الكروماتيدات غير الشقيقة (الانفراجي)',
+                             'تقصر الكروموسومات وتتغلظ وتنحل النوية والغشاء النووي (الحركي)'][sub]
+                          : 'تكاثف الكروموسومات وظهور المغزل وتلاشي الغلاف النووي';
           }
           else if (ph === 'meta' || ph === 'meta1'){
             S.cells.push(mk(CX, CY, RX, RY, 0));
-            const ys = isMei ? [CY - 84, CY - 84, CY + 84, CY + 84] : [CY - 105, CY - 35, CY + 35, CY + 105];
+            const ys = isMei ? [CY - 84, CY - 84, CY + 84, CY + 84] : [CY - 120, CY - 44, CY + 28, CY + 88];
             for (let c = 0; c < 4; c++){
               for (let s = 0; s < 2; s++){
                 const i = c * 2 + s;
                 let tip = tipOf(c);
-                if (isMei && s === 1) tip = (c === 0 || c === 2) ? CLR.bT : CLR.aT;
+                if (isMei && s === XO[c]) tip = swapT(c);
                 /* الاختزالي: كل متماثل بجهة من خط الاستواء · الخيطي: الكروماتيدتان جانب بعض */
                 const homSide = isMei ? ((c === 0 || c === 3) ? -1 : 1) : 0;
                 const baseX = isMei ? CX + homSide * 26 : CX;
@@ -3370,17 +3430,18 @@ function divisionScene(mode){
               }
             }
             if (!plant){ S.cent.push({ x: CX - RX + 52, y: CY, op: 1, s: .85 }); S.cent.push({ x: CX + RX - 52, y: CY, op: 1, s: .85 }); }
-            S.spindleOp = 0.85; S.poles = [[CX - RX + 52, CY], [CX + RX - 52, CY]];
-            S.cap = 'اصطفاف على خط الاستواء وارتباط خيوط المغزل';
+            S.spindleOp = 0.85; S.poles = [[CX - RX + 52, CY], [CX + RX - 52, CY]]; S.kin = true;
+            S.cap = isMei ? 'أزواج المتماثلات (مجاميع ثنائية) على خط الاستواء، وكل متماثل يرتبط بقطب'
+                          : 'الكروموسومات على خط الاستواء، وكل كروماتيد يرتبط بخيط مغزل من قطب';
           }
           else if (ph === 'ana' || ph === 'ana1'){
             S.cells.push(mk(CX, CY, RX, RY, 0));
-            const ys = isMei ? [CY - 84, CY - 84, CY + 84, CY + 84] : [CY - 105, CY - 35, CY + 35, CY + 105];
+            const ys = isMei ? [CY - 84, CY - 84, CY + 84, CY + 84] : [CY - 120, CY - 44, CY + 28, CY + 88];
             for (let c = 0; c < 4; c++){
               for (let s = 0; s < 2; s++){
                 const i = c * 2 + s;
                 let tip = tipOf(c);
-                if (isMei && s === 1) tip = (c === 0 || c === 2) ? CLR.bT : CLR.aT;
+                if (isMei && s === XO[c]) tip = swapT(c);
                 let x0, x1, y1;
                 if (isMei){
                   /* ينفصل المتماثلان: توزيع حر — الزوج الأول (0 يسار،1 يمين) والثاني (3 يسار،2 يمين) */
@@ -3397,27 +3458,30 @@ function divisionScene(mode){
               }
             }
             if (!plant){ S.cent.push({ x: CX - RX + 52, y: CY, op: 1, s: .85 }); S.cent.push({ x: CX + RX - 52, y: CY, op: 1, s: .85 }); }
-            S.spindleOp = 0.85 * (1 - e * 0.4); S.poles = [[CX - RX + 52, CY], [CX + RX - 52, CY]];
-            S.cap = isMei ? 'انفصال الكروموسومات المتماثلة نحو القطبين' : 'انفصال الكروماتيدتين نحو القطبين';
+            S.spindleOp = 0.85 * (1 - e * 0.4); S.poles = [[CX - RX + 52, CY], [CX + RX - 52, CY]]; S.kin = true;
+            S.cap = isMei ? 'ينفصل المتماثلان نحو القطبين، وكروماتيدا كل كروموسوم يبقيان متصلين'
+                          : 'تنفصل الكروماتيدات الشقيقة فيصبح كل منها كروموسوماً بنوياً يتجه نحو قطب';
           }
           else if (ph === 'telo' || ph === 'telo1'){
             const w = plant ? 0 : e * 0.92;
             S.cells.push(mk(CX, CY, RX, RY, w, 'x'));
             if (plant) S.plates.push({ x: CX - 3, y: CY - RY * (0.15 + e * 0.85), w: 6, h: RY * 2 * (0.15 + e * 0.85), op: 1 });
             const L = [CX - 150, CY], R = [CX + 150, CY];
-            S.envs.push({ cx: L[0], cy: L[1], r: 46 + e * 34, op: e, nx: L[0] - 18, ny: L[1] + 14, nr: 16 + e * 8 });
-            S.envs.push({ cx: R[0], cy: R[1], r: 46 + e * 34, op: e, nx: R[0] - 18, ny: R[1] + 14, nr: 16 + e * 8 });
+            S.envs.push({ cx: L[0], cy: L[1], r: 46 + e * 34, op: e, nx: L[0] - 22, ny: L[1] + 44, nr: 14 + e * 6 });
+            S.envs.push({ cx: R[0], cy: R[1], r: 46 + e * 34, op: e, nx: R[0] - 22, ny: R[1] + 44, nr: 14 + e * 6 });
             for (let c = 0; c < 4; c++){
               for (let s = 0; s < 2; s++){
                 const i = c * 2 + s;
                 let tip = tipOf(c);
-                if (isMei && s === 1) tip = (c === 0 || c === 2) ? CLR.bT : CLR.aT;
+                if (isMei && s === XO[c]) tip = swapT(c);
                 let side, yy;
-                if (isMei){ side = (c === 0 || c === 3) ? -1 : 1; yy = CY + (c < 2 ? -34 : 34); }
+                if (isMei){ side = (c === 0 || c === 3) ? -1 : 1; yy = CY + (c < 2 ? -36 : 36); }
                 else { side = s ? 1 : -1; yy = CY + (c - 1.5) * 42; }
                 const P = side < 0 ? L : R;
-                put(i, lerp(CX + side * (RX - 86) + (isMei ? (s ? 7 : -7) : 0), P[0] + (isMei ? (s ? 7 : -7) : (c - 1.5) * 15), e),
-                    lerp(yy, P[1] + (isMei ? (c < 2 ? -20 : 20) : (c - 1.5) * 22), e),
+                /* داخل النواة الجديدة: الكروموسومات متجاورة (لا فوق بعض) */
+                const slot = isMei ? (c < 2 ? -20 : 20) + (s ? 6 : -6) : (c - 1.5) * 15;
+                put(i, lerp(CX + side * (RX - 86) + (isMei ? (s ? 7 : -7) : 0), P[0] + slot, e),
+                    lerp(yy, P[1], e),
                     0, 1 - e * 0.35, colOf(c), tip, 1 - e * 0.2);
               }
             }
@@ -3429,22 +3493,16 @@ function divisionScene(mode){
             const CL = [CX - 190, CY], CR = [CX + 190, CY], CR2 = 150;
             const halves = [{ c: CL, left: true }, { c: CR, left: false }];
             const chOf = left => left ? [0, 3] : [1, 2];   /* الكروموسومات بكل خلية */
-            if (ph === 'telo2'){
-              halves.forEach(h => {
-                S.cells.push(mk(h.c[0], h.c[1] - 96 - e * 18, CR2 * 0.78, CR2 * 0.62, 0));
-                S.cells.push(mk(h.c[0], h.c[1] + 96 + e * 18, CR2 * 0.78, CR2 * 0.62, 0));
-              });
-            } else {
-              halves.forEach(h => S.cells.push(mk(h.c[0], h.c[1], CR2, CR2 * 1.16,
-                ph === 'ana2' ? 0 : 0, 'y')));
-            }
+            /* في الطور النهائي الثاني تتخصّر كل خلية تدريجياً إلى خليتين (أربع خلايا بالنتيجة) */
+            halves.forEach(h => S.cells.push(mk(h.c[0], h.c[1], CR2, CR2 * 1.16, ph === 'telo2' ? e * 0.92 : 0, 'y')));
+            const LOBE = 95;
             halves.forEach((h, hi) => {
               const [c1, c2] = chOf(h.left), poleT = [h.c[0], h.c[1] - CR2 * 0.78], poleB = [h.c[0], h.c[1] + CR2 * 0.78];
               S.poles2 = S.poles2 || []; S.poles2.push(poleT, poleB);
               [c1, c2].forEach((c, ci) => {
                 for (let s = 0; s < 2; s++){
                   const i = c * 2 + s;
-                  let tip = tipOf(c); if (s === 1) tip = (c === 0 || c === 2) ? CLR.bT : CLR.aT;
+                  let tip = tipOf(c); if (s === XO[c]) tip = swapT(c);
                   const baseY = h.c[1] + (ci ? 30 : -30);
                   if (ph === 'pro2'){
                     put(i, h.c[0] + (ci ? 46 : -46) + (s ? 7 : -7), baseY, 0, 1, colOf(c), tip);
@@ -3459,24 +3517,29 @@ function divisionScene(mode){
                   } else { /* telo2 */
                     const dir = s ? 1 : -1;
                     put(i, lerp(h.c[0] + (ci ? 44 : -44), h.c[0] + (ci ? 22 : -22), e),
-                        lerp(h.c[1] + dir * (CR2 * 0.62), h.c[1] + dir * (96 + e * 18), e), 90, 1 - e * 0.3,
+                        lerp(h.c[1] + dir * (CR2 * 0.62), h.c[1] + dir * LOBE, e), 90, 1 - e * 0.3,
                         colOf(c), tip, 1 - e * 0.22);
                   }
                 }
               });
               if (ph === 'telo2'){
-                S.envs.push({ cx: h.c[0], cy: h.c[1] - 96 - e * 18, r: 34 + e * 30, op: e, nx: h.c[0] - 14, ny: h.c[1] - 96 - e * 18 + 14, nr: 11 + e * 7 });
-                S.envs.push({ cx: h.c[0], cy: h.c[1] + 96 + e * 18, r: 34 + e * 30, op: e, nx: h.c[0] - 14, ny: h.c[1] + 96 + e * 18 + 14, nr: 11 + e * 7 });
-              } else if (ph === 'pro2'){
+                S.envs.push({ cx: h.c[0], cy: h.c[1] - LOBE, r: 34 + e * 26, op: e, nx: h.c[0] - 14, ny: h.c[1] - LOBE + 14, nr: 11 + e * 7 });
+                S.envs.push({ cx: h.c[0], cy: h.c[1] + LOBE, r: 34 + e * 26, op: e, nx: h.c[0] - 14, ny: h.c[1] + LOBE + 14, nr: 11 + e * 7 });
+              } else {
+                /* الجسيمان المركزيان عند قطبي كل خلية (خلية حيوانية) */
+                const op = ph === 'pro2' ? e : 1;
+                S.cent.push({ x: poleT[0], y: poleT[1], op, s: .7 }, { x: poleB[0], y: poleB[1], op, s: .7 });
+              }
+              if (ph === 'pro2'){
                 S.envs.push({ cx: h.c[0], cy: h.c[1], r: 84, op: 1 - e, nx: h.c[0] - 22, ny: h.c[1] + 16, nr: 24 });
               }
             });
-            if (ph === 'telo2'){
-              halves.forEach(h => S.plates.push({ x: h.c[0] - CR2 * 0.8, y: h.c[1] - 3, w: CR2 * 1.6, h: 6, op: 0 }));
-            }
-            S.spindleOp = ph === 'pro2' ? e * 0.7 : (ph === 'telo2' ? 0 : 0.8);
-            S.cap = ph === 'telo2' ? 'أربع خلايا ناتجة، كل واحدة بنصف عدد الكروموسومات (n)'
-                  : (ph === 'pro2' ? 'يبدأ الانقسام الثاني بلا تضاعف جديد للـ DNA' : 'انفصال الكروماتيدات في كل خلية');
+            S.spindleOp = ph === 'pro2' ? e * 0.7 : (ph === 'telo2' ? 0.4 * (1 - e) : 0.8);
+            S.kin = ph === 'meta2' || ph === 'ana2';
+            S.cap = ph === 'telo2' ? 'تتخصّر كل خلية فتنتج أربع خلايا، كل واحدة بنصف عدد الكروموسومات (n)'
+                  : ph === 'pro2' ? 'يبدأ الانقسام الثاني بلا تضاعف جديد للـ DNA'
+                  : ph === 'meta2' ? 'الكروموسومات على خط استواء كل خلية، وكل كروموسوم ما زال بكروماتيدين'
+                  : 'تنفصل الكروماتيدات الشقيقة في كل خلية نحو القطبين';
           }
           S.phaseIdx = pi; S.u = u;
           return S;
@@ -3526,17 +3589,8 @@ function divisionScene(mode){
           });
           const sp = api.el('#spindle');
           if (sp){
-            const poles = S.poles2 || S.poles;
             let d = '';
-            if (poles && S.spindleOp > 0.02){
-              S.chr.forEach(c => {
-                if (!c || c.op < 0.2) return;
-                poles.forEach(p => {
-                  if (S.poles2 && Math.abs(p[0] - c.x) > 170) return;
-                  d += `M${n2(p[0])},${n2(p[1])} L${n2(c.x)},${n2(c.y)}`;
-                });
-              });
-            }
+            divSpindle(S).forEach(([x1, y1, x2, y2]) => { d += `M${n2(x1)},${n2(y1)} L${n2(x2)},${n2(y2)}`; });
             sp.setAttribute('d', d || 'M0,0');
             sp.setAttribute('opacity', String(Math.max(0, S.spindleOp || 0)));
           }
@@ -3558,12 +3612,18 @@ function divisionScene(mode){
             ph = Object.assign({}, ph, { n: ph.n + ' · ' + sub[Math.min(4, Math.floor(S.u * 5))] });
           }
           api.setPhase(ph, this.state.T);
+          const tt = api.el('#phTitle');
+          if (tt && tt.textContent !== ph.n){
+            tt.textContent = ph.n;
+            const st = api.el('#phStep'); if (st) st.textContent = 'الطور ' + (S.phaseIdx + 1) + ' من ' + PH.length + ' · ' + ph.chrom;
+            const g = tt.parentNode; g.classList.remove('pop'); void g.getBBox(); g.classList.add('pop');
+          }
         },
 
         tick(dt, t, api){
           const plant = !isMei && api.tool('plant');
           if (api.playing && !api.dragSlider){
-            this.state.T += dt * 0.055;
+            this.state.T += dt / (6 * WS);
             if (this.state.T >= 1) this.state.T = 0;
             api.setSlider(this.state.T);
           } else if (api.sliderVal !== undefined && api.dragSlider){
@@ -3687,6 +3747,7 @@ function divCompare(){
         tool: k => k === 'showX' ? true : api.tool(k)
       });
       A.init(this.state.a); B.init(this.state.b);
+      api.all('#cmpMit .phTitle, #cmpMei .phTitle').forEach(e => e.remove());
     },
     tick(dt, t){
       A.tick(dt, t, this.state.a);
@@ -5732,7 +5793,7 @@ function buildCaps(){
   let g = svg.querySelector('#cap3dG');
   if (!g){ g = document.createElementNS(SVGNS, 'g'); g.id = 'cap3dG'; svg.insertBefore(g, svg.firstChild); }
   g.innerHTML = '';
-  caps.forEach(c => { c.el = document.createElementNS(SVGNS, 'text'); c.el.setAttribute('class', 'cap3d'); c.el.setAttribute('text-anchor', 'middle'); c.last = null; g.appendChild(c.el); });
+  caps.forEach(c => { c.el = document.createElementNS(SVGNS, 'text'); c.el.setAttribute('class', c.at === 'top' ? 'cap3d capTop' : 'cap3d'); c.el.setAttribute('text-anchor', 'middle'); c.last = null; g.appendChild(c.el); });
 }
 function placeCaps(){
   if (!caps.length) return;
@@ -5741,9 +5802,13 @@ function placeCaps(){
   let botY = H - 80;
   const tl = document.getElementById('sceneTools');
   if (tl && tl.offsetHeight){ const r = tl.getBoundingClientRect(), cr = canvas.getBoundingClientRect(); botY = r.top - cr.top - 10; }
+  /* عنوان مثبّت أعلى الرسم ('top') تحت سطر اسم المشهد */
+  let topY = 70;
+  const hd = document.getElementById('sceneHead');
+  if (hd && hd.offsetHeight){ const r = hd.getBoundingClientRect(), cr = canvas.getBoundingClientRect(); topY = Math.max(topY, r.bottom - cr.top + (cmp ? 24 : 34)); }
   caps.forEach(c => {
     const lines = c.fn() || [], key = lines.join('|');
-    const s = c.at === 'bottom' ? [W / 2, botY - Math.max(0, lines.length - 1) * (cmp ? 13 : 17)] : project(c.at);
+    const s = c.at === 'bottom' ? [W / 2, botY - Math.max(0, lines.length - 1) * (cmp ? 13 : 17)] : c.at === 'top' ? [W / 2, topY] : project(c.at);
     if (key !== c.last){
       c.el.innerHTML = lines.map((t, i) => `<tspan class="${i ? 'c2' : 'c1'}" dy="${i ? (cmp ? 13 : 17) : 0}">${t}</tspan>`).join('');
       c.last = key;
@@ -6767,7 +6832,7 @@ function divModel(B, O){
 
   /* ── خيوط المغزل: 8 كروماتيدات × 4 أقطاب كحد أعلى (عدد ثابت للرؤوس) ── */
   const spMesh = segs => merge(segs.map(([a, b]) => tube({ pts: [a, b], r: 0.009 * S0, sides: 4, caps: false })));
-  const dummy = []; for (let i = 0; i < 32; i++) dummy.push([[0, 0, 0], [0, 0.001, 0]]);
+  const SPN = 48, dummy = []; for (let i = 0; i < SPN; i++) dummy.push([[0, 0, 0], [0, 0.001, 0]]);
   const spindle = B.add(spMesh(dummy), { part: null, color: '#dfe7ee', alpha: 0.5, rim: 0.3, rimColor: '#ffffff', pop: false });
 
   /* ── الصفيحة الخلوية (النباتية) ── */
@@ -6847,19 +6912,13 @@ function divModel(B, O){
     V.cen = !plant && !!(S.cent[0] && S.cent[0].op > 0.3);
     if (V.cen) cp(L.cen, P3(S.cent[0].x, S.cent[0].y));
     /* المغزل */
-    const poles = S.poles2 || S.poles, segs = [];
-    if (poles && (S.spindleOp || 0) > 0.02){
-      S.chr.forEach((c, i) => {
-        if (!c || c.op < 0.2) return;
-        poles.forEach(p => {
-          if (S.poles2 && Math.abs(p[0] - c.x) > 170) return;
-          if (segs.length < 32) segs.push([P3(p[0], p[1]), P3(c.x, c.y, chZ[i >> 1])]);
-        });
-      });
-    }
+    const segs = [];
+    divSpindle(S).forEach(([x1, y1, x2, y2, i]) => {
+      if (segs.length < SPN) segs.push([P3(x1, y1), P3(x2, y2, i >= 0 ? chZ[i >> 1] : 0)]);
+    });
     spindle.hide = !segs.length;
     if (segs.length){
-      while (segs.length < 32) segs.push([segs[0][0], add(segs[0][0], [0, 0.001, 0])]);
+      while (segs.length < SPN) segs.push([segs[0][0], add(segs[0][0], [0, 0.001, 0])]);
       B.update(spindle, spMesh(segs)); spindle.alpha = Math.min(0.9, S.spindleOp);
     }
     /* الصفيحة الخلوية */
@@ -6907,10 +6966,12 @@ function divModel(B, O){
 
 function mitosisModel(B){
   const m = divModel(B, { mode: 'mit' });
+  B.caption('top', () => [m.phase()[0]]);
   return { dist: 8.4, yaw: 0.32, pitch: 0.22, live2d: true, anim(){ m.update(); } };
 }
 function meiosisModel(B){
   const m = divModel(B, { mode: 'mei' });
+  B.caption('top', () => [m.phase()[0]]);
   return { dist: 8.8, yaw: 0.32, pitch: 0.22, live2d: true, anim(){ m.update(); } };
 }
 function divBothModel(B){
@@ -7374,7 +7435,7 @@ const divItems = mode => {
   const ph = divisionScene(mode).build().phases;
   return ph.map((x, i) => ({ k: mode + ':' + i, t: x.n, desc: x.d, chrom: x.chrom,
     scene: () => divisionScene(mode).build(),
-    prep(sc, api){ sc.init(api); const S = sc.compute((i + 0.8) / ph.length, false); sc.apply(S, api, false); },
+    prep(sc, api){ sc.init(api); api.all('.phTitle').forEach(e => e.remove()); const S = sc.compute(sc.phaseT(i, 0.85), false); sc.apply(S, api, false); },
     steps: DIV_STEPS, autoLabel: true }));
 };
 const DR_GROUPS = [

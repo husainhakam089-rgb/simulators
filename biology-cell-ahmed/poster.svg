@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1100" width="900" height="1100">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="38%" r="75%"><stop offset="0" stop-color="#1d3354"/><stop offset=".6" stop-color="#122239"/><stop offset="1" stop-color="#0a1424"/></radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff0c4"/><stop offset=".45" stop-color="#f1cf7e"/><stop offset="1" stop-color="#b8862f"/></linearGradient>
+    <linearGradient id="goldH" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#b8862f" stop-opacity="0"/><stop offset=".5" stop-color="#f1cf7e"/><stop offset="1" stop-color="#b8862f" stop-opacity="0"/></linearGradient>
+    <radialGradient id="cyto" cx="42%" cy="38%" r="70%"><stop offset="0" stop-color="#4f9a78"/><stop offset=".7" stop-color="#2d6b55"/><stop offset="1" stop-color="#1e4c3d"/></radialGradient>
+    <radialGradient id="nuc" cx="38%" cy="34%" r="72%"><stop offset="0" stop-color="#a99bf2"/><stop offset=".65" stop-color="#6a58c9"/><stop offset="1" stop-color="#43359a"/></radialGradient>
+    <radialGradient id="nl" cx="36%" cy="34%" r="70%"><stop offset="0" stop-color="#6f5bd0"/><stop offset="1" stop-color="#2c2170"/></radialGradient>
+    <radialGradient id="mito" cx="40%" cy="35%" r="75%"><stop offset="0" stop-color="#f4a36a"/><stop offset="1" stop-color="#c0602c"/></radialGradient>
+    <linearGradient id="btn" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a4f86"/><stop offset="1" stop-color="#173257"/></linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="14"/></filter>
+  </defs>
+  <rect width="900" height="1100" fill="url(#bg)"/>
+  <!-- إطار ذهبي -->
+  <rect x="22" y="22" width="856" height="1056" rx="34" fill="none" stroke="url(#gold)" stroke-width="3"/>
+  <rect x="36" y="36" width="828" height="1028" rx="26" fill="none" stroke="#f1cf7e" stroke-opacity=".25" stroke-width="1.5"/>
+  <g stroke="#f1cf7e" stroke-opacity=".12" stroke-width="1.2" fill="none">
+    <path d="M60 300 H170 L200 330 H250"/><path d="M840 300 H730 L700 330 H650"/>
+    <path d="M60 760 H150 L180 730 H230"/><path d="M840 760 H750 L720 730 H670"/>
+  </g>
+  <g fill="#f1cf7e" fill-opacity=".25"><circle cx="250" cy="330" r="4"/><circle cx="650" cy="330" r="4"/><circle cx="230" cy="730" r="4"/><circle cx="670" cy="730" r="4"/></g>
+
+  <!-- العنوان -->
+  <text x="450" y="98" text-anchor="middle" font-family="Segoe UI, Tahoma, Noto Naskh Arabic, Noto Sans Arabic, sans-serif" font-size="26" font-weight="600" fill="#e9dcc0" direction="rtl">محاكي تفاعلي · أحياء السادس العلمي</text>
+  <rect x="300" y="116" width="300" height="2" fill="url(#goldH)"/>
+  <text x="450" y="214" text-anchor="middle" font-family="Segoe UI, Tahoma, Noto Naskh Arabic, Noto Sans Arabic, sans-serif" font-size="104" font-weight="800" fill="url(#gold)" direction="rtl" stroke="#3a2a08" stroke-width="1.5" paint-order="stroke">الخلية</text>
+  <text x="450" y="262" text-anchor="middle" font-family="Segoe UI, Tahoma, Noto Naskh Arabic, Noto Sans Arabic, sans-serif" font-size="30" font-weight="700" fill="#f1cf7e" direction="rtl">الفصل الأول</text>
+
+  <!-- خلية حيوانية -->
+  <g transform="translate(450 500)">
+    <ellipse rx="250" ry="180" fill="#4f9a78" opacity=".35" filter="url(#glow)"/>
+    <path d="M-236,-12 C-232,-112 -128,-176 6,-172 C142,-168 240,-104 238,4 C236,108 140,174 2,172 C-136,170 -240,96 -236,-12 Z" fill="url(#cyto)" stroke="#f1cf7e" stroke-width="5"/>
+    <!-- الشبكة الإندوبلازمية -->
+    <g fill="none" stroke="#7fd3b0" stroke-width="5" stroke-linecap="round" opacity=".75">
+      <path d="M-30,-118 q30,-18 60,0 t60,0"/><path d="M-20,-96 q30,-18 60,0 t60,0"/><path d="M-10,-74 q26,-16 52,0"/>
+    </g>
+    <!-- جهاز كولجي -->
+    <g fill="none" stroke="#f08fb0" stroke-width="7" stroke-linecap="round">
+      <path d="M96,40 q40,-30 80,0"/><path d="M100,60 q36,-26 72,0"/><path d="M106,80 q30,-22 60,0"/>
+    </g>
+    <circle cx="186" cy="34" r="7" fill="#f08fb0"/><circle cx="182" cy="92" r="6" fill="#f08fb0"/>
+    <!-- مايتوكوندريا -->
+    <g transform="translate(-150 70) rotate(-25)"><ellipse rx="46" ry="22" fill="url(#mito)" stroke="#ffd0a8" stroke-width="2"/><path d="M-30,0 q8,-14 14,0 t14,0 t14,0 t14,0" fill="none" stroke="#7a3412" stroke-width="3"/></g>
+    <g transform="translate(60 128) rotate(12)"><ellipse rx="40" ry="19" fill="url(#mito)" stroke="#ffd0a8" stroke-width="2"/><path d="M-26,0 q7,-12 13,0 t13,0 t13,0 t13,0" fill="none" stroke="#7a3412" stroke-width="3"/></g>
+    <g transform="translate(150 -60) rotate(30)"><ellipse rx="36" ry="17" fill="url(#mito)" stroke="#ffd0a8" stroke-width="2"/><path d="M-23,0 q6,-11 11,0 t12,0 t12,0" fill="none" stroke="#7a3412" stroke-width="3"/></g>
+    <!-- النواة -->
+    <circle cx="-48" cy="-6" r="86" fill="url(#nuc)" stroke="#d6ccff" stroke-width="4"/>
+    <g fill="none" stroke="#3b2d70" stroke-width="2.4" opacity=".8" stroke-linecap="round">
+      <path d="M-100,-30 q20,-24 44,-6 t40,10"/><path d="M-96,26 q24,12 46,-4 t46,8"/><path d="M-70,-58 q18,14 6,34"/>
+    </g>
+    <circle cx="-30" cy="6" r="28" fill="url(#nl)"/>
+    <!-- جسيمات مركزية ورايبوسومات وفجوة -->
+    <g transform="translate(40 -40)" fill="#dfe7ee"><rect x="-6" y="-16" width="12" height="32" rx="4"/><rect x="-16" y="-6" width="32" height="12" rx="4" transform="translate(16 10)"/></g>
+    <circle cx="-150" cy="-70" r="20" fill="#bfe3f2" opacity=".6" stroke="#e8f7ff" stroke-width="2"/>
+    <g fill="#ffe6a0"><circle cx="-180" cy="-10" r="4"/><circle cx="-196" cy="30" r="4"/><circle cx="-110" cy="122" r="4"/><circle cx="10" cy="-140" r="4"/><circle cx="196" cy="-10" r="4"/><circle cx="-60" cy="140" r="4"/><circle cx="120" cy="-120" r="4"/></g>
+  </g>
+
+  <!-- اسم المدرّس -->
+  <rect x="160" y="722" width="580" height="2" fill="url(#goldH)"/>
+  <text x="450" y="790" text-anchor="middle" font-family="Segoe UI, Tahoma, Noto Naskh Arabic, Noto Sans Arabic, sans-serif" font-size="30" font-weight="600" fill="#e9dcc0" direction="rtl">إعداد</text>
+  <text x="450" y="862" text-anchor="middle" font-family="Segoe UI, Tahoma, Noto Naskh Arabic, Noto Sans Arabic, sans-serif" font-size="64" font-weight="800" fill="url(#gold)" direction="rtl" stroke="#3a2a08" stroke-width="1.2" paint-order="stroke">الدكتور أحمد الحسن</text>
+  <text x="450" y="910" text-anchor="middle" font-family="Segoe UI, Tahoma, Noto Naskh Arabic, Noto Sans Arabic, sans-serif" font-size="27" font-weight="600" fill="#e9dcc0" direction="rtl">دكتوراه · كلية العلوم · جامعة بغداد</text>
+  <text x="450" y="950" text-anchor="middle" font-family="Segoe UI, Tahoma, Noto Naskh Arabic, Noto Sans Arabic, sans-serif" font-size="26" font-weight="600" fill="#cdbf9f" direction="rtl">ثانوية الإمام الحسن المجتبى (ع) للمتفوقين</text>
+
+  <!-- زرّ البداية -->
+  <rect x="250" y="985" width="400" height="74" rx="37" fill="url(#btn)" stroke="url(#gold)" stroke-width="3.5"/>
+  <text x="450" y="1034" text-anchor="middle" font-family="Segoe UI, Tahoma, Noto Naskh Arabic, Noto Sans Arabic, sans-serif" font-size="36" font-weight="800" fill="url(#gold)" direction="rtl">ابدأ المحاكي</text>
+</svg>
