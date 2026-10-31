@@ -25,7 +25,7 @@ function merSecGrowth(){
 }
 /* أنصاف أقطار الحلقات بدلالة التثخن (يشترك بها المسطّح والمجسّم) */
 function merSecRings(g, pe){
-  const pith = 34, rx = 66 + 64 * g, rc = rx + 5, rp = rc + 5 + 10 + 16 * g, rk = rp + 28 + 4 * g, re = rk + 4 + 18 * pe;
+  const pith = 34, rx = 66 + 64 * g, rc = rx + 5, rp = rc + 5 + 17 + 12 * g, rk = rp + 28 + 4 * g, re = rk + 4 + 18 * pe;
   return { pith, rx, rc, rp, rk, re, R: re + 3 };
 }
 
@@ -201,9 +201,9 @@ function merSec(still){
     <g id="secArr"></g></g>
     <text class="cap sm" id="secCap" x="${CX}" y="664" text-anchor="middle">${still ? 'مقطع عرضي في ساق بعد التثخن' : ''}</text>`;
   const ctl = stageCtl(MER_SEC_STAGES, { label: 'المرحلة', dur: 4 * 6 });
-  const ANG = { secXyl: 150, vascCamb: -62, secPhl: -30, corkCamb: 4, periEpi: 30 };
+  const ANG = { secXyl: 150, vascCamb: -75, secPhl: -22, corkCamb: 8, periEpi: 36 };
   const mid = (id, r) => { const a = ANG[id] * Math.PI / 180;
-    const rad = id === 'secXyl' ? (r.pith + r.rx) / 2 : id === 'vascCamb' ? r.rc : id === 'secPhl' ? (r.rc + 5 + r.rp) / 2 : id === 'corkCamb' ? r.rk : (r.rk + 4 + r.re) / 2;
+    const rad = id === 'secXyl' ? (r.pith + r.rx) / 2 : id === 'vascCamb' ? r.rc : id === 'secPhl' ? r.rc + 4.5 + (r.rp - r.rc - 4.5) * 0.62 : id === 'corkCamb' ? r.rk : (r.rk + 4 + r.re) / 2;
     return sc([CX + Math.cos(a) * rad, CY + Math.sin(a) * rad]); };
   const R1 = merSecRings(1, 1);
   const arrow = (x, y, ang) => `<g transform="translate(${n2(x)},${n2(y)}) rotate(${n2(ang)})"><path d="M0,7 L0,-7 M-4,-2 L0,-7 L4,-2" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></g>`;

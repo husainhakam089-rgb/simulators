@@ -128,14 +128,15 @@ function colModel(B){
   const walls = [], prot = [], corners = [], nucs = [];
   cells.forEach(([x, z], k) => {
     walls.push(place(hexPrism(r, h), { at: [x, 0, z] }));
-    prot.push(place(hexPrism(r * 0.86, h - 0.08), { at: [x, 0, z] }));
-    for (let j = 0; j < 6; j++){ const a = j / 6 * 6.283; corners.push(place(capsule({ r: 0.07, len: h - 0.14, rows: 3, cols: 8 }), { at: [x + Math.cos(a) * r * 0.97, 0, z + Math.sin(a) * r * 0.97] })); }
-    nucs.push(place(ellipsoid({ r: [0.13, 0.2, 0.13], rows: 8, cols: 12 }), { at: [x, (k % 3 - 1) * 0.6, z] }));
+    prot.push(place(capsule({ r: r * 0.86, len: h - r * 1.8, rows: 6, cols: 20 }), { at: [x, 0, z] }));
+    for (let j = 0; j < 6; j++){ const a = j / 6 * 6.283; corners.push(place(capsule({ r: 0.075 + (j * 7 + k) % 3 * 0.02, len: h - 0.14, rows: 3, cols: 8 }), { at: [x + Math.cos(a) * r * 0.97, 0, z + Math.sin(a) * r * 0.97] })); }
+    /* نواة صغيرة على جانب الخلية (لا فجوة عصارية كبيرة) */
+    nucs.push(place(ellipsoid({ r: [0.1, 0.16, 0.06], rows: 8, cols: 12 }), { at: [x + r * 0.5, (k % 3 - 1) * 0.6, z + r * 0.62] }));
   });
-  B.add(merge(prot), { part: 'colProto', color: '#7fae78', alpha: 0.4, rim: 0.6, rimColor: '#d6f5c4', shell: { size: 1.3 } });
-  B.add(merge(walls), { part: 'tColl', color: '#f2d9e6', alpha: 0.1, rim: 1.0, rimColor: '#ffe6f2', shell: { size: 1.6, inner: 'colProto' } });
-  const corO = B.add(merge(corners), { part: 'colCorner', color: '#f2d9e6', rim: 0.8, rimColor: '#ffffff' });
-  B.add(merge(nucs), { part: 'colProto', color: '#7565c2', rim: 0.6, rimColor: '#d8d0ff' });
+  B.add(merge(prot), { part: 'colProto', color: '#efe0b8', rim: 0.45, rimColor: '#fff6e0' });
+  B.add(merge(walls), { part: 'tColl', color: '#5a3a28', alpha: 0.1, rim: 0.6, rimColor: '#c8a070', shell: { size: 1.6 } });
+  const corO = B.add(merge(corners), { part: 'colCorner', color: '#3a2216', rim: 0.5, rimColor: '#a07850' });
+  B.add(merge(nucs), { part: 'colProto', color: '#b8323a', rim: 0.5, rimColor: '#ffc0c0' });
   B.label('colCorner', [r * 0.97 + cells[1][0], h * 0.3, cells[1][1]], [1, 0, 0.4]);
   B.label('colProto', [cells[0][0], 0.6, cells[0][1] + r * 0.9], [0, 0, 1]);
   B.label('tColl', [cells[4][0] - r, h * 0.38, cells[4][1]], [-1, 0, 0.4]);
@@ -145,7 +146,7 @@ function colModel(B){
     dist: 8.2, yaw: 0.5, pitch: 0.28, live2d: true,
     /* انحناء مرن: قصّ أفقي يزداد مع الارتفاع (مثل ساق عشبية في الهواء) */
     xf: () => [1, 0, 0, 0, sh, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
-    anim(t){ sh = Math.sin(t * 1.6) * (focusOwner === 'tColl' ? 0.32 : 0.2); corO.rim = 0.6 + 0.6 * (0.5 + 0.5 * Math.sin(t * 2.2)); }
+    anim(t){ sh = Math.sin(t * 1.6) * (focusOwner === 'tColl' ? 0.32 : 0.2); corO.rim = 0.4 + 0.3 * (0.5 + 0.5 * Math.sin(t * 2.2)); }
   };
 }
 

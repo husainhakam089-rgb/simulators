@@ -147,48 +147,48 @@ function simPar(){
   };
 }
 
-/* ───────── 3) النسيج الكولنكيمي ───────── */
+/* ───────── 3) النسيج الكولنكيمي (صورة الملزمة ص11): خلايا حية مدوّرة متطاولة،
+   وجدرانها مغلظة بشكل غير منتظم فتظهر كتل داكنة حيث تلتقي الخلايا ───────── */
 function simCol(){
-  /* مقطع عرضي: بشرة ثم خلايا مضلعة متغلظة الزوايا */
-  const X0 = 150, Y0 = 150, CW = 82, CH = 70;
-  const epi = [], prot = [], corn = [], nuc = [];
-  for (let i = 0; i < 5; i++) epi.push(`<rect x="${X0 + i * CW + 2}" y="${Y0 - 40}" width="${CW - 4}" height="36" rx="8" fill="#a8d880" stroke="#efffd8" stroke-width="1.4"/>`);
-  epi.push(`<rect x="${X0}" y="${Y0 - 46}" width="${CW * 5}" height="8" rx="4" fill="#e9f7c8" opacity=".85"/>`);
-  for (let r = 0; r < 4; r++) for (let i = 0; i < 5; i++){
-    const off = r % 2 ? CW / 2 : 0, x = X0 + i * CW + off, y = Y0 + r * CH;
-    if (x + CW > X0 + CW * 5 + 2) continue;
-    const pts = [[x + CW * 0.25, y], [x + CW * 0.75, y], [x + CW, y + CH / 2], [x + CW * 0.75, y + CH], [x + CW * 0.25, y + CH], [x, y + CH / 2]];
-    prot.push(`<path d="M${pts.map(p => n2(p[0]) + ',' + n2(p[1])).join(' L')}Z" fill="${SIM_PAL.col}" stroke="${SIM_PAL.colC}" stroke-width="2"/>`);
-    pts.forEach(p => corn.push(`<circle cx="${n2(p[0])}" cy="${n2(p[1])}" r="9" fill="${SIM_PAL.colC}" stroke="#fff" stroke-width=".8"/>`));
-    nuc.push(`<circle cx="${n2(x + CW / 2)}" cy="${n2(y + CH / 2)}" r="9" fill="url(#gNucl)"/>`);
+  const X0 = 190, Y0 = 110, W = 430, H = 400, rr = rng(29), cells = [], nuc = [];
+  /* شبكة متعرجة من خلايا بيضوية متقاربة؛ الخلفية الداكنة = الجدار المغلظ (يظهر سميكاً عند الزوايا) */
+  const CW = 78, CH = 60;
+  for (let j = -1; j * CH < H + CH; j++) for (let i = -1; i * CW < W + CW; i++){
+    const x = X0 + i * CW + (j % 2 ? CW / 2 : 0) + (rr() - 0.5) * 12, y = Y0 + j * CH + (rr() - 0.5) * 10;
+    const rx = CW / 2 - 1 + (rr() - 0.5) * 4, ry = CH / 2 + 1 + (rr() - 0.5) * 4, a = (rr() - 0.5) * 10;
+    cells.push(`<ellipse cx="${n2(x)}" cy="${n2(y)}" rx="${n2(rx)}" ry="${n2(ry)}" transform="rotate(${n2(a)} ${n2(x)} ${n2(y)})" fill="url(#gColCell)" stroke="#fff6e0" stroke-width="1"/>`);
+    if (rr() < 0.55){ const q = rr() * 6.28; nuc.push(`<ellipse cx="${n2(x + Math.cos(q) * rx * 0.62)}" cy="${n2(y + Math.sin(q) * ry * 0.6)}" rx="7" ry="4" transform="rotate(${n2(q * 57)} ${n2(x + Math.cos(q) * rx * 0.62)} ${n2(y + Math.sin(q) * ry * 0.6)})" fill="#b8323a" opacity=".85"/>`); }
   }
-  /* مقطع طولي: خلايا مستطيلة طويلة، يتغلظ جدارها في الزوايا (تظهر كخطوط سميكة) */
-  const LX = 640, LY = 110, LW = 46, LH = 120, longC = [];
-  for (let i = 0; i < 4; i++) for (let j = 0; j < 3; j++){
-    const x = LX + i * LW, y = LY + j * LH + (i % 2 ? LH / 2 : 0) - (i % 2 ? LH / 2 : 0);
-    longC.push(`<rect x="${x + 2}" y="${y + 2}" width="${LW - 4}" height="${LH - 4}" rx="10" fill="${SIM_PAL.col}" stroke="${SIM_PAL.colC}" stroke-width="1.4"/>
-      <line x1="${x + 5}" y1="${y + 8}" x2="${x + 5}" y2="${y + LH - 8}" stroke="${SIM_PAL.colC}" stroke-width="6" stroke-linecap="round"/>
-      <line x1="${x + LW - 5}" y1="${y + 8}" x2="${x + LW - 5}" y2="${y + LH - 8}" stroke="${SIM_PAL.colC}" stroke-width="6" stroke-linecap="round"/>
-      <circle cx="${x + LW / 2}" cy="${y + LH / 2}" r="7" fill="url(#gNucl)"/>`);
+  /* مقطع طولي: الخلايا متطاولة، والتغلظ عند زواياها (أشرطة داكنة على الحواف) */
+  const LX = 690, LY = 130, LW = 44, LH = 116, longC = [];
+  for (let i = 0; i < 4; i++) for (let j = -1; j < 3; j++){
+    const x = LX + i * LW, y = LY + j * LH + (i % 2 ? LH / 2 : 0); if (y + LH < LY - 4 || y > LY + LH * 3) continue;
+    longC.push(`<rect x="${x + 4}" y="${n2(y + 4)}" width="${LW - 8}" height="${LH - 8}" rx="14" fill="url(#gColCell)" stroke="#fff6e0" stroke-width=".8"/>`);
   }
   const body = `
-    ${part('epidermis', epi.join(''))}
-    ${part('colProto', prot.join('') + nuc.join(''))}
-    ${part('colCorner', corn.join(''))}
-    <g id="colBend">${part('tColl', longC.join(''))}</g>
-    <text class="cap sm" x="${X0 + CW * 2.5}" y="${Y0 + CH * 4 + 44}" text-anchor="middle">مقطع عرضي</text>
-    <text class="cap sm" x="${LX + LW * 2}" y="${LY + LH * 3 + 44}" text-anchor="middle">مقطع طولي — خلايا متطاولة (إسناد مرن)</text>`;
+    <defs><clipPath id="colClip"><rect x="${X0}" y="${Y0}" width="${W}" height="${H}" rx="22"/></clipPath>
+      <clipPath id="colClipL"><rect x="${LX}" y="${LY}" width="${LW * 4}" height="${LH * 3}" rx="16"/></clipPath>
+      <radialGradient id="gColCell" cx=".45" cy=".4" r=".7"><stop offset="0" stop-color="#fbf3dc"/><stop offset=".75" stop-color="#ecdcb0"/><stop offset="1" stop-color="#d9c48c"/></radialGradient></defs>
+    <g clip-path="url(#colClip)">
+      ${part('colCorner', `<rect x="${X0}" y="${Y0}" width="${W}" height="${H}" fill="#2e1a12"/>`)}
+      ${part('colProto', cells.join('') + nuc.join(''))}
+    </g>
+    <rect x="${X0}" y="${Y0}" width="${W}" height="${H}" rx="22" fill="none" stroke="#f0e2c0" stroke-width="2"/>
+    <g id="colBend">${part('tColl', `<g clip-path="url(#colClipL)"><rect x="${LX}" y="${LY}" width="${LW * 4}" height="${LH * 3}" fill="#2e1a12"/>${longC.join('')}</g>
+      <rect x="${LX}" y="${LY}" width="${LW * 4}" height="${LH * 3}" rx="16" fill="none" stroke="#f0e2c0" stroke-width="2"/>`)}</g>
+    <text class="cap sm" x="${X0 + W / 2}" y="${Y0 + H + 34}" text-anchor="middle">مقطع عرضي (كما في صورة الملزمة ص11)</text>
+    <text class="cap sm" x="${LX + LW * 2}" y="${LY + LH * 3 + 34}" text-anchor="middle">مقطع طولي: خلايا متطاولة</text>
+    <text class="cap" x="500" y="610" text-anchor="middle">النسيج الكولنكيمي: خلايا حية جدرانها مغلظة بشكل غير منتظم — الدعم والتقوية (إسناد مرن)</text>`;
   return {
     body, fnParts: ['tColl', 'colCorner'],
     parts: [
-      { id: 'epidermis', anchor: [X0 + CW * 0.5, Y0 - 24], label: [134, 120], side: 'L' },
-      { id: 'colCorner', anchor: [X0 + CW * 0.75, Y0], label: [134, 250], side: 'L' },
-      { id: 'colProto', anchor: [X0 + CW * 0.5, Y0 + CH * 2.5], label: [134, 420], side: 'L' },
-      { id: 'tColl', anchor: [LX + LW * 3.5, LY + LH * 0.6], label: [866, 200], side: 'R' }
+      { id: 'colCorner', anchor: [X0 + CW * 1.5, Y0 + CH * 0.5 + 4], label: [134, 200], side: 'L' },
+      { id: 'colProto', anchor: [X0 + CW * 1.0, Y0 + CH * 4], label: [134, 400], side: 'L' },
+      { id: 'tColl', anchor: [LX + LW * 4, LY + LH * 0.6], label: [866, 200], side: 'R' }
     ],
     tools: [{ id: 'info:tColl', label: 'عن النسيج الكولنكيمي' }, { id: 'tbl:simpleCmp', label: 'مقارنة أنواعه (ص10–11)' }],
     tick(dt, t, a){
-      /* المرونة: المقطع الطولي ينحني ويرجع مثل ساق عشبية بالهواء */
+      /* الإسناد المرن (ص13): المقطع الطولي ينحني ويرجع مثل ساق عشبية بالهواء */
       const k = Math.sin(t * 1.6) * (focusOwner === 'tColl' ? 9 : 6);
       const g = a.el('#colBend'); if (g) g.setAttribute('transform', `translate(${n2(LX + LW * 2)},${LY + LH * 3}) skewX(${n2(k)}) translate(${n2(-(LX + LW * 2))},${-(LY + LH * 3)})`);
     }
