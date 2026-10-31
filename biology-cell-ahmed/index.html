@@ -3228,6 +3228,12 @@ function divSpindle(S){
         out.push([px, py, x, y, -1]); px = x; py = y; }
     });
   });
+  /* الطور الاستوائي (الخيطي): يتعلق كل كروموسوم بخيط واحد من خيوط المغزل بواسطة جزئه المركزي */
+  if (S.kin === 'one'){
+    for (let i = 0; i + 1 < S.chr.length; i += 2){ const a = S.chr[i], b = S.chr[i + 1]; if (!a || !b || a.op < 0.2) continue;
+      const m = [(a.x + b.x) / 2, (a.y + b.y) / 2]; out.push([poles[0][0], poles[0][1], m[0], m[1], i], [poles[1][0], poles[1][1], m[0], m[1], i]); }
+    return out;
+  }
   if (S.kin) S.chr.forEach((c, i) => {
     if (!c || c.op < 0.2) return;
     let best = null, bd = 1e9;
@@ -3253,7 +3259,7 @@ function divisionScene(mode){
     { k:'pro', n:'الطور التمهيدي', chrom:'كل كروموسوم بكروماتيدين متماثلين', time:'(30 – 60) دقيقة',
       d:'تتميز الشبكة الكروماتينية إلى عدد من الكروموسومات تبدو كثيفة وتتميز إلى جزئين متماثلين (كروماتيدين) يرتبطان عند جزئيهما المركزيين. يتباعد الجسيمان المركزيان ويتجهان باتجاهين متعاكسين نحو قطبي الخلية، وتمتد منهما خيوط شعاعية (النجم) وتتكون بينهما خيوط المغزل، وتختفي النوية والغشاء النووي في مرحلة متأخرة.' },
     { k:'meta', n:'الطور الاستوائي', chrom:'الكروموسومات على خط استواء المغزل', time:'(2 – 6) دقيقة',
-      d:'تنكمش وتتغلظ الكروموسومات، وتأخذ موقعاً عند خط استواء المغزل، وتتعلق بخيوط المغزل بواسطة الجزء المركزي.' },
+      d:'الطور الثاني من أطوار الانقسام: تنكمش وتتغلظ الكروموسومات في هذا الطور، وتأخذ موقعاً عند خط استواء المغزل، وتتعلق الكروموسومات بخيوط المغزل حيث يتعلق كل كروموسوم بخيط من خيوط المغزل بواسطة الجزء المركزي.' },
     { k:'ana', n:'الطور الانفصالي', chrom:'الكروموسومات البنوية تتجه نحو القطبين', time:'(3 – 15) دقيقة',
       d:'تنفصل الكروموسومات البنوية الناتجة عن الكروماتيدات الشقيقة في الطور التمهيدي، وتتجه نحو القطبين المتعاكسين للخلية. ولا تعرف ميكانيكية حركتها لحد الآن، وهناك نظريتان: أن خيوط المغزل تتقلص بوجود ATP وتسحب الكروموسومات، أو أنها تعمل كطريق تنزلق عليه الكروموسومات.' },
     { k:'telo', n:'الطور النهائي والانقسام السايتوبلازمي', chrom:'خليتان بنفس عدد ونوعية كروموسومات الخلية الأم', time:'(30 – 60) دقيقة',
@@ -3427,12 +3433,15 @@ function divisionScene(mode){
                 const homSide = isMei ? ((c === 0 || c === 3) ? -1 : 1) : 0;
                 const baseX = isMei ? CX + homSide * 26 : CX;
                 put(i, baseX + (s ? 7 : -7), ys[c], 0, 1, colOf(c), tip);
+                /* الخيطي: تنكمش الكروموسومات وتتغلظ في هذا الطور */
+                if (!isMei) S.chr[i].th = 1 + 0.28 * Math.min(1, e / 0.5);
               }
             }
             if (!plant){ S.cent.push({ x: CX - RX + 52, y: CY, op: 1, s: .85 }); S.cent.push({ x: CX + RX - 52, y: CY, op: 1, s: .85 }); }
-            S.spindleOp = 0.85; S.poles = [[CX - RX + 52, CY], [CX + RX - 52, CY]]; S.kin = true;
+            S.spindleOp = 0.85; S.poles = [[CX - RX + 52, CY], [CX + RX - 52, CY]]; S.kin = isMei ? true : 'one';
             S.cap = isMei ? 'أزواج المتماثلات (مجاميع ثنائية) على خط الاستواء، وكل متماثل يرتبط بقطب'
-                          : 'الكروموسومات على خط الاستواء، وكل كروماتيد يرتبط بخيط مغزل من قطب';
+                          : (e < 0.5 ? 'تنكمش الكروموسومات وتتغلظ وتأخذ موقعاً عند خط استواء المغزل'
+                                     : 'كل كروموسوم يتعلق بخيط من خيوط المغزل بواسطة الجزء المركزي');
           }
           else if (ph === 'ana' || ph === 'ana1'){
             S.cells.push(mk(CX, CY, RX, RY, 0));
@@ -3455,6 +3464,7 @@ function divisionScene(mode){
                   y1 = lerp(ys[c], CY + (c - 1.5) * 42, e);
                 }
                 put(i, lerp(x0, x1, e), y1, 0, 1, colOf(c), tip);
+                if (!isMei) S.chr[i].th = 1.28;
               }
             }
             if (!plant){ S.cent.push({ x: CX - RX + 52, y: CY, op: 1, s: .85 }); S.cent.push({ x: CX + RX - 52, y: CY, op: 1, s: .85 }); }
@@ -3571,7 +3581,7 @@ function divisionScene(mode){
             const c = S.chr[i];
             if (!c){ g.setAttribute('opacity', '0'); return; }
             g.setAttribute('opacity', String(c.op));
-            g.setAttribute('transform', `translate(${n2(c.x)},${n2(c.y)}) rotate(${n2(c.rot)}) scale(${n2(c.sc)})`);
+            const th = c.th || 1; g.setAttribute('transform', `translate(${n2(c.x)},${n2(c.y)}) rotate(${n2(c.rot)}) scale(${n2(c.sc * th)},${n2(c.sc / th)})`);
             g.querySelector('.armM').setAttribute('fill', c.main);
             g.querySelector('.armT').setAttribute('fill', c.tip);
             g.querySelector('.armC').setAttribute('fill', c.main);
@@ -3615,7 +3625,10 @@ function divisionScene(mode){
           const tt = api.el('#phTitle');
           if (tt && tt.textContent !== ph.n){
             tt.textContent = ph.n;
-            const st = api.el('#phStep'); if (st) st.textContent = 'الطور ' + (S.phaseIdx + 1) + ' من ' + PH.length + ' · ' + ph.chrom;
+            const st = api.el('#phStep');
+            /* الطور البيني قبل الانقسام؛ أطوار الانقسام تُعدّ بعده (الاستوائي هو الطور الثاني) */
+            const ORD = ['الأول', 'الثاني', 'الثالث', 'الرابع', 'الخامس', 'السادس', 'السابع', 'الثامن'], k = S.phaseIdx - (PH[0].k === 'inter' ? 1 : 0), N = PH.length - (PH[0].k === 'inter' ? 1 : 0);
+            if (st) st.textContent = (k < 0 ? 'قبل بدء الانقسام' : 'الطور ' + ORD[k] + ' من ' + N + ' أطوار') + ' · ' + ph.chrom;
             const g = tt.parentNode; g.classList.remove('pop'); void g.getBBox(); g.classList.add('pop');
           }
         },
@@ -6814,9 +6827,9 @@ function divModel(B, O){
     at: [0, 0, 0]
   }));
   const chrXf = (c, i) => {
-    const s = (c.sc || 1) * S0, Rm = rot3(0, 0, -(c.rot || 0) * Math.PI / 180);
+    const s0 = (c.sc || 1) * S0, th = c.th || 1, Rm = rot3(0, 0, -(c.rot || 0) * Math.PI / 180);
     const at = P3(c.x, c.y, chZ[i >> 1]);
-    return { Rm, s, at };
+    return { Rm, s: th === 1 ? s0 : [s0 * th, s0 / th, s0 * th], sy: s0 / th, at };
   };
 
   /* ── الجسيمات المركزية مع أشعة النجم ── */
@@ -6900,8 +6913,8 @@ function divModel(B, O){
     });
     const vis0 = CHR.findIndex((K, i) => S.chr[i] && S.chr[i].op > 0.3);
     V.chr = vis0 >= 0;
-    if (V.chr){ const K = CHR[vis0], c = S.chr[vis0]; const { Rm, s, at } = chrXf(c, vis0);
-      cp(L.chr, add(at, G3.ap3(Rm, [0, 0.2 * s, 0.05]))); }
+    if (V.chr){ const K = CHR[vis0], c = S.chr[vis0]; const { Rm, sy, at } = chrXf(c, vis0);
+      cp(L.chr, add(at, G3.ap3(Rm, [0, 0.2 * sy, 0.05]))); }
     /* الجسيمات المركزية */
     cents.forEach((o, i) => {
       const c = S.cent[i], ok = c && !plant && c.op > 0.03;
