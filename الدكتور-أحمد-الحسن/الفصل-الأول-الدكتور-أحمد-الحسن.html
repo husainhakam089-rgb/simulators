@@ -3269,7 +3269,7 @@ function divisionScene(mode){
     { k:'inter', n:'الطور البيني', chrom:'تضاعف المادة الوراثية قبل الانقسام', time:'',
       d:'يتضاعف الـ DNA في كل كروموسوم مسبقاً من الطور البيني، ويتضاعف الجسيم المركزي.' },
     { k:'pro1', n:'الطور التمهيدي الأول', chrom:'أزواج الكروموسومات المتماثلة', time:'يمتاز بكونه بطيئاً',
-      d:'يتضمن خمسة أدوار: الدور القلادي (كروموسومات بشكل خيوط طويلة نحيفة مفردة ذات تثخنات شبيهة بالخرز)، الدور الازدواجي (تتراصف الكروموسومات المتماثلة وتزدوج ثم يلتوي بعضها على البعض بعملية تدعى الإيثاق أو التشابك ويسمى الكروموسومان المزدوجان بالثنائي)، الدور التغلظي (يزداد تكثفها وتغلظها، ويظهر كل زوج بشكل حزمة من أربع كروماتيدات تدعى الرباعي، ويحصل التعابر)، الدور الانفراجي (تظهر التصالبات وتتبادل قطع الكروماتيدات غير الشقيقة)، الدور الحركي (تزداد قصراً وتغلظاً وتبدأ النوية والغشاء النووي بالانحلال التدريجي).' },
+      d:'الانقسام الاختزالي يكون على مرحلتين: الانقسام الاختزالي الأول والانقسام الاختزالي الثاني. الطور التمهيدي الأول ذو خمسة أدوار: الدور الأول القلادي (تكون الكروموسومات طويلة ونحيفة ومفردة وذات تثخنات شبيهة بالخرز أو الفصوص مما يضفي عليها شكل القلادة، ويكون الـ DNA متضاعفاً في كل كروموسوم)، الدور الثاني الازدواجي (تتراصف الكروموسومات المتماثلة وتزدوج ثم يلتوي بعضها على البعض بعملية تدعى الإيثاق أو التشابك ويسمى الكروموسومان المزدوجان بالثنائي)، الدور الثالث التغلظي (يزداد تكثفها وتغلظها، ويظهر كل زوج بشكل حزمة من أربع كروماتيدات تدعى الرباعي، ويحصل التعابر)، الدور الرابع الانفراجي (تظهر التصالبات وتتبادل قطع الكروماتيدات غير الشقيقة)، الدور الخامس الحركي (تزداد قصراً وتغلظاً وتبدأ النوية والغشاء النووي بالانحلال التدريجي).' },
     { k:'meta1', n:'الطور الاستوائي الأول', chrom:'مجاميع ثنائية على خط الاستواء', time:'',
       d:'ترتب الكروموسومات المتماثلة على خط استواء الخلية بشكل مجاميع ثنائية، وتظهر الأجزاء المركزية، ويظهر المغزل بأليافه التي يتصل بعضها بالأجزاء المركزية.' },
     { k:'ana1', n:'الطور الانفصالي الأول', chrom:'ينفصل الكروموسومان المتماثلان — اختزال العدد', time:'',
@@ -3336,7 +3336,7 @@ function divisionScene(mode){
                <circle class="en" fill="url(#gNucleolus)" stroke="#b6a3ef" stroke-width="1.6"/>
              </g>`).join('');
           chrs.innerHTML = [0, 1, 2, 3, 4, 5, 6, 7].map(i =>
-            `<g class="chd" data-i="${i}" opacity="0">${chromatidMarkup()}</g>`).join('');
+            `<g class="chd" data-i="${i}" opacity="0">${chromatidMarkup()}</g>`).join('') + '<g id="beadsG"></g>';
           cent.innerHTML = [0, 1, 2, 3].map(i =>
             `<g class="dcen" data-i="${i}" opacity="0">${centroShape()}</g>`).join('');
           pl.innerHTML = [0, 1].map(i => `<rect class="dplate" data-i="${i}" fill="#cbb98a" stroke="#f0e2bb" stroke-width="1.4" opacity="0"/>`).join('');
@@ -3358,7 +3358,7 @@ function divisionScene(mode){
         compute(T, plant){
           /* الحركة تكتمل في أول 80% من الطور ثم تثبت قليلاً حتى يتأملها الطالب */
           const [pi, u] = locate(T), e = ease(Math.min(1, u / 0.8)), ph = PH[pi].k;
-          const S = { cells: [], envs: [], chr: [], cent: [], plates: [], spindle: [], cap: '', xo: 0 };
+          const S = { cells: [], envs: [], chr: [], cent: [], plates: [], spindle: [], beads: [], cap: '', xo: 0 };
           const mk = (cx, cy, rx, ry, waist, axis) => ({ cx, cy, rx, ry, waist: waist || 0, axis: axis || 'x' });
           /* الكروماتيدات: 8 = 4 كروموسومات × 2 */
           const CH = i => ({ i, col: i < 4 ? CLR.a : CLR.b });
@@ -3393,7 +3393,10 @@ function divisionScene(mode){
             /* أماكن التزاوج: (0،1) في الأعلى و(3،2) في الأسفل — نفس ترتيبها لاحقاً على خط الاستواء */
             const pairPos = [[CX - 54, CY - 58], [CX - 16, CY - 58], [CX + 56, CY + 52], [CX + 18, CY + 52]];
             const zy = isMei ? (sub < 1 ? 0 : sub > 1 ? 1 : ease(su)) : 0;        /* الإيثاق في الدور الازدواجي */
-            const gap = isMei ? (sub < 2 ? 2.5 : sub > 2 ? 7 : lerp(2.5, 7, ease(su))) : 7;   /* الرباعي يظهر في التغلظي */
+            const gap = isMei ? (sub === 0 ? 0 : sub === 1 ? lerp(0, 2.5, ease(su)) : sub > 2 ? 7 : lerp(2.5, 7, ease(su))) : 7;   /* القلادي: الكروموسوم يبدو مفرداً · الرباعي يظهر في التغلظي */
+            /* القلادي: خيوط طويلة نحيفة، ثم تقصر وتتغلظ تدريجياً */
+            const thk = isMei ? (sub === 0 ? 0.42 : sub === 1 ? lerp(0.42, 0.7, su) : sub === 2 ? lerp(0.7, 1, su) : sub === 4 ? 1 + 0.12 * su : 1) : 1;
+            const beadOp = isMei ? (sub === 0 ? Math.min(1, u * 8) : sub === 1 ? 1 - su : 0) : 0;
             for (let c = 0; c < 4; c++){
               const hx = isMei ? lerp(freePos[c][0], pairPos[c][0], zy) : [CX - 62, CX + 44, CX - 30, CX + 68][c];
               const hy = isMei ? lerp(freePos[c][1], pairPos[c][1], zy) : [CY - 52, CY - 66, CY + 58, CY + 30][c];
@@ -3407,7 +3410,12 @@ function divisionScene(mode){
                 /* القلادي: خيوط نحيفة طويلة · الحركي: تقصر وتتغلظ */
                 const sc = isMei ? (sub === 0 ? 0.9 : sub === 4 ? 1 + 0.08 * su : 1) : 1;
                 put(i, hx + (s ? gap : -gap), hy, rot, op, colOf(c), tip, sc);
+                if (isMei) S.chr[i].th = thk;
               }
+              /* تثخنات شبيهة بالخرز على طول الكروموسوم (شكل القلادة) */
+              if (beadOp > 0.02){ const a = S.chr[c * 2], L = 31 * a.sc / thk, q = a.rot * Math.PI / 180;
+                for (let k = 0; k < 7; k++){ const ly = -L * 0.86 + k * L * 0.287;
+                  S.beads.push({ x: hx - Math.sin(q) * ly, y: hy + Math.cos(q) * ly, r: 4.6 * a.sc, op: beadOp * a.op, col: ly < 0 ? a.tip : a.main, c }); } }
             }
             if (isMei && u > 0.45){ S.xo = Math.min(1, (u - 0.45) * 4); }
             if (!plant){
@@ -3416,7 +3424,7 @@ function divisionScene(mode){
             }
             S.spindleOp = isMei ? Math.max(0, (u - 0.6) / 0.4) * 0.7 : e * 0.7;
             S.poles = [[CX - RX + 52, CY], [CX + RX - 52, CY]];
-            S.cap = isMei ? ['خيوط طويلة نحيفة مفردة (القلادي)', 'تزاوج الكروموسومات المتماثلة — الإيثاق (الازدواجي)',
+            S.cap = isMei ? ['القلادي: كروموسومات طويلة نحيفة مفردة ذات تثخنات شبيهة بالخرز (شكل القلادة)، والـ DNA متضاعف في كل كروموسوم', 'تزاوج الكروموسومات المتماثلة — الإيثاق (الازدواجي)',
                              'الرباعي: أربعة كروماتيدات، ويحصل التعابر (التغلظي)', 'ظهور التصالبات وتبادل قطع الكروماتيدات غير الشقيقة (الانفراجي)',
                              'تقصر الكروموسومات وتتغلظ وتنحل النوية والغشاء النووي (الحركي)'][sub]
                           : 'تكاثف الكروموسومات وظهور المغزل وتلاشي الغلاف النووي';
@@ -3592,6 +3600,9 @@ function divisionScene(mode){
             chn.setAttribute('opacity', String(c ? c.op : 0));
             if (c) chn.setAttribute('transform', `translate(${n2(c.x)},${n2(c.y)})`);
           }
+          const bg = api.el('#beadsG');
+          if (bg){ const h = (S.beads || []).map(b => `<circle cx="${n2(b.x)}" cy="${n2(b.y)}" r="${n2(b.r)}" fill="${b.col}" stroke="#2a1f1c" stroke-width=".8" opacity="${n2(b.op)}"/>`).join('');
+            if (bg.dataset.h !== h){ bg.innerHTML = h; bg.dataset.h = h; } }
           api.all('.chd').forEach((g, i) => {
             const c = S.chr[i];
             if (!c){ g.setAttribute('opacity', '0'); return; }
@@ -3633,7 +3644,7 @@ function divisionScene(mode){
           api.setCap(S.cap || '');
           let ph = PH[S.phaseIdx];
           if (isMei && ph.k === 'pro1'){
-            const sub = ['الدور القلادي', 'الدور الازدواجي', 'الدور التغلظي', 'الدور الانفراجي', 'الدور الحركي'];
+            const sub = ['الدور الأول: القلادي', 'الدور الثاني: الازدواجي', 'الدور الثالث: التغلظي', 'الدور الرابع: الانفراجي', 'الدور الخامس: الحركي'];
             ph = Object.assign({}, ph, { n: ph.n + ' · ' + sub[Math.min(4, Math.floor(S.u * 5))] });
           }
           api.setPhase(ph, this.state.T);
@@ -3643,7 +3654,10 @@ function divisionScene(mode){
             const st = api.el('#phStep');
             /* الطور البيني قبل الانقسام؛ أطوار الانقسام تُعدّ بعده (الاستوائي هو الطور الثاني) */
             const ORD = ['الأول', 'الثاني', 'الثالث', 'الرابع', 'الخامس', 'السادس', 'السابع', 'الثامن'], k = S.phaseIdx - (PH[0].k === 'inter' ? 1 : 0), N = PH.length - (PH[0].k === 'inter' ? 1 : 0);
-            if (st) st.textContent = (k < 0 ? 'قبل بدء الانقسام' : 'الطور ' + ORD[k] + ' من ' + N + ' أطوار') + ' · ' + ph.chrom;
+            /* الاختزالي على مرحلتين: الانقسام الاختزالي الأول (4 أطوار) ثم الثاني (4 أطوار) */
+            const lbl = k < 0 ? 'قبل بدء الانقسام' : isMei ? (k < 4 ? 'الانقسام الاختزالي الأول · الطور ' + ORD[k] + ' من 4' : 'الانقسام الاختزالي الثاني · الطور ' + ORD[k - 4] + ' من 4')
+              : 'الطور ' + ORD[k] + ' من ' + N + ' أطوار';
+            if (st) st.textContent = lbl + ' · ' + ph.chrom;
             const g = tt.parentNode; g.classList.remove('pop'); void g.getBBox(); g.classList.add('pop');
           }
         },
@@ -6841,6 +6855,10 @@ function divModel(B, O){
     cen: B.add(cenB, { part: 'chromosome', color: '#2a1f1c', rim: 0.4, rimColor: '#8a6a60', pop: false }),
     at: [0, 0, 0]
   }));
+  const beadB = ellipsoid({ r: 1, rows: 7, cols: 10 });
+  /* خرز الدور القلادي بلون كل كروموسوم (الزوج الأمي والأبوي): 14 خرزة ثابتة العدد (حجم المخزن ثابت) */
+  const beadMesh = L => merge(Array.from({ length: 14 }, (_, k) => { const b = L[k]; return b ? place(beadB, { at: b.at, s: b.s }) : place(beadB, { at: [0, -60, 0], s: 0.0001 }); }));
+  const beadO = [['#ff7a6a', '#ffe0dc'], ['#6aa8ff', '#e0ecff']].map(([c, r]) => B.add(beadMesh([]), { part: 'chromosome', color: c, rim: 1.1, rimColor: r, pop: false }));
   const chrXf = (c, i) => {
     const s0 = (c.sc || 1) * S0, th = c.th || 1, Rm = rot3(0, 0, -(c.rot || 0) * Math.PI / 180);
     const at = P3(c.x, c.y, chZ[i >> 1]);
@@ -6926,6 +6944,10 @@ function divModel(B, O){
       K.up.alpha = K.dn.alpha = K.cen.alpha = a;
       K.up.c = K.dn.c = K.cen.c = at; K.at = at;
     });
+    /* تثخنات الدور القلادي (خرز القلادة) */
+    const bd = S.beads || [];
+    beadO.forEach((o, g) => { const L = bd.filter(b => (b.c === 0 || b.c === 2) === (g === 0));
+      o.hide = !L.length; if (L.length) B.update(o, beadMesh(L.map(b => ({ at: P3(b.x, b.y, chZ[b.c] + 0.01), s: b.r / 100 * S0 * 1.5 * Math.max(0.05, b.op) })))); });
     const vis0 = CHR.findIndex((K, i) => S.chr[i] && S.chr[i].op > 0.3);
     V.chr = vis0 >= 0;
     if (V.chr){ const K = CHR[vis0], c = S.chr[vis0]; const { Rm, sy, at } = chrXf(c, vis0);
@@ -6985,7 +7007,7 @@ function divModel(B, O){
     const ph = eng.phases[lastS.phaseIdx];
     let n = ph.n;
     if (isMei && ph.k === 'pro1'){
-      const sub = ['الدور القلادي', 'الدور الازدواجي', 'الدور التغلظي', 'الدور الانفراجي', 'الدور الحركي'];
+      const sub = ['الدور الأول: القلادي', 'الدور الثاني: الازدواجي', 'الدور الثالث: التغلظي', 'الدور الرابع: الانفراجي', 'الدور الخامس: الحركي'];
       n += ' · ' + sub[Math.min(4, Math.floor(lastS.u * 5))];
     }
     return [n, ph.chrom];
