@@ -34,14 +34,30 @@
 <!-- ═══ الواجهة الترحيبية: بوستر الأستاذ ═══ -->
 <div id="welcome">
   <div class="welCard">
-    <div class="welKicker">أحياء السادس العلمي · الفصل الثاني</div>
+    <div class="welKicker">محاكي تفاعلي · أحياء السادس العلمي</div>
     <h2 class="welTitle">الأنسجة</h2>
-    <div class="welSub">محاكي تفاعلي ثلاثي الأبعاد للأنسجة النباتية والحيوانية</div>
+    <div class="welCh">الفصل الثاني</div>
+    <svg class="welArt" viewBox="0 0 320 170" aria-hidden="true">
+      <defs><radialGradient id="welC" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#ffd9e0"/><stop offset=".7" stop-color="#e892a6"/><stop offset="1" stop-color="#b8566f"/></radialGradient>
+        <radialGradient id="welP" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#bfe8a8"/><stop offset=".7" stop-color="#6fb35c"/><stop offset="1" stop-color="#3f7f37"/></radialGradient></defs>
+      <!-- خلايا نسيج حيواني (يسار) وخلايا نسيج نباتي بجدران (يمين) -->
+      <g stroke="#fff3f5" stroke-width="3" fill="url(#welC)">
+        <path d="M40 30 L72 30 L88 58 L72 86 L40 86 L24 58Z"/><path d="M88 58 L120 58 L136 86 L120 114 L88 114 L72 86Z"/>
+        <path d="M40 86 L72 86 L88 114 L72 142 L40 142 L24 114Z"/><path d="M88 2 L120 2 L136 30 L120 58 L88 58 L72 30Z" opacity=".85"/></g>
+      <g fill="#5b3fb0"><circle cx="56" cy="58" r="9"/><circle cx="104" cy="86" r="9"/><circle cx="56" cy="114" r="9"/><circle cx="104" cy="30" r="8"/></g>
+      <g stroke="#f3e2a0" stroke-width="4" fill="url(#welP)">
+        <rect x="186" y="22" width="52" height="58" rx="8"/><rect x="242" y="22" width="52" height="58" rx="8"/>
+        <rect x="186" y="84" width="52" height="58" rx="8"/><rect x="242" y="84" width="52" height="58" rx="8"/></g>
+      <g fill="#2f5a2a" opacity=".85"><circle cx="212" cy="51" r="7"/><circle cx="268" cy="51" r="7"/><circle cx="212" cy="113" r="7"/><circle cx="268" cy="113" r="7"/></g>
+      <path d="M160 20 L160 150" stroke="#f1cf7e" stroke-width="1.5" opacity=".4"/>
+    </svg>
+    <div class="welLine"></div>
+    <div class="welBy">إعداد</div>
     <div class="welName"><b>الدكتور أحمد الحسن</b><span>دكتوراه · كلية العلوم · جامعة بغداد</span><span>ثانوية الإمام الحسن المجتبى (ع) للمتفوقين</span></div>
-    <button id="welGo" class="btn3d welGo">ابدأ المحاكاة</button>
+    <button id="welGo" class="welGo">ابدأ المحاكي</button>
     <div class="welRow">
-      <button id="welExam" class="btn3d ghost3d">وضع الامتحان</button>
-      <button id="welDraw" class="btn3d ghost3d">الرسم اليدوي</button>
+      <button id="welExam" class="welSmall">وضع الامتحان</button>
+      <button id="welDraw" class="welSmall">الرسم اليدوي</button>
     </div>
   </div>
 </div>

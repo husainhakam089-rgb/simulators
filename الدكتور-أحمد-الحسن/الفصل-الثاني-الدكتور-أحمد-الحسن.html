@@ -80,7 +80,7 @@
     min-height:36px;padding:10px 13px;line-height:1.5;white-space:normal}
 
   /* ── واجهة البداية: صورة الأستاذ كاملة وزرّها المرسوم يعمل ── */
-  #welcome{position:fixed;inset:0;z-index:60;overflow:hidden;background:#eef2ec;
+  #welcome{position:fixed;inset:0;z-index:60;overflow:hidden;background:#0f1b2e;
     opacity:1;transition:opacity .42s ease,visibility .42s}
   #welcome.off{opacity:0;visibility:hidden;pointer-events:none}
   /* نسخة مغبّشة من الصورة نفسها تملأ باقي الشاشة */
@@ -994,23 +994,34 @@
     #drCtl .stool .ic + span{display:none}
   }
 
-  /* ═══════════ واجهة البداية المؤقتة (بسيطة، بلا صورة) ═══════════ */
-  #welcome{display:flex;align-items:center;justify-content:center;padding:18px;
-    background:radial-gradient(700px 480px at 50% 30%, rgba(120,190,140,.35), transparent 70%),
-      linear-gradient(180deg,#f2f6f0,#dfeadf)}
-  .welCard{width:min(460px,100%);text-align:center;padding:30px 24px 26px;border-radius:22px;
-    background:rgba(255,255,255,.82);border:1px solid rgba(47,107,74,.18);
-    box-shadow:0 24px 60px rgba(18,55,36,.18)}
-  .welKicker{font-size:13px;color:#4c6b57;letter-spacing:.5px;font-weight:700}
-  .welTitle{font-size:clamp(40px,11vw,62px);margin:6px 0 4px;color:#1f5a3a;font-weight:900;letter-spacing:2px}
-  .welSub{font-size:14px;color:#3d5246;line-height:1.8}
-  .welName{margin:18px auto 22px;display:inline-flex;flex-direction:column;gap:2px;padding:10px 22px;border-radius:14px;
-    background:linear-gradient(180deg,#fff7e6,#f7ecd4);border:1px solid rgba(176,125,30,.35)}
-  .welName b{font-size:19px;color:#8a5a10}
-  .welName span{font-size:12.5px;color:#5d5140}
-  .welGo{display:block;width:100%;font-size:18px!important;padding:15px 20px!important}
-  .welRow{display:flex;gap:10px;margin-top:12px}
-  .welRow .btn3d{flex:1;padding:11px 10px!important;font-size:13.5px!important}
+  /* ═══════════ واجهة البداية: لوحة داكنة بإطار ذهبي (نفس طابع واجهة الفصل الأول) ═══════════ */
+  #welcome{display:flex;align-items:center;justify-content:center;padding:14px;
+    background:radial-gradient(900px 640px at 50% 32%, #1d3354 0%, #122239 55%, #0a1424 100%)}
+  .welCard{width:min(560px,100%,calc(100vh * .66));width:min(560px,100%,calc(100dvh * .66));max-height:100%;overflow:auto;text-align:center;padding:26px 22px 22px;border-radius:18px;
+    background:radial-gradient(120% 90% at 50% 30%, #1d3354 0%, #142640 60%, #0e1b30 100%);
+    border:2px solid #d9b45e;box-shadow:0 0 0 6px rgba(217,180,94,.12),0 24px 70px rgba(0,0,0,.55)}
+  .welKicker{font-size:clamp(13px,1.9vh,17px);color:#e9dcc0;letter-spacing:.4px;font-weight:700}
+  .welTitle{font-size:clamp(46px,min(12vw,8.4vh),84px);margin:6px 0 0;font-weight:900;letter-spacing:2px;line-height:1.15;
+    background:linear-gradient(180deg,#fff0c4,#f1cf7e 45%,#b8862f);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .welCh{font-size:clamp(17px,2.5vh,23px);color:#f1cf7e;font-weight:800;margin-bottom:6px}
+  .welArt{display:block;width:min(360px,88%);margin:8px auto 4px}
+  .welLine{height:1px;width:70%;margin:12px auto 10px;background:linear-gradient(90deg,transparent,#f1cf7e,transparent)}
+  .welBy{font-size:clamp(14px,2vh,18px);color:#e9dcc0}
+  .welName{margin:4px auto 18px;display:flex;flex-direction:column;gap:3px}
+  .welName b{font-size:clamp(24px,min(6.6vw,4.4vh),40px);font-weight:900;
+    background:linear-gradient(180deg,#fff0c4,#f1cf7e 45%,#b8862f);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .welName span{font-size:clamp(13px,1.9vh,17px);color:#f3ead6}
+  .welGo{display:block;width:78%;margin:0 auto;font:inherit;font-size:clamp(19px,2.7vh,24px);font-weight:900;color:#fff3cf;cursor:pointer;
+    padding:clamp(12px,1.8vh,16px) 18px;border-radius:999px;border:2px solid #f1cf7e;background:linear-gradient(180deg,#2a4f86,#1a3560);
+    box-shadow:0 6px 0 #0c1d36,0 10px 26px rgba(0,0,0,.4);animation:welGlow 2.4s ease-in-out infinite}
+  .welGo:hover{filter:brightness(1.12)}
+  .welGo:active{transform:translateY(4px);box-shadow:0 2px 0 #0c1d36}
+  .welGo:focus-visible{outline:3px solid #e8c47a;outline-offset:3px}
+  @keyframes welGlow{0%,100%{box-shadow:0 6px 0 #0c1d36,0 0 0 0 rgba(235,195,110,0)}50%{box-shadow:0 6px 0 #0c1d36,0 0 24px 5px rgba(235,195,110,.42)}}
+  .welRow{display:flex;gap:10px;margin:14px auto 0;width:78%}
+  .welSmall{flex:1;font:inherit;font-size:13.5px;font-weight:800;color:#e9dcc0;cursor:pointer;padding:9px 8px;border-radius:12px;
+    background:rgba(255,255,255,.06);border:1px solid rgba(241,207,126,.45)}
+  .welSmall:hover{background:rgba(255,255,255,.12)}
 
   /* ═══════════ الفصل الثاني: الأنسجة ═══════════ */
   #svgHost .dc rect{transition:fill .2s}
@@ -1063,14 +1074,30 @@
 <!-- ═══ الواجهة الترحيبية: بوستر الأستاذ ═══ -->
 <div id="welcome">
   <div class="welCard">
-    <div class="welKicker">أحياء السادس العلمي · الفصل الثاني</div>
+    <div class="welKicker">محاكي تفاعلي · أحياء السادس العلمي</div>
     <h2 class="welTitle">الأنسجة</h2>
-    <div class="welSub">محاكي تفاعلي ثلاثي الأبعاد للأنسجة النباتية والحيوانية</div>
+    <div class="welCh">الفصل الثاني</div>
+    <svg class="welArt" viewBox="0 0 320 170" aria-hidden="true">
+      <defs><radialGradient id="welC" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#ffd9e0"/><stop offset=".7" stop-color="#e892a6"/><stop offset="1" stop-color="#b8566f"/></radialGradient>
+        <radialGradient id="welP" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#bfe8a8"/><stop offset=".7" stop-color="#6fb35c"/><stop offset="1" stop-color="#3f7f37"/></radialGradient></defs>
+      <!-- خلايا نسيج حيواني (يسار) وخلايا نسيج نباتي بجدران (يمين) -->
+      <g stroke="#fff3f5" stroke-width="3" fill="url(#welC)">
+        <path d="M40 30 L72 30 L88 58 L72 86 L40 86 L24 58Z"/><path d="M88 58 L120 58 L136 86 L120 114 L88 114 L72 86Z"/>
+        <path d="M40 86 L72 86 L88 114 L72 142 L40 142 L24 114Z"/><path d="M88 2 L120 2 L136 30 L120 58 L88 58 L72 30Z" opacity=".85"/></g>
+      <g fill="#5b3fb0"><circle cx="56" cy="58" r="9"/><circle cx="104" cy="86" r="9"/><circle cx="56" cy="114" r="9"/><circle cx="104" cy="30" r="8"/></g>
+      <g stroke="#f3e2a0" stroke-width="4" fill="url(#welP)">
+        <rect x="186" y="22" width="52" height="58" rx="8"/><rect x="242" y="22" width="52" height="58" rx="8"/>
+        <rect x="186" y="84" width="52" height="58" rx="8"/><rect x="242" y="84" width="52" height="58" rx="8"/></g>
+      <g fill="#2f5a2a" opacity=".85"><circle cx="212" cy="51" r="7"/><circle cx="268" cy="51" r="7"/><circle cx="212" cy="113" r="7"/><circle cx="268" cy="113" r="7"/></g>
+      <path d="M160 20 L160 150" stroke="#f1cf7e" stroke-width="1.5" opacity=".4"/>
+    </svg>
+    <div class="welLine"></div>
+    <div class="welBy">إعداد</div>
     <div class="welName"><b>الدكتور أحمد الحسن</b><span>دكتوراه · كلية العلوم · جامعة بغداد</span><span>ثانوية الإمام الحسن المجتبى (ع) للمتفوقين</span></div>
-    <button id="welGo" class="btn3d welGo">ابدأ المحاكاة</button>
+    <button id="welGo" class="welGo">ابدأ المحاكي</button>
     <div class="welRow">
-      <button id="welExam" class="btn3d ghost3d">وضع الامتحان</button>
-      <button id="welDraw" class="btn3d ghost3d">الرسم اليدوي</button>
+      <button id="welExam" class="welSmall">وضع الامتحان</button>
+      <button id="welDraw" class="welSmall">الرسم اليدوي</button>
     </div>
   </div>
 </div>
