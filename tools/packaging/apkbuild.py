@@ -4,7 +4,7 @@ import struct, zlib, hashlib, sys, os, zipfile, subprocess
 
 PKG = os.environ.get('APK_PKG', 'com.sajjad.cell')   # معرّف مختلف لكل أستاذ حتى تتثبت النسخ جنب بعض
 CLS = 'L' + PKG.replace('.', '/') + '/Main;'
-LABEL = 'الخلية'
+LABEL = os.environ.get('APK_LABEL', 'الخلية')   # اسم التطبيق (مثلاً «الأنسجة» للفصل الثاني)
 
 # ───────────────────────── أدوات ترميز ─────────────────────────
 def uleb(n):

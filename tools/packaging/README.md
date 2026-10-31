@@ -15,3 +15,6 @@
 
 6. نسخة الدكتور أحمد الحسن تُبنى من مصدرها الخاص `ahmed/base-ch1.html` (فيه تعديلاته على الانقسام الخيطي فقط)،
    لا من `biology-cell/index.html`: `python3 make_ahmed.py ahmed/base-ch1.html <poster.svg> <out.html>`.
+7. اسم تطبيق أندرويد: `APK_LABEL` (الافتراضي «الخلية»). الفصل الثاني للدكتور أحمد:
+   `APK_PKG=com.ahmed.tissues APK_LABEL=الأنسجة python3 apkbuild.py ...` بأيقونة `icon-tissues.html`،
+   والفصل الأول `APK_PKG=com.ahmed.cell`. مجلدا حفظ الـ EXE: `AlKhaliaAhmed` و`AlAnsijaAhmed`.
