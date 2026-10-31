@@ -167,14 +167,16 @@ function merSec(still){
   const CX = 420, CY = 352, r0 = still ? merSecRings(1, 1) : merSecRings(0, 0);
   const xRings = r => { let h = ''; for (let q = 50; q < r.rx - 4; q += 14) h += `<circle cx="${CX}" cy="${CY}" r="${q}" fill="none" stroke="#a5824c" stroke-width="1.3" opacity=".75"/>`; return h; };
   const ring = (cls, rad, fill, extra) => `<circle class="${cls}" cx="${CX}" cy="${CY}" r="${n2(rad)}" fill="${fill}"${extra || ''}/>`;
+  /* حلقة كمبيوم واضحة بلا توهج: شريط بلون صريح، وجدران خلايا صغيرة (خطوط قصيرة)، وحافتان داكنتان */
+  const camb = (cls, rad, col, w) => ring(cls, rad, 'none', ` stroke="${col}" stroke-width="${w}"`) +
+    ring(cls, rad, 'none', ` stroke="#5a3208" stroke-width="${w}" stroke-dasharray="1.3 5.5" opacity=".75"`) +
+    ring(cls + 'i', rad - w / 2, 'none', ' stroke="#4a2a08" stroke-width="1.1"') + ring(cls + 'o', rad + w / 2, 'none', ' stroke="#4a2a08" stroke-width="1.1"');
   const body = `
     ${part('periEpi', ring('rPe', r0.re, '#8a5a34', ' stroke="#d9b48a" stroke-width="1.4"'))}
     ${ring('rCx', r0.rk + 2, '#6e9c58')}
-    ${part('corkCamb', ring('rKg mGlow', r0.rk, 'none', ' stroke="#ffb35c" stroke-width="10" opacity=".45" filter="url(#fSoft)"') +
-      ring('rK', r0.rk, 'none', ' stroke="#ffbf6e" stroke-width="4" stroke-dasharray="7 4"'))}
+    ${part('corkCamb', camb('rK', r0.rk, '#e8893a', 7))}
     ${part('secPhl', ring('rP', r0.rp, '#a7c46a'))}
-    ${part('vascCamb', ring('rCg mGlow', r0.rc, 'none', ' stroke="#ffd166" stroke-width="11" opacity=".5" filter="url(#fSoft)"') +
-      ring('rC', r0.rc, 'none', ' stroke="#ffe08a" stroke-width="4.5"'))}
+    ${part('vascCamb', camb('rC', r0.rc, '#f0b23a', 9))}
     ${part('secXyl', ring('rX', r0.rx, '#d8b878') + `<g id="xRings">${xRings(r0)}</g>`)}
     <circle cx="${CX}" cy="${CY}" r="34" fill="#c9dcae" stroke="#eef6df" stroke-width="1.2"/>
     <g id="secArr"></g>
@@ -189,8 +191,9 @@ function merSec(still){
   let last = '';
   const apply = (a, g, pe, t, st) => {
     const r = merSecRings(g, pe);
-    const set = (q, rad) => { const e = a.el(q); if (e) e.setAttribute('r', n2(rad)); };
-    set('.rPe', r.re); set('.rCx', r.rk + 2); set('.rK', r.rk); set('.rKg', r.rk); set('.rP', r.rp); set('.rC', r.rc); set('.rCg', r.rc); set('.rX', r.rx);
+    const set = (q, rad) => a.all(q).forEach(e => e.setAttribute('r', n2(rad)));
+    set('.rPe', r.re); set('.rCx', r.rk + 2); set('.rK', r.rk); set('.rKi', r.rk - 3.5); set('.rKo', r.rk + 3.5); set('.rP', r.rp);
+    set('.rC', r.rc); set('.rCi', r.rc - 4.5); set('.rCo', r.rc + 4.5); set('.rX', r.rx);
     const key = Math.round(r.rx);
     if (key !== last){ last = key; const xr = a.el('#xRings'); if (xr) xr.innerHTML = xRings(r); }
     /* أسهم: الكمبيوم الوعائي يكوّن للداخل والخارج، والفليني للخارج */
@@ -227,8 +230,6 @@ function merSec(still){
       ctl.tick(dt);
       const { g, pe } = merSecGrowth();
       apply(a, g, pe, t, STG.idx);
-      const f = focusOwner;
-      a.all('.mGlow').forEach(e => e.setAttribute('opacity', !f || e.closest('.part').dataset.part === f ? n2(0.25 + 0.4 * (0.5 + 0.5 * Math.sin(t * 2.6))) : '0.1'));
     }
   };
 }

@@ -133,13 +133,13 @@ function secModel(B){
   const dsk = (r, lv) => discO(U(r), H + lv * EPS);
   const r0 = merSecRings(0, 0);
   const peO = B.add(dsk(r0.re, 0), { part: 'periEpi', color: '#8a5a34', rim: 0.6, rimColor: '#e8c49a' });
-  const kcO = B.add(dsk(r0.rk + 5, 1), { part: 'corkCamb', color: '#ffb35c', rim: 1, rimColor: '#ffe2b8' });
+  const kcO = B.add(dsk(r0.rk + 5, 1), { part: 'corkCamb', color: '#b5562a', rim: 0.35, rimColor: '#ffd2a0' });
   const cxO = B.add(dsk(r0.rk - 5, 2), { color: '#6e9c58', rim: 0.4, rimColor: '#d6f2c0', pop: false });
   const phO = B.add(dsk(r0.rp, 3), { part: 'secPhl', color: '#a7c46a', rim: 0.5, rimColor: '#eaffd0' });
-  const vcO = B.add(dsk(r0.rc + 6, 4), { part: 'vascCamb', color: GOLD, rim: 1, rimColor: '#fff3c4' });
+  const vcO = B.add(dsk(r0.rc + 6, 4), { part: 'vascCamb', color: '#e39a2e', rim: 0.35, rimColor: '#ffd9a0' });
   const xylO = B.add(dsk(r0.rx - 4, 5), { part: 'secXyl', color: '#d8b878', rim: 0.5, rimColor: '#fff0c8' });
   const gr = B.add(discO(0.01, 0.01), { color: '#8a6a3a', rim: 0.2, rimColor: '#c9a86a', pop: false, center: [0, 0, 0] });
-  B.add(dsk(r0.pith, 7), { color: '#c9dcae', rim: 0.5, rimColor: '#f4fbe8', pop: false });
+  B.add(dsk(r0.pith, 7), { color: '#a9c48e', rim: 0.3, rimColor: '#e4f2d4', pop: false });
   const L = { secXyl: [0, 0, 0], vascCamb: [0, 0, 0], secPhl: [0, 0, 0], corkCamb: [0, 0, 0], periEpi: [0, 0, 0] };
   const ANG = { secXyl: 200, vascCamb: 300, secPhl: 330, corkCamb: 5, periEpi: 35 }, LV = { secXyl: 5, vascCamb: 4, secPhl: 3, corkCamb: 1, periEpi: 0 };
   const put = (id, rad) => { const q = ANG[id] * Math.PI / 180, d = L[id]; d[0] = Math.cos(q) * U(rad); d[1] = top(LV[id]) + 0.01; d[2] = Math.sin(q) * U(rad); };
@@ -162,8 +162,9 @@ function secModel(B){
     anim(t){
       update();
       const f = typeof focusOwner !== 'undefined' ? focusOwner : null, st = STG.idx;
-      vcO.rim = (!f || f === 'vascCamb') && (st === 1 || st === 3) ? 0.7 + 0.9 * (0.5 + 0.5 * Math.sin(t * 3)) : 0.6;
-      kcO.rim = (!f || f === 'corkCamb') && st >= 2 ? 0.7 + 0.9 * (0.5 + 0.5 * Math.sin(t * 3)) : 0.6;
+      /* نبض خفيف فقط (بلا توهج يغطي اللون) */
+      vcO.rim = (!f || f === 'vascCamb') && (st === 1 || st === 3) ? 0.35 + 0.25 * (0.5 + 0.5 * Math.sin(t * 3)) : 0.35;
+      kcO.rim = (!f || f === 'corkCamb') && st >= 2 ? 0.35 + 0.25 * (0.5 + 0.5 * Math.sin(t * 3)) : 0.35;
     }
   };
 }
