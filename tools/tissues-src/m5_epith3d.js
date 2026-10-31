@@ -45,7 +45,8 @@ function bouncer(B, topY, x0, x1){
   const f = t => flow(10, t, 0.4, (i, p) => { const d = p < 0.5 ? 1 - p * 2 : (p - 0.5) * 2;
     return [x0 + 0.3 + ((i * 0.83) % (x1 - x0 - 0.6)) + (p > 0.5 ? (i % 3 - 1) * (p - 0.5) * 0.8 : 0), topY + 0.1 + d * 1.4, -Z * 0.6 + (i % 4) * 0.4]; });
   const o = B.add(dots(f(0), 0.07), { color: '#ff8a7a', rim: 0.8, rimColor: '#ffffff', pop: false, center: [0, 0, 0] });
-  return t => B.update(o, dots(f(t), 0.07));
+  /* t < 0 يخفيها */
+  return t => { o.hide = t < 0; if (t >= 0) B.update(o, dots(f(t), 0.07)); };
 }
 
 /* ═════ 1) الحرشفي البسيط: الانتشار والترشيح ═════ */
@@ -162,7 +163,13 @@ function strModel(B, o){
     B.label('cSquam', [X - 0.3, S.topY, Z * 0.6], [0, 1, 0.5]);
     lyrLabels(B, L, 'cPoly', -X, [-1, 0.2, 0.6]); lyrLabels(B, L, 'cBasal', X, [1, 0, 0.6]);
     common(B, null);
-    B.caption([0, S.topY + 1.1, 0], () => ['متقرن في بشرة الجلد · يبطن الفم والمريء', 'الأحمر: احتكاك يصطدم بالسطح ويرتد = الحماية']);
+    B.caption([0, S.topY + 1.1, 0], () => { const st = ETH_STR_STAGES[STG.idx]; return st ? [st.n, STG.idx === 3 ? 'الأحمر: احتكاك يصطدم بالسطح ويرتد = الحماية' : ['مسطحة حرشفية', 'متعددة السطوح', 'عمودية أو مكعبة على الغشاء القاعدي'][STG.idx]] : []; });
+    /* إبراز الطبقة الحالية (نفس مراحل الرسم المسطّح) */
+    const LY = ['cSquam', 'cPoly', 'cBasal'], base = {}; LY.forEach(p => { if (S.objs[p]) base[p] = S.objs[p].o.alpha; });
+    return { dist: 8.4, yaw: 0.35, pitch: 0.4, target: [0, 0.6, 0], live2d: true,
+      anim(t){ const st = STG.idx; LY.forEach((p, i) => { const o = S.objs[p] && S.objs[p].o; if (!o) return;
+        o.rim = i === st ? 0.9 + 0.7 * (0.5 + 0.5 * Math.sin(t * 5)) : 0.7; o.alpha = st === 3 || i === st ? base[p] : 0.45; });
+        if (st === 3) bn(t); else bn(-1); } };
   }
   return { dist: 8.4, yaw: 0.35, pitch: 0.4, target: [0, 0.6, 0], live2d: true, anim: bn };
 }
