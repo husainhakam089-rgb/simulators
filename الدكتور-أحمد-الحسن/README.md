@@ -10,5 +10,8 @@
 - **داخل المحاكي:** «د. أحمد الحسن · دكتوراه · كلية العلوم · جامعة بغداد» أعلى
   الشاشة، والاسم في عنوان الصفحة.
 
-ملف واحد `index.html` يعمل بلا إنترنت. يُبنى بـ
-`python3 tools/packaging/make_ahmed.py biology-cell/index.html biology-cell-ahmed/poster.svg biology-cell-ahmed/index.html`.
+ملف واحد `الفصل-الأول-الدكتور-أحمد-الحسن.html` يعمل بلا إنترنت. يُبنى بـ
+`python3 tools/packaging/make_ahmed.py biology-cell/index.html الدكتور-أحمد-الحسن/poster.svg الدكتور-أحمد-الحسن/الفصل-الأول-الدكتور-أحمد-الحسن.html`.
+
+
+الفصل الثاني (الأنسجة) للدكتور نفسه: `الفصل-الثاني-الدكتور-أحمد-الحسن.html`، وشرحه في `README-الفصل-الثاني.md`.
