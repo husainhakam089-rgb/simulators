@@ -3130,52 +3130,70 @@ function merLoc(){
 
 /* ───────── 2) المرستيمي الجانبي: الكمبيوم الوعائي والفليني والتثخن (مراحل) ───────── */
 function merSec(still){
-  const CX = 420, CY = 352, r0 = still ? merSecRings(1, 1) : merSecRings(0, 0);
-  const xRings = r => { let h = ''; for (let q = 50; q < r.rx - 4; q += 14) h += `<circle cx="${CX}" cy="${CY}" r="${q}" fill="none" stroke="#a5824c" stroke-width="1.3" opacity=".75"/>`; return h; };
+  /* المقطع مكبّر (S) حتى تظهر الحلقات وخلاياها بوضوح؛ أنصاف الأقطار من merSecRings */
+  const CX = 430, CY = 352, S = 1.25, r0 = still ? merSecRings(1, 1) : merSecRings(0, 0);
+  const sc = p => [CX + (p[0] - CX) * S, CY + (p[1] - CY) * S];
   const ring = (cls, rad, fill, extra) => `<circle class="${cls}" cx="${CX}" cy="${CY}" r="${n2(rad)}" fill="${fill}"${extra || ''}/>`;
-  /* حلقة كمبيوم واضحة بلا توهج: شريط بلون صريح، وجدران خلايا صغيرة (خطوط قصيرة)، وحافتان داكنتان */
+  const circ = (rad, st) => `<circle cx="${CX}" cy="${CY}" r="${n2(rad)}" fill="none" ${st}/>`;
+  /* خلايا كل نسيج: حلقات رفيعة + جدران قصيرة (خطوط متقطعة) = شبكة خلايا */
+  const cells = (a, b, step, col, wall) => { let h = ''; for (let q = a + step; q < b - 1; q += step) h += circ(q, `stroke="${col}" stroke-width=".7" opacity=".8"`);
+    for (let q = a + step / 2; q < b; q += step) h += circ(q, `stroke="${col}" stroke-width="${n2(step * 0.9)}" stroke-dasharray=".8 ${wall}" opacity=".7"`); return h; };
+  const tex = r => {
+    let h = cells(0, r.pith, 11, '#7f9a62', 9) +                    /* اللب: خلايا كبيرة */
+      cells(r.pith, r.rx, 7, '#7a5a2a', 5.5) +                         /* الخشب الثانوي */
+      cells(r.rc + 4.5, r.rp, 5, '#4f7030', 4) +                       /* اللحاء الثانوي: خلايا أصغر */
+      cells(r.rp, r.rk - 3.5, 9, '#3f6a32', 8);                        /* القشرة */
+    if (r.re - r.rk - 3.5 > 2) h += cells(r.rk + 3.5, r.re, 4, '#4a2a10', 7);   /* البشرة المحيطة: خلايا فلين */
+    /* أوعية الخشب: دوائر أكبر بجدار سميك */
+    for (let q = r.pith + 10; q < r.rx - 5; q += 16){ const n = Math.max(4, Math.round(q / 12)); for (let i = 0; i < n; i++){ const t = i / n * 6.283 + q * 0.37;
+      h += `<circle cx="${n2(CX + Math.cos(t) * q)}" cy="${n2(CY + Math.sin(t) * q)}" r="4.2" fill="#f6e7c2" stroke="#6a4a1c" stroke-width="1.3"/>`; } }
+    /* حدود الأنسجة */
+    [r.pith, r.rx, r.rp, r.re].forEach(q => { h += circ(q, 'stroke="#2a1a08" stroke-width="1.2" opacity=".85"'); });
+    return h;
+  };
+  /* حلقة كمبيوم: صف من خلايا مسطحة بلون صريح وحافتين داكنتين */
   const camb = (cls, rad, col, w) => ring(cls, rad, 'none', ` stroke="${col}" stroke-width="${w}"`) +
-    ring(cls, rad, 'none', ` stroke="#5a3208" stroke-width="${w}" stroke-dasharray="1.3 5.5" opacity=".75"`) +
-    ring(cls + 'i', rad - w / 2, 'none', ' stroke="#4a2a08" stroke-width="1.1"') + ring(cls + 'o', rad + w / 2, 'none', ' stroke="#4a2a08" stroke-width="1.1"');
-  const body = `
-    ${part('periEpi', ring('rPe', r0.re, '#8a5a34', ' stroke="#d9b48a" stroke-width="1.4"'))}
-    ${ring('rCx', r0.rk + 2, '#6e9c58')}
-    ${part('corkCamb', camb('rK', r0.rk, '#e8893a', 7))}
-    ${part('secPhl', ring('rP', r0.rp, '#a7c46a'))}
-    ${part('vascCamb', camb('rC', r0.rc, '#f0b23a', 9))}
-    ${part('secXyl', ring('rX', r0.rx, '#d8b878') + `<g id="xRings">${xRings(r0)}</g>`)}
-    <circle cx="${CX}" cy="${CY}" r="34" fill="#c9dcae" stroke="#eef6df" stroke-width="1.2"/>
-    <g id="secArr"></g>
-    <text class="cap sm" id="secCap" x="${CX}" y="660" text-anchor="middle">${still ? 'مقطع عرضي في ساق بعد التثخن' : ''}</text>`;
+    ring(cls, rad, 'none', ` stroke="#3a2006" stroke-width="${w}" stroke-dasharray="1 4.2"`) +
+    ring(cls + 'i', rad - w / 2, 'none', ' stroke="#2a1404" stroke-width="1.4"') + ring(cls + 'o', rad + w / 2, 'none', ' stroke="#2a1404" stroke-width="1.4"');
+  const body = `<g transform="translate(${CX},${CY}) scale(${S}) translate(${-CX},${-CY})">
+    ${part('periEpi', ring('rPe', r0.re, '#8a5a34'))}
+    ${ring('rCx', r0.rk, '#79a862')}
+    ${part('secPhl', ring('rP', r0.rp, '#b4d07a'))}
+    ${part('secXyl', ring('rX', r0.rx, '#dcc08a'))}
+    <circle cx="${CX}" cy="${CY}" r="${r0.pith}" fill="#d2e4b8"/>
+    <g id="secTex" pointer-events="none">${tex(r0)}</g>
+    ${part('corkCamb', camb('rK', r0.rk, '#e07a32', 7))}
+    ${part('vascCamb', camb('rC', r0.rc, '#ffc23a', 9))}
+    <g id="secArr"></g></g>
+    <text class="cap sm" id="secCap" x="${CX}" y="664" text-anchor="middle">${still ? 'مقطع عرضي في ساق بعد التثخن' : ''}</text>`;
   const ctl = stageCtl(MER_SEC_STAGES, { label: 'المرحلة', dur: 4 * 6 });
   const ANG = { secXyl: 150, vascCamb: -62, secPhl: -30, corkCamb: 4, periEpi: 30 };
   const mid = (id, r) => { const a = ANG[id] * Math.PI / 180;
     const rad = id === 'secXyl' ? (r.pith + r.rx) / 2 : id === 'vascCamb' ? r.rc : id === 'secPhl' ? (r.rc + 5 + r.rp) / 2 : id === 'corkCamb' ? r.rk : (r.rk + 4 + r.re) / 2;
-    return [CX + Math.cos(a) * rad, CY + Math.sin(a) * rad]; };
+    return sc([CX + Math.cos(a) * rad, CY + Math.sin(a) * rad]); };
   const R1 = merSecRings(1, 1);
-  const arrow = (x, y, ang) => `<g transform="translate(${n2(x)},${n2(y)}) rotate(${n2(ang)})"><path d="M0,9 L0,-9 M-5,-3 L0,-9 L5,-3" fill="none" stroke="#fff3c4" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></g>`;
+  const arrow = (x, y, ang) => `<g transform="translate(${n2(x)},${n2(y)}) rotate(${n2(ang)})"><path d="M0,7 L0,-7 M-4,-2 L0,-7 L4,-2" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></g>`;
   let last = '';
   const apply = (a, g, pe, t, st) => {
     const r = merSecRings(g, pe);
     const set = (q, rad) => a.all(q).forEach(e => e.setAttribute('r', n2(rad)));
-    set('.rPe', r.re); set('.rCx', r.rk + 2); set('.rK', r.rk); set('.rKi', r.rk - 3.5); set('.rKo', r.rk + 3.5); set('.rP', r.rp);
+    set('.rPe', r.re); set('.rCx', r.rk); set('.rK', r.rk); set('.rKi', r.rk - 3.5); set('.rKo', r.rk + 3.5); set('.rP', r.rp);
     set('.rC', r.rc); set('.rCi', r.rc - 4.5); set('.rCo', r.rc + 4.5); set('.rX', r.rx);
-    const key = Math.round(r.rx);
-    if (key !== last){ last = key; const xr = a.el('#xRings'); if (xr) xr.innerHTML = xRings(r); }
-    /* أسهم: الكمبيوم الوعائي يكوّن للداخل والخارج، والفليني للخارج */
+    const key = Math.round(r.rx) + ':' + Math.round(r.re);
+    if (key !== last){ last = key; const tx = a.el('#secTex'); if (tx) tx.innerHTML = tex(r); }
+    /* أسهم: الكمبيوم الوعائي يكوّن للداخل (خشب) والخارج (لحاء)، والفليني للخارج (بشرة محيطة) */
     const ar = a.el('#secArr');
     if (ar){
-      const b = still ? 0 : Math.abs(Math.sin(t * 3)) * 5; let h = '';
-      if (st === 1 || st === 3) [-110, 70].forEach(d => { const q = d * Math.PI / 180; h += arrow(CX + Math.cos(q) * (r.rc - 16 - b), CY + Math.sin(q) * (r.rc - 16 - b), d - 90) + arrow(CX + Math.cos(q) * (r.rc + 16 + b), CY + Math.sin(q) * (r.rc + 16 + b), d + 90); });
-      if (st === 2 || st === 3) [150, -170].forEach(d => { const q = d * Math.PI / 180; h += arrow(CX + Math.cos(q) * (r.rk + 14 + b), CY + Math.sin(q) * (r.rk + 14 + b), d + 90); });
+      const b = still ? 0 : Math.abs(Math.sin(t * 3)) * 4; let h = '';
+      if (st === 1 || st === 3) [-110, 70].forEach(d => { const q = d * Math.PI / 180; h += arrow(CX + Math.cos(q) * (r.rc - 14 - b), CY + Math.sin(q) * (r.rc - 14 - b), d - 90) + arrow(CX + Math.cos(q) * (r.rc + 14 + b), CY + Math.sin(q) * (r.rc + 14 + b), d + 90); });
+      if (st === 2 || st === 3) [150, -170].forEach(d => { const q = d * Math.PI / 180; h += arrow(CX + Math.cos(q) * (r.rk + 10 + b), CY + Math.sin(q) * (r.rk + 10 + b), d + 90); });
       ar.innerHTML = h;
     }
-    /* خطوط الأسماء تتبع الحلقات */
-    /* البشرة المحيطة لا تظهر (ولا اسمها) قبل أن يكوّنها الكمبيوم الفليني */
+    /* البشرة المحيطة لا تظهر (ولا اسمها) قبل أن يكوّنها الكمبيوم الفليني؛ خطوط الأسماء تتبع الحلقات */
     const pg = a.el('.lblG[data-for="periEpi"]'); if (pg) pg.style.display = r.re - r.rk - 4 < 3 ? 'none' : '';
     Object.keys(ANG).forEach(id => { const [x, y] = mid(id, r), L = a.el(`.lblG[data-for="${id}"]`); if (!L) return;
       const ln = L.querySelector('.lead'), dt = L.querySelector('.lblDot'); if (ln){ ln.setAttribute('x2', n2(x)); ln.setAttribute('y2', n2(y)); } if (dt){ dt.setAttribute('cx', n2(x)); dt.setAttribute('cy', n2(y)); } });
-    const cap = a.el('#secCap'); if (cap) cap.textContent = st === 0 ? 'مقطع عرضي في ساق: المرستيمي الجانبي بموازاة السطح الخارجي' : st === 1 ? 'الكمبيوم الوعائي يكوّن الخشب الثانوي واللحاء الثانوي' : st === 2 ? 'الكمبيوم الفليني يكوّن البشرة المحيطة' : 'يزداد سمك الساق (النمو الثانوي والتثخن)';
+    const cap = a.el('#secCap'); if (cap) cap.textContent = st === 0 ? 'مقطع عرضي في ساق: المرستيمي الجانبي بموازاة السطح الخارجي' : st === 1 ? 'الكمبيوم الوعائي يكوّن الخشب الثانوي (للداخل) واللحاء الثانوي (للخارج)' : st === 2 ? 'الكمبيوم الفليني يكوّن البشرة المحيطة (للخارج)' : 'يزداد سمك الساق (النمو الثانوي والتثخن)';
   };
   const parts = [
     { id: 'secXyl', anchor: mid('secXyl', R1), label: [134, 500], side: 'L' },
@@ -7303,6 +7321,8 @@ function secModel(B){
   const vcO = B.add(dsk(r0.rc + 6, 4), { part: 'vascCamb', color: '#e39a2e', rim: 0.35, rimColor: '#ffd9a0' });
   const xylO = B.add(dsk(r0.rx - 4, 5), { part: 'secXyl', color: '#d8b878', rim: 0.5, rimColor: '#fff0c8' });
   const gr = B.add(discO(0.01, 0.01), { color: '#8a6a3a', rim: 0.2, rimColor: '#c9a86a', pop: false, center: [0, 0, 0] });
+  /* حدود داكنة بين الأنسجة على السطح العلوي حتى تنفصل الحلقات بوضوح */
+  const edO = B.add(discO(0.01, 0.01), { color: '#2a1a08', rim: 0.1, rimColor: '#5a3a18', pop: false, center: [0, 0, 0] });
   B.add(dsk(r0.pith, 7), { color: '#a9c48e', rim: 0.3, rimColor: '#e4f2d4', pop: false });
   const L = { secXyl: [0, 0, 0], vascCamb: [0, 0, 0], secPhl: [0, 0, 0], corkCamb: [0, 0, 0], periEpi: [0, 0, 0] };
   const ANG = { secXyl: 200, vascCamb: 300, secPhl: 330, corkCamb: 5, periEpi: 35 }, LV = { secXyl: 5, vascCamb: 4, secPhl: 3, corkCamb: 1, periEpi: 0 };
@@ -7315,6 +7335,8 @@ function secModel(B){
     B.update(phO, dsk(r.rp, 3)); B.update(vcO, dsk(r.rc + 6, 4)); B.update(xylO, dsk(r.rx - 4, 5));
     const rings = []; for (let q = 50; q < r.rx - 8; q += 14) rings.push(place(ringO(U(q) - 0.006, U(q) + 0.006, 0.01), { at: [0, top(6), 0] }));
     gr.hide = !rings.length; if (rings.length) B.update(gr, merge(rings));
+    B.update(edO, merge([[r.rx - 4, 5], [r.rc + 6, 4], [r.rc - 6, 5], [r.rp, 3], [r.rk + 5, 1], [r.rk - 5, 2], [Math.max(r.re, r.rk + 5.5), 0]]
+      .map(([q, lv]) => place(ringO(U(q) - 0.008, U(q) + 0.008, 0.012), { at: [0, top(lv) + 0.004, 0] }))));
     put('secXyl', (r.pith + r.rx) / 2); put('vascCamb', r.rc - 0.5); put('secPhl', (r.rc + 5 + r.rp) / 2); put('corkCamb', r.rk); put('periEpi', (r.rk + 4 + r.re) / 2);
     peO.thin = peO.hide = r.re - r.rk - 4 < 3;
   };

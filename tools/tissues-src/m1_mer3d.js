@@ -139,6 +139,8 @@ function secModel(B){
   const vcO = B.add(dsk(r0.rc + 6, 4), { part: 'vascCamb', color: '#e39a2e', rim: 0.35, rimColor: '#ffd9a0' });
   const xylO = B.add(dsk(r0.rx - 4, 5), { part: 'secXyl', color: '#d8b878', rim: 0.5, rimColor: '#fff0c8' });
   const gr = B.add(discO(0.01, 0.01), { color: '#8a6a3a', rim: 0.2, rimColor: '#c9a86a', pop: false, center: [0, 0, 0] });
+  /* حدود داكنة بين الأنسجة على السطح العلوي حتى تنفصل الحلقات بوضوح */
+  const edO = B.add(discO(0.01, 0.01), { color: '#2a1a08', rim: 0.1, rimColor: '#5a3a18', pop: false, center: [0, 0, 0] });
   B.add(dsk(r0.pith, 7), { color: '#a9c48e', rim: 0.3, rimColor: '#e4f2d4', pop: false });
   const L = { secXyl: [0, 0, 0], vascCamb: [0, 0, 0], secPhl: [0, 0, 0], corkCamb: [0, 0, 0], periEpi: [0, 0, 0] };
   const ANG = { secXyl: 200, vascCamb: 300, secPhl: 330, corkCamb: 5, periEpi: 35 }, LV = { secXyl: 5, vascCamb: 4, secPhl: 3, corkCamb: 1, periEpi: 0 };
@@ -151,6 +153,8 @@ function secModel(B){
     B.update(phO, dsk(r.rp, 3)); B.update(vcO, dsk(r.rc + 6, 4)); B.update(xylO, dsk(r.rx - 4, 5));
     const rings = []; for (let q = 50; q < r.rx - 8; q += 14) rings.push(place(ringO(U(q) - 0.006, U(q) + 0.006, 0.01), { at: [0, top(6), 0] }));
     gr.hide = !rings.length; if (rings.length) B.update(gr, merge(rings));
+    B.update(edO, merge([[r.rx - 4, 5], [r.rc + 6, 4], [r.rc - 6, 5], [r.rp, 3], [r.rk + 5, 1], [r.rk - 5, 2], [Math.max(r.re, r.rk + 5.5), 0]]
+      .map(([q, lv]) => place(ringO(U(q) - 0.008, U(q) + 0.008, 0.012), { at: [0, top(lv) + 0.004, 0] }))));
     put('secXyl', (r.pith + r.rx) / 2); put('vascCamb', r.rc - 0.5); put('secPhl', (r.rc + 5 + r.rp) / 2); put('corkCamb', r.rk); put('periEpi', (r.rk + 4 + r.re) / 2);
     peO.thin = peO.hide = r.re - r.rk - 4 < 3;
   };
