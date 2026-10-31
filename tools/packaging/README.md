@@ -18,6 +18,7 @@
 7. اسم تطبيق أندرويد: `APK_LABEL` (الافتراضي «الخلية»). الفصل الثاني للدكتور أحمد:
    `APK_PKG=com.ahmed.tissues APK_LABEL=الأنسجة python3 apkbuild.py ...` بأيقونة `icon-tissues.html`،
    والفصل الأول `APK_PKG=com.ahmed.cell`. مجلدا حفظ الـ EXE: `AlKhaliaAhmed` و`AlAnsijaAhmed`.
-8. نسخة الأستاذ عز الدين عبدالله (الفصل الثاني فقط) تُبنى من نسخة الدكتور أحمد بتبديل الاسم:
-   `python3 make_izz_ch2.py <الفصل-الثاني-الدكتور-أحمد-الحسن.html> <out.html>`، ثم
-   `APK_PKG=com.izzaldeen.tissues APK_LABEL=الأنسجة` بمفتاح توقيع خاص، ومجلد حفظ الـ EXE `AlAnsijaIzzAlDin`.
+8. الفصل الثاني للأستاذ عزالدين عبدالله النعيمي يُبنى من نسخة الدكتور أحمد بتبديل الاسم وواجهة الصورة
+   (`الأستاذ-النعيمي/poster-source.jpg`، زرّ «ابدأ المحاكاة» المرسوم عليها يعمل):
+   `python3 make_naimi_ch2.py <الفصل-الثاني-الدكتور-أحمد-الحسن.html> الأستاذ-النعيمي/poster-source.jpg <out.html>`، ثم
+   `APK_PKG=com.naimi.tissues APK_LABEL=الأنسجة` بنفس مفتاح الأستاذ النعيمي، ومجلد حفظ الـ EXE `AlAnsijaNaimi`.
