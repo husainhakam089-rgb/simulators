@@ -1022,6 +1022,22 @@
   .welSmall{flex:1;font:inherit;font-size:13.5px;font-weight:800;color:#e9dcc0;cursor:pointer;padding:9px 8px;border-radius:12px;
     background:rgba(255,255,255,.06);border:1px solid rgba(241,207,126,.45)}
   .welSmall:hover{background:rgba(255,255,255,.12)}
+  /* الحاسبة: اللوحة والكتابة تكبر ويّا ارتفاع الشاشة مثل واجهة الفصل الأول */
+  @media (min-width:760px) and (min-height:520px){
+    .welCard{width:min(92vw,calc(100vh * .74));padding:3.4vh 3vh 3vh;border-radius:2.4vh}
+    .welKicker{font-size:2.3vh}
+    .welTitle{font-size:10.2vh;margin-top:.6vh}
+    .welCh{font-size:3.1vh;margin-bottom:.8vh}
+    .welArt{width:76%;margin:1vh auto .6vh}
+    .welLine{margin:1.6vh auto 1.3vh}
+    .welBy{font-size:2.5vh}
+    .welName{margin:.6vh auto 2.4vh;gap:.5vh}
+    .welName b{font-size:5.4vh}
+    .welName span{font-size:2.3vh}
+    .welGo{font-size:3.3vh;padding:1.9vh 2vh}
+    .welRow{margin-top:1.9vh;gap:1.3vh}
+    .welSmall{font-size:1.9vh;padding:1.2vh 1vh;border-radius:1.5vh}
+  }
 
   /* ═══════════ الفصل الثاني: الأنسجة ═══════════ */
   #svgHost .dc rect{transition:fill .2s}
