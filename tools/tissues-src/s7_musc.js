@@ -1,14 +1,15 @@
 
 /* ══════════════════════════════════════════════════════════════════════════
-   4.7 · النسيج العضلي: الهيكلي (يتقلص بزر «تقلّص» لأنه إرادي)، الأملس
-         (موجة تقلص بطيئة لاإرادية)، القلبي (ينبض باستمرار)، والمقارنة
+   4.7 · النسيج العضلي — ملزمة ص72–79: العضلات الملساء (الحشوية، موجة تقلص
+         لاإرادية)، الهيكلية (الإرادية: تتقلص بزر «تقلّص»)، القلبية (تنبض)، والمقارنة
    ══════════════════════════════════════════════════════════════════════════ */
 const MUS_VIEWS = [
-  { id: 'mskel',   label: 'الهيكلي' },
-  { id: 'msmooth', label: 'الأملس' },
-  { id: 'mcard',   label: 'القلبي' },
+  { id: 'msmooth', label: 'العضلات الملساء' },
+  { id: 'mskel',   label: 'العضلات الهيكلية' },
+  { id: 'mcard',   label: 'العضلات القلبية' },
   { id: 'mcmp',    label: 'قارن' }
 ];
+const MUS_SRC = { msmooth: 'ملزمة ص73 وص75', mskel: 'ملزمة ص74–76', mcard: 'ملزمة ص74–77', mcmp: 'ملزمة ص75–77' };
 const MUS_PAL = { skel: '#c9505a', skelL: '#ffc8c8', band: '#7a2430', smooth: '#d97c84', card: '#b8434f', disc: '#3a0f18' };
 /* حالة التقلص المشتركة بين الرسم المسطّح والمجسّم: k من 0 (منبسط) إلى 1 (متقلص) */
 const MUS = { k: 0, pulse: -9 };
@@ -17,22 +18,22 @@ const heartBeat = t => { const p = (t * 1.15) % 1; return p < 0.12 ? Math.sin(p 
 
 SCENES.musc = {
   title: 'النسيج العضلي',
-  get src(){ return SRC_WAIT; },
+  get src(){ return MUS_SRC[SEL.musv] || 'ملزمة ص72'; },
   tint: ['rgba(180,70,80,.24)', 'rgba(120,80,120,.16)'],
   model3d: () => 'mus_' + SEL.musv,
   build(){
-    const v = SEL.musv || 'mskel';
+    const v = MUS_VIEWS.some(x => x.id === SEL.musv) ? SEL.musv : 'msmooth';
     const s = v === 'msmooth' ? musSmooth() : v === 'mcard' ? musCard() : v === 'mcmp' ? musCmp() : musSkel();
     s.rebuildOnRadio = 'musv';
     s.tools = MUS_VIEWS.map(x => ({ id: x.id, label: x.label, radio: 'musv', on: x.id === v })).concat(s.tools || []);
     return s;
   }
 };
-SCENES.mus_skel   = { title: 'العضلي الهيكلي (المخطط الإرادي)', build: () => musSkel() };
-SCENES.mus_smooth = { title: 'العضلي الأملس (اللاإرادي)', build: () => musSmooth() };
-SCENES.mus_card   = { title: 'العضلي القلبي', build: () => musCard() };
+SCENES.mus_smooth = { title: 'العضلات الملساء (الحشوية)', build: () => musSmooth() };
+SCENES.mus_skel   = { title: 'العضلات الهيكلية (الإرادية)', build: () => musSkel() };
+SCENES.mus_card   = { title: 'العضلات القلبية', build: () => musCard() };
 
-/* ───────── 1) الهيكلي: ألياف طويلة مخططة متعددة النوى ───────── */
+/* ───────── 2) الهيكلية: ليف أسطواني طويل مخطط متعدد الأنوية محيطية الموقع (ص74–75) ───────── */
 function musSkel(){
   const X0 = 200, X1 = 800, H = 62, rows = [150, 230, 310, 390], rr = rng(17);
   const fibers = [], stripes = [], nucs = [];
@@ -50,9 +51,11 @@ function musSkel(){
       ${part('tSkel', fibers.slice(1).join(''))}
       ${part('mStri', stripes.join(''))}
       ${part('mNuc', nucs.join(''))}
+      ${part('mMemb', `<rect x="${X0 - 2}" y="${rows[0] - 2}" width="${X1 - X0 + 4}" height="${H + 4}" rx="30" fill="none" stroke="#fff3c8" stroke-width="2.4"/>`)}
     </g>
     <g id="pullArr" opacity="0"><path d="M860,300 L920,300 M872,288 L860,300 L872,312" fill="none" stroke="#ffe08a" stroke-width="3" stroke-linecap="round"/></g>
-    <text id="skelHint" class="cap sm" x="500" y="510" text-anchor="middle">اضغط «تقلّص» — العضلة الهيكلية إرادية تتقلص عندما نريد</text>`;
+    <text class="cap" x="500" y="512" text-anchor="middle">العضلات الهيكلية: إرادية ترتبط مع العظام بواسطة أوتار، وعند تقلصها يتحرك جزء الجسم الموجودة فيه</text>
+    <text id="skelHint" class="cap sm" x="500" y="538" text-anchor="middle">اضغط «تقلّص» — تقوم العضلة بعملها تحت سيطرة الفرد ولذلك تدعى بالإرادية</text>`;
   return {
     body, fnParts: ['tSkel', 'mStri'],
     parts: [
@@ -60,9 +63,10 @@ function musSkel(){
       { id: 'mFiber', anchor: [X0 + 40, rows[0] + 10], label: [134, 120], side: 'L' },
       { id: 'mNuc', anchor: [X0 + 50, rows[1] + H - 7], label: [134, 280], side: 'L' },
       { id: 'tSkel', anchor: [X0 + 30, rows[3] + 40], label: [134, 440], side: 'L' },
-      { id: 'mStri', anchor: [X0 + 18 * 6 + 3, rows[2] + 30], label: [866, 330], side: 'R' }
+      { id: 'mStri', anchor: [X0 + 18 * 6 + 3, rows[2] + 30], label: [866, 330], side: 'R' },
+      { id: 'mMemb', anchor: [X0 + 260, rows[0] - 2], label: [866, 150], side: 'R' }
     ],
-    tools: [{ id: 'contract', label: 'تقلّص' }, { id: 'tbl:muscleCmp', label: 'مقارنة الأنواع' }],
+    tools: [{ id: 'contract', label: 'تقلّص' }, { id: 'info:tSkel', label: 'عن العضلات الهيكلية' }, { id: 'tbl:muscleCmp', label: 'مقارنة الأنواع (ص75)' }],
     onTool(id){ if (id === 'contract') MUS.pulse = tAcc; },
     tick(dt, t, a){
       if (focusOwner && t - MUS.pulse > 2.2) MUS.pulse = t;
@@ -74,30 +78,31 @@ function musSkel(){
   };
 }
 
-/* ───────── 2) الأملس: خلايا مغزلية بنواة وسطية، موجة تقلص بطيئة ───────── */
+/* ───────── 1) الملساء: ليف مغزلي مستدق النهايتين، نواة مفردة مركزية (ص73 وص75) ───────── */
 function musSmooth(){
-  const cells = [], nucs = [], CL = 230, CH = 46;
+  const cells = [], CL = 230, CH = 46;
   let k = 0;
   for (let r = 0; r < 6; r++) for (let i = -1; i < 4; i++){
     const cx = 230 + i * 200 + (r % 2 ? 100 : 0), cy = 150 + r * 56;
     if (cx < 150 || cx > 850) continue;
-    cells.push(`<g class="smc" data-x="${cx}" data-y="${cy}"><path d="M${cx - CL / 2},${cy} Q${cx},${cy - CH} ${cx + CL / 2},${cy} Q${cx},${cy + CH} ${cx - CL / 2},${cy}Z" fill="${MUS_PAL.smooth}" stroke="#ffd8dc" stroke-width="1.4"/>
-      <ellipse cx="${cx}" cy="${cy}" rx="26" ry="7" fill="url(#gNucl)"/></g>`);
+    const sp = `M${cx - CL / 2},${cy} Q${cx},${cy - CH} ${cx + CL / 2},${cy} Q${cx},${cy + CH} ${cx - CL / 2},${cy}Z`;
+    cells.push(`<g class="smc" data-x="${cx}" data-y="${cy}">${part(k ? 'tSmooth' : 'mFiber', `<path d="${sp}" fill="${MUS_PAL.smooth}" stroke="#ffd8dc" stroke-width="1.4"/>`)}
+      ${k ? '' : part('mMemb', `<path d="${sp}" fill="none" stroke="#fff3c8" stroke-width="2.6"/>`)}${part('mNuc', `<ellipse cx="${cx}" cy="${cy}" rx="26" ry="7" fill="url(#gNucl)"/>`)}</g>`);
     k++;
   }
   const body = `
-    ${part('tSmooth', `<g id="smG">${cells.slice(1).join('')}</g>`)}
-    ${part('mFiber', cells[0])}
-    <g id="nucMark">${part('mNuc', `<circle cx="${230 + 200}" cy="${150 + 2 * 56}" r="30" fill="none" stroke="#ffe08a" stroke-width="2" stroke-dasharray="4 4"/>`)}</g>
-    <text class="cap sm" x="500" y="510" text-anchor="middle">العضلة الملساء لاإرادية: تتقلص ببطء بموجة متتابعة (مثل دفع الطعام في الأمعاء)</text>`;
+    <g id="smG">${cells.join('')}</g>
+    <text class="cap" x="500" y="512" text-anchor="middle">العضلات الملساء (الحشوية): في جدران الأمعاء والمعدة والأوعية الدموية والأعضاء الداخلية المجوفة</text>
+    <text class="cap sm" x="500" y="538" text-anchor="middle">ألياف مغزلية مستدقة النهايتين سميكة من الوسط، نواة مفردة مركزية — فعل الحركة لاإرادي</text>`;
   return {
     body, fnParts: ['tSmooth'],
     parts: [
-      { id: 'mFiber', anchor: [230 - 60, 150], label: [134, 140], side: 'L' },
+      { id: 'mFiber', anchor: [230 - 40, 150], label: [134, 120], side: 'L' },
+      { id: 'mMemb', anchor: [230 + 30, 150 - 19], label: [134, 220], side: 'L' },
       { id: 'mNuc', anchor: [430 - 26, 150 + 2 * 56], label: [134, 330], side: 'L' },
       { id: 'tSmooth', anchor: [790, 400], label: [866, 420], side: 'R' }
     ],
-    tools: [{ id: 'tbl:muscleCmp', label: 'مقارنة الأنواع' }],
+    tools: [{ id: 'info:tSmooth', label: 'عن العضلات الملساء' }, { id: 'tbl:muscleCmp', label: 'مقارنة الأنواع (ص75)' }],
     tick(dt, t, a){
       const sp = focusOwner === 'tSmooth' ? 1.6 : 1;
       a.all('.smc').forEach(e => { const x = +e.dataset.x, y = +e.dataset.y, w = Math.max(0, Math.sin(t * 1.1 * sp - x * 0.012)), sx = 1 - 0.22 * w, sy = 1 + 0.3 * w;
@@ -106,7 +111,7 @@ function musSmooth(){
   };
 }
 
-/* ───────── 3) القلبي: ألياف متفرعة مخططة، نوى وسطية، أقراص بينية ───────── */
+/* ───────── 3) القلبية: ليف أسطواني يتفرع ويلتقي، مخطط، نواة مفردة مركزية، أقراص بينية (ص74–76) ───────── */
 function musCard(){
   const Y = [180, 300, 420], H = 52, X0 = 170, X1 = 830, fib = [], str = [], nuc = [], disc = [];
   Y.forEach((y, r) => {
@@ -123,24 +128,28 @@ function musCard(){
     ${part('tCard', br.join('') + fib.join(''))}
     ${part('mStri', str.join(''))}
     ${part('icDisc', disc.join(''))}
-    ${part('mNuc', nuc.join(''))}</g>
-    <text class="cap sm" x="500" y="510" text-anchor="middle">العضلة القلبية: مخططة متفرعة لاإرادية، تتقلص بانتظام وباستمرار</text>`;
+    ${part('mNuc', nuc.join(''))}
+    ${part('mMemb', `<rect x="${X0 - 1.5}" y="${Y[2] - H / 2 - 1.5}" width="${X1 - X0 + 3}" height="${H + 3}" rx="23" fill="none" stroke="#fff3c8" stroke-width="1.6"/>`)}</g>
+    <text class="cap" x="500" y="512" text-anchor="middle">العضلات القلبية: لاإرادية في جدران القلب — تقلصها يضخ الدم من القلب وتمددها يسمح بدخول الدم إليه</text>
+    <text class="cap sm" x="500" y="538" text-anchor="middle">تجمع بين الصفات المظهرية والوظيفية لليف الأملس والهيكلي؛ أليافها ترتبط عند نهاياتها بالأقراص البينية</text>`;
   return {
     body, fnParts: ['tCard', 'icDisc'],
     parts: [
       { id: 'tCard', anchor: [X1 - 20, 180], label: [866, 150], side: 'R' },
       { id: 'icDisc', anchor: [X0 + 330 + 30 + 3, 300 - 6], label: [866, 300], side: 'R' },
       { id: 'mStri', anchor: [X0 + 14 + 16 * 36 + 3, 420 + 14], label: [866, 450], side: 'R' },
-      { id: 'mNuc', anchor: [X0 + 70, 180], label: [134, 200], side: 'L' }
+      { id: 'mNuc', anchor: [X0 + 70, 180], label: [134, 200], side: 'L' },
+      { id: 'mMemb', anchor: [X0 + 40, Y[2] + H / 2], label: [134, 460], side: 'L' }
     ],
-    tools: [{ id: 'tbl:muscleCmp', label: 'مقارنة الأنواع' }],
+    tools: [{ id: 'info:tCard', label: 'عن العضلات القلبية' }, { id: 'tbl:muscleCmp', label: 'مقارنة الأنواع (ص75)' }, { id: 'tbl:muscleLike', label: 'أوجه الشبه (ص77)' }],
     tick(dt, t, a){ MUS.k = heartBeat(t); const s = 1 - 0.05 * MUS.k; const g = a.el('#cardG'); if (g) g.setAttribute('transform', `translate(500,300) scale(${n2(s)},${n2(1 + 0.04 * MUS.k)}) translate(-500,-300)`); }
   };
 }
 
 /* ───────── 4) قارن: الأنواع الثلاثة ───────── */
 function musCmp(){
-  const Y = 290, X = [220, 500, 780];
+  /* بترتيب جدول الملزمة (من اليمين): الملساء، الهيكلية، القلبية */
+  const Y = 290, X = [500, 780, 220];
   const sk = `<rect x="${X[0] - 120}" y="${Y - 34}" width="240" height="68" rx="30" fill="${MUS_PAL.skel}"/>` +
     Array.from({ length: 12 }, (_, i) => `<rect x="${X[0] - 104 + i * 18}" y="${Y - 28}" width="7" height="56" fill="${MUS_PAL.band}" opacity=".55"/>`).join('') +
     [-80, -10, 60].map((dx, i) => `<ellipse cx="${X[0] + dx}" cy="${i % 2 ? Y + 27 : Y - 27}" rx="15" ry="5" fill="url(#gNucl)"/>`).join('');
@@ -150,16 +159,16 @@ function musCmp(){
     `<path class="dHi" d="M${X[2] + 40},${Y - 28} l6,9 l-6,9 l6,9 l-6,9 l6,9 l-6,9" fill="none" stroke="${MUS_PAL.disc}" stroke-width="5"/><ellipse cx="${X[2] - 50}" cy="${Y}" rx="14" ry="8" fill="url(#gNucl)"/>`;
   const cap = (x, a, b) => `<text class="cap" x="${x}" y="${Y + 100}" text-anchor="middle">${a}</text><text class="cap sm" x="${x}" y="${Y + 126}" text-anchor="middle">${b}</text>`;
   const body = part('tSkel', sk) + part('tSmooth', sm) + part('tCard', cd) +
-    cap(X[0], 'الهيكلي', 'مخطط · متعدد النوى · إرادي') + cap(X[1], 'الأملس', 'غير مخطط · نواة وسطية · لاإرادي') + cap(X[2], 'القلبي', 'مخطط · متفرع · أقراص بينية · لاإرادي');
+    cap(X[1], 'الملساء (الحشوية)', 'مغزلي · غير مخطط · نواة مفردة مركزية · لاإرادي') + cap(X[0], 'الهيكلية (الإرادية)', 'أسطواني طويل · مخطط · أنوية متعددة محيطية · إرادي') + cap(X[2], 'القلبية', 'أسطواني متفرع · مخطط · نواة مركزية · لاإرادي');
   let opened = false;
   return {
     body, fnParts: [],
     parts: [
-      { id: 'tSkel', anchor: [X[0] - 100, Y - 30], label: [134, 140], side: 'L' },
-      { id: 'tSmooth', anchor: [X[1], Y - 36], label: [500, 140], side: 'C' },
-      { id: 'tCard', anchor: [X[2] + 100, Y - 26], label: [866, 140], side: 'R' }
+      { id: 'tSmooth', anchor: [X[1] + 100, Y - 16], label: [866, 140], side: 'R' },
+      { id: 'tSkel', anchor: [X[0], Y - 34], label: [500, 140], side: 'C' },
+      { id: 'tCard', anchor: [X[2] - 100, Y - 26], label: [134, 140], side: 'L' }
     ],
-    tools: [{ id: 'tbl:muscleCmp', label: 'جدول الفروقات' }],
+    tools: [{ id: 'tbl:muscleCmp', label: 'جدول الفروقات (ص75)' }, { id: 'tbl:muscleLike', label: 'أوجه الشبه (ص77)' }, { id: 'info:tMuscle', label: 'عن النسيج العضلي' }],
     init(){ if (!opened){ opened = true; setTimeout(() => { if (curKey === 'musc' && SEL.musv === 'mcmp' && !(window.__v3 && window.__v3.active())) openSheet(TABLES.muscleCmp); }, 700); } },
     tick(dt, t, a){ a.all('.dHi').forEach(e => e.style.filter = `drop-shadow(0 0 ${n2(3 + 5 * (0.5 + 0.5 * Math.sin(t * 2.4)))}px #ffd166)`); }
   };

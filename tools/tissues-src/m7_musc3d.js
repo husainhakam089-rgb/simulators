@@ -34,7 +34,7 @@ function skelModel(B){
   B.label('tSkel', [X0 + L - 0.2, F[2][0], F[2][1] + 0.3], [0.5, 0, 1]);
   B.label('mStri', [X0 + 3.2, F[3][0], F[3][1] + 0.3], [0, 0.4, 1]);
   B.label('mNuc', [X0 + 1.3, F[1][0] + 0.29, F[1][1]], [0, 1, 0.3]);
-  B.caption([0, -1.4, 1], () => ['', MUS.k > 0.05 ? 'الليف يقصر ويثخن عند التقلص' : 'اضغط «تقلّص»: العضلة الهيكلية إرادية']);
+  B.caption([0, -1.4, 1], () => ['', MUS.k > 0.05 ? 'الليف يقصر ويثخن عند التقلص' : 'اضغط «تقلّص»: تعمل تحت سيطرة الفرد ولذلك تدعى بالإرادية']);
   return {
     dist: 8.2, yaw: 0.35, pitch: 0.3, live2d: true, tools: ['contract'],
     xf: () => { const k = MUS.k, sx = 1 - 0.18 * k, sy = 1 + 0.12 * k; return [sx, 0, 0, 0, 0, sy, 0, 0, 0, 0, sy, 0, X0 * (1 - sx), 0, 0, 1]; }
@@ -56,7 +56,7 @@ function smoothModel(B){
   B.label('mFiber', add(C[0], [-0.6, 0, 0.2]), [0, 0, 1]);
   B.label('mNuc', add(C[6], [0, 0, 0.25]), [0, 0, 1]);
   B.label('tSmooth', [2.4, 0.9, 0.5], [0, 0, 1]);
-  B.caption([0, -1.9, 0.8], () => ['', 'لاإرادية: موجة تقلص بطيئة متتابعة']);
+  B.caption([0, -1.9, 0.8], () => ['', 'جدران الأمعاء والمعدة والأوعية الدموية — فعل الحركة لاإرادي']);
   let last = -1;
   return {
     dist: 8, yaw: 0.25, pitch: 0.25, live2d: true,
@@ -81,7 +81,7 @@ function cardModel(B){
   B.label('tCard', rot([1.2, 2.3, 0.25]), [0, 0, 1]);
   B.label('icDisc', rot([0, 0.2, R]), [0, 0, 1]);
   B.label('mNuc', rot([-1.2, -1.9, R]), [0, 0, 1]);
-  B.caption([0, -2.0, 0.8], () => ['', 'لاإرادية: تنبض بانتظام وباستمرار']);
+  B.caption([0, -2.0, 0.8], () => ['', 'جدران القلب: تقلصها يضخ الدم وتمددها يسمح بدخوله — لاإرادية']);
   return {
     dist: 8.2, yaw: 0.25, pitch: 0.3, live2d: true,
     xf: () => { const s = 1 - 0.05 * MUS.k, y = 1 + 0.04 * MUS.k; return [s, 0, 0, 0, 0, y, 0, 0, 0, 0, y, 0, 0, 0, 0, 1]; }
@@ -90,7 +90,7 @@ function cardModel(B){
 
 /* ═════ 4) قارن ═════ */
 function cmpModel(B){
-  const X = [-3.0, 0, 3.0];
+  const X = [0, 3.0, -3.0];   /* بترتيب جدول الملزمة من اليمين: الملساء، الهيكلية، القلبية */
   B.add(merge([0.25, -0.35].map(y => place(capsule({ r: 0.26, len: 2.0, rows: 6, cols: 18 }), { rot: toX, at: [X[0], y, 0] }))), { part: 'tSkel', color: SKEL, rim: 0.6, rimColor: '#ffc8c8', pat: 1, patColor: BAND, patK: 26 });
   B.add(merge([-0.6, 0, 0.6].map((x, i) => place(ellipsoid({ r: [0.14, 0.045, 0.06], rows: 5, cols: 8 }), { at: [X[0] + x, i % 2 ? 0.5 : -0.1, 0.12] }))), { part: 'tSkel', color: NUC, rim: 0.5, rimColor: '#d8d0ff' });
   B.add(place(spindle(0.32, 2.4), { rot: toX, at: [X[1], 0, 0] }), { part: 'tSmooth', color: '#d97c84', alpha: 0.85, rim: 0.7, rimColor: '#ffd8dc' });
@@ -100,9 +100,9 @@ function cmpModel(B){
   B.label('tSkel', [X[0], 0.55, 0.2], [0, 1, 0.4]);
   B.label('tSmooth', [X[1], 0.35, 0.2], [0, 1, 0.4]);
   B.label('tCard', [X[2] - 0.6, -0.8, 0.2], [0, 1, 0.4]);
-  B.caption([X[0], -1.1, 0.5], () => ['الهيكلي', 'مخطط · متعدد النوى · إرادي']);
-  B.caption([X[1], -1.1, 0.5], () => ['الأملس', 'غير مخطط · نواة وسطية · لاإرادي']);
-  B.caption([X[2], -1.1, 0.5], () => ['القلبي', 'مخطط · متفرع · أقراص بينية']);
+  B.caption([X[0], -1.1, 0.5], () => ['الهيكلية (الإرادية)', 'مخطط · أنوية متعددة محيطية · إرادي']);
+  B.caption([X[1], -1.1, 0.5], () => ['الملساء (الحشوية)', 'غير مخطط · نواة مفردة مركزية · لاإرادي']);
+  B.caption([X[2], -1.1, 0.5], () => ['القلبية', 'مخطط · متفرع · أقراص بينية · لاإرادي']);
   return { dist: 9.4, yaw: 0.1, pitch: 0.3, live2d: true, compactK: 1.25, anim(t){ disc.rim = 0.6 + 0.9 * (0.5 + 0.5 * Math.sin(t * 2.4)); } };
 }
 

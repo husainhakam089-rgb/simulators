@@ -1,11 +1,11 @@
 
 /* ══════════════════════════════════════════════════════════════════════════
-   9.8 · مجسّمات النسيج العصبي: عصبون كامل يسري فيه السيال بالمراحل، محور
-         مغلف بالمايلين يقفز فيه السيال بين عقد رانفير، ونسيج من عصبونات وخلايا ساندة
+   9.8 · مجسّمات النسيج العصبي (ملزمة ص80–85): العصبونة بأجزائها والحوافز
+         بالمراحل، أنواع الخلايا العصبية حسب عدد البروزات، والخلايا الدبقية
    ══════════════════════════════════════════════════════════════════════════ */
 (function(){
 const { add, ellipsoid, capsule, tube, place, merge, spline, srng } = G3;
-const CELL = '#e3b86a', CELL_R = '#fff0c8', MY = '#eef2f7', NODE = '#ffd166', IMP = '#7ff0ff', NUC = '#7565c2', GLIA = '#9bc88a';
+const CELL = '#9fb0ea', CELL_R = '#e6ecff', MY = '#f0c0c8', NODE = '#c87a8a', IMP = '#7ff0ff', NUC = '#7565c2', GLIA = '#9bc88a';
 const toX = [0, 0, Math.PI / 2];
 const blob = (r, seed, amt) => { const q = srng(seed), a = [q() * 6, q() * 6, q() * 6];
   return d => 1 + amt * (Math.sin(d[0] * 3 + a[0]) * Math.sin(d[1] * 2.6 + a[1]) + 0.6 * Math.sin(d[2] * 3.4 + a[2])); };
@@ -27,11 +27,15 @@ function dendrites(at, dirs, seed, R){
   return { m: merge(out), tips };
 }
 
-/* ═════ 1) العصبون ومسار السيال (المراحل) ═════ */
+/* ═════ 1) العصبونة: جسم الخلية (نواة ونوية وحبيبات نسل)، التشجرات، المحور والغلاف النخاعيني ═════ */
 function neuronModel(B){
   const S = [-1.6, 0, 0], AX0 = -1.05, AX1 = 2.6, R = 0.55;
   B.add(place(ellipsoid({ r: [R, R * 0.9, R * 0.85], rows: 14, cols: 20, disp: blob(R, 3, 0.08) }), { at: S }), { part: 'soma', color: CELL, alpha: 0.6, rim: 0.7, rimColor: CELL_R, shell: { size: R, inner: 'nNuc' } });
   B.add(place(ellipsoid({ r: 0.22, rows: 10, cols: 14 }), { at: S }), { part: 'nNuc', color: NUC, rim: 0.6, rimColor: '#d8d0ff' });
+  B.add(place(ellipsoid({ r: 0.07, rows: 6, cols: 8 }), { at: add(S, [0.07, 0.07, 0.17]) }), { part: 'nNuc', color: '#2a1f60', rim: 0.6, rimColor: '#ffffff' });
+  /* حبيبات نسل في سايتوبلازم جسم الخلية */
+  const nq = srng(11), NI = Array.from({ length: 14 }, () => { const a = nq() * 6.28, b = 0.5 + nq() * 2.1; return add(S, [Math.cos(a) * Math.sin(b) * R * 0.9, Math.cos(b) * R * 0.8, Math.abs(Math.sin(a) * Math.sin(b)) * R * 0.85 + 0.03]); });
+  B.add(merge(NI.map(p => place(ellipsoid({ r: [0.06, 0.035, 0.03], rows: 5, cols: 6 }), { at: p, rot: [0, 0, p[0] * 3] }))), { part: 'nissl', color: '#2a3a8a', rim: 0.6, rimColor: '#c8d0ff' });
   const D = dendrites(S, [[-1, 0.55, 0], [-1, -0.1, 0.35], [-0.75, -0.75, -0.2], [-0.2, 1, 0.15], [-0.15, -1, 0.1]].map(v => { const l = Math.hypot(...v); return v.map(x => x / l); }), 5, R);
   B.add(D.m, { part: 'dendr', color: CELL, rim: 0.6, rimColor: CELL_R });
   /* المحور + غمد المايلين بقطع منفصلة تفصل بينها عقد رانفير */
@@ -44,96 +48,89 @@ function neuronModel(B){
   NX.pop();
   NX.forEach(x => nodes.push(place(tube({ pts: [[x - 0.04, 0, 0], [x + 0.04, 0, 0]], r: 0.11, sides: 12 }), {})));
   B.add(merge(my), { part: 'myelin', color: MY, alpha: 0.9, rim: 0.6, rimColor: '#9fb3c8' });
-  const nodeO = B.add(merge(nodes), { part: 'ranvier', color: NODE, rim: 0.7, rimColor: '#fff3c0' });
-  /* النهايات العصبية: تفرعات تنتهي بانتفاخات */
+  const nodeO = B.add(merge(nodes), { color: NODE, rim: 0.7, rimColor: '#ffd8e0' });
+  /* تفرعات نهاية المحور */
   const ends = [[3.35, 0.55, 0.15], [3.5, 0.1, -0.2], [3.45, -0.35, 0.25], [3.25, -0.7, -0.1]];
   B.add(merge(ends.map(e => tube({ pts: spline([[AX1 - 0.05, 0, 0], [AX1 + 0.35, e[1] * 0.5, e[2] * 0.5], e], 4), r: 0.05, sides: 6 }))
-    .concat(ends.map(e => place(ellipsoid({ r: 0.11, rows: 7, cols: 10 }), { at: e })))), { part: 'axTerm', color: CELL, rim: 0.7, rimColor: CELL_R });
+    ), { part: 'axon', color: CELL, rim: 0.7, rimColor: CELL_R });
   const tip = D.tips[0], path0 = [tip, add(S, [-R * 2.6 * 0.86, R * 2.6 * 0.48, 0]), add(S, [-R * 0.8 * 0.86, R * 0.8 * 0.48, 0]), S];
-  const hop = k => { const pts = [AX0].concat(NX, [AX1]), n = pts.length - 1, f = k * n, i = Math.min(n - 1, Math.floor(f)), r = f - i, e = r < 0.75 ? 0 : (r - 0.75) / 0.25;
-    return [pts[i] + (pts[i + 1] - pts[i]) * e, 0, 0]; };
-  const posAt = (st, k) => st === 0 ? along(path0, k) : st === 1 ? along([S, [AX0, 0, 0]], k) : st === 2 ? hop(k) : along([[AX1, 0, 0], [AX1 + 0.35, 0.05, 0], ends[1]], k);
+  const posAt = (st, k) => st === 0 ? along(path0, k) : st === 1 ? along([S, [AX0, 0, 0]], k) : along([[AX0, 0, 0], [AX1, 0, 0], [AX1 + 0.35, 0.05, 0], ends[1]], k);
   const imp = B.add(place(ellipsoid({ r: 0.13, rows: 7, cols: 10 }), { at: tip }), { color: IMP, rim: 1.2, rimColor: '#ffffff', pop: false, center: [0, 0, 0] });
   B.label('dendr', D.tips[1], [0, 1, 0.3]);
   B.label('soma', add(S, [0, -R * 0.9, 0.2]), [0, -1, 0.4]);
   B.label('nNuc', add(S, [0, 0.1, 0.22]), [0, 0, 1]);
   B.label('axon', [AX1 - 0.1, 0.09, 0], [0, 1, 0.3]);
   B.label('myelin', [AX0 + 0.05 + segL * 2.5 + gap * 2, 0.2, 0], [0, 1, 0.2]);
-  B.label('ranvier', [NX[1], -0.11, 0], [0, -1, 0.3]);
-  B.label('axTerm', ends[0], [0.3, 1, 0.3]);
-  B.caption([0.4, -1.5, 0.6], () => { const s = NRV_STAGES[STG.idx]; return s ? ['المرحلة ' + (STG.idx + 1) + ': ' + s.n] : []; });
+  B.label('nissl', NI.sort((p, q) => q[2] - p[2])[0], [0.3, -1, 0.5]);
+  B.caption([0.4, -1.5, 0.6], () => { const s = NRV_STAGES[STG.idx]; return s ? [s.n] : []; });
   let last = -1;
   return {
     dist: 8.2, yaw: 0.1, pitch: 0.3, live2d: true, noSpin: true, maxDist: 14,
     camGoal: () => NRV_STAGES[STG.idx] && NRV_STAGES[STG.idx].cam,
     anim(t){
-      nodeO.rim = STG.idx === 2 ? 0.7 + 0.8 * (0.5 + 0.5 * Math.sin(t * 6)) : 0.7;
       if (t - last < 0.03) return; last = t;
       B.update(imp, place(ellipsoid({ r: 0.13 * (1 + 0.2 * Math.sin(t * 12)), rows: 7, cols: 10 }), { at: posAt(STG.idx, STG.k) }));
     }
   };
 }
 
-/* ═════ 2) المحور وغمد المايلين (مقطع مكبّر، السيال يقفز) ═════ */
-function axonModel(B){
-  const X0 = -3.4, X1 = 3.4, segL = 1.5, gap = 0.36, NX = [], my = [], wraps = [];
-  B.add(tube({ pts: [[X0 - 0.2, 0, 0], [X1 + 0.2, 0, 0]], r: 0.24, sides: 18 }), { part: 'axon', color: CELL, rim: 0.6, rimColor: CELL_R });
-  for (let x = X0; x + segL <= X1 + 0.01; x += segL + gap){
-    my.push(place(capsule({ r: 0.62, len: segL - 1.0, rows: 8, cols: 24 }), { rot: toX, at: [x + segL / 2, 0, 0] }));
-    for (let k = 1; k < 6; k++) wraps.push(tube({ pts: Array.from({ length: 25 }, (_, j) => { const a = j / 24 * 6.2832; return [x + 0.2 + k * (segL - 0.4) / 6, Math.cos(a) * 0.625, Math.sin(a) * 0.625]; }), r: 0.012, sides: 4, closed: true }));
-    if (x + segL + gap <= X1 + 0.01) NX.push(x + segL + gap / 2);
-  }
-  B.add(merge(my), { part: 'myelin', color: MY, alpha: 0.78, rim: 0.7, rimColor: '#9fb3c8', pat: 1, patColor: '#c8d6e6', patK: 30 });
-  B.add(merge(wraps), { part: 'myelin', color: '#9fb3c8', pop: false });
-  const nodeO = B.add(merge(NX.map(x => tube({ pts: [[x - gap / 2 + 0.03, 0, 0], [x + gap / 2 - 0.03, 0, 0]], r: 0.27, sides: 18 }))), { part: 'ranvier', color: NODE, rim: 0.7, rimColor: '#fff3c0' });
-  const imp = B.add(place(ellipsoid({ r: 0.3, rows: 8, cols: 12 }), { at: [X0, 0, 0] }), { color: IMP, rim: 1.2, rimColor: '#ffffff', pop: false, center: [0, 0, 0] });
-  B.label('myelin', [X0 + segL / 2, 0.62, 0], [0, 1, 0.3]);
-  B.label('ranvier', [NX[1], 0.27, 0], [0, 1, 0.3]);
-  B.label('axon', [X1 + 0.1, 0.24, 0], [0.4, 1, 0.3]);
-  B.caption([0, -1.3, 0.6], () => ['', 'السيال يقفز من عقدة رانفير إلى أخرى فينتقل بسرعة']);
-  let last = -1;
-  return {
-    dist: 8.4, yaw: 0.35, pitch: 0.3, live2d: true,
-    anim(t){
-      const pts = [X0].concat(NX, [X1]), n = pts.length - 1, f = ((t * 0.5 * (focusOwner ? 0.6 : 1)) % 1) * n, i = Math.min(n - 1, Math.floor(f)), r = f - i, e = r < 0.7 ? 0 : (r - 0.7) / 0.3;
-      nodeO.rim = 0.7 + 0.8 * (r < 0.7 ? 1 - r / 0.7 : 0);
-      if (t - last < 0.03) return; last = t;
-      B.update(imp, place(ellipsoid({ r: 0.3 * (1 + 0.25 * Math.sin(t * 14)), rows: 8, cols: 12 }), { at: [pts[i] + (pts[i + 1] - pts[i]) * e, 0, 0] }));
-    }
-  };
+/* عصبونة صغيرة: نوعها type، حول at، بمقياس k */
+function miniNeuron(type, at, k, seed){
+  const out = [], my = [], q = srng(seed), R0 = 0.32 * k, L = 2.0 * k, a = add(at, [R0, 0, 0]);
+  const tw = (p, dir) => { const e = add(p, [dir * 0.35 * k, 0, 0]); out.push(tube({ pts: [p, e], r: 0.03 * k, sides: 5 }));
+    [-1, 1].forEach(s => out.push(tube({ pts: [e, add(e, [dir * 0.22 * k, s * 0.2 * k, (q() - 0.5) * 0.1])], r: 0.02 * k, sides: 4 }))); };
+  const myel = (x0, x1, y) => { for (let x = x0 + 0.06; x + 0.3 * k <= x1; x += 0.36 * k) my.push(place(capsule({ r: 0.07 * k, len: 0.14 * k, rows: 4, cols: 10 }), { rot: toX, at: [x + 0.15 * k, y, at[2]] })); };
+  let soma;
+  if (type === 'multi'){ soma = place(ellipsoid({ r: R0 * 1.15, rows: 10, cols: 14, disp: blob(R0, seed, 0.12) }), { at });
+    out.push(dendrites(at, [[-1, 0.5, 0], [-1, -0.4, 0.3], [-0.3, 1, 0], [-0.3, -1, 0.1], [0.3, 1, -0.2]].map(v => { const l = Math.hypot(...v); return v.map(x => x / l); }), seed, R0).m);
+    out.push(tube({ pts: [a, add(a, [L, 0, 0])], r: 0.045 * k, sides: 8 })); tw(add(a, [L, 0, 0]), 1); myel(a[0], a[0] + L, at[1]); }
+  else if (type === 'bi'){ soma = place(ellipsoid({ r: [R0 * 1.3, R0 * 0.75, R0 * 0.75], rows: 10, cols: 14 }), { at });
+    const d0 = add(at, [-R0 * 1.25, 0, 0]), d1 = add(at, [-R0 * 1.25 - 0.9 * k, 0, 0]); out.push(tube({ pts: [d0, d1], r: 0.04 * k, sides: 8 })); tw(d1, -1);
+    const a0 = add(at, [R0 * 1.25, 0, 0]); out.push(tube({ pts: [a0, add(a0, [L, 0, 0])], r: 0.04 * k, sides: 8 })); tw(add(a0, [L, 0, 0]), 1); }
+  else if (type === 'pseudo'){ const b = add(at, [0, 0.55 * k, 0]); soma = place(ellipsoid({ r: R0, rows: 10, cols: 14 }), { at: b });
+    out.push(tube({ pts: [add(b, [0, -R0, 0]), at], r: 0.04 * k, sides: 8 }));
+    const d1 = add(at, [-1.1 * k, 0, 0]), a1 = add(at, [L * 0.9, 0, 0]); out.push(tube({ pts: [d1, a1], r: 0.04 * k, sides: 8 })); tw(d1, -1); tw(a1, 1);
+    myel(d1[0], at[0] - 0.05, at[1]); myel(at[0] + 0.05, a1[0], at[1]); }
+  else { soma = place(ellipsoid({ r: [R0, R0 * 0.9, R0 * 0.9], rows: 10, cols: 14 }), { at });
+    out.push(tube({ pts: [a, add(a, [L * 0.8, 0, 0])], r: 0.04 * k, sides: 8 })); tw(add(a, [L * 0.8, 0, 0]), 1); }
+  return { body: merge(out.concat([soma])), my: my.length ? merge(my) : null, somaAt: type === 'pseudo' ? add(at, [0, 0.55 * k, 0]) : at };
 }
 
-/* ═════ 3) النسيج العصبي: عصبونات متصلة وخلايا ساندة ═════ */
-function tissueModel(B){
-  const q = srng(17), N = [[-3.0, 0.9, 0], [-0.9, -0.8, 0.4], [1.2, 0.8, -0.3], [3.0, -0.6, 0.2]], body = [], paths = [];
-  N.forEach((p, i) => {
-    body.push(place(ellipsoid({ r: 0.36, rows: 10, cols: 14, disp: blob(0.36, 9 + i, 0.1) }), { at: p }));
-    body.push(dendrites(p, [[-1, 0.4, 0], [-1, -0.4, 0.3], [-0.3, 1, -0.2], [-0.3, -1, 0.2]].map(v => { const l = Math.hypot(...v); return v.map(x => x / l); }), 20 + i, 0.32).m);
-    if (i < N.length - 1){ const nx = N[i + 1], e = add(nx, [-0.75, (p[1] > nx[1] ? 0.25 : -0.25), 0]), mid = [(p[0] + e[0]) / 2, (p[1] + e[1]) / 2 + (i % 2 ? -0.5 : 0.5), (p[2] + e[2]) / 2];
-      const P = spline([add(p, [0.3, 0, 0]), mid, e], 8); body.push(tube({ pts: P, r: 0.06, sides: 8 }));
-      [-0.12, 0, 0.12].forEach(o => body.push(place(ellipsoid({ r: 0.08, rows: 6, cols: 8 }), { at: add(e, [0.06, o, o * 0.5]) })));
-      paths.push(P.concat([add(nx, [-0.3, 0, 0])])); }
-  });
-  B.add(merge(body), { part: 'neuron', color: CELL, rim: 0.7, rimColor: CELL_R });
-  B.add(merge(N.map(p => place(ellipsoid({ r: 0.13, rows: 8, cols: 10 }), { at: add(p, [0, 0, 0.26]) }))), { part: 'neuron', color: NUC, rim: 0.5, rimColor: '#d8d0ff', pop: false });
+/* ═════ 2) أنواع الخلايا العصبية تبعاً لعدد البروزات (ص83–84) ═════ */
+function typesModel(B){
+  const T = [['multi', 'nMulti', [-2.6, 0.9, 0], 'متعددة الأقطاب'], ['bi', 'nBi', [1.0, 0.9, 0], 'ثنائية القطب'], ['pseudo', 'nPseudo', [-1.6, -1.3, 0], 'أحادية القطب كاذبة'], ['uni', 'nUni', [1.0, -1.1, 0], 'أحادية القطب']];
+  T.forEach(([ty, id, at, name], i) => { const n = miniNeuron(ty, at, 1, 30 + i);
+    B.add(n.body, { part: id, color: CELL, rim: 0.7, rimColor: CELL_R });
+    if (n.my) B.add(n.my, { part: id, color: MY, rim: 0.6, rimColor: NODE });
+    B.add(place(ellipsoid({ r: 0.12, rows: 8, cols: 10 }), { at: add(n.somaAt, [0, 0, 0.25]) }), { part: id, color: NUC, rim: 0.5, rimColor: '#d8d0ff' });
+    B.label(id, add(n.somaAt, [0, 0.33, 0]), [0, 1, 0.4]);
+    B.caption(add(at, [0.6, -0.55, 0.3]), () => [name]); });
+  return { dist: 9.4, yaw: 0.1, pitch: 0.2, live2d: true, compactK: 1.2 };
+}
+
+/* ═════ 3) الخلايا الدبقية: الدعم والإسناد وابتلاع البكتريا والفتات الخلوي ═════ */
+function gliaModel(B){
+  const q = srng(17), N = [[-1.9, 0.6, 0], [1.0, -0.7, 0.2]];
+  N.forEach((p, i) => { const n = miniNeuron('multi', p, 1, 50 + i); B.add(n.body, { part: 'neuron', color: CELL, rim: 0.7, rimColor: CELL_R }); if (n.my) B.add(n.my, { part: 'neuron', color: MY, rim: 0.6, rimColor: NODE });
+    B.add(place(ellipsoid({ r: 0.13, rows: 8, cols: 10 }), { at: add(p, [0, 0, 0.3]) }), { part: 'neuron', color: NUC, rim: 0.5, rimColor: '#d8d0ff', pop: false }); });
   const gl = [];
-  for (let i = 0; i < 40 && gl.length < 18; i++){ const p = [-3.6 + q() * 7.2, -1.6 + q() * 3.2, -0.8 + q() * 1.6];
-    if (N.some(n => Math.hypot(p[0] - n[0], p[1] - n[1]) < 0.9)) continue; gl.push(p); }
-  B.add(merge(gl.map((p, i) => place(ellipsoid({ r: 0.11 + q() * 0.05, rows: 8, cols: 10, disp: blob(0.2, 40 + i, 0.12) }), { at: p }))), { part: 'glia', color: GLIA, rim: 0.6, rimColor: '#e6ffd8' });
-  B.add(place(ellipsoid({ r: [4.3, 2.2, 1.3], rows: 14, cols: 24 }), {}), { part: 'tNerve', color: '#5a4e8a', alpha: 0.12, rim: 0.4, rimColor: '#b8a8ff', shell: { size: 4.3 }, pop: false });
-  const imp = B.add(place(ellipsoid({ r: 0.12, rows: 6, cols: 8 }), { at: N[0] }), { color: IMP, rim: 1.2, rimColor: '#ffffff', pop: false, center: [0, 0, 0] });
-  B.label('neuron', add(N[2], [0, 0.36, 0]), [0, 1, 0.3]);
+  for (let i = 0; i < 200 && gl.length < 34; i++){ const p = [-3.8 + q() * 7.6, -1.8 + q() * 3.6, -0.9 + q() * 1.8];
+    if (N.some(n => Math.abs(p[1] - n[1]) < 0.45 && p[0] > n[0] - 1.2 && p[0] < n[0] + 2.6) || gl.some(g => Math.hypot(p[0] - g[0], p[1] - g[1], p[2] - g[2]) < 0.45)) continue; gl.push(p); }
+  const gm = gl.map((p, i) => merge([place(ellipsoid({ r: 0.12 + q() * 0.04, rows: 8, cols: 10, disp: blob(0.2, 40 + i, 0.12) }), { at: p })].concat([0, 1, 2].map(k => { const a = q() * 6.28; return tube({ pts: [p, add(p, [Math.cos(a) * 0.3, Math.sin(a) * 0.3, (q() - 0.5) * 0.2])], r: 0.025, sides: 4 }); }))));
+  B.add(merge(gm), { part: 'glia', color: GLIA, rim: 0.6, rimColor: '#e6ffd8' });
+  B.add(place(ellipsoid({ r: [4.3, 2.3, 1.3], rows: 14, cols: 24 }), {}), { part: 'tNerve', color: '#5a4e8a', alpha: 0.12, rim: 0.4, rimColor: '#b8a8ff', shell: { size: 4.3 }, pop: false });
+  const tg = gl.filter(p => p[2] > 0).slice(0, 5);
+  const db = t => merge(tg.map((g, i) => { const p = (t * 0.18 + i / 5) % 1; return place(ellipsoid({ r: [0.09, 0.05, 0.05], rows: 5, cols: 8 }), { at: add(g, [0.6 * (1 - p), 0.45 * (1 - p), 0.1]), s: p < 0.85 ? 1 : Math.max(0.01, (1 - p) / 0.15) }); }));
+  const dO = B.add(db(0), { part: 'debris', color: '#c87a3a', rim: 0.6, rimColor: '#ffd8a8', pop: false, center: [0, 0, 0] });
+  const dl = add(tg[0], [0.6, 0.45, 0.1]);
+  B.label('neuron', add(N[1], [0, 0.4, 0]), [0, 1, 0.3]);
   B.label('glia', gl[0], [0, 1, 0.3]);
-  B.label('tNerve', [-3.6, -1.6, 0.4], [0, -1, 0.3]);
-  B.caption([0, -2.0, 0.6], () => ['', 'ينتقل السيال من نهايات عصبون إلى زوائد العصبون التالي']);
-  let last = -1;
-  return {
-    dist: 9.4, yaw: 0.2, pitch: 0.3, live2d: true, compactK: 1.2,
-    anim(t){ if (t - last < 0.03) return; last = t;
-      const n = paths.length, f = (t * 0.25) % 1 * n, i = Math.floor(f);
-      B.update(imp, place(ellipsoid({ r: 0.12, rows: 6, cols: 8 }), { at: along(paths[i], f - i) })); }
-  };
+  B.label('debris', dl, [0.4, 1, 0.3]);
+  B.label('tNerve', [-3.6, -1.7, 0.4], [0, -1, 0.3]);
+  B.caption([0, -2.1, 0.6], () => ['', 'خلية عصبية واحدة لكل 50 خلية دبقية — الدعم والإسناد وابتلاع البكتريا والفتات الخلوي']);
+  return { dist: 9.6, yaw: 0.2, pitch: 0.3, live2d: true, compactK: 1.2,
+    anim(t){ B.update(dO, db(t)); const p = (t * 0.18) % 1; dl[0] = tg[0][0] + 0.6 * (1 - p); dl[1] = tg[0][1] + 0.45 * (1 - p); } };
 }
 
-Object.assign(G3.models, { nrv_nneuron: neuronModel, nrv_naxon: axonModel, nrv_ntissue: tissueModel });
+Object.assign(G3.models, { nrv_nneuron: neuronModel, nrv_ntypes: typesModel, nrv_nglia: gliaModel });
 })();

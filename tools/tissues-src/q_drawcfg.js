@@ -7,16 +7,16 @@ const DRAW_ORDER = {
   mer_loc:  ['apicalShoot', 'apicalRoot', 'intercal', 'corkCamb', 'vascCamb'],
   /* خطوات رسم نسيج اللحاء كما في الملزمة ص16–17: (1) الأنبوب المنخلي (2) الصفائح المنخلية (3) الخلايا المرافقة (4) التأشير */
   vas_phl:  ['pSieve', 'pPlate', 'pComp'],
-  con_loose: ['matrixC', 'colFib', 'elaFib', 'fibro'],
-  con_cart:  ['cartHy', 'cartEl', 'cartFi', 'lacuna', 'chondro'],
-  con_bone:  ['lamella', 'havers', 'lacuna', 'osteo', 'canalic'],
-  con_blood: ['plasma', 'rbc', 'wbc', 'platelet'],
-  mus_skel:   ['mFiber', 'tSkel', 'mStri', 'mNuc'],
-  mus_smooth: ['mFiber', 'tSmooth', 'mNuc'],
-  mus_card:   ['tCard', 'mStri', 'icDisc', 'mNuc'],
-  nrv_neuron: ['soma', 'nNuc', 'dendr', 'axon', 'myelin', 'ranvier', 'axTerm'],
-  nrv_axon:   ['axon', 'myelin', 'ranvier'],
-  nrv_tissue: ['tNerve', 'neuron', 'glia']
+  /* النسيج المخاطاني (ص57: ارسم مع التأشير): الدائرة ثم الشرايين ثم الأرومات الليفية */
+  con_muc:   ['tMucous', 'artery', 'fibro'],
+  /* العضلات (ص79: ارسم الملساء والهيكلية والقلبية) */
+  mus_smooth: ['mFiber', 'tSmooth', 'mNuc', 'mMemb'],
+  mus_skel:   ['mFiber', 'tSkel', 'mStri', 'mNuc', 'mMemb'],
+  mus_card:   ['tCard', 'mStri', 'icDisc', 'mNuc', 'mMemb'],
+  /* الخلايا العصبية كما في رسم الملزمة ص84 */
+  nrv_neuron: ['soma', 'nNuc', 'nissl', 'dendr', 'axon', 'myelin'],
+  nrv_bi:     ['soma', 'dendr', 'axon'],
+  nrv_pseudo: ['soma', 'dendr', 'axon', 'myelin']
 };
 /* كيف يُرسم كل جزء (وصف الشكل فقط؛ الموقع من الرسم نفسه) */
 const DRAW_SHAPE = {
@@ -48,14 +48,15 @@ const DRAW_SHAPE = {
   tPse: 'خلايا مختلفة الأطوال كلها تلامس الخط القاعدي', cilia: 'شعيرات قصيرة على سطح الخلايا الطويلة',
   tSqStr: 'عدة صفوف: القاعدية مربعة والسطحية مسطحة',
   matrixC: 'مستطيلاً كبيراً (المادة بين الخلوية)', colFib: 'أشرطة سميكة متموجة', elaFib: 'خطوطاً رفيعة متفرعة',
-  fibro: 'خلايا مغزلية بنوى', cartHy: 'دائرة بمادة متجانسة', cartEl: 'دائرة فيها خطوط رفيعة متشابكة', cartFi: 'دائرة فيها حزم ألياف متوازية',
+  fibro: 'أرومات ليفية نجمية صغيرة (نقاط مثلثة) تملأ الدائرة', tMucous: 'دائرة كبيرة (مقطع في الحبل السري)',
+  artery: 'دائرتين بجدار سميك وشكلاً بيضوياً متطاولاً داخل الدائرة (الشرايين)', cartHy: 'دائرة بمادة متجانسة', cartEl: 'دائرة فيها خطوط رفيعة متشابكة', cartFi: 'دائرة فيها حزم ألياف متوازية',
   lacuna: 'تجاويف بيضوية صغيرة', chondro: 'خلية أو خليتين داخل كل تجويف', lamella: 'دوائر متحدة المركز',
   havers: 'دائرة صغيرة في المركز فيها وعاء دموي', osteo: 'خلايا صغيرة بين الدوائر', canalic: 'خطوطاً دقيقة متشعبة من التجاويف',
   plasma: 'وعاءً بسائل فاتح', rbc: 'أقراصاً حمراء مقعرة الوسط', wbc: 'خلايا أكبر بنواة مفصصة', platelet: 'أجساماً صغيرة جداً',
-  mFiber: 'ليفاً طويلاً واحداً', tSkel: 'أليافاً أسطوانية طويلة متوازية', mStri: 'خطوطاً عرضية متعاقبة على الألياف',
-  mNuc: 'نوى بيضوية صغيرة', tSmooth: 'خلايا مغزلية متداخلة', tCard: 'أليافاً متفرعة متصلة', icDisc: 'خطوطاً عرضية سميكة متعرجة',
-  soma: 'جسماً كبيراً غير منتظم', nNuc: 'نواة مستديرة في وسط جسم الخلية', dendr: 'زوائد قصيرة متفرعة حول جسم الخلية',
-  axon: 'خطاً طويلاً واحداً يخرج من جسم الخلية', myelin: 'قطعاً بيضوية تغلف المحور', ranvier: 'فراغات ضيقة بين قطع الغمد',
+  mFiber: 'ليفاً عضلياً واحداً', tSkel: 'أليافاً أسطوانية طويلة غير متفرعة متوازية', mStri: 'خطوطاً عرضية غامقة وفاتحة متعاقبة على الألياف', mMemb: 'خطاً يحيط بالليف (الغشاء العضلي)',
+  mNuc: 'نوى بيضوية (محيطية في الهيكلية، مفردة مركزية في الملساء والقلبية)', tSmooth: 'أليافاً مغزلية مستدقة النهايتين متداخلة', tCard: 'أليافاً أسطوانية تتفرع وتلتقي', icDisc: 'خطوطاً عرضية سميكة متعرجة عند نهايات الألياف',
+  soma: 'جسم الخلية (نجمياً أو مغزلياً أو كروياً حسب النوع)', nNuc: 'نواة مستديرة فيها نوية واضحة', nissl: 'حبيبات صغيرة داكنة في سايتوبلازم جسم الخلية', dendr: 'بروزات قصيرة متفرعة (التشجرات)',
+  axon: 'بروزاً طويلاً مفرداً (المحور) ينتهي بتفرعات', myelin: 'قطعاً متتالية تغلف المحور (الغلاف النخاعيني)',
   axTerm: 'تفرعات في نهاية المحور تنتهي بانتفاخات', neuron: 'عصبونات متصلة: نهايات كل واحد قرب زوائد التالي',
   glia: 'خلايا صغيرة مستديرة بين العصبونات', tNerve: 'إطاراً يحيط بالنسيج'
 };
@@ -102,6 +103,16 @@ const ETH_DRAW = {
       shape: 'الخطوة (3): ارسم صفين من الخلايا بأنويتها: العلوي خلايا عمودية والسفلي أصغر، ثم الغشاء القاعدي والنسيج الضام' }
   ]
 };
+/* خطوات رسم العظم المصمت كما في الملزمة ص60 */
+const CON_DRAW = {
+  con_bone: [
+    { sel: '.b1', id: 'cBn1', name: 'الخطوة (1): الإطار والحلقات', labels: ['periost', 'circLam', 'lamella', 'havers'],
+      shape: 'الخطوة (1): ارسم إطاراً جانبه الأيمن مقوّس، وفيه حلقات متحدة المركز حول قناة في الوسط، وخطوطاً موازية للحافة المقوّسة' },
+    { sel: '.b2', id: 'cBn2', name: 'الخطوة (2): الأجهزة عند الحواف', shape: 'الخطوة (2): ارسم أجزاء حلقات أخرى عند حواف الإطار' },
+    { sel: '[data-part=osteo], [data-part=bVessel]', id: 'osteo', labels: ['bVessel'], shape: 'الخطوة (3): ارسم نقاطاً (خلايا عظمية) على الحلقات، ووعاءين دمويين في القناة' },
+    { sel: '.b4', id: 'cBn4', name: 'الخطوة (4): الخطوط الدقيقة', shape: 'الخطوة (4): ارسم خطوطاً دقيقة قصيرة حول الخلايا العظمية' }
+  ]
+};
 const drApi = host => ({ playing: true, dragSlider: false, sliderVal: 0,
   el: q => host.querySelector(q), all: q => Array.from(host.querySelectorAll(q)),
   tool: () => false, setTool(){}, radio: () => null, setRadio(){}, setSlider(){}, setCap(){}, setPhase(){}, flowEnabled(){}, hideLabels(){}, g(){} });
@@ -113,8 +124,9 @@ const DR_GROUPS = [
   /* النسيج الظهاري: خطوات الرسم كما في الملزمة ص29 وص31 وص33 وص35 (المتحول بلا رسم في الملزمة) */
   { g: 'eth', t: 'النسيج الظهاري', items: CH.exam.filter(d => d.k.indexOf('eth_') === 0 && ETH_DRAW[d.k]).map(d => ({
       k: d.k, t: d.t, scene: () => SCENES[d.k].build(), steps: ETH_DRAW[d.k] })) },
-  { g: 'con', t: 'النسيج الضام', items: CH.exam.filter(d => d.k.indexOf('con_') === 0).map(d => ({
-      k: d.k, t: d.t, scene: () => SCENES[d.k].build(), order: DRAW_ORDER[d.k] })) },
+  /* النسيج الضام: العظم المصمت بخطوات الملزمة ص60، والمخاطاني (ص57) */
+  { g: 'con', t: 'النسيج الضام', items: CH.exam.filter(d => d.k === 'con_bone' || d.k === 'con_muc').map(d => ({
+      k: d.k, t: d.t, scene: () => SCENES[d.k].build(), order: DRAW_ORDER[d.k], steps: CON_DRAW[d.k] })) },
   { g: 'mus', t: 'النسيج العضلي', items: CH.exam.filter(d => d.k.indexOf('mus_') === 0).map(d => ({
       k: d.k, t: d.t, scene: () => SCENES[d.k].build(), order: DRAW_ORDER[d.k] })) },
   { g: 'nrv', t: 'النسيج العصبي', items: CH.exam.filter(d => d.k.indexOf('nrv_') === 0).map(d => ({
