@@ -3544,7 +3544,9 @@ function divisionScene(mode){
             const halves = [{ c: CL, left: true }, { c: CR, left: false }];
             const chOf = left => left ? [0, 3] : [1, 2];   /* الكروموسومات بكل خلية */
             /* في الطور النهائي الثاني تتخصّر كل خلية تدريجياً إلى خليتين (أربع خلايا بالنتيجة) */
-            halves.forEach(h => S.cells.push(mk(h.c[0], h.c[1], CR2, CR2 * 1.16, ph === 'telo2' ? e * 0.92 : 0, 'y')));
+            /* الطور النهائي الثاني بالتسلسل: تتجمع الكروموسومات عند القطبين ← تزداد طولاً وتقل سمكاً ← الغشاء النووي والنويات ← التخصّر (أربع خلايا) */
+            const t2c = Math.min(1, Math.max(0, (e - 0.6) / 0.4)), t2n = Math.min(1, Math.max(0, (e - 0.25) / 0.33)), t2th = lerp(1, 0.45, Math.min(1, Math.max(0, (e - 0.12) / 0.35)));
+            halves.forEach(h => S.cells.push(mk(h.c[0], h.c[1], CR2, CR2 * 1.16, ph === 'telo2' ? t2c * 0.92 : 0, 'y')));
             const LOBE = 95;
             halves.forEach((h, hi) => {
               const [c1, c2] = chOf(h.left), poleT = [h.c[0], h.c[1] - CR2 * 0.78], poleB = [h.c[0], h.c[1] + CR2 * 0.78];
@@ -3566,15 +3568,17 @@ function divisionScene(mode){
                         lerp(h.c[1] + dir * 7, h.c[1] + dir * (CR2 * 0.62), e), 90, 1, colOf(c), tip);
                   } else { /* telo2 */
                     const dir = s ? 1 : -1;
-                    put(i, lerp(h.c[0] + (ci ? 44 : -44), h.c[0] + (ci ? 22 : -22), e),
-                        lerp(h.c[1] + dir * (CR2 * 0.62), h.c[1] + dir * LOBE, e), 90, 1 - e * 0.3,
+                    const g = Math.min(1, e / 0.25);
+                    put(i, lerp(h.c[0] + (ci ? 44 : -44), h.c[0] + (ci ? 22 : -22), g),
+                        lerp(h.c[1] + dir * (CR2 * 0.62), h.c[1] + dir * LOBE, g), 90, 1 - e * 0.3,
                         colOf(c), tip, 1 - e * 0.22);
+                    S.chr[i].th = t2th;
                   }
                 }
               });
               if (ph === 'telo2'){
-                S.envs.push({ cx: h.c[0], cy: h.c[1] - LOBE, r: 34 + e * 26, op: e, nx: h.c[0] - 14, ny: h.c[1] - LOBE + 14, nr: 11 + e * 7 });
-                S.envs.push({ cx: h.c[0], cy: h.c[1] + LOBE, r: 34 + e * 26, op: e, nx: h.c[0] - 14, ny: h.c[1] + LOBE + 14, nr: 11 + e * 7 });
+                S.envs.push({ cx: h.c[0], cy: h.c[1] - LOBE, r: 34 + e * 26, op: t2n, nx: h.c[0] - 14, ny: h.c[1] - LOBE + 14, nr: 11 + e * 7 });
+                S.envs.push({ cx: h.c[0], cy: h.c[1] + LOBE, r: 34 + e * 26, op: t2n, nx: h.c[0] - 14, ny: h.c[1] + LOBE + 14, nr: 11 + e * 7 });
               } else {
                 /* الجسيمان المركزيان عند قطبي كل خلية (خلية حيوانية) */
                 const op = ph === 'pro2' ? e : 1;
@@ -3584,9 +3588,12 @@ function divisionScene(mode){
                 S.envs.push({ cx: h.c[0], cy: h.c[1], r: 84, op: 1 - e, nx: h.c[0] - 22, ny: h.c[1] + 16, nr: 24 });
               }
             });
-            S.spindleOp = ph === 'pro2' ? e * 0.7 : (ph === 'telo2' ? 0.4 * (1 - e) : 0.8);
+            S.spindleOp = ph === 'pro2' ? e * 0.7 : (ph === 'telo2' ? 0.4 * Math.max(0, 1 - e / 0.58) : 0.8);
             S.kin = ph === 'meta2' || ph === 'ana2';
-            S.cap = ph === 'telo2' ? 'تتخصّر كل خلية فتنتج أربع خلايا، كل واحدة بنصف عدد الكروموسومات (n)'
+            S.cap = ph === 'telo2' ? (e < 0.15 ? 'تتجمع الكروموسومات عند قطبي الخلية'
+                    : e < 0.42 ? 'تزداد الكروموسومات طولاً وتقل سمكاً، وتظهر المادة الكروماتينية بشكل خيوط دقيقة'
+                    : e < 0.6 ? 'يظهر الغشاء النووي والنويات'
+                    : 'تتخصّر كل خلية فتنتج أربع خلايا أحادية المجموعة الكروموسومية')
                   : ph === 'pro2' ? 'يبدأ الانقسام الثاني بلا تضاعف جديد للـ DNA'
                   : ph === 'meta2' ? 'الكروموسومات على خط استواء كل خلية، وكل كروموسوم ما زال بكروماتيدين'
                   : 'تنفصل الكروماتيدات الشقيقة في كل خلية نحو القطبين';
