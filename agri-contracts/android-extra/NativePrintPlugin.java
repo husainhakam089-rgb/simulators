@@ -301,6 +301,10 @@ public class NativePrintPlugin extends Plugin {
      * Chromium لا يرسم برمجياً إلا على لوحة مدعومة بصورة، فكان فحص الصفحة
      * (وهو على صورة) ينجح والـ PDF نفسه يخرج فارغاً. الآن ما يُفحص هو نفسه
      * ما يُكتب في الملف.
+     *
+     * لكل صفحة صورتها الخاصة: PdfDocument لا ينسخ الصورة عند الرسم بل يحتفظ
+     * بمرجع لها ويقرؤها عند الكتابة في النهاية. بصورة واحدة يُعاد استعمالها
+     * خرجت كل النسخ بمحتوى الصفحة الأخيرة (كلها «نسخة المعرض»).
      * @return رسالة الخطأ، أو null عند النجاح.
      */
     private String renderToPdf(WebView webView, File out, int pageCount) {
@@ -322,19 +326,18 @@ public class NativePrintPlugin extends Plugin {
         float toBitmap = (float) bmpWidth / (float) viewWidth;
 
         PdfDocument document = new PdfDocument();
-        Bitmap bitmap = null;
+        java.util.List<Bitmap> bitmaps = new java.util.ArrayList<>();
         try {
-            bitmap = Bitmap.createBitmap(bmpWidth, bmpHeight, Bitmap.Config.ARGB_8888);
-            Canvas bmpCanvas = new Canvas(bitmap);
             android.graphics.Rect dest = new android.graphics.Rect(0, 0, A4_PT_WIDTH, A4_PT_HEIGHT);
             android.graphics.Paint paint = new android.graphics.Paint(android.graphics.Paint.FILTER_BITMAP_FLAG);
             for (int i = 0; i < pages; i++) {
-                bmpCanvas.save();
+                Bitmap bitmap = Bitmap.createBitmap(bmpWidth, bmpHeight, Bitmap.Config.ARGB_8888);
+                bitmaps.add(bitmap);
+                Canvas bmpCanvas = new Canvas(bitmap);
                 bmpCanvas.drawColor(Color.WHITE);
                 bmpCanvas.scale(toBitmap, toBitmap);
                 bmpCanvas.translate(0, -i * pageHeightPx);
                 webView.draw(bmpCanvas);
-                bmpCanvas.restore();
 
                 if (i == 0 && isBlank(bitmap)) {
                     return "خرجت الصفحة بيضاء. استعمل زر الطباعة ثم اختر «حفظ كـ PDF».";
@@ -356,8 +359,9 @@ public class NativePrintPlugin extends Plugin {
             return "تعذّر توليد ملف PDF: " + e.getMessage();
         } finally {
             document.close();
-            if (bitmap != null) {
-                bitmap.recycle();
+            // تُحرَّر بعد writeTo فقط، فالـ PDF يقرأ منها عند الكتابة
+            for (Bitmap b : bitmaps) {
+                b.recycle();
             }
         }
     }
