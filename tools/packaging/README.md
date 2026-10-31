@@ -12,3 +12,6 @@
 5. نسخة أستاذ آخر: `make_naimi.py` مثل `make_sajjad.py`. لكل نسخة معرّف APK خاص
    (`APK_PKG=com.naimi.cell`) ومفتاح توقيع خاص، ومجلد حفظ خاص للـ EXE
    (`-ldflags "... -X main.appDir=AlKhaliaNaimi"`).
+
+6. نسخة الدكتور أحمد الحسن تُبنى من مصدرها الخاص `ahmed/base-ch1.html` (فيه تعديلاته على الانقسام الخيطي فقط)،
+   لا من `biology-cell/index.html`: `python3 make_ahmed.py ahmed/base-ch1.html <poster.svg> <out.html>`.
