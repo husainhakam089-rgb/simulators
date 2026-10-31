@@ -3143,8 +3143,8 @@ ${main}`;
       suggest: witnessSuggest,
       onPick: (item) => witness2.set(item.rec.name)
     });
-    const seller = await partyBlock2("بيانات البائع", existing?.seller || {});
-    const buyer = await partyBlock2("بيانات المشتري", existing?.buyer || {});
+    const seller = await partyBlock2("البائع", existing?.seller || {});
+    const buyer = await partyBlock2("المشتري", existing?.buyer || {});
     const copies = copiesPicker(existing?.copies || s.defaultContractCopies);
     const actions = printActions("contract", () => saved, () => current(), () => copies.get());
     function collect(number) {

@@ -143,8 +143,8 @@ export async function render(root, { id = null, type = '' } = {}) {
   });
 
   /* ----- الأطراف ----- */
-  const seller = await partyBlock('بيانات البائع', existing?.seller || {});
-  const buyer = await partyBlock('بيانات المشتري', existing?.buyer || {});
+  const seller = await partyBlock('البائع', existing?.seller || {});
+  const buyer = await partyBlock('المشتري', existing?.buyer || {});
 
   /* ----- النسخ والطباعة ----- */
   const copies = copiesPicker(existing?.copies || s.defaultContractCopies);
