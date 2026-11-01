@@ -27,7 +27,7 @@ SCENES.conn = {
   title: 'النسيج الضام (الرابط)',
   get src(){ return CON_SRC[SEL.conv] || 'ملزمة ص42'; },
   tint: ['rgba(150,110,170,.24)', 'rgba(170,90,80,.16)'],
-  model3d: () => SEL.conv === 'cbonex' ? null : 'con_' + SEL.conv,
+  model3d: () => 'con_' + SEL.conv,
   build(){
     const v = CON_VIEWS.some(x => x.id === SEL.conv) ? SEL.conv : 'cparts';
     const s = ({ cparts: conParts, ccells: conCells, cadip: conAdip, cret: conRet, cmuc: conMuc, cdense: conDense, ccart: conCart, cbone: conBone, cbonex: conBoneX, cspon: conSpon, cblood: conBlood, clym: conLym })[v]();
@@ -430,6 +430,15 @@ function conBone(){
    ربع مقطع: الحافة اليمنى مقوّسة (سطح العظم) عليها سمحاق العظم ثم الصفائح المحيطية، وبالوسط جهاز هافرس
    كبير (صفائح متحدة المركز تقطعها قنيّات دقيقة شعاعية، والخلايا العظمية بمحافظها بين الصفائح)، وحوله
    أجهزة هافرس مجاورة يحدّها خط أبيض، وبمركزه قناة هافرس فيها وعاء دموي أحمر وأزرق. */
+/* هندسة المقطع العرضي (نفس أرقام الرسم المسطّح) — يستعملها المجسّم الثلاثي الأبعاد */
+const BONEX = { X0: 318, Y0: 84, X1: 722, Y1: 508, P0: [596, 84], PC: [718, 296], P2: [722, 508], HC: [466, 290], RX: 140, RY: 200, N: 6,
+  NB: [[[296, 62], 100, 112, 4, 11], [[318, 566], 124, 104, 4, 13], [[612, 600], 150, 120, 4, 17]], CIRC: [16, 28, 40, 52, 64] };
+BONEX.qb = t => { const { P0, PC, P2 } = BONEX; return [(1 - t) * (1 - t) * P0[0] + 2 * (1 - t) * t * PC[0] + t * t * P2[0], (1 - t) * (1 - t) * P0[1] + 2 * (1 - t) * t * PC[1] + t * t * P2[1]]; };
+BONEX.arc = (d, ext, n) => Array.from({ length: (n || 40) + 1 }, (_, i) => { const N = n || 40, t = -(ext || 0) + (1 + 2 * (ext || 0)) * i / N, p = BONEX.qb(t), q = BONEX.qb(t + 0.001), tx = q[0] - p[0], ty = q[1] - p[1], L = Math.hypot(tx, ty);
+  return [p[0] - ty / L * d, p[1] + tx / L * d]; });
+BONEX.ring = (c, rx, ry, k, ph, n) => Array.from({ length: (n || 48) + 1 }, (_, i) => { const a = i / (n || 48) * 6.2832, w = 1 + 0.035 * Math.sin(a * 3 + ph) + 0.025 * Math.sin(a * 5 + ph * 2);
+  return [c[0] + Math.cos(a) * rx * k * w, c[1] + Math.sin(a) * ry * k * w]; });
+BONEX.outline = () => [[BONEX.X0, BONEX.Y0]].concat(BONEX.arc(0), [[BONEX.X0, BONEX.Y1]]);
 function conBoneX(){
   const X0 = 318, Y0 = 84, X1 = 722, Y1 = 508, rr = rng(60);
   const P0 = [596, Y0], PC = [718, 296], P2 = [X1, Y1];

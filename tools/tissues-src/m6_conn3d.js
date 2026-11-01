@@ -381,6 +381,101 @@ function cellsModel(B){
   return { dist: 5.2, yaw: 0.2, pitch: 0.2, live2d: true, anim(){ sync(); } };
 }
 
-Object.assign(G3.models, { con_ccells: cellsModel, con_cparts: partsModel,con_cadip: adipModel, con_cret: retModel, con_cmuc: mucModel, con_cdense: denseModel,
+/* ═════════════ 7ب) المقطع العرضي في العظم المصمت: قطعة عظم مجسّمة مرتّبة ═════════════
+   الوجه العلوي للقطعة هو المقطع العرضي نفسه (مثل الرسم المسطّح). ومن جهة الناظر مقطوع إسفين من جهاز
+   هافرس الرئيسي حتى يبين إنه عمود: صفائحه طبقات متحدة المركز على طول العظم، والخلايا العظمية بين
+   الطبقات، وقناة هافرس تمر بطوله وفيها الوعاءان الأحمر والأزرق. */
+function boneXModel(B){
+  const BX = BONEX, S = 100, CX = 520, CY = 296, TOP = 0.6, BOT = -0.6, rnd = srng(60);
+  const HC = BX.HC, WA0 = 0.95, WA1 = 2.15;                 /* زاوية الإسفين المقطوع (باتجاه الناظر) */
+  const P3 = (p, y) => [(p[0] - CX) / S, y, (p[1] - CY) / S];
+  const OUT = BX.outline();
+  const arcL = BX.arc(0, 0, 80);
+  const arcX = y => { for (let i = 0; i < arcL.length - 1; i++){ const a = arcL[i], b = arcL[i + 1]; if ((y - a[1]) * (y - b[1]) <= 0){ const t = (y - a[1]) / ((b[1] - a[1]) || 1); return a[0] + (b[0] - a[0]) * t; } } return BX.X1; };
+  const inOut = p => p[0] >= BX.X0 - 0.01 && p[1] >= BX.Y0 - 0.01 && p[1] <= BX.Y1 + 0.01 && p[0] <= arcX(p[1]) + 0.01;
+  const angOf = p => { let a = Math.atan2(p[1] - HC[1], p[0] - HC[0]); if (a < 0) a += 6.2832; return a; };
+  const inWedge = p => { const a = angOf(p); return a > WA0 && a < WA1; };
+  const inside = p => inOut(p) && !inWedge(p);
+  /* حلقة جهاز هافرس الرئيسي عند الزاوية a (نفس شكل الرسم) */
+  const ell = (k, ph) => a => { const w = 1 + 0.035 * Math.sin(a * 3 + ph) + 0.025 * Math.sin(a * 5 + ph * 2); return [HC[0] + Math.cos(a) * BX.RX * k * w, HC[1] + Math.sin(a) * BX.RY * k * w]; };
+  /* حافة المقطع على شعاع من مركز هافرس */
+  const rayOut = a => { let lo = 0, hi = 700; for (let i = 0; i < 30; i++){ const m = (lo + hi) / 2; if (inOut([HC[0] + Math.cos(a) * m, HC[1] + Math.sin(a) * m])) lo = m; else hi = m; } return [HC[0] + Math.cos(a) * lo, HC[1] + Math.sin(a) * lo]; };
+  /* حلقة مبثوقة بين حدّين (داخلي وخارجي) من زاوية a0 إلى a1: وجه علوي وسفلي وجداران ووجها القطع */
+  function annul(inF, outF, a0, a1, y0, y1, n){
+    const m = mk(), push = v => { m.p.push(v[0], v[1], v[2]); m.l.push(v[0], v[1], v[2]); return m.p.length / 3 - 1; };
+    const tri = (a, b, c, w) => { const P = m.p, A = [P[a * 3], P[a * 3 + 1], P[a * 3 + 2]], u = sub([P[b * 3], P[b * 3 + 1], P[b * 3 + 2]], A), v = sub([P[c * 3], P[c * 3 + 1], P[c * 3 + 2]], A);
+      const nn = [u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0]]; if (nn[0] * w[0] + nn[1] * w[1] + nn[2] * w[2] >= 0) m.i.push(a, b, c); else m.i.push(a, c, b); };
+    const quad = (p, q, r, s, w) => { const A = push(p), Bq = push(q), C = push(r), D = push(s); tri(A, Bq, C, w); tri(Bq, D, C, w); };
+    const A = Array.from({ length: n + 1 }, (_, i) => a0 + (a1 - a0) * i / n), I = A.map(inF), O = A.map(outF);
+    for (let i = 0; i < n; i++){ const am = (A[i] + A[i + 1]) / 2, rad = [Math.cos(am), 0, Math.sin(am)];
+      quad(P3(I[i], y1), P3(I[i + 1], y1), P3(O[i], y1), P3(O[i + 1], y1), [0, 1, 0]);
+      quad(P3(I[i], y0), P3(I[i + 1], y0), P3(O[i], y0), P3(O[i + 1], y0), [0, -1, 0]);
+      quad(P3(O[i], y0), P3(O[i + 1], y0), P3(O[i], y1), P3(O[i + 1], y1), rad);
+      quad(P3(I[i], y0), P3(I[i + 1], y0), P3(I[i], y1), P3(I[i + 1], y1), mul(rad, -1)); }
+    const cap = (i, s) => { const t = [-Math.sin(A[i]) * s, 0, Math.cos(A[i]) * s]; quad(P3(I[i], y0), P3(O[i], y0), P3(I[i], y1), P3(O[i], y1), t); };
+    cap(0, -1); cap(n, 1);
+    return computeNormals(m);
+  }
+  const line = (pts, y, r, sides) => { const out = []; let run = [];
+    pts.forEach(p => { if (inside(p)) run.push(P3(p, y)); else { if (run.length > 1) out.push(tube({ pts: run, r, sides: sides || 5 })); run = []; } });
+    if (run.length > 1) out.push(tube({ pts: run, r, sides: sides || 5 })); return out; };
+  const BONE = '#ecd3a0', BONE_B = '#dcb77a', MATX = '#d6b47a', RING = '#8a4a1e', LINE = '#4a2e12';
+  const A0 = WA1, A1 = WA0 + 6.2832, N = 90, K = Array.from({ length: BX.N }, (_, i) => 0.1 + 0.9 * (i + 1) / BX.N), KC = 0.095;
+  /* 1) المادة بين الأجهزة: كل المقطع خارج جهاز هافرس الرئيسي (عدا الإسفين) */
+  B.add(annul(ell(1, 7), rayOut, A0, A1, BOT, TOP - 0.004, N), { color: MATX, rim: 0.25, rimColor: '#fff4dc' });
+  /* 2) جهاز هافرس الرئيسي: صفائح متحدة المركز على طول القطعة، بلونين متناوبين حتى تبين الطبقات بوجه القطع */
+  const lamA = [], lamB = [];
+  K.forEach((k, j) => (j % 2 ? lamB : lamA).push(annul(ell(j ? K[j - 1] : KC, 7 + j), ell(k, 7 + j), A0, A1, BOT, TOP, N)));
+  B.add(merge(lamA), fx('lamella', BONE, { rim: 0.3 }));
+  B.add(merge(lamB), fx('lamella', BONE_B, { rim: 0.3 }));
+  /* 3) قناة هافرس: عمود داكن بطول القطعة، والوعاءان الدمويان بداخله ويبرزان فوق السطح */
+  B.add(annul(a => HC, ell(KC, 7), 0, 6.2832, BOT - 0.01, TOP + 0.005, 40), fx('havers', '#3a2420', { rimColor: '#ffe0c0', rim: 0.4 }));
+  const vA = P3([HC[0] - 3, HC[1] - 5], 0), vB = P3([HC[0] + 6, HC[1] + 8], 0);
+  B.add(tube({ pts: [[vA[0], BOT - 0.12, vA[2]], [vA[0], TOP + 0.55, vA[2]]], r: 0.08, sides: 14 }), fx('bVessel', '#c8323c', { rimColor: '#ffb0b0' }));
+  B.add(tube({ pts: [[vB[0], BOT - 0.12, vB[2]], [vB[0], TOP + 0.45, vB[2]]], r: 0.06, sides: 14 }), fx('bVessel', '#3a6ad0', { rimColor: '#b0c8ff' }));
+  /* 4) السطح العلوي = المقطع العرضي: حلقات الصفائح والقنيّات الدقيقة والخطوط البيض (مثل الرسم المسطّح) */
+  const sysList = [[HC, BX.RX, BX.RY, BX.N, 7]].concat(BX.NB), rings = [], hatch = [], white = [], osTop = [];
+  sysList.forEach(([c, rx, ry, n, seed], si) => {
+    const Ks = Array.from({ length: n }, (_, i) => 0.1 + 0.9 * (i + 1) / n);
+    Ks.forEach((k, j) => { rings.push(...line(BX.ring(c, rx, ry, k, seed + j, 72), TOP + 0.012, 0.011));
+      const k0 = j ? Ks[j - 1] : 0.07, per = 2 * Math.PI * Math.sqrt((rx * rx + ry * ry) / 2) * k, m = Math.round(per / (si ? 7 : 5));
+      for (let i = 0; i < m; i++){ const a = i / m * 6.2832 + rnd() * 0.03, p = [c[0] + Math.cos(a) * rx * (k0 + (k - k0) * 0.12), c[1] + Math.sin(a) * ry * (k0 + (k - k0) * 0.12)], q = [c[0] + Math.cos(a) * rx * (k0 + (k - k0) * 0.88), c[1] + Math.sin(a) * ry * (k0 + (k - k0) * 0.88)];
+        if (inside(p) && inside(q)) hatch.push(tube({ pts: [P3(p, TOP + 0.009), P3(q, TOP + 0.009)], r: 0.0045, sides: 3 })); }
+      if (j < n - 1){ const cnt = Math.max(2, Math.round(per / 70));
+        for (let i = 0; i < cnt; i++){ const a = (i + rnd() * 0.6) / cnt * 6.2832, p = [c[0] + Math.cos(a) * rx * k, c[1] + Math.sin(a) * ry * k]; if (inside(p)) osTop.push([P3(p, TOP + 0.02), [-Math.sin(a) * rx, 0, Math.cos(a) * ry]]); } } });
+    white.push(...line(BX.ring(c, rx, ry, 1, seed, 72), TOP + 0.016, 0.02, 6)); });
+  /* 5) الصفائح المحيطية والسمحاق على طول الحافة المقوّسة */
+  const circ = [], cH = [];
+  BX.CIRC.forEach(d => circ.push(...line(BX.arc(d, 0.15, 70), TOP + 0.012, 0.011)));
+  for (let d = 16; d < 64; d += 12){ const Aa = BX.arc(d + 1.5, 0.15, 70), Zz = BX.arc(d + 10.5, 0.15, 70);
+    Aa.forEach((p, i) => { if (inside(p) && inside(Zz[i])) cH.push(tube({ pts: [P3(p, TOP + 0.009), P3(Zz[i], TOP + 0.009)], r: 0.0045, sides: 3 })); });
+    BX.arc(d + 12, 0.1, 40).forEach((p, i, L) => { if (i % 8 === (d % 5) && inside(p)){ const q = L[Math.min(40, i + 1)]; osTop.push([P3(p, TOP + 0.02), [q[0] - p[0], 0, q[1] - p[1]]]); } }); }
+  B.add(merge(hatch), { part: 'lamella', color: LINE, rim: 0.1 });
+  B.add(merge(rings), { part: 'lamella', color: RING, rim: 0.2 });
+  B.add(merge(white), { color: '#ffffff', rim: 0.2, pop: false });
+  /* شريط الصفائح المحيطية: سطح مرتفع قليلاً على طول القوس + وجهه الجانبي */
+  const bandF = d => a => { const P = BX.arc(d, 0, 80); return P[Math.round(a)]; };
+  B.add(annulBand(bandF(14), bandF(66), TOP - 0.004, TOP + 0.006), fx('circLam', BONE, { rim: 0.3 }));
+  B.add(merge(circ.concat(cH)), { part: 'circLam', color: RING, rim: 0.2 });
+  B.add(annulBand(bandF(-6), bandF(14), BOT - 0.03, TOP + 0.05), fx('periost', '#8a5a32', { rimColor: '#d8a070' }));
+  function annulBand(inF, outF, y0, y1){ /* شريط على طول القوس: الفهرس 0..80 بدل الزاوية */
+    return annul(i => inF(i), i => outF(i), 0, 80, y0, y1, 80); }
+  /* 6) الخلايا العظمية: على السطح، وعلى وجهي القطع بين الطبقات وعلى أعماق مختلفة */
+  const osCut = []; [A0, A1].forEach(a => K.slice(0, -1).forEach((k, j) => { for (let h = 0; h < 4; h++){ const p = ell(k, 7 + j)(a + (a === A0 ? 0.004 : -0.004)), y = BOT + 0.2 + h * (TOP - BOT - 0.4) / 3 + (rnd() - 0.5) * 0.12;
+    osCut.push([P3(p, y), [0, 1, 0]]); } }));
+  B.add(merge(osTop.concat(osCut).map(([at, t]) => place(ellipsoid({ r: [0.02, 0.06, 0.02], rows: 6, cols: 8 }), { at, dir: norm(t) }))), fx('osteo', '#c8642a', { rimColor: '#ffd0a0' }));
+  /* الأسماء */
+  const os0 = osTop.find(([at]) => at[0] < (HC[0] - 30 - CX) / S && at[2] < (HC[1] - 60 - CY) / S) || osTop[0];
+  B.label('osteo', os0[0], [0, 1, 0.2]);
+  B.label('bVessel', [vA[0], TOP + 0.55, vA[2]], [0, 1, 0]);
+  B.label('havers', P3(ell(KC, 7)(A0 - 0.3), TOP), [0, 1, 0.3]);
+  B.label('lamella', P3(ell(K[3], 10)(A0), 0), mul([-Math.sin(A0), 0, Math.cos(A0)], -1));
+  B.label('periost', P3(BX.arc(4, 0, 80)[30], TOP + 0.05), [0.6, 1, 0]);
+  B.label('circLam', P3(BX.arc(40, 0, 80)[34], TOP + 0.01), [0.4, 1, 0]);
+  B.caption([0, BOT - 0.3, 2.3], () => ['', 'الوجه العلوي هو المقطع العرضي، ووجه القطع يبيّن إن جهاز هافرس عمود من صفائح متحدة المركز تمر قناة هافرس بطوله']);
+  return { dist: 9.6, yaw: 0.3, pitch: 0.78, live2d: true };
+}
+
+Object.assign(G3.models, { con_cbonex: boneXModel, con_ccells: cellsModel,con_cparts: partsModel,con_cadip: adipModel, con_cret: retModel, con_cmuc: mucModel, con_cdense: denseModel,
   con_ccart: cartModel, con_cbone: boneModel, con_cspon: sponModel, con_cblood: bloodModel, con_clym: lymModel });
 })();
