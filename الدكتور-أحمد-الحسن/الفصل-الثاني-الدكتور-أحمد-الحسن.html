@@ -4361,12 +4361,13 @@ const CON_VIEWS = [
   { id: 'cdense', label: 'الكثيف' },
   { id: 'ccart',  label: 'الغضروف' },
   { id: 'cbone',  label: 'العظم المصمت' },
+  { id: 'cbonex', label: 'مقطع عرضي في العظم' },
   { id: 'cspon',  label: 'العظم الإسفنجي' },
   { id: 'cblood', label: 'الدم' },
   { id: 'clym',   label: 'البلازما واللمف' }
 ];
 const CON_SRC = { cparts: 'ملزمة ص42–47 وص50', ccells: 'ملزمة ص43–45', cadip: 'ملزمة ص45 وص49–50', cret: 'ملزمة ص47 وص49–50', cmuc: 'ملزمة ص49–50 وص57', cdense: 'ملزمة ص48 وص53',
-  ccart: 'ملزمة ص54–56', cbone: 'ملزمة ص59–62', cspon: 'ملزمة ص59', cblood: 'ملزمة ص62–69', clym: 'ملزمة ص67–68' };
+  ccart: 'ملزمة ص54–56', cbone: 'ملزمة ص59–62', cbonex: 'ملزمة ص60', cspon: 'ملزمة ص59', cblood: 'ملزمة ص62–69', clym: 'ملزمة ص67–68' };
 const CON_PAL = { mat: '#d9cde6', matD: '#b9a8cc', col: '#f1d9de', colS: '#e58aa0', ela: '#e8c23a', ret: '#4a3a6a', fib: '#c9a0b4', cart: '#cfe3ef', cartL: '#eef7fb',
   bone: '#e9dcc0', boneL: '#fff6e0', boneD: '#a88a5c', rbc: '#d9433b', wbc: '#efe6f6', plt: '#c08bd0', plasma: '#f6e3a6', fat: '#f3e3a0', nuc: '#6f5fc0' };
 
@@ -4377,7 +4378,7 @@ SCENES.conn = {
   model3d: () => 'con_' + SEL.conv,
   build(){
     const v = CON_VIEWS.some(x => x.id === SEL.conv) ? SEL.conv : 'cparts';
-    const s = ({ cparts: conParts, ccells: conCells, cadip: conAdip, cret: conRet, cmuc: conMuc, cdense: conDense, ccart: conCart, cbone: conBone, cspon: conSpon, cblood: conBlood, clym: conLym })[v]();
+    const s = ({ cparts: conParts, ccells: conCells, cadip: conAdip, cret: conRet, cmuc: conMuc, cdense: conDense, ccart: conCart, cbone: conBone, cbonex: conBoneX, cspon: conSpon, cblood: conBlood, clym: conLym })[v]();
     s.rebuildOnRadio = 'conv';
     s.tools = CON_VIEWS.map(x => ({ id: x.id, label: x.label, radio: 'conv', on: x.id === v })).concat(s.tools || []);
     return s;
@@ -4770,6 +4771,83 @@ function conBone(){
       a.all('.nut').forEach(e => { const i = +e.dataset.i, p = (t * 0.22 + i / 12) % 1, ang = i / 12 * 6.283;
         e.setAttribute('cx', n2(HC[0] + Math.cos(ang) * (14 + p * 100) * 0.92)); e.setAttribute('cy', n2(HC[1] + Math.sin(ang) * (14 + p * 100) * 1.08)); e.setAttribute('opacity', n2(Math.sin(p * Math.PI))); });
     }
+  };
+}
+
+/* ───────── 7ب) المقطع العرضي الملوّن في العظم المصمت (ص60) ─────────
+   ربع مقطع: الحافة اليمنى مقوّسة (سطح العظم) عليها سمحاق العظم ثم الصفائح المحيطية، وبالوسط جهاز هافرس
+   كبير (صفائح متحدة المركز تقطعها قنيّات دقيقة شعاعية، والخلايا العظمية بمحافظها بين الصفائح)، وحوله
+   أجهزة هافرس مجاورة يحدّها خط أبيض، وبمركزه قناة هافرس فيها وعاء دموي أحمر وأزرق. */
+function conBoneX(){
+  const X0 = 318, Y0 = 84, X1 = 722, Y1 = 508, rr = rng(60);
+  const P0 = [596, Y0], PC = [718, 296], P2 = [X1, Y1];
+  const qb = t => [(1 - t) * (1 - t) * P0[0] + 2 * (1 - t) * t * PC[0] + t * t * P2[0], (1 - t) * (1 - t) * P0[1] + 2 * (1 - t) * t * PC[1] + t * t * P2[1]];
+  /* القوس وموازياته للداخل (إزاحة d على العمودي) */
+  const arcPts = (d, ext) => Array.from({ length: 41 }, (_, i) => { const t = -(ext || 0) + (1 + 2 * (ext || 0)) * i / 40, p = qb(t), q = qb(t + 0.001), tx = q[0] - p[0], ty = q[1] - p[1], L = Math.hypot(tx, ty);
+    return [p[0] - ty / L * d, p[1] + tx / L * d]; });
+  const pl = pts => pts.map((p, i) => (i ? 'L' : 'M') + cPt(p[0], p[1])).join(' ');
+  const outline = `M${cPt(X0, Y0)} L${cPt(P0[0], P0[1])} ${pl(arcPts(0)).replace('M', 'L')} L${cPt(X0, Y1)}Z`;
+  const band = (d0, d1) => pl(arcPts(d0, 0.15)) + ' ' + pl(arcPts(d1, 0.15).reverse()).replace('M', 'L') + 'Z';
+  /* حلقة بيضوية غير منتظمة قليلاً */
+  const eRing = (c, rx, ry, k, ph) => { let d = ''; for (let i = 0; i <= 48; i++){ const a = i / 48 * 6.2832, w = 1 + 0.035 * Math.sin(a * 3 + ph) + 0.025 * Math.sin(a * 5 + ph * 2);
+    d += (i ? ' L' : 'M') + cPt(c[0] + Math.cos(a) * rx * k * w, c[1] + Math.sin(a) * ry * k * w); } return d + 'Z'; };
+  /* جهاز هافرس: حلقات + قنيّات شعاعية قصيرة + محافظ خلايا عظمية بين الحلقات */
+  const sys = (c, rx, ry, n, seed) => { const r2 = rng(seed), K = Array.from({ length: n }, (_, i) => 0.1 + 0.9 * (i + 1) / n);
+    let rings = '', hatch = '', os = [];
+    K.forEach((k, j) => { rings += eRing(c, rx, ry, k, seed + j) + ' ';
+      const per = 2 * Math.PI * Math.sqrt((rx * rx + ry * ry) / 2) * k, m = Math.max(10, Math.round(per / 2.6)), k0 = j ? K[j - 1] : 0.07;
+      for (let i = 0; i < m; i++){ const a = i / m * 6.2832 + r2() * 0.02, kk = k0 + (k - k0) * (0.06 + r2() * 0.12), kl = k0 + (k - k0) * (0.84 + r2() * 0.12);
+        hatch += `M${cPt(c[0] + Math.cos(a) * rx * kk, c[1] + Math.sin(a) * ry * kk)} L${cPt(c[0] + Math.cos(a) * rx * kl, c[1] + Math.sin(a) * ry * kl)} `; }
+      if (j < n - 1){ const kn = k, cnt = Math.max(2, Math.round(per / 70));
+        for (let i = 0; i < cnt; i++){ const a = (i + r2() * 0.6) / cnt * 6.2832, x = c[0] + Math.cos(a) * rx * kn, y = c[1] + Math.sin(a) * ry * kn,
+          deg = Math.atan2(Math.cos(a) * ry, -Math.sin(a) * rx) * 57.3; os.push([x, y, deg]); } } });
+    return { rings, hatch, os }; };
+  const HC = [466, 290], RX = 140, RY = 200;
+  const main = sys(HC, RX, RY, 6, 7);
+  const NB = [[[296, 62], 100, 112, 4, 11], [[318, 566], 124, 104, 4, 13], [[612, 600], 150, 120, 4, 17]].map(([c, rx, ry, n, s]) => Object.assign(sys(c, rx, ry, n, s), { c, rx, ry }));
+  /* الصفائح المحيطية: خطوط توازي سطح العظم + قنيّات عمودية عليها */
+  let cRings = '', cHatch = ''; const cOs = [];
+  [16, 28, 40, 52, 64].forEach(d => { cRings += pl(arcPts(d, 0.15)) + ' '; });
+  for (let d = 16; d < 64; d += 12){ const A = arcPts(d + 1.5, 0.15), B = arcPts(d + 10.5, 0.15);
+    for (let i = 0; i < A.length - 1; i++) for (let s = 0; s < 4; s++){ const u = (s + rr()) / 4, a = [A[i][0] + (A[i + 1][0] - A[i][0]) * u, A[i][1] + (A[i + 1][1] - A[i][1]) * u], b = [B[i][0] + (B[i + 1][0] - B[i][0]) * u, B[i][1] + (B[i + 1][1] - B[i][1]) * u];
+      cHatch += `M${cPt(a[0], a[1])} L${cPt(b[0], b[1])} `; }
+    if (d < 64) arcPts(d + 12, 0.1).forEach((p, i) => { if (i % 8 === (d % 5)){ const q = arcPts(d + 12, 0.1)[Math.min(40, i + 1)]; cOs.push([p[0], p[1], Math.atan2(q[1] - p[1], q[0] - p[0]) * 57.3]); } }); }
+  /* السمحاق: ألياف داكنة على الحافة */
+  let pFib = ''; for (let d = 2; d < 14; d += 3) pFib += pl(arcPts(d, 0.15)) + ' ';
+  /* المادة بين الأجهزة: خطوط قصيرة عشوائية */
+  let inter = ''; for (let i = 0; i < 520; i++){ const x = X0 + rr() * (X1 - X0), y = Y0 + rr() * (Y1 - Y0), a = rr() * 3.14; inter += `M${cPt(x, y)} L${cPt(x + Math.cos(a) * 7, y + Math.sin(a) * 7)} `; }
+  const lac = L => L.map(([x, y, deg]) => `<ellipse cx="${n2(x)}" cy="${n2(y)}" rx="7" ry="2.6" transform="rotate(${n2(deg)} ${n2(x)} ${n2(y)})" fill="#c8642a" stroke="#7a3410" stroke-width=".8"/>`).join('');
+  const BONE = '#ecd3a0', BONE2 = '#e0c288', LINE = '#3e2a10';
+  const body = `
+    <defs><clipPath id="boneXClip"><path d="${outline}"/></clipPath></defs>
+    <g clip-path="url(#boneXClip)">
+      <path d="${outline}" fill="${BONE2}"/>
+      <path d="${inter}" stroke="${LINE}" stroke-width=".7" opacity=".45" fill="none"/>
+      ${part('lamella', `<path d="${eRing(HC, RX, RY, 1, 7)}" fill="${BONE}"/>${NB.map(s => `<path d="${eRing(s.c, s.rx, s.ry, 1, 3)}" fill="${BONE}"/>`).join('')}
+        <path d="${main.hatch}${NB.map(s => s.hatch).join('')}" stroke="${LINE}" stroke-width="1" opacity=".75" fill="none"/>
+        <path d="${main.rings}${NB.map(s => s.rings).join('')}" stroke="#8a4a1e" stroke-width="2.6" fill="none" opacity=".9"/>`)}
+      <path d="${eRing(HC, RX, RY, 1, 7)} ${NB.map(s => eRing(s.c, s.rx, s.ry, 1, 3)).join(' ')}" fill="none" stroke="#fff" stroke-width="4.5" opacity=".95"/>
+      ${part('circLam', `<path d="${band(14, 70)}" fill="${BONE}"/><path d="${cHatch}" stroke="${LINE}" stroke-width="1" opacity=".75" fill="none"/><path d="${cRings}" stroke="#8a4a1e" stroke-width="2.2" fill="none" opacity=".85"/>`)}
+      ${part('periost', `<path d="${band(-8, 14)}" fill="#8a5a32"/><path d="${pFib}" stroke="#4a2a12" stroke-width="1.6" fill="none"/>`)}
+      ${part('osteo', lac(main.os) + NB.map(s => lac(s.os)).join('') + lac(cOs))}
+    </g>
+    <path d="${outline}" fill="none" stroke="#5a3a18" stroke-width="1.5" opacity=".6"/>
+    ${part('havers', `<rect x="${HC[0] - 15}" y="${HC[1] - 19}" width="30" height="38" rx="9" fill="#2a1a1a" stroke="#fff3e0" stroke-width="1.6"/>`)}
+    ${part('bVessel', `<rect id="hvxA" x="${HC[0] - 11}" y="${HC[1] - 16}" width="17" height="21" rx="6" fill="#c8323c" stroke="#7a1018" stroke-width="1"/><rect x="${HC[0] + 1}" y="${HC[1] + 3}" width="11" height="13" rx="4" fill="#3a6ad0" stroke="#1a3a80" stroke-width="1"/>`)}
+    ${conCap('مقطع عرضي في العظم المصمت', 'صفائح عظمية متحدة المركز حول قناة هافرس (جهاز هافرس)، وصفائح محيطية تحت سمحاق العظم')}`;
+  const os0 = main.os.filter(o => o[0] < HC[0] - 30 && o[1] < HC[1] - 60).sort((a, b) => a[1] - b[1])[0] || main.os[0];
+  return {
+    body, fnParts: ['havers', 'bVessel'],
+    parts: [
+      { id: 'osteo', anchor: [os0[0], os0[1]], label: [134, 130], side: 'L' },
+      { id: 'bVessel', anchor: [HC[0] - 6, HC[1] - 8], label: [134, 205], side: 'L' },
+      { id: 'havers', anchor: [HC[0] - 13, HC[1] + 12], label: [134, 275], side: 'L' },
+      { id: 'lamella', anchor: [HC[0] - RX * 0.55, HC[1] + RY * 0.62], label: [134, 430], side: 'L' },
+      { id: 'periost', anchor: arcPts(5)[12], label: [866, 140], side: 'R' },
+      { id: 'circLam', anchor: arcPts(40)[17], label: [866, 215], side: 'R' }
+    ],
+    tools: [{ id: 'info:tBone', label: 'عن العظم' }, { id: 'tbl:boneTypes', label: 'المصمت × الإسفنجي (ص59)' }, { id: 'tbl:cartBone', label: 'الغضروف × العظم (ص61)' }],
+    tick(dt, t, a){ const hv = a.el('#hvxA'); if (hv) hv.setAttribute('transform', `translate(${HC[0] - 2.5} ${HC[1] - 5.5}) scale(${n2(1 + 0.08 * Math.sin(t * 5))}) translate(${-(HC[0] - 2.5)} ${-(HC[1] - 5.5)})`); }
   };
 }
 
@@ -8599,7 +8677,7 @@ function cellsModel(B){
 }
 
 Object.assign(G3.models, { con_ccells: cellsModel, con_cparts: partsModel,con_cadip: adipModel, con_cret: retModel, con_cmuc: mucModel, con_cdense: denseModel,
-  con_ccart: cartModel, con_cbone: boneModel, con_cspon: sponModel, con_cblood: bloodModel, con_clym: lymModel });
+  con_ccart: cartModel, con_cbone: boneModel, con_cbonex: boneModel, con_cspon: sponModel, con_cblood: bloodModel, con_clym: lymModel });
 })();
 
 /* ══════════════════════════════════════════════════════════════════════════

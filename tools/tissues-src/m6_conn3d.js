@@ -382,5 +382,5 @@ function cellsModel(B){
 }
 
 Object.assign(G3.models, { con_ccells: cellsModel, con_cparts: partsModel,con_cadip: adipModel, con_cret: retModel, con_cmuc: mucModel, con_cdense: denseModel,
-  con_ccart: cartModel, con_cbone: boneModel, con_cspon: sponModel, con_cblood: bloodModel, con_clym: lymModel });
+  con_ccart: cartModel, con_cbone: boneModel, con_cbonex: boneModel, con_cspon: sponModel, con_cblood: bloodModel, con_clym: lymModel });
 })();
