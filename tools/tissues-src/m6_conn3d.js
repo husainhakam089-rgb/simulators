@@ -349,6 +349,38 @@ function bloodModel(B){
   };
 }
 
-Object.assign(G3.models, { con_cparts: partsModel, con_cadip: adipModel, con_cret: retModel, con_cmuc: mucModel, con_cdense: denseModel,
+/* ═════════════ 1ب) كل خلية وحدها: الخلايا الثمانية مكبّرة، وحدة بكل مرحلة ═════════════ */
+function cellsModel(B){
+  const rnd = srng(21), O = [0, 0, 0], NUC = { color: '#6f5fc0', rim: 0.5, rimColor: '#d8d0ff' };
+  const C = [];
+  const grp = (id, list) => C.push({ id, objs: list.map(([mesh, opt]) => B.add(mesh, opt)) });
+  grp('fibro', [[merge([ellipsoid({ r: [1.05, 0.26, 0.34], rows: 10, cols: 16 })].concat([[-1, 0.42], [-1, -0.4], [1, 0.3], [1, -0.45]].map(([s, d]) =>
+    tube({ pts: [[s * 0.85, 0, 0], [s * 1.5, d * 0.9, 0.15], [s * 1.85, d * 1.6, 0.1]], r: 0.06, sides: 6 }))).concat([[-1, 0.42], [-1, -0.4], [1, 0.3], [1, -0.45]].map(([s, d]) =>
+    tube({ pts: [[s * 1.5, d * 0.9, 0.15], [s * 1.95, d * 0.75, 0.2]], r: 0.045, sides: 6 })))), fx('fibro', '#c9a0b4')],
+    [ellipsoid({ r: [0.32, 0.15, 0.18], rows: 8, cols: 10 }), NUC]]);
+  grp('macro', [[blob([1.15, 0.95, 0.9], 0.2, 1), fx('macro', '#e7c9a8', { alpha: 0.82 })],
+    [place(ball, { at: [0.42, 0.3, 0.45], s: 0.32 }), NUC], [dots([[-0.35, -0.25, 0.55], [-0.05, -0.55, 0.5]], 0.14), { color: '#b88a60', rim: 0.4 }]]);
+  grp('plasmaC', [[ellipsoid({ r: [1.0, 0.8, 0.75], rows: 12, cols: 16 }), fx('plasmaC', '#c7d6f0', { alpha: 0.75 })],
+    [place(ellipsoid({ r: 0.42, rows: 10, cols: 12 }), { at: [-0.33, 0, 0.3] }), { color: '#f3efff', rim: 0.4 }],
+    [dots(Array.from({ length: 9 }, (_, i) => i < 8 ? [-0.33 + Math.cos(i / 8 * 6.283) * 0.28, Math.sin(i / 8 * 6.283) * 0.28, 0.7] : [-0.33, 0, 0.72]), 0.075), NUC]]);
+  grp('mast', [[ellipsoid({ r: 1.05, rows: 14, cols: 18 }), fx('mast', '#e3c0e8', { alpha: 0.55 })],
+    [dots(Array.from({ length: 70 }, () => { const a = rnd() * 6.28, b = rnd() * 3.14, d = 0.25 + rnd() * 0.7; return [Math.cos(a) * Math.sin(b) * d, Math.cos(b) * d, Math.sin(a) * Math.sin(b) * d]; }), 0.065), fx('mast', '#8a3a9a')],
+    [place(ball, { at: [0.25, 0.18, 0.6], s: 0.26 }), NUC]]);
+  grp('retC', [[star(O, 7, 1.25, 0.12, rnd), fx('retC', '#bfa9e0')], [place(ball, { at: [0, 0, 0.15], s: 0.25 }), NUC]]);
+  grp('pigC', [[star(O, 8, 1.2, 0.14, rnd), fx('pigC', '#6b4a2a', { rimColor: '#c8a070' })],
+    [dots(Array.from({ length: 24 }, () => [(rnd() - 0.5) * 0.6, (rnd() - 0.5) * 0.6, 0.2 + rnd() * 0.15]), 0.05), { color: '#2a180a', rim: 0.2 }]]);
+  grp('fatC', [[ellipsoid({ r: 1.1, rows: 14, cols: 18 }), fx('fatC', '#e9b8c4', { alpha: 0.35, shell: { size: 1.4 } })],
+    [ellipsoid({ r: 0.96, rows: 14, cols: 18 }), fx('fatC', '#f3e3a0')],
+    [place(ellipsoid({ r: [0.42, 0.1, 0.34], rows: 8, cols: 10 }), { at: [0.62, 0.78, 0], rot: [0, 0, -0.65] }), fx('fatC', '#6f5fc0')]]);
+  grp('mesC', [[star(O, 6, 1.0, 0.16, rnd), fx('mesC', '#9fd3c7')], [ellipsoid({ r: [0.3, 0.24, 0.24], rows: 8, cols: 10 }), NUC]]);
+  C.forEach((c, i) => B.label(c.id, [-1.2, 0.2, 0.3], [0, 0.3, 1], () => STG.idx === i));
+  B.caption([0, -1.75, 0.5], () => { const s = CON_CELL_STAGES[STG.idx]; return s ? [s.n] : []; });
+  let shown = -1;
+  const sync = () => { if (STG.idx === shown) return; shown = STG.idx; C.forEach((c, i) => c.objs.forEach(o => { o.hide = i !== shown; })); };
+  sync();
+  return { dist: 5.2, yaw: 0.2, pitch: 0.2, live2d: true, anim(){ sync(); } };
+}
+
+Object.assign(G3.models, { con_ccells: cellsModel, con_cparts: partsModel,con_cadip: adipModel, con_cret: retModel, con_cmuc: mucModel, con_cdense: denseModel,
   con_ccart: cartModel, con_cbone: boneModel, con_cspon: sponModel, con_cblood: bloodModel, con_clym: lymModel });
 })();

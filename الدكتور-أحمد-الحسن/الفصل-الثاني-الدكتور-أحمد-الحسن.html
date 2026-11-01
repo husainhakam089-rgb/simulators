@@ -4354,6 +4354,7 @@ function ethCmp(){
    ══════════════════════════════════════════════════════════════════════════ */
 const CON_VIEWS = [
   { id: 'cparts', label: 'الخلايا والألياف' },
+  { id: 'ccells', label: 'كل خلية وحدها' },
   { id: 'cadip',  label: 'الشحمي' },
   { id: 'cret',   label: 'الشبكي' },
   { id: 'cmuc',   label: 'المخاطاني' },
@@ -4364,7 +4365,7 @@ const CON_VIEWS = [
   { id: 'cblood', label: 'الدم' },
   { id: 'clym',   label: 'البلازما واللمف' }
 ];
-const CON_SRC = { cparts: 'ملزمة ص42–47 وص50', cadip: 'ملزمة ص45 وص49–50', cret: 'ملزمة ص47 وص49–50', cmuc: 'ملزمة ص49–50 وص57', cdense: 'ملزمة ص48 وص53',
+const CON_SRC = { cparts: 'ملزمة ص42–47 وص50', ccells: 'ملزمة ص43–45', cadip: 'ملزمة ص45 وص49–50', cret: 'ملزمة ص47 وص49–50', cmuc: 'ملزمة ص49–50 وص57', cdense: 'ملزمة ص48 وص53',
   ccart: 'ملزمة ص54–56', cbone: 'ملزمة ص59–62', cspon: 'ملزمة ص59', cblood: 'ملزمة ص62–69', clym: 'ملزمة ص67–68' };
 const CON_PAL = { mat: '#d9cde6', matD: '#b9a8cc', col: '#f1d9de', colS: '#e58aa0', ela: '#e8c23a', ret: '#4a3a6a', fib: '#c9a0b4', cart: '#cfe3ef', cartL: '#eef7fb',
   bone: '#e9dcc0', boneL: '#fff6e0', boneD: '#a88a5c', rbc: '#d9433b', wbc: '#efe6f6', plt: '#c08bd0', plasma: '#f6e3a6', fat: '#f3e3a0', nuc: '#6f5fc0' };
@@ -4376,7 +4377,7 @@ SCENES.conn = {
   model3d: () => 'con_' + SEL.conv,
   build(){
     const v = CON_VIEWS.some(x => x.id === SEL.conv) ? SEL.conv : 'cparts';
-    const s = ({ cparts: conParts, cadip: conAdip, cret: conRet, cmuc: conMuc, cdense: conDense, ccart: conCart, cbone: conBone, cspon: conSpon, cblood: conBlood, clym: conLym })[v]();
+    const s = ({ cparts: conParts, ccells: conCells, cadip: conAdip, cret: conRet, cmuc: conMuc, cdense: conDense, ccart: conCart, cbone: conBone, cspon: conSpon, cblood: conBlood, clym: conLym })[v]();
     s.rebuildOnRadio = 'conv';
     s.tools = CON_VIEWS.map(x => ({ id: x.id, label: x.label, radio: 'conv', on: x.id === v })).concat(s.tools || []);
     return s;
@@ -4485,6 +4486,76 @@ function conParts(){
       a.all('.hst').forEach(e => { const i = +e.dataset.i, p = (t * 0.25 + i / 8) % 1, ang = i * 0.8; e.setAttribute('cx', n2(sx + Math.cos(ang) * (36 + p * 70))); e.setAttribute('cy', n2(sy + Math.sin(ang) * (36 + p * 70))); e.setAttribute('opacity', n2(Math.sin(p * Math.PI))); });
       /* البلازمية تكوّن الأجسام المضادة */
       a.all('.ab').forEach(e => { const i = +e.dataset.i, p = (t * 0.22 + i / 5) % 1, ang = -2.4 + i * 0.5; e.setAttribute('transform', `translate(${n2(px + Math.cos(ang) * (30 + p * 90))},${n2(py + Math.sin(ang) * (30 + p * 90))}) rotate(${n2(ang * 57.3 + 90)})`); e.setAttribute('opacity', n2(Math.sin(p * Math.PI))); });
+    }
+  };
+}
+
+/* ───────── 1ب) كل خلية وحدها (ص43–45): الخلايا الثمانية بالترتيب، كل وحدة مكبّرة وصفاتها مؤشّرة ─────────
+   p: نقطة الصفة على الخلية (إحداثيات الخلية قبل التكبير) — النصوص من وصف كل خلية في الكتاب */
+const CC_X = 400, CC_Y = 285;
+const CON_CELL1 = [
+  { id: 'fibro', k: 1.75, g: 'كبيرة الحجم · من أكثر خلايا النسيج الرابط شيوعاً', fn: 'تكوين جميع أنواع الألياف: البيض المغراوية، والصفر، والشبكية',
+    draw: () => fibroBig(),
+    f: [['ذات بروزات طويلة متفرعة', [124, -27]], ['مغزلية الشكل في مظهرها الجانبي', [44, -12]], ['نواتها بيضوية الشكل', [6, 4]], ['سايتوبلازم متجانس', [-42, 8]]] },
+  { id: 'macro', k: 3.2, g: 'تمتاز بكبر حجمها', fn: 'التهام الجزيئات الغريبة ضمن النسيج (وظيفتها دفاعية)',
+    draw: () => CELLS.macro(0, 0),
+    f: [['خلية أميبية الشكل', [-30, -36]], ['النواة لامركزية الموقع', [18, -12]], ['بروزاتها قصيرة مقارنة ببروزات الأرومة الليفية', [52, 0]]] },
+  { id: 'plasmaC', k: 4, g: 'صغيرة الحجم نسبياً (مكبّرة هنا)', fn: 'تكوين الأجسام المضادة، ولها دور مهم في حماية الجسم من الإصابات',
+    draw: () => CELLS.plasmaC(0, 0),
+    f: [['نواتها لامركزية الموقع', [-10, -13]], ['كروية الشكل أو بيضوية', [29, -8]], ['سايتوبلازم متجانس', [15, 6]], ['الكروماتين مرتب شعاعياً (وجه الساعة أو عجلة العربة)', [-18.5, 0]]] },
+  { id: 'mast', k: 3.5, g: 'من خلايا النسيج الضام', fn: 'تحتوي على الهستامين (تقلص العضلات الملساء في القصيبات الرئوية وتوسيع الشعيرات الدموية) والهيبارين (يمنع تخثر الدم)',
+    draw: () => CELLS.mast(0, 0),
+    f: [['كروية الشكل كبيرة الحجم', [34, -12]], ['نواة صغيرة ولا مركزية الموقع', [8, -6]], ['سايتوبلازم حبيبي', [-14, 16]]] },
+  { id: 'retC', k: 3.6, g: 'تسود في النسيج الضام الشبكي', fn: '', draw: () => CELLS.retC(0, 0), f: [] },
+  { id: 'pigC', k: 3.4, g: 'من أنواع خلايا النسيج الضام الثمانية', fn: '', draw: () => CELLS.pigC(0, 0), f: [] },
+  { id: 'fatC', k: 3.7, g: 'تسود في النسيج الضام الشحمي', fn: 'خزن الدهون لتوليد الطاقة وحماية الفرد من فقدان الحرارة',
+    draw: () => CELLS.fatC(0, 0, 34),
+    f: [['النواة مسطحة محيطية (جانبية الموقع)', [22, -19]], ['كروية الشكل', [34, 2]], ['قطرة دهنية كبيرة تشغل معظم حجم الخلية', [4, 10]], ['السايتوبلازم ممثلاً بحلقة نحيفة', [-21, 24]]] },
+  { id: 'mesC', k: 4, g: 'غير متخصصة · تدخل في تركيب النسيج الضام الجنيني', fn: 'يمكنها أن تتمايز (تتخصص) إلى أي نوع من خلايا النسيج الضام لدى البالغين',
+    draw: () => CELLS.mesC(0, 0),
+    f: [['ذات بروزات سايتوبلازمية', [32, 0]], ['نواة بيضوية مركزية الموقع', [4, -4]]] }
+];
+/* الأرومة الليفية مكبّرة: جسم مغزلي، وبروزات طويلة تخرج من طرفيه وتتفرع، ونواة بيضوية */
+function fibroBig(){
+  const br = (sx, sy) => { const a = [sx * 64, sy * 3], b = [sx * 104, sy * 17], c = [sx * 136, sy * 32], d = [sx * 134, sy * 4], e = [sx * 88, sy * 30];
+    return `M${cPt(a[0], a[1])} Q${cPt(sx * 84, sy * 6)} ${cPt(b[0], b[1])} L${cPt(c[0], c[1])} M${cPt(b[0], b[1])} L${cPt(d[0], d[1])} M${cPt(sx * 78, sy * 10)} L${cPt(e[0], e[1])}`; };
+  return `<path d="${br(1, -1)} ${br(1, 1)} ${br(-1, -1)} ${br(-1, 1)}" fill="none" stroke="${CON_PAL.fib}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M-72,0 C-40,-24 40,-24 72,0 C40,24 -40,24 -72,0Z" fill="${CON_PAL.fib}" stroke="#fff" stroke-width="1"/>
+    <ellipse cx="0" cy="0" rx="17" ry="9" fill="${CON_PAL.nuc}"/>`;
+}
+const CON_CELL_STAGES = CON_CELL1.map((c, i) => ({ n: '0' + (i + 1) + ' · ' + INFO[c.id].name, d: c.g + (c.fn ? ' — الوظيفة: ' + c.fn : '') }));
+/* سطر طويل ← سطران على الفراغ الأقرب للنص */
+const ccWrap = (s, n) => { if (s.length <= n) return [s]; let i = s.lastIndexOf(' ', n); if (i < 0) i = n; return [s.slice(0, i), s.slice(i + 1)]; };
+function conCells(){
+  const TX = 660;
+  const body = CON_CELL1.map((c, i) => {
+    const P = c.f.map(([t, p]) => ({ t, x: CC_X + p[0] * c.k, y: CC_Y + p[1] * c.k })).sort((a, b) => a.y - b.y);
+    const gap = 74, y0 = CC_Y - (P.length - 1) * gap / 2;
+    const call = P.map((q, j) => { const ty = y0 + j * gap, L = ccWrap(q.t, 30);
+      return `<path class="lead" d="M${cPt(q.x, q.y)} L${cPt(TX - 22, ty)} L${cPt(TX - 8, ty)}" style="stroke:#ffe08a;stroke-width:1.6;opacity:.85"/><circle cx="${n2(q.x)}" cy="${n2(q.y)}" r="4.5" fill="#ffe08a" stroke="#2a2030" stroke-width="1.4"/>
+        ${L.map((s, m) => `<text class="cap ccT" x="${TX}" y="${n2(ty + 5 + (m - (L.length - 1) / 2) * 19)}" text-anchor="end">${s}</text>`).join('')}`; }).join('');
+    const fn = c.fn ? ccWrap('الوظيفة: ' + c.fn, 78) : [];
+    return `<g class="oneC" data-i="${i}" style="display:${i ? 'none' : ''}">
+      <text class="cap" x="500" y="56" text-anchor="middle" style="font-size:20px">0${i + 1} · ${INFO[c.id].name}</text>
+      <text class="cap sm" x="500" y="82" text-anchor="middle" opacity=".85">${c.g}</text>
+      ${part(c.id, `<g transform="translate(${CC_X} ${CC_Y}) scale(${c.k})">${c.draw()}</g>`)}
+      ${call}
+      ${fn.map((s, m) => `<text class="cap sm" x="500" y="${510 + m * 22}" text-anchor="middle">${s}</text>`).join('')}</g>`;
+  }).join('') + `<style>.ccT{font-size:15px}</style>`;
+  const ctl = stageCtl(CON_CELL_STAGES, { label: 'الخلية', dur: CON_CELL1.length * 6 });
+  let shown = -1;
+  return {
+    body, stages: CON_CELL_STAGES,
+    parts: CON_CELL1.map(c => ({ id: c.id, anchor: [CC_X - 34 * c.k, CC_Y + 4], label: [134, CC_Y + 130], side: 'L' })),
+    tools: ctl.tools.concat([{ id: 'tbl:connCells', label: 'خلايا النسيج الضام (ص43–45)' }, { id: 'info:tConn', label: 'عن النسيج الضام' }]),
+    init(){ shown = -1; ctl.start(); },
+    onSlider: v => ctl.onSlider(v),
+    onTool: id => ctl.onTool(id),
+    tick(dt, t, a){
+      ctl.tick(dt);
+      if (STG.idx !== shown){ shown = STG.idx;
+        a.all('.oneC').forEach(g => g.style.display = +g.dataset.i === shown ? '' : 'none');
+        CON_CELL1.forEach((c, i) => { const lg = a.el(`.lblG[data-for="${c.id}"]`); if (lg) lg.style.display = i === shown ? '' : 'none'; }); }
     }
   };
 }
@@ -8495,7 +8566,39 @@ function bloodModel(B){
   };
 }
 
-Object.assign(G3.models, { con_cparts: partsModel, con_cadip: adipModel, con_cret: retModel, con_cmuc: mucModel, con_cdense: denseModel,
+/* ═════════════ 1ب) كل خلية وحدها: الخلايا الثمانية مكبّرة، وحدة بكل مرحلة ═════════════ */
+function cellsModel(B){
+  const rnd = srng(21), O = [0, 0, 0], NUC = { color: '#6f5fc0', rim: 0.5, rimColor: '#d8d0ff' };
+  const C = [];
+  const grp = (id, list) => C.push({ id, objs: list.map(([mesh, opt]) => B.add(mesh, opt)) });
+  grp('fibro', [[merge([ellipsoid({ r: [1.05, 0.26, 0.34], rows: 10, cols: 16 })].concat([[-1, 0.42], [-1, -0.4], [1, 0.3], [1, -0.45]].map(([s, d]) =>
+    tube({ pts: [[s * 0.85, 0, 0], [s * 1.5, d * 0.9, 0.15], [s * 1.85, d * 1.6, 0.1]], r: 0.06, sides: 6 }))).concat([[-1, 0.42], [-1, -0.4], [1, 0.3], [1, -0.45]].map(([s, d]) =>
+    tube({ pts: [[s * 1.5, d * 0.9, 0.15], [s * 1.95, d * 0.75, 0.2]], r: 0.045, sides: 6 })))), fx('fibro', '#c9a0b4')],
+    [ellipsoid({ r: [0.32, 0.15, 0.18], rows: 8, cols: 10 }), NUC]]);
+  grp('macro', [[blob([1.15, 0.95, 0.9], 0.2, 1), fx('macro', '#e7c9a8', { alpha: 0.82 })],
+    [place(ball, { at: [0.42, 0.3, 0.45], s: 0.32 }), NUC], [dots([[-0.35, -0.25, 0.55], [-0.05, -0.55, 0.5]], 0.14), { color: '#b88a60', rim: 0.4 }]]);
+  grp('plasmaC', [[ellipsoid({ r: [1.0, 0.8, 0.75], rows: 12, cols: 16 }), fx('plasmaC', '#c7d6f0', { alpha: 0.75 })],
+    [place(ellipsoid({ r: 0.42, rows: 10, cols: 12 }), { at: [-0.33, 0, 0.3] }), { color: '#f3efff', rim: 0.4 }],
+    [dots(Array.from({ length: 9 }, (_, i) => i < 8 ? [-0.33 + Math.cos(i / 8 * 6.283) * 0.28, Math.sin(i / 8 * 6.283) * 0.28, 0.7] : [-0.33, 0, 0.72]), 0.075), NUC]]);
+  grp('mast', [[ellipsoid({ r: 1.05, rows: 14, cols: 18 }), fx('mast', '#e3c0e8', { alpha: 0.55 })],
+    [dots(Array.from({ length: 70 }, () => { const a = rnd() * 6.28, b = rnd() * 3.14, d = 0.25 + rnd() * 0.7; return [Math.cos(a) * Math.sin(b) * d, Math.cos(b) * d, Math.sin(a) * Math.sin(b) * d]; }), 0.065), fx('mast', '#8a3a9a')],
+    [place(ball, { at: [0.25, 0.18, 0.6], s: 0.26 }), NUC]]);
+  grp('retC', [[star(O, 7, 1.25, 0.12, rnd), fx('retC', '#bfa9e0')], [place(ball, { at: [0, 0, 0.15], s: 0.25 }), NUC]]);
+  grp('pigC', [[star(O, 8, 1.2, 0.14, rnd), fx('pigC', '#6b4a2a', { rimColor: '#c8a070' })],
+    [dots(Array.from({ length: 24 }, () => [(rnd() - 0.5) * 0.6, (rnd() - 0.5) * 0.6, 0.2 + rnd() * 0.15]), 0.05), { color: '#2a180a', rim: 0.2 }]]);
+  grp('fatC', [[ellipsoid({ r: 1.1, rows: 14, cols: 18 }), fx('fatC', '#e9b8c4', { alpha: 0.35, shell: { size: 1.4 } })],
+    [ellipsoid({ r: 0.96, rows: 14, cols: 18 }), fx('fatC', '#f3e3a0')],
+    [place(ellipsoid({ r: [0.42, 0.1, 0.34], rows: 8, cols: 10 }), { at: [0.62, 0.78, 0], rot: [0, 0, -0.65] }), fx('fatC', '#6f5fc0')]]);
+  grp('mesC', [[star(O, 6, 1.0, 0.16, rnd), fx('mesC', '#9fd3c7')], [ellipsoid({ r: [0.3, 0.24, 0.24], rows: 8, cols: 10 }), NUC]]);
+  C.forEach((c, i) => B.label(c.id, [-1.2, 0.2, 0.3], [0, 0.3, 1], () => STG.idx === i));
+  B.caption([0, -1.75, 0.5], () => { const s = CON_CELL_STAGES[STG.idx]; return s ? [s.n] : []; });
+  let shown = -1;
+  const sync = () => { if (STG.idx === shown) return; shown = STG.idx; C.forEach((c, i) => c.objs.forEach(o => { o.hide = i !== shown; })); };
+  sync();
+  return { dist: 5.2, yaw: 0.2, pitch: 0.2, live2d: true, anim(){ sync(); } };
+}
+
+Object.assign(G3.models, { con_ccells: cellsModel, con_cparts: partsModel,con_cadip: adipModel, con_cret: retModel, con_cmuc: mucModel, con_cdense: denseModel,
   con_ccart: cartModel, con_cbone: boneModel, con_cspon: sponModel, con_cblood: bloodModel, con_clym: lymModel });
 })();
 
