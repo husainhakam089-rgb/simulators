@@ -22,3 +22,6 @@
    (`الأستاذ-النعيمي/poster-source.jpg`، زرّ «ابدأ المحاكاة» المرسوم عليها يعمل):
    `python3 make_naimi_ch2.py <الفصل-الثاني-الدكتور-أحمد-الحسن.html> الأستاذ-النعيمي/poster-source.jpg <out.html>`، ثم
    `APK_PKG=com.naimi.tissues APK_LABEL=الأنسجة` بنفس مفتاح الأستاذ النعيمي، ومجلد حفظ الـ EXE `AlAnsijaNaimi`.
+9. الفصل الثالث للدكتور أحمد: `bash tools/reproduction-src/build.sh` ثم
+   `APK_PKG=com.ahmed.reproduction APK_LABEL=التكاثر` بأيقونة `icon-reproduction.html` ونفس مفتاح الدكتور أحمد،
+   ومجلد حفظ الـ EXE `AlTakathurAhmed`.
