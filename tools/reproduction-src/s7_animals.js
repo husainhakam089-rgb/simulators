@@ -19,6 +19,7 @@ SCENES.anInsect = {
   title: 'التكاثر في الحشرات',
   get src(){ return ({ anIvM: 'ملزمة ص94', anIvF: 'ملزمة ص94', anIvX: 'ملزمة ص96–97' })[SEL.anIv] || 'ملزمة ص93'; },
   tint: ['rgba(80,140,220,.22)', 'rgba(230,160,60,.16)'],
+  model3d: () => 'ani_' + (AN_IVIEWS.some(x => x.id === SEL.anIv) ? SEL.anIv : 'anIvM'),
   build(){
     const v = AN_IVIEWS.some(x => x.id === SEL.anIv) ? SEL.anIv : 'anIvM';
     const s = v === 'anIvF' ? anIFemale() : v === 'anIvX' ? anIFert() : anIMale();
@@ -31,6 +32,7 @@ SCENES.anFrog = {
   title: 'التكاثر في الضفدع',
   get src(){ return ({ anFvM: 'ملزمة ص98–99', anFvF: 'ملزمة ص98–100', anFvX: 'ملزمة ص100–102', anFvC: 'ملزمة ص100–101' })[SEL.anFv] || 'ملزمة ص97'; },
   tint: ['rgba(70,160,110,.24)', 'rgba(60,110,170,.16)'],
+  model3d: () => 'anf_' + (AN_FVIEWS.some(x => x.id === SEL.anFv) ? SEL.anFv : 'anFvM'),
   build(){
     const v = AN_FVIEWS.some(x => x.id === SEL.anFv) ? SEL.anFv : 'anFvM';
     const s = v === 'anFvF' ? anFFemale() : v === 'anFvX' ? anFMate() : v === 'anFvC' ? anFCycle() : anFMale();
