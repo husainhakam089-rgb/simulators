@@ -101,10 +101,10 @@ function flStruct(still){
       { id: 'flAnther', anchor: [565, 238], label: [866, 212], side: 'R' },
       { id: 'flStamen', anchor: [586, 272], label: [866, 272], side: 'R' },
       { id: 'flFilament', anchor: [551, 345], label: [866, 335], side: 'R' },
-      { id: 'flPistil', anchor: [505, 300], label: [866, 400], side: 'R' },
+      { id: 'flPistil', anchor: [529, 398], label: [866, 400], side: 'R' },
       { id: 'flReceptacle', anchor: [540, 478], label: [866, 480], side: 'R' },
       { id: 'flCorolla', anchor: [330, 300], label: [134, 200], side: 'L' },
-      { id: 'flStyle', anchor: [495, 290], label: [134, 285], side: 'L' },
+      { id: 'flStyle', anchor: [500, 245], label: [134, 285], side: 'L' },
       { id: 'flOvary', anchor: [470, 410], label: [134, 370], side: 'L' },
       { id: 'flOvule', anchor: [484, 428], label: [134, 435], side: 'L' },
       { id: 'flCalyx', anchor: [408, 455], label: [134, 510], side: 'L' }

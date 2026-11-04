@@ -365,7 +365,7 @@ function prConj(self, still){
     { id: 'prMeioMic', anchor: prPos(c1, Y1, 1, 6, 42), label: [c1, 280], side: 'C' },
     { id: 'prUneq', anchor: [c2 - 10, Y1 + 80], label: [c2 - 50, 282], side: 'C' },
     { id: 'prDegen', anchor: prPos(c2, Y1, -1, -6, 40), label: [134, 262], side: 'L' },
-    { id: 'prMaleN', anchor: prPos(c2, Y1, -1, 14, 8), label: [134, 306], side: 'L' },
+    { id: 'prMaleN', anchor: prPos(c2, Y1, 1, 14, 8), label: [c2 + 70, 300], side: 'C' },
     { id: 'prFemN', anchor: prPos(c2, Y1, -1, 4, 18), label: [134, 350], side: 'L' }
   ];
   if (!self) parts.push(
