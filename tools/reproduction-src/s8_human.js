@@ -25,6 +25,7 @@ SCENES.human = {
   title: 'التكاثر في الإنسان',
   get src(){ return ({ huvMale: 'ملزمة ص105–106', huvSperm: 'ملزمة ص107', huvFemale: 'ملزمة ص109–111', huvFert: 'ملزمة ص112–113' })[SEL.huv] || 'ملزمة ص105'; },
   tint: ['rgba(190,90,110,.26)', 'rgba(90,110,170,.16)'],
+  model3d: () => 'hu_' + (HU_VIEWS.some(x => x.id === SEL.huv) ? SEL.huv : 'huvMale'),
   build(){
     const v = HU_VIEWS.some(x => x.id === SEL.huv) ? SEL.huv : 'huvMale';
     const s = v === 'huvSperm' ? huSperm() : v === 'huvFemale' ? huFemale() : v === 'huvFert' ? huFert() : huMale();
@@ -37,6 +38,8 @@ SCENES.cycle = {
   title: 'الدورة الحيضية والتكاثر العذري والخنثي',
   get src(){ return ({ cyvMens: 'ملزمة ص117–121', cyvOv: 'ملزمة ص118–119', cyvParth: 'ملزمة ص122–124', cyvHerm: 'ملزمة ص125' })[SEL.cyv] || 'ملزمة ص117'; },
   tint: ['rgba(170,90,140,.24)', 'rgba(120,100,170,.16)'],
+  /* الدورة المبيضية والرحمية (منحنيات) والتكاثر العذري (مخطط) بلا مجسّم */
+  model3d: () => 'cy_' + (CY_VIEWS.some(x => x.id === SEL.cyv) ? SEL.cyv : 'cyvMens'),
   build(){
     const v = CY_VIEWS.some(x => x.id === SEL.cyv) ? SEL.cyv : 'cyvMens';
     const s = v === 'cyvOv' ? huOvCycle() : v === 'cyvParth' ? huParth() : v === 'cyvHerm' ? huHerm() : huMens();
