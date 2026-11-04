@@ -16,6 +16,8 @@ SCENES.plants1 = {
   title: 'الحزازيات والسرخسيات',
   get src(){ return ({ plvWays: 'ملزمة ص42–45', plvAlt: 'ملزمة ص42–45', plvMoss: 'ملزمة ص45–47', plvFern: 'ملزمة ص48–50' })[SEL.plv] || 'ملزمة ص42'; },
   tint: ['rgba(90,150,80,.24)', 'rgba(130,100,190,.16)'],
+  /* المخطّطان (الطرق وتعاقب الأجيال) بلا مجسّم */
+  model3d: () => 'pl_' + (PL_VIEWS.some(x => x.id === SEL.plv) ? SEL.plv : 'plvAlt'),
   build(){
     const v = PL_VIEWS.some(x => x.id === SEL.plv) ? SEL.plv : 'plvAlt';
     const s = v === 'plvWays' ? plWays() : v === 'plvMoss' ? plMoss() : v === 'plvFern' ? plFern() : plAlt();
