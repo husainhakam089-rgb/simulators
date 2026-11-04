@@ -28,6 +28,7 @@ SCENES.protist = {
   title: 'التكاثر في الطليعيات',
   get src(){ return (PR_SUB[SEL.prv] || PR_SUB.prChA)[1]; },
   tint: ['rgba(90,160,90,.24)', 'rgba(70,120,170,.16)'],
+  model3d: () => 'pr_' + (PR_VIEWS.some(x => x.id === SEL.prv) ? SEL.prv : 'prChA'),
   build(){
     const v = PR_VIEWS.some(x => x.id === SEL.prv) ? SEL.prv : 'prChA';
     const s = PR_FN[v]();
@@ -40,6 +41,7 @@ SCENES.protist = {
 SCENES.fungi = {
   title: 'التكاثر في عفن الخبز الأسود (الفطريات)', src: 'ملزمة ص37–39',
   tint: ['rgba(170,140,80,.24)', 'rgba(90,110,170,.14)'],
+  model3d: () => 'fun_rhizo',
   build: () => prRhizo()
 };
 SCENES.pr_chAsex = { title: 'التكاثر اللاجنسي في الكلاميدوموناس', build: st => prChAsex(st) };
