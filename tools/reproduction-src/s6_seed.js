@@ -19,6 +19,7 @@ SCENES.sdPollin = {
   title: 'التلقيح والإخصاب',
   get src(){ return ({ sdpPol: 'ملزمة ص68–69', sdpTube: 'ملزمة ص70–71', sdpFert: 'ملزمة ص74–75', sdpEmb: 'ملزمة ص75–76' })[SEL.sdpv] || 'ملزمة ص68'; },
   tint: ['rgba(120,170,80,.24)', 'rgba(200,120,60,.14)'],
+  model3d: () => 'sdp_' + (SD_VIEWS_P.some(x => x.id === SEL.sdpv) ? SEL.sdpv : 'sdpPol'),
   build(){
     const v = SD_VIEWS_P.some(x => x.id === SEL.sdpv) ? SEL.sdpv : 'sdpPol';
     const s = v === 'sdpTube' ? sdTube() : v === 'sdpFert' ? sdFert() : v === 'sdpEmb' ? sdEmb() : sdPol();
@@ -31,6 +32,7 @@ SCENES.sdSeedFruit = {
   title: 'البذرة والثمرة',
   get src(){ return ({ sdsSeed: 'ملزمة ص77–79', sdsFruit: 'ملزمة ص82–86', sdsTypes: 'ملزمة ص86–88' })[SEL.sdsv] || 'ملزمة ص77'; },
   tint: ['rgba(210,140,70,.24)', 'rgba(110,160,90,.15)'],
+  model3d: () => 'sds_' + (SD_VIEWS_S.some(x => x.id === SEL.sdsv) ? SEL.sdsv : 'sdsSeed'),
   build(){
     const v = SD_VIEWS_S.some(x => x.id === SEL.sdsv) ? SEL.sdsv : 'sdsSeed';
     const s = v === 'sdsFruit' ? sdFruit() : v === 'sdsTypes' ? sdTypes() : sdSeeds();
