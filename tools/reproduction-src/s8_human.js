@@ -433,6 +433,15 @@ const HU_H = {
   prog: [[1, .05], [13.5, .06], [15.5, .16], [18, .55], [21, .76], [23, .7], [26, .28], [29, .05]]
 };
 const HU_TH = [[1, 34], [3, 20], [5.6, 8], [9, 22], [13, 40], [14.5, 44], [18, 62], [22, 80], [26, 84], [29, 72]];
+/* جملة مبسطة لكل مرحلة: ماذا يحدث في المبيض ← وماذا يسبب في الرحم (من نصوص المراحل) */
+const HU_SAY = [
+  ['الأيام 1–5: الحيض', 'الهرمونات واطئة ← بطانة الرحم تتمزق وتخرج مع الدم · وفي المبيض حوصلة بدائية تبدأ تنمو'],
+  ['الأيام 6–9: الحوصلة تكبر (أولية ← ثانوية)', 'هرمون FSH ينمّي الحوصلة فتفرز الإستروجين ← بطانة الرحم تُبنى من جديد (طور النشوء)'],
+  ['الأيام 10–13: الحوصلة تنضج', 'الإستروجين يرتفع كثيراً ← البطانة تزداد سمكاً'],
+  ['اليوم 14: الإباضة', 'ارتفاع مفاجئ في LH ← الحوصلة الناضجة تتمزق وتخرج الخلية البيضية الثانوية'],
+  ['الأيام 15–24: الجسم الأصفر', 'بقايا الحوصلة تصير الجسم الأصفر ويفرز البروجسترون ← البطانة سميكة بغدد تستعد للحمل (الطور الإفرازي)'],
+  ['الأيام 25–28: لا يوجد حمل', 'الجسم الأصفر يضمحل (الجسم الأبيض) وتنخفض الهرمونات ← تبدأ دورة جديدة بالحيض']
+];
 function huMens(still){
   const yH = v => 420 - v * 125, X = HU_X;
   const curve = (K, d0, d1) => { const P = []; for (let d = d0; d <= d1 + 0.001; d += 0.5) P.push([X(d), yH(huCurve(K, d))]); return smoothOpen(P); };
@@ -460,7 +469,7 @@ function huMens(still){
   const body = `
     <defs><clipPath id="huClipDay"><rect id="huClipR" x="300" y="270" width="${still ? 600 : 0}" height="160"/></clipPath></defs>
     ${strip}
-    <text class="cap sm" x="852" y="88" text-anchor="start">الدورة المبيضية (المبيض)</text>
+    <text class="cap" x="850" y="92" text-anchor="start" style="font-size:16px">① المبيض: ماذا يحدث للحوصلة؟</text>
     ${part('huPrimord', `<g data-st="0">${fol(X(2.5), yA, 9, 'prim')}</g>`)}
     ${part('huPrimF', `<g data-st="1">${fol(X(5.5), yA, 14, 'pri')}</g>`)}
     ${part('huSecF', `<g data-st="1">${fol(X(9), yA, 22, 'sec')}</g>`)}
@@ -471,7 +480,8 @@ function huMens(still){
     ${part('huCA', `<g data-st="5">${clP(X(27), yA, 17, '#f4f0ea')}</g>`)}
     <line x1="${X(14.5)}" y1="70" x2="${X(14.5)}" y2="598" stroke="#ffe08a" stroke-width="1.2" stroke-dasharray="4 5" opacity=".6"/>
     <rect x="300" y="268" width="556" height="160" rx="10" fill="rgba(255,255,255,.03)" stroke="rgba(255,255,255,.12)"/>
-    <text class="cap sm" x="852" y="286" text-anchor="start">الهرمونات</text>
+    <text class="cap" x="850" y="290" text-anchor="start" style="font-size:16px">② الهرمونات</text>
+    ${[['fsh', 'FSH', 1], ['lh', 'LH', 1], ['est', 'الإستروجين', 0], ['prog', 'البروجسترون', 0]].map(([k, n, dash], i) => { const x = 820 - i * 118; return `<line x1="${x - 34}" y1="415" x2="${x - 6}" y2="415" stroke="${HUC[k]}" stroke-width="4"${dash ? ' stroke-dasharray="7 4"' : ''}/><text x="${x - 40}" y="420" text-anchor="start" font-size="13" font-weight="700" fill="${HUC[k]}" direction="rtl">${n}</text>`; }).join('')}
     <g opacity=".35">${['fsh', 'lh', 'est', 'prog'].map(k => `<path d="${curve(HU_H[k], 1, 29)}" fill="none" stroke="${HUC[k]}" stroke-width="2"${k === 'fsh' || k === 'lh' ? ' stroke-dasharray="6 4"' : ''}/>`).join('')}</g>
     <g clip-path="url(#huClipDay)">
       ${part('huFSH', `<path d="${curve(HU_H.fsh, 1, 29)}" fill="none" stroke="${HUC.fsh}" stroke-width="3" stroke-dasharray="7 4"/>`)}
@@ -480,7 +490,7 @@ function huMens(still){
       ${part('huProg', `<path d="${curve(HU_H.prog, 1, 29)}" fill="none" stroke="${HUC.prog}" stroke-width="4"/>`)}
     </g>
     ${bandBg}
-    <text class="cap sm" x="852" y="452" text-anchor="start">الدورة الرحمية (جدار الرحم)</text>
+    <text class="cap" x="850" y="456" text-anchor="start" style="font-size:16px">③ الرحم: ماذا يحدث لبطانته؟</text>
     <text class="cap sm" x="${n2((X(1) + X(6)) / 2)}" y="470" text-anchor="middle">الحيضي</text>
     <text class="cap sm" x="${n2((X(6) + X(14)) / 2)}" y="470" text-anchor="middle">النشوء (التكاثر)</text>
     <text class="cap sm" x="${n2((X(15) + X(25)) / 2)}" y="470" text-anchor="middle">الإفرازي</text>
@@ -492,7 +502,9 @@ function huMens(still){
     <g id="huCur" ${still ? 'opacity="0"' : ''}><line x1="0" y1="64" x2="0" y2="600" stroke="#fff" stroke-width="1.6" opacity=".75"/>
       ${['fsh', 'lh', 'est', 'prog'].map(k => `<circle class="huHd" data-k="${k}" cx="0" cy="400" r="5" fill="${HUC[k]}" stroke="#fff" stroke-width="1.4"/>`).join('')}
       <rect x="-30" y="624" width="60" height="18" rx="9" fill="#ffe08a"/><text id="huDayT" x="0" y="637" text-anchor="middle" font-size="12" font-weight="700" fill="#2a1a10" direction="rtl">اليوم 1</text></g>
-    <text class="cap sm" x="500" y="662" text-anchor="middle">جدول ص121: المبيضية (الحوصلي 1-13 · التبويض 14 · الجسم الأصفر 14-28) — الرحمية (الحيضي 1-5 · النشوء 6-13 · الإفراز 15-28)</text>`;
+    <rect x="150" y="648" width="700" height="44" rx="12" fill="rgba(255,224,138,.12)" stroke="rgba(255,224,138,.6)"/>
+    <text id="huSay1" x="500" y="666" text-anchor="middle" font-size="14" font-weight="700" fill="#ffe08a" direction="rtl"></text>
+    <text id="huSay2" x="500" y="685" text-anchor="middle" font-size="13" fill="#f3ead6" direction="rtl"></text>`;
   const ctl = stageCtl(HU_MENS_STAGES, { dur: 42, label: 'اليوم' });
   const dayNow = () => { const s = HU_MENS_STAGES[STG.idx]; return s.a + STG.k * (s.b - s.a + 1); };
   return {
@@ -505,10 +517,10 @@ function huMens(still){
       { id: 'huOvul', anchor: [X(14.5) + 10, yA - 52], label: [X(14.5) + 60, 50], side: 'C', short: 'الإباضة' },
       { id: 'huCL', anchor: [X(20), yA + 30], label: [X(20), 230], side: 'C' },
       { id: 'huCA', anchor: [X(27), yA + 17], label: [X(27), 250], side: 'C' },
-      { id: 'huFSH', anchor: [X(3), yH(huCurve(HU_H.fsh, 3))], label: [134, 300], side: 'L', short: 'FSH (محفز الحويصلات)' },
-      { id: 'huLH', anchor: [X(14), yH(1)], label: [134, 334], side: 'L', short: 'LH (محفز الجسم الأصفر)' },
-      { id: 'huEstro', anchor: [X(12), yH(huCurve(HU_H.est, 12))], label: [134, 368], side: 'L' },
-      { id: 'huProg', anchor: [X(21), yH(huCurve(HU_H.prog, 21))], label: [134, 402], side: 'L' },
+      { id: 'huFSH', anchor: [X(27.5), yH(huCurve(HU_H.fsh, 27.5))], label: [866, 300], side: 'R', short: 'FSH (محفز الحويصلات)' },
+      { id: 'huLH', anchor: [X(27.5), yH(huCurve(HU_H.lh, 27.5))], label: [866, 336], side: 'R', short: 'LH (محفز الجسم الأصفر)' },
+      { id: 'huEstro', anchor: [X(26.5), yH(huCurve(HU_H.est, 26.5))], label: [866, 372], side: 'R' },
+      { id: 'huProg', anchor: [X(25.5), yH(huCurve(HU_H.prog, 25.5))], label: [866, 408], side: 'R' },
       { id: 'huMenses', anchor: [X(3), thY(3) + 6], label: [134, 500], side: 'L' },
       { id: 'huProlif', anchor: [X(10), thY(10) + 10], label: [134, 560], side: 'L' },
       { id: 'huSecret', anchor: [X(24), thY(24) + 10], label: [866, 520], side: 'R' }
@@ -525,6 +537,7 @@ function huMens(still){
       const cr = a.el('#huClipR'); if (cr) cr.setAttribute('width', n2(x - 300));
       a.all('.huHd').forEach(c => c.setAttribute('cy', n2(yH(huCurve(HU_H[c.dataset.k], d)))));
       const dt2 = a.el('#huDayT'); if (dt2) dt2.textContent = 'اليوم ' + Math.floor(d);
+      const sy = HU_SAY[STG.idx] || HU_SAY[0], s1 = a.el('#huSay1'), s2 = a.el('#huSay2'); if (s1 && s1.textContent !== sy[0]){ s1.textContent = sy[0]; s2.textContent = sy[1]; }
       a.all('.huBld').forEach((b, i) => { const p = (t * 0.45 + i / 6) % 1, bx = X(1.3 + i * 0.75);
         b.setAttribute('transform', `translate(${n2(bx)},${n2(thY(1.3 + i * 0.75) - 2 + p * 40)})`); b.setAttribute('opacity', n2(STG.idx === 0 ? Math.sin(p * Math.PI) : 0)); });
       const oe = a.el('#huOvEgg'); if (oe){ const p = STG.idx === 3 ? STG.k : STG.idx > 3 ? 1 : 0; oe.setAttribute('transform', `translate(0,${n2(40 * (1 - p))})`); oe.setAttribute('opacity', n2(STG.idx >= 3 && STG.idx < 5 ? 1 : 0)); }

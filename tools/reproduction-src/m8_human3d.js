@@ -202,5 +202,65 @@ function hermModel(B){
     anim(t){ B.update(exO, ex(t)); const ph = (t * 0.25) % 1; tm.col = ph < 0.5 ? [0.48, 0.63, 0.94] : [0.94, 0.55, 0.7]; } };
 }
 
-Object.assign(G3.models, { hu_huvMale: maleModel, hu_huvSperm: spermModel, hu_huvFemale: femaleModel, hu_huvFert: fertModel, cy_cyvOv: ovcModel, cy_cyvHerm: hermModel });
+/* ═════════════ 7) الدورة المبيضية والرحمية (ص117–121) — ثلاث محطات تتحرك مع اليوم ═════════════
+   يسار: المبيض وحوصلة واحدة تتطور · وسط: أعمدة الهرمونات الأربعة · يمين: جدار الرحم (بطانته تتغير) */
+function mensModel(B){
+  const day = () => { const s = HU_MENS_STAGES[STG.idx] || HU_MENS_STAGES[0]; return s.a + Math.min(0.999, STG.k) * (s.b - s.a + 1); };
+  /* المبيض والحوصلة */
+  const OV = [-2.6, -0.45, 0];
+  B.add(place(ellipsoid({ r: [0.95, 1.2, 0.7], rows: 16, cols: 22 }), { at: OV }), fx('huOvary', '#f2d8b0', { alpha: 0.28, shell: { size: 3 }, rimColor: '#fff4e0' }));
+  const F = add(OV, [0.15, 0.1, 0.35]);
+  const prim = B.add(merge([ball(0.1, F, 8), ball(0.05, add(F, [0, 0, 0.09]), 6)]), fx('huPrimord', '#f6e8c8', { pop: false }));
+  const primF = B.add(merge([ball(0.18, add(F, [-0.25, 0.35, 0]), 10), ball(0.08, add(F, [-0.25, 0.35, 0.14]), 8)]), fx('huPrimF', '#f6d8b0', { pop: false }));
+  const secF = B.add(ball(0.3, add(F, [0.15, -0.15, 0]), 12), fx('huSecF', '#f4c8a0', { alpha: 0.65, pop: false }));
+  const matF = B.add(ball(0.52, F, 16), fx('huMatF', '#cfe7ff', { alpha: 0.45, shell: { size: 1.2 }, pop: false }));
+  const matE = B.add(ball(0.17, add(F, [-0.15, -0.12, 0.3]), 12), fx('huMatF', '#f0a040', { pop: false }));
+  const egg = k => ball(0.16, add(F, [0.3 + k * 1.0, 0.25 + k * 0.6, 0.5 + k * 0.4]), 12);
+  const ovO = B.add(egg(0), fx('huOvul', '#f0a040', { pop: false, center: F }));
+  const cl = B.add(place(ellipsoid({ r: 0.5, rows: 12, cols: 16, disp: d => 1 + 0.16 * Math.sin(d[0] * 8) * Math.sin(d[1] * 8) }), { at: F }), fx('huCL', '#f6c840', { pop: false }));
+  const ca = B.add(place(ellipsoid({ r: 0.26, rows: 10, cols: 14, disp: d => 1 + 0.2 * Math.sin(d[0] * 6) * Math.sin(d[2] * 6) }), { at: F }), fx('huCA', '#f4f4f0', { pop: false }));
+  /* أعمدة الهرمونات: الارتفاع = مستوى الهرمون في اليوم */
+  const HB = [['huFSH', 'fsh', '#5a8ae8', -0.75, [-1, 0.5, 0.3]], ['huLH', 'lh', '#e8607a', -0.25, [-0.5, -1, 0.5]], ['huEstro', 'est', '#e8a0e0', 0.25, [0.5, -1, 0.5]], ['huProg', 'prog', '#f0c040', 0.75, [1, 0.5, 0.3]]];
+  const bar = (x, v) => place(G3.superEll({ h: [0.18, Math.max(0.02, v * 1.3), 0.18], e: 0.3, rows: 6, cols: 10 }), { at: [x, -1.1 + Math.max(0.02, v * 1.3), 0] });
+  const bars = HB.map(([id, key, col, x, nd]) => ({ id, key, x, nd, o: B.add(bar(x, 0.5), fx(id, col, { pop: false, center: [x, -0.5, 0] })) }));
+  B.add(place(G3.superEll({ h: [1.15, 0.03, 0.35], e: 0.3, rows: 4, cols: 10 }), { at: [0, -1.12, 0] }), { color: '#5a4a5a', rim: 0.3 });
+  /* جدار الرحم: طبقة عضلية ثابتة وفوقها البطانة؛ سمكها من منحنى الملزمة */
+  const UX = 2.6;
+  B.add(place(G3.superEll({ h: [0.9, 0.2, 0.6], e: 0.25, rows: 6, cols: 12 }), { at: [UX, -1.0, 0] }), { color: '#b04050', rim: 0.4, rimColor: '#ffb0b8' });
+  const th = d => huCurve(HU_TH, d) / 84 * 0.5;
+  const lining = (d, w) => place(G3.superEll({ h: [0.88, Math.max(0.03, th(d) * 0.9), 0.58], e: 0.35, rows: 6, cols: 12, disp: q => 1 + w * 0.08 * Math.sin(q[0] * 9) }), { at: [UX, -0.8 + Math.max(0.03, th(d) * 0.9), 0] });
+  const men = B.add(lining(3, 1), fx('huMenses', '#c0303a', { pop: false, center: [UX, -0.6, 0] }));
+  const pro = B.add(lining(10, 0), fx('huProlif', '#f08aa0', { pop: false, center: [UX, -0.4, 0] }));
+  const sec = B.add(lining(22, 0.5), fx('huSecret', '#e86a8a', { pop: false, center: [UX, -0.2, 0] }));
+  const glands = d => merge(Array.from({ length: 6 }, (_, i) => { const x = UX - 0.65 + i * 0.26, h = th(d) * 1.6; return tube({ pts: Array.from({ length: 9 }, (_, j) => [x + Math.sin(j * 1.6) * 0.05, -0.75 + j / 8 * h, 0.5]), r: 0.025, sides: 4 }); }));
+  const glO = B.add(glands(22), fx('huSecret', '#ffd0dc', { pop: false, center: [UX, -0.3, 0] }));
+  const drops = t => merge(Array.from({ length: 8 }, (_, i) => { const u = (t * 0.5 + i / 8) % 1; return ball(0.05, [UX - 0.6 + i * 0.17, -0.85 - u * 0.9, 0.55], 6); }));
+  const drO = B.add(drops(0), fx('huMenses', '#d0202a', { pop: false, center: [UX, -1.2, 0] }));
+  const vis = (...ss) => () => ss.includes(STG.idx);
+  B.label('huOvary', add(OV, [-0.95, 0.4, 0]), [-1, 0.3, 0]);
+  B.label('huPrimord', add(F, [0, 0.12, 0.05]), [-0.4, 1, 0.3], vis(0));
+  B.label('huPrimF', add(F, [-0.25, 0.52, 0]), [-0.4, 1, 0.3], vis(1));
+  B.label('huSecF', add(F, [0.42, -0.15, 0]), [1, -0.3, 0.3], vis(1));
+  B.label('huMatF', add(F, [0, 0.52, 0]), [0, 1, 0.3], vis(2));
+  B.label('huOvul', add(F, [0.5, 0.4, 0.6]), [0.3, 1, 0.5], vis(3));
+  B.label('huCL', add(F, [0, 0.5, 0]), [0, 1, 0.3], vis(4));
+  B.label('huCA', add(F, [0, 0.27, 0]), [0, 1, 0.3], vis(5));
+  bars.forEach(b => B.label(b.id, [b.x, -1.05, 0.2], b.nd));
+  B.label('huMenses', [UX + 0.88, -0.75, 0], [1, -0.2, 0], vis(0));
+  B.label('huProlif', [UX + 0.88, -0.6, 0], [1, 0, 0], vis(1, 2, 3));
+  B.label('huSecret', [UX + 0.88, -0.4, 0], [1, 0.2, 0], vis(4, 5));
+  B.caption([0, 1.5, 0], () => ['اليوم ' + Math.floor(day()) + ' من 28 — ' + ((HU_MENS_STAGES[STG.idx] || {}).n || '').replace(/^\d+ · /, '')]);
+  B.caption([0, -1.75, 0], () => ['المبيض (الحوصلة)   ·   الهرمونات: FSH · LH · الإستروجين · البروجسترون   ·   بطانة الرحم']);
+  return { dist: 9.0, yaw: 0, pitch: 0.12, target: [0, 0.1, 0], live2d: true, noSpin: true,
+    anim(t){ const s = STG.idx, k = STG.k, d = day();
+      prim.hide = s !== 0; primF.hide = secF.hide = s !== 1; matF.hide = matE.hide = s !== 2;
+      ovO.hide = s !== 3; if (s === 3) B.update(ovO, egg(k)); cl.hide = s !== 4; ca.hide = s !== 5;
+      bars.forEach(b => B.update(b.o, bar(b.x, huCurve(HU_H[b.key], d))));
+      men.hide = drO.hide = d >= 6; pro.hide = !(d >= 6 && d < 15); sec.hide = glO.hide = d < 15;
+      if (d < 6){ B.update(men, lining(d, 1)); B.update(drO, drops(t)); }
+      else if (d < 15) B.update(pro, lining(d, 0)); else { B.update(sec, lining(d, 0.5)); B.update(glO, glands(d)); }
+    } };
+}
+
+Object.assign(G3.models, { cy_cyvMens: mensModel, hu_huvMale: maleModel, hu_huvSperm: spermModel, hu_huvFemale: femaleModel, hu_huvFert: fertModel, cy_cyvOv: ovcModel, cy_cyvHerm: hermModel });
 })();

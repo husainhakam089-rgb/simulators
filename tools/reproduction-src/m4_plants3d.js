@@ -145,5 +145,43 @@ function fernModel(B){
     } };
 }
 
-Object.assign(G3.models, { pl_plvMoss: mossModel, pl_plvFern: fernModel });
+/* ═════════════ تعاقب الأجيال — شكل (3-11) ص42–45 ═════════════
+   حلقة: النصف العلوي بنفسجي (2س، الطور البوغي) والسفلي برتقالي (س، الطور المشيجي)، وعليها
+   مجسّم صغير لكل محطة، وكرة مضيئة تدور مع المرحلة وتكبر محطتها الحالية. */
+function altModel(B){
+  const R = 1.9, ANG = [Math.PI / 2, Math.PI / 4, 0, -Math.PI / 4, -Math.PI / 2, -3 * Math.PI / 4, Math.PI, 3 * Math.PI / 4];
+  const P = a => [Math.cos(a) * R, Math.sin(a) * R, 0];
+  const arc = (a0, a1) => tube({ pts: Array.from({ length: 33 }, (_, i) => { const a = a0 + (a1 - a0) * i / 32; return [Math.cos(a) * R, Math.sin(a) * R, -0.05]; }), r: 0.07, sides: 8 });
+  B.add(arc(-0.02, Math.PI + 0.02), { color: '#8a6ad8', rim: 0.8, rimColor: '#e0d0ff' });
+  B.add(arc(Math.PI - 0.02, 2 * Math.PI + 0.02), { color: '#f0a040', rim: 0.8, rimColor: '#ffe0b0' });
+  /* المحطات */
+  const st = [];
+  const S = (i, mesh, part, col, extra) => { st[i] = { part, at: P(ANG[i]), o: B.add(mesh(P(ANG[i]), 1), fx(part, col, Object.assign({ pop: false, center: P(ANG[i]) }, extra || {}))), mesh }; };
+  const plant = (c, k) => merge([tube({ pts: [add(c, [0, -0.35 * k, 0]), add(c, [0, 0.35 * k, 0])], r: 0.03 * k, sides: 5 })].concat([0, 1, 2, 3, 4].map(i => { const d = norm([Math.cos(i * 1.26), 0.7, Math.sin(i * 1.26)]); return place(ellipsoid({ r: [0.02 * k, 0.22 * k, 0.07 * k], rows: 4, cols: 6 }), { at: add(add(c, [0, (-0.2 + i * 0.12) * k, 0]), mul(d, 0.18 * k)), dir: d }); })));
+  S(0, plant, 'plSporo', '#7a5ad8');
+  S(1, (c, k) => merge([tube({ pts: [add(c, [0, -0.3 * k, 0]), add(c, [0, 0.05 * k, 0])], r: 0.025 * k, sides: 5 }), place(ellipsoid({ r: [0.14 * k, 0.2 * k, 0.14 * k], rows: 8, cols: 10 }), { at: add(c, [0, 0.2 * k, 0]) })]), 'plSporang', '#9a7ae0');
+  S(2, (c, k) => merge([[0.6, 0.45, 0.4], [-0.6, 0.45, -0.4], [0.5, -0.5, -0.55], [-0.5, -0.5, 0.55]].map(d => ball(0.1 * k, add(c, mul(norm(d), 0.12 * k)), 8))), 'plMeio', '#b090f0');
+  S(3, (c, k) => ball(0.12 * k, c, 10), 'plSpore', '#f0c060');
+  S(4, (c, k) => merge([place(ellipsoid({ r: [0.32 * k, 0.05 * k, 0.24 * k], rows: 6, cols: 12, disp: q => 1 + 0.15 * Math.sin(q[0] * 5) }), { at: c })].concat([-1, 1].map(sg => tube({ pts: [add(c, [sg * 0.12 * k, 0, 0]), add(c, [sg * 0.12 * k, 0.28 * k, 0.05])], r: 0.025 * k, sides: 4 })))), 'plGameto', '#f0a040');
+  S(5, (c, k) => merge([ball(0.12 * k, add(c, [0.1 * k, 0, 0]), 10), place(ellipsoid({ r: [0.05 * k, 0.03 * k, 0.03 * k], rows: 5, cols: 6 }), { at: add(c, [-0.18 * k, 0.08 * k, 0]) }), tube({ pts: [add(c, [-0.22 * k, 0.08 * k, 0]), add(c, [-0.35 * k, 0.12 * k, 0.03])], r: 0.012 * k, sides: 3 })]), 'plGametes', '#f6b860');
+  S(6, (c, k) => merge([ball(0.13 * k, c, 10), place(ellipsoid({ r: [0.05 * k, 0.03 * k, 0.03 * k], rows: 5, cols: 6 }), { at: add(c, [0.13 * k, 0.03 * k, 0.05 * k]) })]), 'plFert', '#e88a50');
+  S(7, (c, k) => ball(0.15 * k, c, 12), 'plZyg', '#9a6ae0');
+  /* الانقسام الخيطي: الزيجة تنمو بانقسامات خيطية إلى الطور البوغي (سهم على القوس) */
+  const mitoA = (ANG[7] + ANG[0] + 2 * Math.PI) / 2 - Math.PI;
+  B.add(merge([ball(0.07, P(mitoA + 0.08), 6), ball(0.07, P(mitoA - 0.08), 6), ball(0.05, P(mitoA + 0.2), 6), ball(0.05, P(mitoA - 0.2), 6)]), fx('plMito', '#c0a0ff'));
+  /* الكرة الدائرة وخط فاصل بين 2س وس */
+  const tok = a => ball(0.11, add(P(a), [0, 0, 0.25]), 10);
+  const tokO = B.add(tok(ANG[0]), { color: '#ffffff', rim: 1.4, rimColor: '#ffe08a', pop: false, center: [0, 0, 0] });
+  B.add(tube({ pts: [[-R - 0.4, 0, -0.1], [R + 0.4, 0, -0.1]], r: 0.012, sides: 4 }), { color: '#ffe08a', alpha: 0.6, rim: 0.3 });
+  st.forEach((x, i) => B.label(x.part, x.at, [Math.cos(ANG[i]), Math.sin(ANG[i]), 0.3]));
+  B.label('plMito', P(mitoA), [Math.cos(mitoA), Math.sin(mitoA), 0.3]);
+  B.caption([0, 0.35, 0.1], () => ['2س — الطور البوغي']);
+  B.caption([0, -0.35, 0.1], () => ['س — الطور المشيجي']);
+  return { dist: 9.4, yaw: 0, pitch: 0.05, target: [0, -0.15, 0], live2d: true, noSpin: true,
+    anim(){ const s = STG.idx, k = Math.min(1, STG.k), a0 = ANG[s], a1 = ANG[(s + 1) % 8] + (s === 7 ? 0 : 0);
+      let d = a1 - a0; if (d > 0) d -= 2 * Math.PI; B.update(tokO, tok(a0 + d * k));
+      st.forEach((x, i) => B.update(x.o, x.mesh(x.at, i === s ? 1.45 : 0.9))); } };
+}
+
+Object.assign(G3.models, { pl_plvMoss: mossModel, pl_plvFern: fernModel, pl_plvAlt: altModel });
 })();
