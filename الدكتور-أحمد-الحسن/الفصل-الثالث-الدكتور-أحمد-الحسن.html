@@ -10286,37 +10286,88 @@ const ellipsePts = (c, rx, rz, n, wob, seed) => { const rr = srng(seed || 1), P 
 const tanglePts = (c, s, seed) => { const rr = srng(seed), P = [];
   for (let i = 0; i < 14; i++){ const a = i / 14 * 6.2832 * 2.3; P.push([c[0] + Math.cos(a) * (0.22 + rr() * 0.16) * s, c[1] + (rr() - 0.5) * 0.25 * s, c[2] + Math.sin(a * 1.3) * (0.16 + rr() * 0.1) * s]); } return P; };
 
-/* ═════════════ راشح البلعم البكتيري ملتصق بخلية بكتيرية (ص17) ═════════════ */
-function phage(B, at, s, part, o){
-  o = o || {};
-  const P = p => add(mul(p, s), at);
-  /* الرأس: غطاء بروتيني سداسي (مجسم بستة أضلاع) وداخله الحامض النووي */
-  B.add(place(ellipsoid({ r: [0.34, 0.42, 0.34], rows: 6, cols: 6 }), { s, at: P([0, 1.0, 0]) }), { part: o.coat || part, color: '#7fd07a', alpha: 0.45, rim: 1.2, rimColor: '#eaffd8', shell: { size: 0.5 * s } });
-  B.add(tube({ pts: spline([[-0.12, 0.85, 0], [0.1, 0.95, 0.06], [-0.08, 1.08, -0.05], [0.1, 1.2, 0.04]].map(P), 6, false), r: 0.035 * s, sides: 6 }), { part: o.na || part, color: '#ff6fb0', rim: 0.6, rimColor: '#ffd2e8' });
-  /* الذنب والألياف */
-  B.add(merge([place(capsule({ r: 0.07, len: 0.6, rows: 3, cols: 10 }), { s, at: P([0, 0.32, 0]) }),
-    ...[0, 1, 2, 3, 4, 5].map(i => { const a = i * 1.047; return tube({ pts: [P([0, 0.02, 0]), P([Math.cos(a) * 0.28, -0.12, Math.sin(a) * 0.28]), P([Math.cos(a) * 0.4, -0.28, Math.sin(a) * 0.4])], r: 0.02 * s, sides: 5 }); })]),
-    { part: part, color: '#4fb05a', rim: 0.6, rimColor: '#d8ffd0' });
-}
+/* مجسم فيروس مكتمل صغير كشبكة واحدة (للفيروسات الجديدة داخل الخلية وعند تحررها) */
+function phageMesh(at, s, dir){
+  const d = norm(dir || [0, 1, 0]), P = v => add(at, mul(v, s));
+  const up = d, side = norm([up[1], -up[0], 0.0001]);
+  const Q = (u, w) => add(add(at, mul(up, u * s)), mul(side, w * s));
+  return merge([place(ellipsoid({ r: [0.34 * s, 0.42 * s, 0.34 * s], rows: 6, cols: 6 }), { at: Q(1.0, 0), dir: d }),
+    place(capsule({ r: 0.07 * s, len: 0.6 * s, rows: 3, cols: 8 }), { at: Q(0.35, 0), dir: d })].concat([-1, 1].map(sg => tube({ pts: [Q(0.05, 0), Q(-0.15, sg * 0.35)], r: 0.02 * s, sides: 4 })))); }
+/* ═════════════ دورة تكاثر راشح البلعم البكتيري (ص17–18) — تتبع المراحل الست ═════════════
+   1 الاتصال · 2 الاختراق · 3 التخليق · 4 الإنضاج · 5 التحرر (دورة التحلل) · 6 التكامل (دورة التحلل والإنتاج) */
 function phageModel(B){
-  /* الخلية البكتيرية وجدارها وحلقة DNA */
-  B.add(rod(0.62, 2.4), { part: 'vWall', color: '#c98a4a', alpha: 0.3, rim: 1.3, rimColor: '#ffe2b8', shell: { size: 3.2, inner: 'vBac', tau: 0.3 } });
-  B.add(ring(ellipsePts([0, 0, 0], 0.9, 0.38, 12, 0.18, 4), 0.045), { part: 'vBDNA', color: '#d23a3a', rim: 0.6, rimColor: '#ffc0c0' });
-  /* فيروس ملتصق على الجدار، وآخران يقتربان */
-  phage(B, [0.55, 0.6, 0], 1.0, 'vAttach', { coat: 'vCoat', na: 'vNA' });
-  phage(B, [-0.6, 1.5, 0.4], 0.75, 'vAttach');
-  phage(B, [1.6, 1.3, -0.5], 0.7, 'vAttach');
-  /* DNA الفيروس يدخل الخلية عبر الثقب (مرحلة الاختراق) */
-  const inj = t => { const k = (t * 0.35) % 1, pts = []; for (let i = 0; i <= 10; i++){ const u = i / 10 * k; pts.push([0.55 - u * 0.5 + Math.sin(u * 14) * 0.05, 0.6 - u * 0.75, Math.cos(u * 11) * 0.06]); }
-    return tube({ pts: pts.length > 1 ? pts : [[0.55, 0.6, 0], [0.55, 0.59, 0]], r: 0.03, sides: 5 }); };
-  const injO = B.add(inj(0.5), { part: 'vPen', color: '#ff6fb0', rim: 0.7, rimColor: '#ffd2e8', pop: false, center: [0.4, 0.3, 0] });
-  B.label('vBac', [-0.9, -0.35, 0.3], [0, -1, 0.4]);
-  B.label('vWall', [-1.6, 0.2, 0.3], [-1, 0.3, 0]);
-  B.label('vBDNA', [-0.8, 0, -0.2], [-0.5, -1, 0]);
-  B.label('vCoat', [0.85, 1.05, 0], [1, 0.3, 0]);
-  B.label('vNA', [0.55, 1.6, 0], [0.3, 1, 0]);
-  B.caption([0, -1.25, 0], () => ['راشح البلعم البكتيري يهاجم بكتريا القولون', 'ألياف الذنب تلتصق بالجدار ثم يدخل DNA الفيروس']);
-  return { dist: 7.6, yaw: 0.4, pitch: 0.22, target: [0.1, 0.6, 0], live2d: true, anim(t){ B.update(injO, inj(t)); } };
+  const R = srng(17), CELL = rod(0.62, 2.4);
+  const wall = B.add(CELL, { part: 'vWall', color: '#c98a4a', alpha: 0.3, rim: 1.3, rimColor: '#ffe2b8', shell: { size: 3.2, inner: 'vBac', tau: 0.3 } });
+  const ringPts = ellipsePts([0, 0, 0], 0.9, 0.38, 12, 0.18, 4);
+  const bdna = B.add(ring(ringPts, 0.045), { part: 'vBDNA', color: '#d23a3a', rim: 0.6, rimColor: '#ffc0c0' });
+  /* 1) الاتصال: فيروس ينزل حتى تلتصق ألياف ذنبه بالجدار */
+  const AT = [0.55, 0.6, 0];
+  const att = k => ({ at: add(AT, [0, 0.9 * (1 - k), 0]) });
+  const coatO = B.add(place(ellipsoid({ r: [0.34, 0.42, 0.34], rows: 6, cols: 6 }), { at: add(AT, [0, 1.0, 0]) }), { part: 'vCoat', color: '#7fd07a', alpha: 0.45, rim: 1.2, rimColor: '#eaffd8', shell: { size: 0.5 }, pop: false, center: AT });
+  const naM = (o, full) => tube({ pts: spline([[-0.12, 0.85, 0], [0.1, 0.95, 0.06], [-0.08, 1.08, -0.05], [0.1, 1.2, 0.04]].map(p => add(o, mul(p, full ? 1 : 0.35))), 6, false), r: 0.035, sides: 6 });
+  const naO = B.add(naM(AT, true), { part: 'vNA', color: '#ff6fb0', rim: 0.6, rimColor: '#ffd2e8', pop: false, center: AT });
+  const tailM = o => merge([place(capsule({ r: 0.07, len: 0.6, rows: 3, cols: 10 }), { at: add(o, [0, 0.32, 0]) }),
+    ...[0, 1, 2, 3, 4, 5].map(i => { const a = i * 1.047; return tube({ pts: [add(o, [0, 0.02, 0]), add(o, [Math.cos(a) * 0.28, -0.12, Math.sin(a) * 0.28]), add(o, [Math.cos(a) * 0.4, -0.28, Math.sin(a) * 0.4])], r: 0.02, sides: 5 }); })]);
+  const tailO = B.add(tailM(AT), { part: 'vAttach', color: '#4fb05a', rim: 0.6, rimColor: '#d8ffd0', pop: false, center: AT });
+  /* 2) الاختراق: DNA الفيروس يدخل الخلية عبر الثقب */
+  const inj = u => { const pts = []; for (let i = 0; i <= 12; i++){ const v = i / 12 * Math.max(0.05, u); pts.push([0.55 - v * 0.6 + Math.sin(v * 14) * 0.05, 0.6 - v * 0.8, Math.cos(v * 11) * 0.06]); } return tube({ pts, r: 0.03, sides: 5 }); };
+  const penO = B.add(inj(1), { part: 'vPen', color: '#ff6fb0', rim: 0.7, rimColor: '#ffd2e8', pop: false, center: [0.3, 0.2, 0] });
+  /* 3) التخليق: DNA البكتريا يتحطم، وتُبنى نسخ من DNA الفيروس وأجزاء بروتينية (رؤوس وأذناب) */
+  const frags = B.add(merge(ringPts.filter((_, i) => i % 3 === 0).map((p, i) => tube({ pts: [mul(p, 0.9), mul(ringPts[(i * 3 + 1) % 12], 0.9)], r: 0.035, sides: 4 }))), { part: 'vBDNA', color: '#d23a3a', alpha: 0.5, rim: 0.4, pop: false });
+  const SP = Array.from({ length: 10 }, () => [(R() - 0.5) * 2.4, (R() - 0.5) * 0.7, (R() - 0.5) * 0.6]);
+  const synth = k => merge(SP.map((p, i) => { const s = 0.2 + 0.8 * k; return i % 3 === 0 ? tube({ pts: spline([add(p, [-0.12 * s, 0, 0]), add(p, [0, 0.07 * s, 0.04]), add(p, [0.12 * s, 0, 0])], 4, false), r: 0.025, sides: 4 })
+    : i % 3 === 1 ? place(ellipsoid({ r: 0.1 * s, rows: 4, cols: 6 }), { at: p }) : place(capsule({ r: 0.025, len: 0.18 * s, rows: 2, cols: 6 }), { at: p }); }));
+  const synO = B.add(synth(1), { part: 'vSynth', color: '#8fdc6a', rim: 0.7, rimColor: '#f0ffe0', pop: false, center: [0, 0, 0] });
+  /* 4) الإنضاج: تتجمع الأغطية حول DNA فتتكون فيروسات جديدة داخل الخلية */
+  const NP = Array.from({ length: 8 }, (_, i) => [-1.1 + i * 0.31, (i % 2 ? 0.18 : -0.2), (i % 3 - 1) * 0.15]);
+  const mature = (k, out) => merge(NP.map((p, i) => { const dir = norm([Math.cos(i * 0.8), 1, Math.sin(i * 0.8)]), o = add(p, mul(norm([p[0] * 0.5, p[1] + (i % 2 ? 0.4 : -0.4), p[2] + 0.3]), out * 2.2));
+    return phageMesh(add(o, mul(dir, -0.15)), 0.42 * (0.4 + 0.6 * k), dir); }));
+  const matO = B.add(mature(1, 0), { part: 'vMature', color: '#6cc85a', rim: 0.8, rimColor: '#e8ffd8', pop: false, center: [0, 0, 0] });
+  /* 5) التحرر: تتحلل الخلية (قطع من الجدار تتطاير) وتخرج الفيروسات */
+  const shards = k => merge(Array.from({ length: 10 }, (_, i) => { const a = i / 10 * 6.2832, d = [Math.cos(a), Math.sin(a) * 0.5, Math.sin(a) * 0.5 + 0.1], c = add([Math.cos(a) * 1.0, Math.sin(a) * 0.55, 0], mul(d, k * 1.4));
+    return place(ellipsoid({ r: [0.28, 0.16, 0.05], rows: 4, cols: 8 }), { at: c, dir: [d[1], -d[0], 0.3] }); }));
+  const relWall = B.add(shards(0), { part: 'vRelease', color: '#c98a4a', alpha: 0.7, rim: 1.0, rimColor: '#ffe2b8', pop: false, center: [0, 0, 0] });
+  const relO = B.add(mature(1, 0), { part: 'vRelease', color: '#6cc85a', rim: 0.8, rimColor: '#e8ffd8', pop: false, center: [0, 0, 0] });
+  /* 6) التكامل: DNA الفيروس يندمج مع DNA البكتريا (بلعم أولي) ويتضاعف معه عند انقسام البكتيريا */
+  const vdna = k => tube({ pts: spline([[1.1 - k * 0.5, 0.25, 0.25], [0.9 - k * 0.45, 0.32 - k * 0.1, 0.2], [0.75 - k * 0.4, 0.2 - k * 0.1, 0.18]], 4, false), r: 0.04, sides: 5 });
+  const vdnaO = B.add(vdna(0), { part: 'vDNA', color: '#ff6fb0', rim: 0.7, rimColor: '#ffd2e8', pop: false, center: [0.6, 0.2, 0] });
+  const prophSeg = c => tube({ pts: spline([0, 1, 2].map(i => add(ringPts[i], c)), 4, false), r: 0.065, sides: 6 });
+  const prophO = B.add(prophSeg([0, 0, 0]), { part: 'vProph', color: '#ff6fb0', rim: 0.8, rimColor: '#ffd2e8', pop: false, center: [0.6, 0, 0] });
+  const integO = B.add(rod(0.66, 2.5), { part: 'vInteg', color: '#e8b070', alpha: 0.22, rim: 1.2, rimColor: '#fff0d0', shell: { size: 3.6 }, pop: false });
+  const DC = [[-1.0, -1.7, 0], [1.0, -1.7, 0]];
+  const daughters = merge(DC.map(c => merge([place(capsule({ r: 0.32, len: 0.7, rows: 6, cols: 16 }), { rot: [0, 0, Math.PI / 2], at: c })])));
+  const daO = B.add(daughters, { part: 'vDaugh', color: '#c98a4a', alpha: 0.4, rim: 1.2, rimColor: '#ffe2b8', shell: { size: 1.2 }, pop: false });
+  const daD = B.add(merge(DC.map(c => merge([ring(ringPts.map(p => add(mul(p, 0.45), c)), 0.025), tube({ pts: spline([0, 1, 2].map(i => add(mul(ringPts[i], 0.45), c)), 4, false), r: 0.04, sides: 5 })]))),
+    { part: 'vProph', color: '#ff6fb0', rim: 0.7, rimColor: '#ffd2e8', pop: false });
+  const vis = (...ss) => () => ss.includes(STG.idx);
+  B.label('vBac', [-0.9, -0.35, 0.3], [0, -1, 0.4], vis(0, 1, 2, 3));
+  B.label('vWall', [-1.6, 0.2, 0.3], [-1, 0.3, 0], vis(0, 1, 2, 3, 5));
+  B.label('vBDNA', [-0.8, 0, -0.2], [-0.5, -1, 0], vis(0, 1, 2));
+  B.label('vCoat', [0.85, 1.05, 0], [1, 0.3, 0], vis(0, 1));
+  B.label('vNA', [0.55, 1.6, 0], [0.3, 1, 0], vis(0));
+  B.label('vAttach', [0.95, 0.4, 0], [1, -0.2, 0.2], vis(0));
+  B.label('vPen', [0.3, 0.1, 0.06], [1, -0.4, 0.4], vis(1));
+  B.label('vSynth', [-0.4, 0.2, 0.2], [-0.3, 1, 0.3], vis(2));
+  B.label('vMature', [0.5, 0.2, 0.2], [0.3, 1, 0.3], vis(3));
+  B.label('vRelease', [1.4, 0.6, 0.2], [1, 0.5, 0.2], vis(4));
+  B.label('vInteg', [-1.6, 0.2, 0.3], [-1, 0.3, 0], vis(5));
+  B.label('vDNA', [1.0, 0.3, 0.25], [1, 0.5, 0.3], vis(5));
+  B.label('vProph', add(ringPts[1], [0, 0.05, 0.05]), [0.4, 1, 0.3], vis(5));
+  B.label('vDaugh', [1.35, -1.7, 0], [1, -0.3, 0], vis(5));
+  B.caption([0, -2.4, 0], () => [(VIR_STAGES[STG.idx] || {}).n || '']);
+  return { dist: 8.2, yaw: 0.4, pitch: 0.22, target: [0.1, -0.1, 0], live2d: true,
+    anim(t){ const s = STG.idx, k = 0.5 - 0.5 * Math.cos(Math.PI * Math.min(1, Math.max(0, STG.k)));
+      const a = s === 0 ? att(k).at : AT, full = s === 0;
+      wall.hide = s === 4; bdna.hide = s >= 2 && s !== 5; frags.hide = s !== 2;
+      coatO.hide = tailO.hide = s >= 4; naO.hide = s >= 2;
+      B.update(coatO, place(ellipsoid({ r: [0.34, 0.42, 0.34], rows: 6, cols: 6 }), { at: add(a, [0, 1.0, 0]) }));
+      B.update(naO, naM(a, s === 0 || (s === 1 && k < 0.5))); B.update(tailO, tailM(a)); void full;
+      penO.hide = s !== 1 && s !== 2; if (s === 1) B.update(penO, inj(k)); else if (s === 2) B.update(penO, inj(1));
+      synO.hide = s !== 2; if (s === 2) B.update(synO, synth(k));
+      matO.hide = s !== 3; if (s === 3) B.update(matO, mature(k, 0));
+      relWall.hide = relO.hide = s !== 4; if (s === 4){ B.update(relWall, shards(k)); B.update(relO, mature(1, k)); }
+      vdnaO.hide = prophO.hide = integO.hide = daO.hide = daD.hide = s !== 5; if (s === 5) B.update(vdnaO, vdna(k));
+    } };
 }
 
 /* ═════════════ الانشطار الثنائي في البكتيريا (ص19) — يتبع المرحلة ═════════════ */
@@ -10337,11 +10388,11 @@ function fissModel(B){
   const chrom = (S, sg, seed) => { const x = sg * (S.dup * 0.18 + S.sep * 0.55 + S.split * 0.3);
     return tube({ pts: spline(tanglePts([x, 0, 0], 1, seed), 6, true), r: 0.03, sides: 5, closed: true }); };
   const S0 = st(), H = halves(S0);
-  const cellA = B.add(H[0], { part: 'fExpand', color: '#ffe680', alpha: 0.42, rim: 1.4, rimColor: '#9fe06a', pop: false, center: [0, 0, 0] });
-  const cellB = B.add(H[1], { part: 'fExpand', color: '#ffe680', alpha: 0.42, rim: 1.4, rimColor: '#9fe06a', pop: false, center: [0, 0, 0] });
+  const cellA = B.add(H[0], { part: 'fExpand', color: '#ffe680', alpha: 0.42, shell: { size: 1.6 }, rim: 1.4, rimColor: '#9fe06a', pop: false, center: [0, 0, 0] });
+  const cellB = B.add(H[1], { part: 'fExpand', color: '#ffe680', alpha: 0.42, shell: { size: 1.6 }, rim: 1.4, rimColor: '#9fe06a', pop: false, center: [0, 0, 0] });
   const chA = B.add(chrom(S0, -1, 3), { part: 'fChrom', color: '#2a2a2a', rim: 0.5, rimColor: '#888', pop: false, center: [0, 0, 0] });
   const chB = B.add(chrom(S0, 1, 4), { part: 'fDup', color: '#3a3a3a', rim: 0.5, rimColor: '#888', pop: false, center: [0, 0, 0] });
-  const att = B.add(place(capsule({ r: 0.03, len: 0.32, rows: 2, cols: 6 }), { at: [0, 0.32, 0] }), { part: 'fAttach', color: '#d24', rim: 0.6, rimColor: '#fbb', pop: false });
+  const att = B.add(place(capsule({ r: 0.05, len: 0.4, rows: 2, cols: 6 }), { at: [0, 0.3, 0.1] }), { part: 'fAttach', color: '#d24', rim: 0.6, rimColor: '#fbb', pop: false });
   B.label('fChrom', [-0.2, 0.05, 0.1], [0, 1, 0.6]);
   B.label('fExpand', [1.0, -0.3, 0.3], [0.5, -1, 0.3]);
   B.caption([0, -1.1, 0], () => [PRK_FISS_CAP[STG.idx] || '']);
@@ -10388,8 +10439,45 @@ function conjModel(B){
     } };
 }
 
-/* شكل (3-5): المجسّم المسطّح نفسه يكفي — نستعمل مجسم الاقتران */
-Object.assign(G3.models, { vir_cycle: phageModel, prk_bfiss: fissModel, prk_bconj: conjModel });
+/* ═════════════ انتقال عامل الخصوبة (البلازميد) — شكل (3-5) ص21 — يتبع المرحلة ═════════════
+   0 قبل الاقتران · 1 جسر الاقتران وانفتاح البلازميد · 2 بدء انتقال شريط · 3 استمرار الانتقال · 4 كلتا الخليتين فيهما عامل الخصوبة */
+function plasModel(B){
+  const DX = -1.05, RX = 1.05, PY = -0.55;
+  B.add(place(capsule({ r: 0.55, len: 1.0, rows: 8, cols: 24 }), { at: [DX, 0, 0] }), { part: 'pDonor', color: '#7a6ad8', alpha: 0.4, rim: 1.4, rimColor: '#c8c0ff', shell: { size: 1.8 } });
+  const recO = B.add(place(capsule({ r: 0.55, len: 1.0, rows: 8, cols: 24 }), { at: [RX, 0, 0] }), { part: 'pRecip', color: '#9a8ae8', alpha: 0.4, rim: 1.4, rimColor: '#d8d0ff', pop: false, center: [RX, 0, 0] });
+  /* كروموسوم البكتيريا في كل خلية */
+  const chrom = x => ring(ellipsePts([x, 0.3, 0], 0.28, 0.2, 10, 0.2, 7), 0.035);
+  B.add(chrom(DX), { part: 'pChrom', color: '#d8c8ff', rim: 0.6, rimColor: '#ffffff' });
+  const chR = B.add(chrom(RX), { part: 'pChrom', color: '#d8c8ff', rim: 0.6, rimColor: '#ffffff', pop: false, center: [RX, 0, 0] });
+  /* أهلاب الاقتران على الخلية المعطية */
+  B.add(merge([0, 1, 2, 3, 4].map(i => { const a = i * 1.25, d = [Math.cos(a) * 0.35, 1, Math.sin(a) * 0.35]; return tube({ pts: [[DX, 0.95, 0], add([DX, 0.95, 0], mul(norm(d), 0.35))], r: 0.02, sides: 5 }); })), { part: 'pDonor', color: '#3a3a5a', rim: 0.4, rimColor: '#aaa' });
+  /* جسر الاقتران */
+  const bridge = w => place(capsule({ r: 0.14, len: Math.max(0.02, w), rows: 3, cols: 14 }), { rot: [0, 0, Math.PI / 2], at: [0, PY, 0] });
+  const brO = B.add(bridge(1), { part: 'pBridge', color: '#b8a8f0', alpha: 0.6, rim: 1.2, rimColor: '#e8e0ff', pop: false, center: [0, PY, 0] });
+  /* عامل الخصوبة: حلقة في المعطية؛ تنفتح ويعبر شريط منها في الجسر ثم تكتمل حلقة في كل خلية */
+  const fRing = (x, r) => ring(ellipsePts([x, PY, 0.05], r, r * 0.8, 10), 0.04);
+  const fD = B.add(fRing(DX + 0.3, 0.17), { part: 'pFert', color: '#ff7a3a', rim: 0.8, rimColor: '#ffd0b0', pop: false, center: [DX, PY, 0] });
+  const strand = u => tube({ pts: Array.from({ length: 12 }, (_, i) => { const v = i / 11; return [DX + 0.47 + v * (RX - DX - 0.4) * u, PY + Math.sin(v * 9) * 0.03, 0.05]; }), r: 0.03, sides: 5 });
+  const stO = B.add(strand(0.1), { part: 'pFert', color: '#ff9a5a', rim: 0.8, rimColor: '#ffd0b0', pop: false, center: [0, PY, 0] });
+  const fR = B.add(fRing(RX - 0.3, 0.17), { part: 'pFert', color: '#ff7a3a', rim: 0.8, rimColor: '#ffd0b0', pop: false, center: [RX, PY, 0] });
+  const vis = (...ss) => () => ss.includes(STG.idx);
+  B.label('pDonor', [DX - 0.55, -0.2, 0], [-1, -0.2, 0]);
+  B.label('pRecip', [RX + 0.55, -0.2, 0], [1, -0.2, 0]);
+  B.label('pChrom', [DX - 0.28, 0.3, 0], [-1, 0.5, 0.3]);
+  B.label('pBridge', [0, PY - 0.14, 0.1], [0, -1, 0.4], vis(1, 2, 3, 4));
+  B.label('pFert', [DX + 0.3, PY - 0.17, 0.1], [-0.3, -1, 0.5]);
+  B.caption([0, -1.7, 0], () => [(PLAS_STAGES[STG.idx] || {}).n || '']);
+  return { dist: 6.2, yaw: 0.15, pitch: 0.3, target: [0, -0.1, 0], live2d: true,
+    anim(){ const s = STG.idx, k = 0.5 - 0.5 * Math.cos(Math.PI * Math.min(1, Math.max(0, STG.k))), gap = s === 0 ? 0.4 * (1 - k) : 0;
+      B.update(recO, place(capsule({ r: 0.55, len: 1.0, rows: 8, cols: 24 }), { at: [RX + gap, 0, 0] })); B.update(chR, chrom(RX + gap));
+      brO.hide = s === 0; if (s === 1) B.update(brO, bridge(0.2 + 0.8 * k)); else if (s > 1) B.update(brO, bridge(1));
+      B.update(fD, fRing(DX + 0.3, s === 1 ? 0.17 + 0.03 * k : 0.17));
+      stO.hide = !(s === 2 || s === 3); if (s === 2) B.update(stO, strand(0.15 + 0.35 * k)); if (s === 3) B.update(stO, strand(0.5 + 0.5 * k));
+      fR.hide = s !== 4; if (s === 4) B.update(fR, fRing(RX - 0.3, 0.08 + 0.09 * k));
+    } };
+}
+
+Object.assign(G3.models, { vir_cycle: phageModel, prk_bfiss: fissModel, prk_bconj: conjModel, prk_bplas: plasModel });
 })();
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -11456,46 +11544,59 @@ function insect(at, s, dir, abdCol, wing){
   return { body: merge(out), abd, legs: merge(legs), wings };
 }
 
-/* ═════════════ 3) الإخصاب والتكاثر في الحشرات (ص96–97) — يتبع المرحلة ═════════════ */
+/* ═════════════ 3) الإخصاب والتكاثر في الحشرات (ص96–97) — كل مرحلة بمشهدها ═════════════
+   1 الجماع (ذكر وأنثى متلاصقان، الأنثى أكبر) · 2 النطف بكيس النطف في المهبل والمستودع المنوي يتسلمها
+   3 بيضة تنزل من قناة البيض الرئيسة إلى المهبل والمستودع يطلق النطف فتخصبها
+   4 حشرة بيوضة (أنثى الصرصر) تحمل كيس البيض · 5 حشرة بيوضة ولودة: البيوض تفقس داخلها وتخرج الصغار */
 function iFertModel(B){
-  /* الجهاز الأنثوي مبسطاً بالوسط: قناة بيض رئيسة ومهبل ومستودع منوي */
-  const V = [0, -0.4, 0];
-  B.add(pipe([[0, 0.9, 0], [0, -0.1, 0]], 0.1), fx('anMedOvi', '#e89030'));
-  B.add(place(G3.superEll({ h: [0.45, 0.32, 0.3], e: 0.3, rows: 6, cols: 12 }), { at: V }), fx('anVagina', '#f2b84a', { alpha: 0.6, shell: { size: 0.8 } }));
-  B.add(merge([pipe([[0.15, -0.15, 0.2], [0.55, 0.25, 0.25]], 0.03), ball(0.16, [0.6, 0.3, 0.25], 10)]), fx('anSpth', '#f08060', { alpha: 0.7, shell: { size: 0.4 } }));
-  const sac = B.add(place(ellipsoid({ r: [0.22, 0.12, 0.14], rows: 8, cols: 12 }), { at: add(V, [0, -0.05, 0.05]) }), fx('anSpermSac', '#f0f0f0', { pop: false }));
-  const sperm = k => merge(Array.from({ length: 10 }, (_, i) => { const u = (k + i / 10) % 1, a = add(V, [0, 0, 0.05]), b = [0.6, 0.3, 0.25]; return ball(0.035, add(add(mul(a, 1 - u), mul(b, u)), [Math.sin(i * 2) * 0.05, 0, 0]), 5); }));
-  const spermO = B.add(sperm(0), fx('anSpermSac', '#ffffff', { pop: false, center: V }));
-  const egg = k => place(ellipsoid({ r: [0.12, 0.18, 0.12], rows: 8, cols: 10 }), { at: [0, 0.85 - k * 0.85, 0] });
-  const eggO = B.add(egg(0), fx('anIFert', '#f6e0a0', { pop: false, center: [0, 0.4, 0] }));
-  /* الجماع: حشرتان (الأنثى أكبر) */
-  const F = insect([-1.0, 1.7, 0], 1.0, 1, '#e8803a'), M = insect([1.35, 1.75, 0], 0.75, -1, '#8a5ad8');
-  const mate = [B.add(merge([F.body, F.abd, F.legs]), fx('anMating', '#e8803a')), B.add(F.wings, fx('anMating', '#e8f4ff', { alpha: 0.5 })),
-    B.add(merge([M.body, M.abd, M.legs]), fx('anMating', '#8a5ad8')), B.add(M.wings, fx('anMating', '#e8f4ff', { alpha: 0.5 }))];
-  /* حشرة بيوضة تضع كيس بيض، وحشرة بيوضة ولودة بداخلها بيوض تفقس */
-  const O1 = insect([-1.6, -1.5, 0], 0.9, 1, '#5a8a3a', false), O2 = insect([1.3, -1.5, 0], 0.9, 1, '#6a7a8a', false);
-  const ovip = [B.add(merge([O1.body, O1.abd, O1.legs]), fx('anOvipar', '#5a8a3a', { pop: false }))];
-  const eggSac = B.add(merge([place(ellipsoid({ r: [0.32, 0.16, 0.16], rows: 10, cols: 14 }), { at: [-2.35, -1.6, 0] })].concat([0, 1, 2, 3, 4].map(i => ball(0.05, [-2.55 + i * 0.1, -1.6, 0.14], 5)))), fx('anEggSac', '#c8a060', { pop: false }));
-  const vivi = [B.add(merge([O2.body, O2.legs]), fx('anVivipar', '#6a7a8a', { pop: false })), B.add(O2.abd, fx('anVivipar', '#8a9aaa', { alpha: 0.45, shell: { size: 0.6 }, pop: false }))];
-  const larvae = B.add(merge([0, 1, 2].map(i => place(ellipsoid({ r: [0.08, 0.04, 0.04], rows: 6, cols: 8 }), { at: [1.3 - 0.15 - i * 0.2, -1.52, 0.02] }))), fx('anVivipar', '#f0e0c0', { pop: false }));
+  /* المشهد 1: الجماع */
+  /* الجماع: الذكر والأنثى متقابلان بنهايتي بطنيهما */
+  const F = insect([-1.45, 0.05, 0], 1.7, -1, '#e8803a'), M = insect([1.15, 0.08, 0], 1.25, 1, '#8a5ad8');
+  const mate = [B.add(merge([F.body, F.abd, F.legs]), fx('anMating', '#e8803a', { pop: false })), B.add(F.wings, fx('anMating', '#e8f4ff', { alpha: 0.5, pop: false })),
+    B.add(merge([M.body, M.abd, M.legs]), fx('anMating', '#8a5ad8', { pop: false })), B.add(M.wings, fx('anMating', '#e8f4ff', { alpha: 0.5, pop: false }))];
+  /* المشهدان 2 و3: الجهاز الأنثوي مكبّراً — قناة بيض رئيسة تفتح في المهبل، ومستودع منوي على جداره الظهري */
+  const V = [0, -0.5, 0], SP = [1.0, 0.25, 0.2];
+  const organ = [B.add(pipe([[0, 1.6, 0], [0, -0.05, 0]], 0.16), fx('anMedOvi', '#e89030', { pop: false })),
+    B.add(place(G3.superEll({ h: [0.75, 0.5, 0.45], e: 0.3, rows: 6, cols: 14 }), { at: V }), fx('anVagina', '#f2b84a', { alpha: 0.45, shell: { size: 1.2 }, pop: false })),
+    B.add(merge([pipe([[0.35, -0.2, 0.2], [0.75, 0.05, 0.22], SP], 0.05)]), fx('anSpth', '#f08060', { pop: false })),
+    B.add(ball(0.26, SP, 12), fx('anSpth', '#f08060', { alpha: 0.6, shell: { size: 0.5 }, pop: false }))];
+  const sac = B.add(place(ellipsoid({ r: [0.36, 0.2, 0.22], rows: 10, cols: 14 }), { at: add(V, [-0.15, -0.1, 0.05]) }), fx('anSpermSac', '#f4f4f8', { alpha: 0.7, pop: false }));
+  /* النطف: في المشهد 2 من كيس النطف إلى المستودع، وفي المشهد 3 من المستودع إلى البيضة في المهبل */
+  const flow = (a, b, t) => merge(Array.from({ length: 12 }, (_, i) => { const u = (t + i / 12) % 1; return ball(0.045, add(add(mul(a, 1 - u), mul(b, u)), [Math.sin(i * 2.3) * 0.08, Math.cos(i * 1.7) * 0.05, Math.sin(i) * 0.06]), 5); }));
+  const spIn = B.add(flow(add(V, [-0.15, -0.1, 0.1]), SP, 0), fx('anSpermSac', '#ffffff', { pop: false, center: V }));
+  const EGG_END = add(V, [0, 0.05, 0.05]);
+  const spOut = B.add(flow(SP, EGG_END, 0), fx('anIFert', '#ffffff', { pop: false, center: V }));
+  const egg = k => place(ellipsoid({ r: [0.18, 0.28, 0.18], rows: 10, cols: 12 }), { at: [0, 1.5 - k * 1.95, 0.02] });
+  const eggO = B.add(egg(0), fx('anIFert', '#f6e0a0', { rimColor: '#fffbe0', pop: false, center: V }));
+  /* المشهد 4: حشرة بيوضة (أنثى الصرصر) تحمل كيس البيض عند نهاية بطنها */
+  const O1 = insect([0.4, 0, 0], 1.7, 1, '#7a5030', false);
+  const ovip = [B.add(merge([O1.body, O1.abd, O1.legs]), fx('anOvipar', '#7a5030', { pop: false }))];
+  const eggSac = B.add(merge([place(ellipsoid({ r: [0.42, 0.22, 0.2], rows: 10, cols: 14 }), { at: [-1.2, -0.05, 0] })].concat([0, 1, 2, 3, 4, 5].map(i => place(ellipsoid({ r: [0.05, 0.09, 0.05], rows: 5, cols: 6 }), { at: [-1.5 + i * 0.12, -0.02, 0.18] })))), fx('anEggSac', '#c8a060', { pop: false }));
+  /* المشهد 5: بيوضة ولودة — البيوض المخصبة تبقى داخل القناة المبيضية المشتركة وتفقس، ثم تخرج الصغار */
+  const O2 = insect([0.4, 0, 0], 1.7, 1, '#5a7a8a', false);
+  const vivi = [B.add(merge([O2.body, O2.legs]), fx('anVivipar', '#5a7a8a', { pop: false })), B.add(O2.abd, fx('anVivipar', '#8aaaba', { alpha: 0.4, shell: { size: 1.0 }, pop: false }))];
+  const young = k => merge([0, 1, 2, 3].map(i => { const inside = [0.25 - i * 0.22, -0.03, (i % 2 ? 0.06 : -0.06)], out = [-1.0 - i * 0.35, -0.25 - (i % 2) * 0.12, (i % 2 ? 0.25 : -0.2)], f = Math.max(0, Math.min(1, k * 1.6 - i * 0.2)), p = add(mul(inside, 1 - f), mul(out, f));
+    return place(ellipsoid({ r: [0.14, 0.07, 0.07], rows: 6, cols: 8 }), { at: p }); }));
+  const youngO = B.add(young(0), fx('anVivipar', '#f0e0c0', { pop: false, center: [0, 0, 0] }));
   const vis = (...ss) => () => ss.includes(STG.idx);
-  B.label('anMating', [-0.4, 1.95, 0], [0, 1, 0.2], vis(0));
-  B.label('anMedOvi', [0.1, 0.6, 0.08], [1, 0.1, 0.3]);
-  B.label('anVagina', [-0.45, -0.45, 0], [-1, -0.2, 0.2]);
-  B.label('anSpth', [0.75, 0.35, 0.25], [1, 0.3, 0.3]);
-  B.label('anSpermSac', add(V, [0.2, -0.05, 0.1]), [1, -0.4, 0.4], vis(1));
-  B.label('anIFert', [0.12, 0.2, 0.1], [-1, 0.2, 0.4], vis(2));
-  B.label('anOvipar', [-1.6, -1.3, 0], [-0.5, 1, 0.2], vis(3));
-  B.label('anEggSac', [-2.35, -1.75, 0], [-1, -0.6, 0.2], vis(3));
-  B.label('anVivipar', [1.3, -1.3, 0], [0.5, 1, 0.2], vis(4));
-  B.caption([0, -2.2, 0], () => [(AN_IFERT_ST[STG.idx] || {}).n || '']);
-  return { dist: 8.8, yaw: 0.2, pitch: 0.2, target: [0, 0, 0], live2d: true,
+  B.label('anMating', [0.0, 0.2, 0.1], [0, 1, 0.3], vis(0));
+  B.label('anMedOvi', [0.16, 1.0, 0.1], [1, 0.2, 0.3], vis(1, 2));
+  B.label('anVagina', [-0.75, -0.6, 0], [-1, -0.2, 0.2], vis(1, 2));
+  B.label('anSpth', add(SP, [0.26, 0.05, 0]), [1, 0.3, 0.3], vis(1, 2));
+  B.label('anSpermSac', add(V, [-0.45, -0.15, 0.15]), [-1, -0.4, 0.4], vis(1));
+  B.label('anIFert', EGG_END, [-0.5, 0.6, 0.6], vis(2));
+  B.label('anOvipar', [0.6, 0.3, 0], [0.3, 1, 0.2], vis(3));
+  B.label('anEggSac', [-1.4, -0.2, 0.1], [-1, -0.6, 0.3], vis(3));
+  B.label('anVivipar', [0.6, 0.3, 0], [0.3, 1, 0.2], vis(4));
+  B.caption([0, -1.6, 0], () => [(AN_IFERT_ST[STG.idx] || {}).n || '']);
+  return { dist: 6.4, yaw: 0.25, pitch: 0.3, target: [0, 0, 0], live2d: true,
     anim(t){ const s = STG.idx, k = sm(STG.k);
       mate.forEach(o => o.hide = s !== 0);
-      sac.hide = s !== 1; spermO.hide = s !== 1 && s !== 2; if (s === 1) B.update(spermO, sperm(t * 0.4));
-      eggO.hide = s !== 2; if (s === 2) B.update(eggO, egg(k));
+      organ.forEach(o => o.hide = s !== 1 && s !== 2);
+      sac.hide = spIn.hide = s !== 1; if (s === 1) B.update(spIn, flow(add(V, [-0.15, -0.1, 0.1]), SP, t * 0.35));
+      eggO.hide = s !== 2; spOut.hide = !(s === 2 && k > 0.55); if (s === 2){ B.update(eggO, egg(k)); B.update(spOut, flow(SP, EGG_END, t * 0.4)); }
       ovip.forEach(o => o.hide = s !== 3); eggSac.hide = s !== 3;
-      vivi.forEach(o => o.hide = s !== 4); larvae.hide = s !== 4;
+      vivi.forEach(o => o.hide = s !== 4); youngO.hide = s !== 4; if (s === 4) B.update(youngO, young(k));
     } };
 }
 

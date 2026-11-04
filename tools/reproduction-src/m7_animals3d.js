@@ -76,46 +76,59 @@ function insect(at, s, dir, abdCol, wing){
   return { body: merge(out), abd, legs: merge(legs), wings };
 }
 
-/* ═════════════ 3) الإخصاب والتكاثر في الحشرات (ص96–97) — يتبع المرحلة ═════════════ */
+/* ═════════════ 3) الإخصاب والتكاثر في الحشرات (ص96–97) — كل مرحلة بمشهدها ═════════════
+   1 الجماع (ذكر وأنثى متلاصقان، الأنثى أكبر) · 2 النطف بكيس النطف في المهبل والمستودع المنوي يتسلمها
+   3 بيضة تنزل من قناة البيض الرئيسة إلى المهبل والمستودع يطلق النطف فتخصبها
+   4 حشرة بيوضة (أنثى الصرصر) تحمل كيس البيض · 5 حشرة بيوضة ولودة: البيوض تفقس داخلها وتخرج الصغار */
 function iFertModel(B){
-  /* الجهاز الأنثوي مبسطاً بالوسط: قناة بيض رئيسة ومهبل ومستودع منوي */
-  const V = [0, -0.4, 0];
-  B.add(pipe([[0, 0.9, 0], [0, -0.1, 0]], 0.1), fx('anMedOvi', '#e89030'));
-  B.add(place(G3.superEll({ h: [0.45, 0.32, 0.3], e: 0.3, rows: 6, cols: 12 }), { at: V }), fx('anVagina', '#f2b84a', { alpha: 0.6, shell: { size: 0.8 } }));
-  B.add(merge([pipe([[0.15, -0.15, 0.2], [0.55, 0.25, 0.25]], 0.03), ball(0.16, [0.6, 0.3, 0.25], 10)]), fx('anSpth', '#f08060', { alpha: 0.7, shell: { size: 0.4 } }));
-  const sac = B.add(place(ellipsoid({ r: [0.22, 0.12, 0.14], rows: 8, cols: 12 }), { at: add(V, [0, -0.05, 0.05]) }), fx('anSpermSac', '#f0f0f0', { pop: false }));
-  const sperm = k => merge(Array.from({ length: 10 }, (_, i) => { const u = (k + i / 10) % 1, a = add(V, [0, 0, 0.05]), b = [0.6, 0.3, 0.25]; return ball(0.035, add(add(mul(a, 1 - u), mul(b, u)), [Math.sin(i * 2) * 0.05, 0, 0]), 5); }));
-  const spermO = B.add(sperm(0), fx('anSpermSac', '#ffffff', { pop: false, center: V }));
-  const egg = k => place(ellipsoid({ r: [0.12, 0.18, 0.12], rows: 8, cols: 10 }), { at: [0, 0.85 - k * 0.85, 0] });
-  const eggO = B.add(egg(0), fx('anIFert', '#f6e0a0', { pop: false, center: [0, 0.4, 0] }));
-  /* الجماع: حشرتان (الأنثى أكبر) */
-  const F = insect([-1.0, 1.7, 0], 1.0, 1, '#e8803a'), M = insect([1.35, 1.75, 0], 0.75, -1, '#8a5ad8');
-  const mate = [B.add(merge([F.body, F.abd, F.legs]), fx('anMating', '#e8803a')), B.add(F.wings, fx('anMating', '#e8f4ff', { alpha: 0.5 })),
-    B.add(merge([M.body, M.abd, M.legs]), fx('anMating', '#8a5ad8')), B.add(M.wings, fx('anMating', '#e8f4ff', { alpha: 0.5 }))];
-  /* حشرة بيوضة تضع كيس بيض، وحشرة بيوضة ولودة بداخلها بيوض تفقس */
-  const O1 = insect([-1.6, -1.5, 0], 0.9, 1, '#5a8a3a', false), O2 = insect([1.3, -1.5, 0], 0.9, 1, '#6a7a8a', false);
-  const ovip = [B.add(merge([O1.body, O1.abd, O1.legs]), fx('anOvipar', '#5a8a3a', { pop: false }))];
-  const eggSac = B.add(merge([place(ellipsoid({ r: [0.32, 0.16, 0.16], rows: 10, cols: 14 }), { at: [-2.35, -1.6, 0] })].concat([0, 1, 2, 3, 4].map(i => ball(0.05, [-2.55 + i * 0.1, -1.6, 0.14], 5)))), fx('anEggSac', '#c8a060', { pop: false }));
-  const vivi = [B.add(merge([O2.body, O2.legs]), fx('anVivipar', '#6a7a8a', { pop: false })), B.add(O2.abd, fx('anVivipar', '#8a9aaa', { alpha: 0.45, shell: { size: 0.6 }, pop: false }))];
-  const larvae = B.add(merge([0, 1, 2].map(i => place(ellipsoid({ r: [0.08, 0.04, 0.04], rows: 6, cols: 8 }), { at: [1.3 - 0.15 - i * 0.2, -1.52, 0.02] }))), fx('anVivipar', '#f0e0c0', { pop: false }));
+  /* المشهد 1: الجماع */
+  /* الجماع: الذكر والأنثى متقابلان بنهايتي بطنيهما */
+  const F = insect([-1.45, 0.05, 0], 1.7, -1, '#e8803a'), M = insect([1.15, 0.08, 0], 1.25, 1, '#8a5ad8');
+  const mate = [B.add(merge([F.body, F.abd, F.legs]), fx('anMating', '#e8803a', { pop: false })), B.add(F.wings, fx('anMating', '#e8f4ff', { alpha: 0.5, pop: false })),
+    B.add(merge([M.body, M.abd, M.legs]), fx('anMating', '#8a5ad8', { pop: false })), B.add(M.wings, fx('anMating', '#e8f4ff', { alpha: 0.5, pop: false }))];
+  /* المشهدان 2 و3: الجهاز الأنثوي مكبّراً — قناة بيض رئيسة تفتح في المهبل، ومستودع منوي على جداره الظهري */
+  const V = [0, -0.5, 0], SP = [1.0, 0.25, 0.2];
+  const organ = [B.add(pipe([[0, 1.6, 0], [0, -0.05, 0]], 0.16), fx('anMedOvi', '#e89030', { pop: false })),
+    B.add(place(G3.superEll({ h: [0.75, 0.5, 0.45], e: 0.3, rows: 6, cols: 14 }), { at: V }), fx('anVagina', '#f2b84a', { alpha: 0.45, shell: { size: 1.2 }, pop: false })),
+    B.add(merge([pipe([[0.35, -0.2, 0.2], [0.75, 0.05, 0.22], SP], 0.05)]), fx('anSpth', '#f08060', { pop: false })),
+    B.add(ball(0.26, SP, 12), fx('anSpth', '#f08060', { alpha: 0.6, shell: { size: 0.5 }, pop: false }))];
+  const sac = B.add(place(ellipsoid({ r: [0.36, 0.2, 0.22], rows: 10, cols: 14 }), { at: add(V, [-0.15, -0.1, 0.05]) }), fx('anSpermSac', '#f4f4f8', { alpha: 0.7, pop: false }));
+  /* النطف: في المشهد 2 من كيس النطف إلى المستودع، وفي المشهد 3 من المستودع إلى البيضة في المهبل */
+  const flow = (a, b, t) => merge(Array.from({ length: 12 }, (_, i) => { const u = (t + i / 12) % 1; return ball(0.045, add(add(mul(a, 1 - u), mul(b, u)), [Math.sin(i * 2.3) * 0.08, Math.cos(i * 1.7) * 0.05, Math.sin(i) * 0.06]), 5); }));
+  const spIn = B.add(flow(add(V, [-0.15, -0.1, 0.1]), SP, 0), fx('anSpermSac', '#ffffff', { pop: false, center: V }));
+  const EGG_END = add(V, [0, 0.05, 0.05]);
+  const spOut = B.add(flow(SP, EGG_END, 0), fx('anIFert', '#ffffff', { pop: false, center: V }));
+  const egg = k => place(ellipsoid({ r: [0.18, 0.28, 0.18], rows: 10, cols: 12 }), { at: [0, 1.5 - k * 1.95, 0.02] });
+  const eggO = B.add(egg(0), fx('anIFert', '#f6e0a0', { rimColor: '#fffbe0', pop: false, center: V }));
+  /* المشهد 4: حشرة بيوضة (أنثى الصرصر) تحمل كيس البيض عند نهاية بطنها */
+  const O1 = insect([0.4, 0, 0], 1.7, 1, '#7a5030', false);
+  const ovip = [B.add(merge([O1.body, O1.abd, O1.legs]), fx('anOvipar', '#7a5030', { pop: false }))];
+  const eggSac = B.add(merge([place(ellipsoid({ r: [0.42, 0.22, 0.2], rows: 10, cols: 14 }), { at: [-1.2, -0.05, 0] })].concat([0, 1, 2, 3, 4, 5].map(i => place(ellipsoid({ r: [0.05, 0.09, 0.05], rows: 5, cols: 6 }), { at: [-1.5 + i * 0.12, -0.02, 0.18] })))), fx('anEggSac', '#c8a060', { pop: false }));
+  /* المشهد 5: بيوضة ولودة — البيوض المخصبة تبقى داخل القناة المبيضية المشتركة وتفقس، ثم تخرج الصغار */
+  const O2 = insect([0.4, 0, 0], 1.7, 1, '#5a7a8a', false);
+  const vivi = [B.add(merge([O2.body, O2.legs]), fx('anVivipar', '#5a7a8a', { pop: false })), B.add(O2.abd, fx('anVivipar', '#8aaaba', { alpha: 0.4, shell: { size: 1.0 }, pop: false }))];
+  const young = k => merge([0, 1, 2, 3].map(i => { const inside = [0.25 - i * 0.22, -0.03, (i % 2 ? 0.06 : -0.06)], out = [-1.0 - i * 0.35, -0.25 - (i % 2) * 0.12, (i % 2 ? 0.25 : -0.2)], f = Math.max(0, Math.min(1, k * 1.6 - i * 0.2)), p = add(mul(inside, 1 - f), mul(out, f));
+    return place(ellipsoid({ r: [0.14, 0.07, 0.07], rows: 6, cols: 8 }), { at: p }); }));
+  const youngO = B.add(young(0), fx('anVivipar', '#f0e0c0', { pop: false, center: [0, 0, 0] }));
   const vis = (...ss) => () => ss.includes(STG.idx);
-  B.label('anMating', [-0.4, 1.95, 0], [0, 1, 0.2], vis(0));
-  B.label('anMedOvi', [0.1, 0.6, 0.08], [1, 0.1, 0.3]);
-  B.label('anVagina', [-0.45, -0.45, 0], [-1, -0.2, 0.2]);
-  B.label('anSpth', [0.75, 0.35, 0.25], [1, 0.3, 0.3]);
-  B.label('anSpermSac', add(V, [0.2, -0.05, 0.1]), [1, -0.4, 0.4], vis(1));
-  B.label('anIFert', [0.12, 0.2, 0.1], [-1, 0.2, 0.4], vis(2));
-  B.label('anOvipar', [-1.6, -1.3, 0], [-0.5, 1, 0.2], vis(3));
-  B.label('anEggSac', [-2.35, -1.75, 0], [-1, -0.6, 0.2], vis(3));
-  B.label('anVivipar', [1.3, -1.3, 0], [0.5, 1, 0.2], vis(4));
-  B.caption([0, -2.2, 0], () => [(AN_IFERT_ST[STG.idx] || {}).n || '']);
-  return { dist: 8.8, yaw: 0.2, pitch: 0.2, target: [0, 0, 0], live2d: true,
+  B.label('anMating', [0.0, 0.2, 0.1], [0, 1, 0.3], vis(0));
+  B.label('anMedOvi', [0.16, 1.0, 0.1], [1, 0.2, 0.3], vis(1, 2));
+  B.label('anVagina', [-0.75, -0.6, 0], [-1, -0.2, 0.2], vis(1, 2));
+  B.label('anSpth', add(SP, [0.26, 0.05, 0]), [1, 0.3, 0.3], vis(1, 2));
+  B.label('anSpermSac', add(V, [-0.45, -0.15, 0.15]), [-1, -0.4, 0.4], vis(1));
+  B.label('anIFert', EGG_END, [-0.5, 0.6, 0.6], vis(2));
+  B.label('anOvipar', [0.6, 0.3, 0], [0.3, 1, 0.2], vis(3));
+  B.label('anEggSac', [-1.4, -0.2, 0.1], [-1, -0.6, 0.3], vis(3));
+  B.label('anVivipar', [0.6, 0.3, 0], [0.3, 1, 0.2], vis(4));
+  B.caption([0, -1.6, 0], () => [(AN_IFERT_ST[STG.idx] || {}).n || '']);
+  return { dist: 6.4, yaw: 0.25, pitch: 0.3, target: [0, 0, 0], live2d: true,
     anim(t){ const s = STG.idx, k = sm(STG.k);
       mate.forEach(o => o.hide = s !== 0);
-      sac.hide = s !== 1; spermO.hide = s !== 1 && s !== 2; if (s === 1) B.update(spermO, sperm(t * 0.4));
-      eggO.hide = s !== 2; if (s === 2) B.update(eggO, egg(k));
+      organ.forEach(o => o.hide = s !== 1 && s !== 2);
+      sac.hide = spIn.hide = s !== 1; if (s === 1) B.update(spIn, flow(add(V, [-0.15, -0.1, 0.1]), SP, t * 0.35));
+      eggO.hide = s !== 2; spOut.hide = !(s === 2 && k > 0.55); if (s === 2){ B.update(eggO, egg(k)); B.update(spOut, flow(SP, EGG_END, t * 0.4)); }
       ovip.forEach(o => o.hide = s !== 3); eggSac.hide = s !== 3;
-      vivi.forEach(o => o.hide = s !== 4); larvae.hide = s !== 4;
+      vivi.forEach(o => o.hide = s !== 4); youngO.hide = s !== 4; if (s === 4) B.update(youngO, young(k));
     } };
 }
 
