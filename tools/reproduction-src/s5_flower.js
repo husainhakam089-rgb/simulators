@@ -20,6 +20,8 @@ SCENES.flower = {
   title: 'الزهرة',
   get src(){ return ({ flVStruct: 'ملزمة ص53–56', flVParts: 'ملزمة ص53–57', flVCycle: 'ملزمة ص58', flVPollen: 'ملزمة ص59–61', flVOvule: 'ملزمة ص64–67' })[SEL.flv] || 'ملزمة ص53'; },
   tint: ['rgba(220,110,150,.24)', 'rgba(110,170,90,.16)'],
+  /* دورة الحياة مخطط دائري بلا مجسّم */
+  model3d: () => 'fl_' + (FL_VIEWS.some(x => x.id === SEL.flv) ? SEL.flv : 'flVStruct'),
   build(){
     const v = FL_VIEWS.some(x => x.id === SEL.flv) ? SEL.flv : 'flVStruct';
     const s = v === 'flVParts' ? flParts() : v === 'flVCycle' ? flCycle() : v === 'flVPollen' ? flPollen() : v === 'flVOvule' ? flOvule() : flStruct();
