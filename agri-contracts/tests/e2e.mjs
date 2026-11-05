@@ -54,6 +54,13 @@ try {
   check(html.includes('٧٥ حصان'), 'قيمة الحجم مطبوعة بأرقام عربية');
   check(!html.includes('رقم المحرك') && !html.includes('ENG-OLD-999'), 'رقم المحرك لم يعد يُطبع');
   check(!/class="stamp/.test(html), 'لا ختم بدون صورة ختم');
+  check(!html.includes('مبلغ قدره مبلغ') && html.includes('خمسة وعشرون مليون'), 'عبارة «مبلغ قدره» لا تتكرّر');
+  const receiptHtml = await page.evaluate(async () => {
+    const { buildHtml } = await import('/js/docbuild.js');
+    return buildHtml('receipt', { id: 'r', number: 2, date: '2026-10-27', buyerName: 'س', tool: 'مرشة', amount: 750000 },
+      (await import('/js/settings.js')).current(), ['shop']);
+  });
+  check(!receiptHtml.includes('قدره مبلغ قدره') && receiptHtml.includes('سبعمائة وخمسون ألف'), 'الوصل: «مبلغاً قدره» بلا تكرار');
 
   const withStamp = await page.evaluate(async () => {
     const { buildHtml } = await import('/js/docbuild.js');

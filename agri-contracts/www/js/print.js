@@ -56,6 +56,14 @@ export function countPages(html) {
   return m ? m.length : 1;
 }
 
+/**
+ * المبلغ كتابةً بلا «مبلغ قدره» في أوله: العقد والوصل يطبعان هذه العبارة
+ * عنواناً قبله، فكانت تتكرّر («بمبلغ قدره مبلغ قدره …»). المحفوظ في العقود
+ * القديمة يحمل العبارة، فتُنزع عند الطباعة.
+ */
+const amountWords = (doc) =>
+  String(doc.amountWords || amountPhrase(doc.amount) || '').replace(/^\s*مبلغ\s+قدره\s*/, '');
+
 /** قيمة تُطبع بأرقام عربية. */
 const dots = (v) => (v == null || v === '' ? '' : escapeHtml(toArabicDigits(v)));
 
@@ -202,7 +210,7 @@ export function renderContractPage(c, s, copyKey) {
           <div class="cell"><span class="lbl">إلى الطرف الثاني المشتري</span><span class="val">${dots(buyer.name)}</span></div>
         </div>
         <div class="row">
-          <div class="cell"><span class="lbl">بمبلغ قدره</span><span class="val val--free">${dots(c.amountWords || amountPhrase(c.amount))}</span></div>
+          <div class="cell"><span class="lbl">بمبلغ قدره</span><span class="val val--free">${dots(amountWords(c))}</span></div>
           <div class="cell cell--sm"><span class="lbl">رقماً</span><span class="val">${dots(formatMoney(c.amount))}</span></div>
         </div>
         <div class="row">
@@ -270,7 +278,7 @@ function receiptHalf(r, s, copyKey) {
         <div class="cell"><span class="lbl">نوع الأداة</span><span class="val">${dots(r.tool)}</span></div>
         <div class="cell cell--sm"><span class="lbl">العدد</span><span class="val">${dots(r.qty)}</span></div>
       </div>
-      <div class="row"><div class="cell"><span class="lbl">مبلغاً قدره</span><span class="val val--free">${dots(r.amountWords || amountPhrase(r.amount))}</span></div></div>
+      <div class="row"><div class="cell"><span class="lbl">مبلغاً قدره</span><span class="val val--free">${dots(amountWords(r))}</span></div></div>
       <div class="row">
         <div class="cell cell--sm"><span class="lbl">رقماً</span><span class="val">${dots(formatMoney(r.amount))}</span></div>
         <div class="cell"><span class="lbl">الموبايل</span><span class="val">${dots(r.mobile)}</span></div>
