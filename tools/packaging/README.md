@@ -25,3 +25,6 @@
 9. الفصل الثالث للدكتور أحمد: `bash tools/reproduction-src/build.sh` ثم
    `APK_PKG=com.ahmed.reproduction APK_LABEL=التكاثر` بأيقونة `icon-reproduction.html` ونفس مفتاح الدكتور أحمد،
    ومجلد حفظ الـ EXE `AlTakathurAhmed`.
+10. الفصل الثالث للأستاذ النعيمي يُبنى من الفصل الثالث للدكتور أحمد:
+   `python3 make_naimi_ch3.py <الفصل-الثالث-الدكتور-أحمد-الحسن.html> الأستاذ-النعيمي/poster-source.jpg <out.html>`، ثم
+   `APK_PKG=com.naimi.reproduction APK_LABEL=التكاثر` بأيقونة التكاثر ونفس مفتاح الأستاذ النعيمي، ومجلد حفظ الـ EXE `AlTakathurNaimi`.
