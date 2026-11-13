@@ -166,60 +166,76 @@ function pfModel(B){
     } };
 }
 
-/* ═════════════ 4–5) الاقتران والإخصاب الذاتي في البراميسيوم (ص32–35) ═════════════ */
+/* ═════════════ 4–5) الاقتران والإخصاب الذاتي في البراميسيوم (ص32–35) — خطوات مجسّمة ═════════════
+   مثل الرسم المسطّح: كل الخطوات ظاهرة ومرقّمة في صفوف (من اليمين لليسار)، والخطوة الحالية
+   تكبر وتتوهج والخطوات القادمة باهتة. */
+const pxf = (m, s, at) => { const p = new Array(m.p.length); for (let i = 0; i < m.p.length; i += 3){ p[i] = m.p[i] * s + at[0]; p[i + 1] = m.p[i + 1] * s + at[1]; p[i + 2] = m.p[i + 2] * s + at[2]; } return { p, n: m.n, l: m.l, i: m.i }; };
+function paraStep(i, self){
+  const X = 0.5, L = [], A = (m, o) => L.push([m, o]), cAt = (sg, sep) => [sg * (X + (sep || 0)), 0, 0];
+  const COL = sg => sg < 0 ? '#f7941d' : '#7a5ad6', COLD = sg => sg < 0 ? '#a85a00' : '#3a2580';
+  const iFus = self ? 3 : 4, iSep = self ? 4 : 5, iEight = self ? 5 : 6;
+  if (i === iEight){ A(merge(Array.from({ length: 8 }, (_, j) => paraBody([(j - 3.5) * 0.62, (j % 2) * 0.12, 0], 0.36))), { part: 'prEight', color: self ? '#cfe0f4' : '#bfe6f6', alpha: 0.6, rim: 1.2, rimColor: '#e8fbff', shell: { size: 1 } });
+    const nucs = js => merge(js.map(j => macN([(j - 3.5) * 0.62 - 0.02, (j % 2) * 0.12 + 0.1, 0.03], 0.36)));
+    if (self){ A(nucs([0, 1, 2, 3]), fx('prEight', '#7a5ad6')); A(nucs([4, 5, 6, 7]), fx('prEight', '#f7941d')); }
+    else A(nucs([0, 1, 2, 3, 4, 5, 6, 7]), fx('prEight', '#28b8f0'));
+    return L; }
+  const sep = i === iSep ? 0.55 : 0;
+  [-1, 1].forEach(sg => A(paraBody(cAt(sg, sep), 1), { part: i === iSep ? 'prSep' : 'prPara', color: sg < 0 ? '#c8e6f2' : '#b8d8f0', alpha: 0.42, rim: 1.3, rimColor: '#e8fbff', shell: { size: 2.4 } }));
+  if (i < iSep) A(place(capsule({ r: 0.16, len: 0.5, rows: 3, cols: 12 }), { rot: [0, 0, Math.PI / 2], at: [0, 0.15, 0] }), fx('prProtoBr', '#e6f8ff', { alpha: 0.7, rimColor: '#8fd0e8' }));
+  if (i < iSep) [-1, 1].forEach(sg => A(macN(add(cAt(sg), [sg * 0.05, 0.45, 0.05]), 0.9 * (i >= 2 ? 0.55 : 1)), fx('prMacN', COL(sg), { rimColor: '#ffffff' })));
+  if (i === 0) [-1, 1].forEach(sg => A(ball(0.09, add(cAt(sg), [0, -0.25, 0.15]), 8), fx('prMicN', COLD(sg), { rimColor: '#ffffff' })));
+  if (i === 1) [-1, 1].forEach(sg => A(merge([[0, -0.15], [0.12, -0.35], [-0.12, -0.45], [0, -0.62]].map(([dx, dy]) => ball(0.075, add(cAt(sg), [dx, dy, 0.15]), 8))), fx('prMeioMic', COL(sg))));
+  if (i === 2) [-1, 1].forEach(sg => {
+    A(merge([[0.12, -0.55], [-0.12, -0.7], [0.02, -0.85]].map(([dx, dy]) => ball(0.06, add(cAt(sg), [dx, dy, 0.12]), 6))), fx('prDegen', COL(sg), { alpha: 0.35 }));
+    A(tube({ pts: [add(cAt(sg), [0, -0.05, 0.15]), add(cAt(sg), [0, -0.35, 0.15])], r: 0.025, sides: 5 }), fx('prUneq', '#e8e0c0'));
+    A(ball(0.12, add(cAt(sg), [0, -0.05, 0.15]), 10), fx('prFemN', COL(sg)));
+    A(ball(0.07, add(cAt(sg), [0, -0.35, 0.15]), 8), fx('prMaleN', COL(sg))); });
+  if (i === 3 && !self){ [-1, 1].forEach(sg => A(ball(0.12, add(cAt(sg), [0, -0.05, 0.15]), 10), fx('prFemN', COL(sg))));
+    A(merge([ball(0.07, [-0.12, -0.32, 0.18], 8), ball(0.07, [0.12, -0.42, 0.18], 8),
+      tube({ pts: [[-0.55, -0.3, 0.2], [0.35, -0.3, 0.2]], r: 0.018, sides: 4 }), tube({ pts: [[0.55, -0.45, 0.2], [-0.35, -0.45, 0.2]], r: 0.018, sides: 4 })]), fx('prExch', '#1d3b55', { rimColor: '#9fd0ff' })); }
+  if (i === iFus) [-1, 1].forEach(sg => A(ball(0.18, add(cAt(sg), [0, -0.1, 0.15]), 12), fx(self ? 'prFusHom' : 'prFusHet', self ? COL(sg) : '#28b8f0')));
+  if (i === iSep) [-1, 1].forEach(sg => A(ball(0.18, add(cAt(sg, sep), [0, -0.1, 0.15]), 12), fx('prSep', self ? COL(sg) : '#28b8f0')));
+  return L;
+}
 function conjModelP(self){
   return function(B){
-    const X = 0.5, ST = self ? PR_SELF_ST : PR_CONJ_ST;
-    const cellAt = (sg, sep) => [sg * (X + sep), 0, 0];
-    const bodies = [-1, 1].map(sg => B.add(paraBody(cellAt(sg, 0), 1), { part: 'prPara', color: sg < 0 ? '#c8e6f2' : '#b8d8f0', alpha: 0.42, rim: 1.3, rimColor: '#e8fbff', shell: { size: 2.4 }, pop: false, center: [0, 0, 0] }));
-    const bridge = B.add(place(capsule({ r: 0.16, len: 0.5, rows: 3, cols: 12 }), { rot: [0, 0, Math.PI / 2], at: [0, 0.15, 0] }), fx('prProtoBr', '#e6f8ff', { alpha: 0.7, rimColor: '#8fd0e8' }));
-    const COL = sg => sg < 0 ? '#f7941d' : '#7a5ad6', COLD = sg => sg < 0 ? '#a85a00' : '#3a2580';
-    const mac = [-1, 1].map(sg => B.add(macN(add(cellAt(sg, 0), [sg * 0.05, 0.45, 0.05]), 0.9), fx('prMacN', COL(sg), { rimColor: '#ffffff', pop: false, center: [0, 0, 0] })));
-    const mic = [-1, 1].map(sg => B.add(ball(0.09, add(cellAt(sg, 0), [0, -0.25, 0.15]), 8), fx('prMicN', COLD(sg), { rimColor: '#ffffff', pop: false, center: [0, 0, 0] })));
-    const four = sg => merge([[0, -0.15], [0.12, -0.35], [-0.12, -0.45], [0, -0.62]].map(([dx, dy]) => ball(0.075, add(cellAt(sg, 0), [dx, dy, 0.15]), 8)));
-    const meio = [-1, 1].map(sg => B.add(four(sg), fx('prMeioMic', COL(sg), { pop: false, center: [0, 0, 0] })));
-    const degen = [-1, 1].map(sg => B.add(merge([[0.12, -0.55], [-0.12, -0.7], [0.02, -0.85]].map(([dx, dy]) => ball(0.06, add(cellAt(sg, 0), [dx, dy, 0.12]), 6))), fx('prDegen', COL(sg), { alpha: 0.35, pop: false, center: [0, 0, 0] })));
-    const spindle = [-1, 1].map(sg => B.add(tube({ pts: [add(cellAt(sg, 0), [0, -0.05, 0.15]), add(cellAt(sg, 0), [0, -0.35, 0.15])], r: 0.025, sides: 5 }), fx('prUneq', '#e8e0c0', { pop: false, center: [0, 0, 0] })));
-    const fem = [-1, 1].map(sg => B.add(ball(0.12, add(cellAt(sg, 0), [0, -0.05, 0.15]), 10), fx('prFemN', COL(sg), { pop: false, center: [0, 0, 0] })));
-    const male = [-1, 1].map(sg => B.add(ball(0.07, add(cellAt(sg, 0), [0, -0.35, 0.15]), 8), fx('prMaleN', COL(sg), { pop: false, center: [0, 0, 0] })));
-    const fusedPart = self ? 'prFusHom' : 'prFusHet';
-    const fused = [-1, 1].map(sg => B.add(ball(0.18, add(cellAt(sg, 0), [0, -0.1, 0.15]), 12), fx(fusedPart, self ? COL(sg) : '#28b8f0', { pop: false, center: [0, 0, 0] })));
-    const exch = self ? null : B.add(merge([ball(0.07, [0, 0, 0], 8), ball(0.07, [0, 0, 0], 8)]), fx('prExch', '#1d3b55', { rimColor: '#9fd0ff', pop: false, center: [0, 0, 0] }));
-    const sepO = [-1, 1].map(sg => B.add(paraBody(cellAt(sg, 0), 1), { part: 'prSep', color: '#a8d8ea', alpha: 0.45, rim: 1.3, rimColor: '#e8fbff', shell: { size: 2.4 }, pop: false, center: [0, 0, 0] }));
-    const eight = (t) => merge(Array.from({ length: 8 }, (_, i) => { const a = i / 8 * 6.2832 + t * 0.15; return paraBody([Math.cos(a) * 1.7, Math.sin(t * 2 + i) * 0.1, Math.sin(a) * 1.7], 0.38); }));
-    const eightO = B.add(eight(0), { part: 'prEight', color: self ? '#cfe0f4' : '#bfe6f6', alpha: 0.6, rim: 1.2, rimColor: '#e8fbff', shell: { size: 1 }, pop: false, center: [0, 0, 0] });
-    const iFus = self ? 3 : 4, iSep = self ? 4 : 5, iEight = self ? 5 : 6;
-    const vis = (...ss) => () => ss.includes(STG.idx);
-    B.label('prMacN', [X + 0.25, 0.6, 0.1], [1, 0.4, 0.2], vis(0, 1));
-    B.label('prMicN', [X, -0.25, 0.2], [1, -0.2, 0.4], vis(0));
-    B.label('prProtoBr', [0, 0.3, 0.12], [0, 1, 0.3], vis(0, 1, 2));
-    B.label('prMeioMic', [X + 0.12, -0.4, 0.2], [1, -0.3, 0.4], vis(1));
-    B.label('prDegen', [-X - 0.12, -0.7, 0.15], [-1, -0.3, 0.3], vis(2));
-    B.label('prFemN', [-X, -0.05, 0.25], [-1, 0.2, 0.4], vis(2));
-    B.label('prMaleN', [X, -0.35, 0.22], [1, -0.2, 0.4], vis(2));
-    B.label('prUneq', [X, -0.2, 0.2], [1, 0.1, 0.4], vis(2));
-    if (!self) B.label('prExch', [0, -0.2, 0.2], [0, -1, 0.3], vis(3));
-    B.label(fusedPart, [X, -0.1, 0.3], [1, 0, 0.4], vis(iFus));
-    B.label('prSep', [X + 0.8, 0, 0], [1, 0, 0.2], vis(iSep));
-    B.label('prEight', [1.7, 0.3, 0], [1, 0.4, 0], vis(iEight));
-    B.caption([0, -2.0, 0], () => [(ST[STG.idx] || {}).n || '']);
-    return { dist: 7.4, yaw: 0.35, pitch: 0.25, target: [0, 0, 0], live2d: true,
-      anim(t){ const s = STG.idx, k = sm(STG.k);
-        const sep = s === iSep ? k * 0.9 : s > iSep ? 0.9 : 0;
-        bodies.forEach((o, i) => { o.hide = s >= iSep; });
-        sepO.forEach((o, i) => { o.hide = s !== iSep; if (s === iSep) B.update(o, paraBody(cellAt(i ? 1 : -1, sep), 1)); });
-        bridge.hide = s >= iSep;
-        mac.forEach((o, i) => { o.hide = s >= iSep; if (s < iSep){ const sg = i ? 1 : -1, sh = s >= 2 ? 0.55 : 1; B.update(o, macN(add(cellAt(sg, 0), [sg * 0.05, 0.45, 0.05]), 0.9 * sh)); } });
-        mic.forEach(o => o.hide = s !== 0);
-        meio.forEach(o => o.hide = s !== 1);
-        degen.forEach(o => o.hide = s !== 2);
-        spindle.forEach(o => o.hide = s !== 2);
-        fem.forEach(o => o.hide = !(s === 2 || (s === 3 && !self)));
-        male.forEach((o, i) => { const sg = i ? 1 : -1; o.hide = !(s === 2 || (s === 3 && self)); if (s === 3 && self) B.update(o, ball(0.07, add(cellAt(sg, 0), [0, -0.35 + 0.3 * k, 0.15]), 8)); else B.update(o, ball(0.07, add(cellAt(sg, 0), [0, -0.35, 0.15]), 8)); });
-        if (exch){ exch.hide = s !== 3; if (s === 3){ const a = add(cellAt(-1, 0), [0, -0.35, 0.15]), b = add(cellAt(1, 0), [0, -0.35, 0.15]);
-          B.update(exch, merge([ball(0.07, add(mul(a, 1 - k), mul(b, k)), 8), ball(0.07, add(mul(b, 1 - k), mul(a, k)), 8)])); } }
-        fused.forEach((o, i) => { const sg = i ? 1 : -1, on = s === iFus || (s > iFus && s < iEight); o.hide = !on; if (on) B.update(o, ball(0.18, add(cellAt(sg, sep), [0, -0.1, 0.15]), 12)); });
-        eightO.hide = s !== iEight; if (s === iEight) B.update(eightO, eight(t));
+    const ST = self ? PR_SELF_ST : PR_CONJ_ST, n = ST.length, S0 = 0.62, S1 = 0.74;
+    /* مواقع الخطوات: صف علوي 1–3 من اليمين، صف ثانٍ، ثم صف البنويات */
+    const P = [[3.5, 1.9], [0.6, 1.9], [-2.3, 1.9], [3.5, -0.5]].concat(self ? [[0.6, -0.5]] : [[0.6, -0.5], [-2.3, -0.5]]).concat([[0.6, -2.55]]).map(([x, y]) => [x, y, 0]);
+    const steps = ST.map((_, i) => ({ i, at: P[i], objs: paraStep(i, self).map(([m, o]) => ({ m, o: B.add(pxf(m, S0, P[i]), Object.assign({ pop: false, center: P[i] }, o)) })) }));
+    /* أسهم بين الخطوات */
+    const arrow = (a, b) => { const d = norm([b[0] - a[0], b[1] - a[1], 0]), e = add(b, mul(d, -0.15));
+      return merge([tube({ pts: [a, e], r: 0.04, sides: 6 }), place(ellipsoid({ r: [0.1, 0.2, 0.1], rows: 5, cols: 8, disp: q => 1 - 0.85 * Math.max(0, q[1]) }), { at: e, dir: d })]); };
+    const arrs = [];
+    for (let i = 0; i < n - 1; i++){ const a = P[i], b = P[i + 1]; let p0, p1;
+      if (i === n - 2){ p0 = add(a, [0, -0.95, -0.2]); p1 = add(b, [0, 0.55, -0.2]); }
+      else if (a[1] === b[1]){ p0 = add(a, [-1.15, 0, -0.2]); p1 = add(b, [1.15, 0, -0.2]); }
+      else { p0 = add(a, [0.3, -0.95, -0.2]); p1 = add(b, [-0.3, 0.95, -0.2]); }
+      arrs.push({ to: i + 1, o: B.add(arrow(p0, p1), { color: '#9fc4ff', rim: 0.5, pop: false }) }); }
+    /* الأسماء عند خطواتها */
+    const at = (i, x, y, z) => add(P[i], [x * S0, y * S0, (z || 0) * S0]);
+    B.label('prMacN', at(0, 0.6, 0.45, 0.1), [1, 0.5, 0.2]);
+    B.label('prMicN', at(0, 0.5, -0.25, 0.2), [1, -0.3, 0.3]);
+    B.label('prProtoBr', at(0, 0, 0.3, 0.12), [0, 1, 0.3]);
+    B.label('prMeioMic', at(1, 0.5, -0.4, 0.2), [0.3, -1, 0.3]);
+    B.label('prUneq', at(2, 0.5, -0.2, 0.2), [0.4, 1, 0.3]);
+    B.label('prMaleN', at(2, 0.5, -0.35, 0.2), [0.3, -1, 0.3]);
+    B.label('prFemN', at(2, -0.5, -0.05, 0.25), [-1, 0.2, 0.3]);
+    B.label('prDegen', at(2, -0.62, -0.7, 0.15), [-1, -0.4, 0.3]);
+    if (!self){ B.label('prExch', at(3, 0, -0.3, 0.2), [1, -0.3, 0.3]); B.label('prFusHet', at(4, 0.5, -0.1, 0.3), [0.3, -1, 0.3]); }
+    else { B.label('prFusHom', at(3, 0.5, -0.1, 0.3), [1, -0.3, 0.3]); }
+    B.label('prSep', at(self ? 4 : 5, 1.1, 0, 0.1), [0.4, -1, 0.2]);
+    B.label('prEight', at(n - 1, -2.2, 0, 0.1), [-1, 0, 0.2]);
+    steps.forEach(S => B.caption(add(S.at, [0, S.i === n - 1 ? 0.55 : 1.0, 0]), () => [String(S.i + 1)]));
+    if (self) B.caption([-2.3, -0.4, 0], () => ['لا يحدث تبادل', 'للأنوية الذكرية']);
+    B.caption([0.6, -3.25, 0], () => [(ST[STG.idx] || {}).n || '']);
+    let last = -1; const hot = G3.hex('#ffd98a'), cold = G3.hex('#9fc4ff');
+    return { dist: 13.2, yaw: 0, pitch: 0.05, target: [0.5, -0.45, 0], live2d: true,
+      anim(t){ const s = Math.min(n - 1, STG.idx);
+        if (s !== last){ last = s;
+          steps.forEach(S => { const sc = S.i === s ? S1 : S0; S.objs.forEach(R => { B.update(R.o, pxf(R.m, sc, S.at)); if (!R.o.shell && R.o.base === undefined) R.o.base = R.o.alpha; if (!R.o.shell) R.o.alpha = S.i <= s ? R.o.base : R.o.base * 0.5; }); });
+          arrs.forEach(A => { A.o.col = A.to === s ? hot : cold; }); }
+        steps[s].objs.forEach(R => { R.o.glow = 0.45 + 0.4 * Math.sin(t * 4); });
       } };
   };
 }

@@ -100,6 +100,104 @@ function phageModel(B, map, stages){
     } };
 }
 
+/* ═════════════ دورتا الفايروس مجسّمتين خطوةً خطوة ═════════════
+   مثل الرسم المسطّح: كل مراحل الدورة مرقّمة حول حلقة وبينها أسهم تغلق الدورة، والمرحلة
+   الحالية تكبر وتتوهج وسهمها الداخل يتلوّن؛ اسم الدورة في وسطها. */
+const xf3 = (m, s, at, c) => { const p = new Array(m.p.length); for (let i = 0; i < m.p.length; i += 3){ p[i] = (m.p[i] - c[0]) * s + at[0]; p[i + 1] = (m.p[i + 1] - c[1]) * s + at[1]; p[i + 2] = (m.p[i + 2] - c[2]) * s + at[2]; } return { p, n: m.n, l: m.l, i: m.i }; };
+const ellXY = (c, rx, ry, n, wob, seed) => ellipsePts([0, 0, 0], rx, ry, n, wob, seed).map(p => [c[0] + p[0], c[1] + p[2], c[2] + p[1]]);
+const VC = { bac: '#f3cfa2', bacS: '#c98a4a', dna: '#d23a3a', ph: '#6cc85a', phL: '#c9f5c4', vd: '#ff6fb0' };
+/* كل مرحلة: قائمة أجزاء [شبكة، خيارات] بإحداثيات محلية حول (0,0,0) */
+function vMini(kind){
+  const L = [], A = (mesh, o) => L.push([mesh, o]);
+  const cell = (at, s, part, inner) => { A(rod(0.42 * s, 1.5 * s, at), { part, color: VC.bac, alpha: 0.42, rim: 1.2, rimColor: '#ffe2b8', shell: { size: 1.2 * s, inner, tau: 0.3 } });
+    A(ring(ellXY(at, 0.52 * s, 0.2 * s, 12, 0.18, 4), 0.035 * s), { part: inner === 'vBac' ? 'vBDNA' : part, color: VC.dna, rim: 0.6, rimColor: '#ffc0c0' }); };
+  const head = (at, s) => place(ellipsoid({ r: [0.17 * s, 0.21 * s, 0.17 * s], rows: 6, cols: 6 }), { at });
+  const tail = (at, s) => merge([place(capsule({ r: 0.035 * s, len: 0.3 * s, rows: 3, cols: 8 }), { at: add(at, [0, 0.16 * s, 0]) })].concat([0, 1, 2, 3, 4, 5].map(i => { const a = i * 1.047;
+    return tube({ pts: [add(at, [0, 0.01, 0]), add(at, [Math.cos(a) * 0.14 * s, -0.07 * s, Math.sin(a) * 0.14 * s]), add(at, [Math.cos(a) * 0.2 * s, -0.15 * s, Math.sin(a) * 0.2 * s])], r: 0.012 * s, sides: 4 }); })));
+  const T = [0.3, 0.58, 0];
+  if (kind === 'attach'){ cell([0, 0, 0], 1, 'vWall', 'vBac');
+    A(head(add(T, [0, 0.52, 0]), 1), { part: 'vCoat', color: VC.ph, alpha: 0.5, rim: 1.2, rimColor: '#eaffd8', shell: { size: 0.4 } });
+    A(tube({ pts: spline([[-0.06, 0.44, 0], [0.05, 0.5, 0.03], [-0.04, 0.57, -0.02], [0.05, 0.62, 0.02]].map(p => add(T, p)), 5, false), r: 0.02, sides: 5 }), { part: 'vNA', color: VC.vd, rim: 0.6, rimColor: '#ffd2e8' });
+    A(tail(T, 1), { part: 'vAttach', color: '#4fb05a', rim: 0.6, rimColor: '#d8ffd0' }); }
+  if (kind === 'pen'){ cell([0, 0, 0], 1, 'vPen', 'vPen'); A(phageMesh(T, 0.5, [0, 1, 0]), { part: 'vPen', color: VC.ph, rim: 0.8, rimColor: '#e8ffd8' });
+    A(tube({ pts: spline([T, [0.15, 0.3, 0.05], [-0.05, 0.12, 0.1], [-0.3, 0.05, 0.06]], 5, false), r: 0.025, sides: 5 }), { part: 'vPen', color: VC.vd, rim: 0.7, rimColor: '#ffd2e8' }); }
+  if (kind === 'synth'){ A(rod(0.42, 1.5, [0, 0, 0]), { part: 'vSynth', color: VC.bac, alpha: 0.42, rim: 1.2, rimColor: '#ffe2b8', shell: { size: 1.2 } });
+    const R = srng(5); A(merge(Array.from({ length: 5 }, () => { const x = (R() - 0.5) * 1.2, y = (R() - 0.5) * 0.3; return tube({ pts: [[x, y, 0], [x + 0.14, y + 0.03, 0.05]], r: 0.025, sides: 4 }); })), { part: 'vSynth', color: VC.dna, alpha: 0.6, rim: 0.4 });
+    A(merge(Array.from({ length: 9 }, (_, i) => { const p = [(R() - 0.5) * 1.3, (R() - 0.5) * 0.4, (R() - 0.5) * 0.3]; return i % 3 ? place(ellipsoid({ r: 0.07, rows: 4, cols: 6 }), { at: p }) : tube({ pts: spline([add(p, [-0.08, 0, 0]), add(p, [0, 0.05, 0.03]), add(p, [0.08, 0, 0])], 3, false), r: 0.018, sides: 4 }); })), { part: 'vSynth', color: VC.ph, rim: 0.7, rimColor: '#f0ffe0' }); }
+  if (kind === 'mature'){ A(rod(0.42, 1.5, [0, 0, 0]), { part: 'vMature', color: VC.bac, alpha: 0.42, rim: 1.2, rimColor: '#ffe2b8', shell: { size: 1.2 } });
+    A(merge([-0.5, -0.17, 0.17, 0.5].map((x, i) => phageMesh([x, -0.18, 0], 0.32, [i % 2 ? 0.2 : -0.2, 1, 0]))), { part: 'vMature', color: VC.ph, rim: 0.8, rimColor: '#e8ffd8' }); }
+  if (kind === 'release'){ A(merge(Array.from({ length: 8 }, (_, i) => { const a = i / 8 * 6.2832; return place(ellipsoid({ r: [0.2, 0.11, 0.04], rows: 4, cols: 6 }), { at: [Math.cos(a) * 0.7, Math.sin(a) * 0.38, 0], dir: [Math.sin(a), -Math.cos(a), 0.3] }); })),
+      { part: 'vRelease', color: VC.bacS, alpha: 0.75, rim: 1.0, rimColor: '#ffe2b8' });
+    A(merge(Array.from({ length: 6 }, (_, i) => { const a = i / 6 * 6.2832 + 0.4, d = [Math.cos(a), Math.sin(a), 0.2]; return phageMesh(mul(d, 0.75), 0.36, d); })), { part: 'vRelease', color: VC.ph, rim: 0.8, rimColor: '#e8ffd8' }); }
+  if (kind === 'integ'){ cell([0, 0, 0], 1, 'vInteg', 'vInteg');
+    const rp = ellXY([0, 0, 0], 0.52, 0.2, 12, 0.18, 4); A(tube({ pts: spline([rp[0], rp[1], rp[2]], 4, false), r: 0.06, sides: 6 }), { part: 'vDNA', color: VC.vd, rim: 0.8, rimColor: '#ffd2e8' }); }
+  if (kind === 'divide'){ [[-0.55, 0.1], [0.55, -0.1]].forEach(([x, y]) => { cell([x, y, 0], 0.62, 'vDaugh', 'vDaugh');
+      const rp = ellXY([x, y, 0], 0.52 * 0.62, 0.2 * 0.62, 12, 0.18, 4); A(tube({ pts: spline([rp[0], rp[1], rp[2]], 4, false), r: 0.045, sides: 6 }), { part: 'vProph', color: VC.vd, rim: 0.8, rimColor: '#ffd2e8' }); }); }
+  return L;
+}
+function virRingModel(lyso){ return function(B){
+  const N = lyso ? [['attach', 90, 'مرحلة الاتصال'], ['pen', 12, 'مرحلة الاختراق'], ['integ', -62, 'مرحلة التكامل'], ['divide', -150, 'تكاثر البكتيريا']]
+    : [['attach', 90, 'مرحلة الاتصال'], ['pen', 20, 'مرحلة الاختراق'], ['synth', -50, 'مرحلة التخليق أو البناء'], ['mature', -120, 'مرحلة الإنضاج'], ['release', 180, 'مرحلة التحرر']];
+  const RX = 3.0, RY = 1.85, C = [0.2, 0.05, 0], S0 = 0.62, S1 = 0.82;
+  const pos = a => [C[0] + Math.cos(a * Math.PI / 180) * RX, C[1] + Math.sin(a * Math.PI / 180) * RY, 0];
+  const minis = N.map(([kind, a, nm], i) => { const at = pos(a), objs = vMini(kind).map(([m, o]) => ({ m, o: B.add(xf3(m, S0, at, [0, 0, 0]), Object.assign({ pop: false, center: at }, o)) })); return { kind, a, nm, at, objs, i }; });
+  /* أسهم الدورة على محيط الحلقة */
+  const arcPts = (a0, a1) => { const P = []; for (let j = 0; j <= 16; j++){ const a = a0 + (a1 - a0) * j / 16; P.push([C[0] + Math.cos(a * Math.PI / 180) * (RX - 0.05), C[1] + Math.sin(a * Math.PI / 180) * (RY - 0.05), -0.3]); } return P; };
+  const arrow = P => { const e = P[P.length - 1], d = norm([e[0] - P[P.length - 3][0], e[1] - P[P.length - 3][1], 0]);
+    return merge([tube({ pts: P.slice(0, -1), r: 0.05, sides: 6 }), place(ellipsoid({ r: [0.12, 0.24, 0.12], rows: 5, cols: 8, disp: q => 1 - 0.85 * Math.max(0, q[1]) }), { at: add(e, mul(d, -0.12)), dir: d })]); };
+  const gap = 15, arrs = [];
+  const links = lyso ? [[0, 1], [1, 2], [2, 3]] : N.map((_, i) => [i, (i + 1) % N.length]);
+  links.forEach(([i, j]) => { let a0 = N[i][1], a1 = N[j][1]; if (a1 > a0) a1 -= 360; arrs.push({ to: j, o: B.add(arrow(arcPts(a0 - gap, a1 + gap)), { color: '#e8e0d0', rim: 0.5, pop: false }) }); });
+  if (lyso){ const c = add(pos(N[3][1]), [0, -0.95, -0.3]), P = []; for (let j = 0; j <= 18; j++){ const a = -0.3 + j / 18 * 4.6; P.push([c[0] + Math.cos(a) * 0.42, c[1] + Math.sin(a) * 0.22, c[2]]); }
+    arrs.push({ to: 3, o: B.add(arrow(P), { color: '#e8e0d0', rim: 0.5, pop: false }) }); }
+  /* الأسماء: أجزاء مرحلة الاتصال، واسم كل مرحلة عند بطاقتها */
+  const m0 = minis[0].at, lab = (part, local, n) => { const L = { at: add(m0, mul(local, S0)), local, n }; B.label(part, L.at, n); return L; };
+  const labs = [lab('vWall', [-0.95, 0, 0], [-1, 0.2, 0.3]), lab('vBDNA', [-0.35, -0.12, 0.1], [-1, -0.5, 0.3]), lab('vCoat', [0.47, 1.1, 0], [1, 0.4, 0.2]), lab('vNA', [0.3, 1.12, 0.05], [0.4, 1, 0.3])];
+  if (!lyso) labs.push(lab('vBac', [-0.6, -0.3, 0.2], [-1, -0.6, 0.3]));
+  minis.slice(1).forEach(M => { const id = { pen: 'vPen', synth: 'vSynth', mature: 'vMature', release: 'vRelease', integ: 'vInteg', divide: 'vDaugh' }[M.kind]; B.label(id, add(M.at, [0.5 * S0, -0.35 * S0, 0.2]), [Math.cos(M.a * Math.PI / 180), Math.sin(M.a * Math.PI / 180) - 0.4, 0.3]); });
+  if (lyso){ B.label('vDNA', add(minis[2].at, [0.25 * S0, 0.12 * S0, 0.1]), [1, -0.3, 0.3]); B.label('vProph', add(minis[3].at, [-0.5 * S0, 0.2 * S0, 0.1]), [-1, 0.3, 0.3]); }
+  minis.forEach(M => B.caption(add(M.at, [0, -0.8, 0]), () => [(M.i + 1) + ' · ' + M.nm]));
+  B.caption([C[0], C[1] + 0.25, 0], () => [lyso ? 'دورة التحلل والإنتاج' : 'دورة التحلل', 'الآن: ' + ((minis[STG.idx] || {}).nm || '')]);
+  let last = -1; const hot = G3.hex('#ffb000'), cold = G3.hex('#e8e0d0');
+  return { dist: 11.2, yaw: 0, pitch: 0.04, target: [C[0], C[1] + 0.15, 0], live2d: true,
+    anim(t){ const s = Math.min(minis.length - 1, STG.idx);
+      if (s !== last){ last = s;
+        minis.forEach(M => { const sc = M.i === s ? S1 : S0; M.objs.forEach(R => { B.update(R.o, xf3(R.m, sc, M.at, [0, 0, 0])); R.o.alpha = R.o.shell ? R.o.alpha : (M.i <= s ? 1 : 0.7); }); });
+        labs.forEach(L => { const sc = s === 0 ? S1 : S0, v = add(m0, mul(L.local, sc)); L.at[0] = v[0]; L.at[1] = v[1]; L.at[2] = v[2]; });
+        arrs.forEach(A => { A.o.col = A.to === s ? hot : cold; }); }
+      minis[s].objs.forEach(R => { R.o.glow = 0.45 + 0.4 * Math.sin(t * 4); });
+    } };
+}; }
+
+/* ═════════════ الخلية المعطية × المستلمة (جدول ص23) — خطوة لكل صف ═════════════
+   الخليتان ثابتتان جنباً إلى جنب؛ في كل خطوة يتوهج التركيب الخاص بالصف، وعلامة ✗ حمراء
+   مكانه في الخلية المستلمة، ونص الصف تحت كل خلية. */
+function donRecModel(B){
+  const DX = -1.2, RX = 1.2, cap = x => place(capsule({ r: 0.62, len: 1.2, rows: 10, cols: 26 }), { at: [x, 0, 0] });
+  const don = B.add(cap(DX), { part: 'cDonor', color: '#ffe680', alpha: 0.4, rim: 1.4, rimColor: '#9fe06a', shell: { size: 2 } });
+  const rec = B.add(cap(RX), { part: 'cRecip', color: '#ffe680', alpha: 0.4, rim: 1.4, rimColor: '#9fe06a', shell: { size: 2 } });
+  const fig8 = x => merge([ring(ellXY([x, 0.4, 0], 0.28, 0.2, 10), 0.04), ring(ellXY([x, -0.1, 0], 0.28, 0.2, 10), 0.04)]);
+  const dCh = B.add(fig8(DX), { part: 'cChrom', color: '#e2403e', rim: 0.6, rimColor: '#ffffff' });
+  const rCh = B.add(fig8(RX), { part: 'cRecip', color: '#3d7bf0', rim: 0.6, rimColor: '#ffffff' });
+  const pl = B.add(ring(ellXY([DX, -0.7, 0.05], 0.17, 0.13, 10), 0.045), { part: 'cFert', color: '#d43fd0', rim: 0.8, rimColor: '#ffc8ff' });
+  const pil = B.add(merge([-2, -1, 0, 1, 2].map(i => { const a = i * 0.3, d = [Math.sin(a), Math.cos(a), 0.1]; return tube({ pts: [add([DX, 1.15, 0], mul(d, 0.05)), add([DX, 1.15, 0], mul(d, 0.42))], r: 0.025, sides: 5 }); })), { part: 'cPilus', color: '#2a2a2a', rim: 0.5, rimColor: '#aaaaaa' });
+  const X = c => merge([-1, 1].map(sg => place(capsule({ r: 0.035, len: 0.32, rows: 2, cols: 6 }), { at: c, rot: [0, 0, sg * Math.PI / 4] })));
+  const xPl = B.add(X([RX, -0.7, 0.1]), { color: '#e2403e', rim: 0.6, rimColor: '#ffc0c0' }), xPi = B.add(X([RX, 1.45, 0]), { color: '#e2403e', rim: 0.6, rimColor: '#ffc0c0' });
+  B.label('cDonor', [DX - 0.62, -0.3, 0], [-1, -0.2, 0.2]);
+  B.label('cRecip', [RX + 0.62, -0.3, 0], [1, -0.2, 0.2]);
+  B.label('cChrom', [DX - 0.28, 0.4, 0], [-1, 0.4, 0.3]);
+  B.label('cFert', [DX + 0.17, -0.7, 0.05], [0.3, -1, 0.4]);
+  B.label('cPilus', [DX, 1.5, 0], [-0.3, 1, 0]);
+  const R = TABLES.mDonRec.rows, wrap2 = t => wrapName(t, 42);
+  B.caption([DX, -1.6, 0], () => [STG.idx + 1 + ' · الخلية المعطية'].concat(wrap2(R[STG.idx] ? R[STG.idx][0] : '')));
+  B.caption([RX, -1.6, 0], () => ['الخلية المستلمة'].concat(wrap2(R[STG.idx] ? R[STG.idx][1] : '')));
+  const groups = [[don, rec], [pl, xPl], [pil, xPi], [dCh, rCh]];
+  return { dist: 8.2, yaw: 0, pitch: 0.08, target: [0, -0.35, 0], live2d: true,
+    anim(t){ const s = Math.min(3, STG.idx);
+      xPl.hide = s !== 1; xPi.hide = s !== 2;
+      groups[s].forEach(o => { o.glow = 0.5 + 0.45 * Math.sin(t * 4); }); } };
+}
+
 /* ═════════════ الانشطار الثنائي في البكتيريا (ص19) — يتبع المرحلة ═════════════ */
 function fissModel(B){
   const R = 0.5;
@@ -207,5 +305,5 @@ function plasModel(B){
     } };
 }
 
-Object.assign(G3.models, { vir_cycle: phageModel, vir_lyt: B => phageModel(B, [0, 1, 2, 3, 4], LYT_STAGES), vir_lys: B => phageModel(B, [0, 1, 5, 5], LYS_STAGES), prk_bfiss: fissModel, prk_bconj: conjModel, prk_bdr: B => { const m = conjModel(B), an = m.anim; m.anim = t => { const i = STG.idx, k = STG.k; STG.idx = 0; STG.k = 0.999; an(t); STG.idx = i; STG.k = k; }; return m; }, prk_bplas: plasModel });
+Object.assign(G3.models, { vir_cycle: phageModel, vir_lyt: virRingModel(false), vir_lys: virRingModel(true), prk_bfiss: fissModel, prk_bconj: conjModel, prk_bdr: donRecModel, prk_bplas: plasModel });
 })();
