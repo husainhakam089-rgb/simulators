@@ -1983,7 +1983,7 @@ Object.assign(CH.toolIcons, { sdpPol: 'spark', sdpTube: 'grow', sdpFert: 'target
 CH.exam.push(
   { k: 'sd_pol', t: 'التلقيح الذاتي والخلطي' }, { k: 'sd_tube', t: 'تكوين أنبوب اللقاح' }, { k: 'sd_fert', t: 'الإخصاب المزدوج' },
   { k: 'sd_torp', t: 'مرحلة الطوربيد' }, { k: 'sd_mature', t: 'مرحلة الجنين الناضج' }, { k: 'sd_seeds', t: 'تركيب البذور (3-19)' },
-  { k: 'sd_fruit', t: 'تركيب الثمرة' }, { k: 'sd_types', t: 'أنواع الثمار وانتشارها' }
+  { k: 'sd_fruit', t: 'تركيب الثمرة' }, { k: 'sd_types', t: 'أنواع الثمار وانتشارها' }, { k: 'sd_ftypes', t: 'تكوّن أنواع الثمار' }
 );
 CH.draw.push(
   { g: 'sdsf', gt: 'البذرة والثمرة', k: 'sd_fruit', t: 'تركيب الثمرة (وزاري متكرر)', order: ['sdExo', 'sdMeso', 'sdEndo', 'sdFSeed'] },

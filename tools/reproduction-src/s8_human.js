@@ -717,88 +717,159 @@ function huWorm(P, head){
     <ellipse cx="${n2(c0[0])}" cy="${n2(c0[1])}" rx="30" ry="16" fill="#c25a6a" opacity=".9"/>`;
 }
 const HU_HERM_ST = [
-  { n: '1 · الخناث', d: 'الخناث حيوانات تمتلك أعضاء تكاثرية ذكرية وأنثوية في نفس الفرد وتستطيع إنتاج النطف والبيوض.' },
+  { n: '1 · الخناث', d: 'الخناث حيوانات تمتلك أعضاء تكاثرية ذكرية وأنثوية في نفس الفرد وتستطيع إنتاج النطف والبيوض، مثل دودة الأرض.' },
   { n: '2 · أمثلة على الخناث', d: 'يحدث التكاثر الخنثي في اللافقريات: بعض الهيدرات، والديدان المسطحة كالدودة الشريطية، والديدان الحلقية كدودة الأرض، وأنواع من القشريات. أما في الفقريات فهو نادر وقليل الوضوح عدا الأسماك.' },
   { n: '3 · تحاشي الإخصاب الذاتي (1): تبادل الخلايا التناسلية', d: 'تتحاشى الخناث الإخصاب الذاتي بتبادل خلاياها التناسلية مع بعضها؛ فبيوض دودة الأرض تخصب من قبل الفرد المقترن بها والعكس بالعكس.' },
-  { n: '4 · تحاشي الإخصاب الذاتي (2): النضج في أوقات متباينة', d: 'الطريقة الثانية لتحاشي الإخصاب الذاتي: نمو ونضج البيوض في أوقات متباينة (فلا تكون النطف والبيوض ناضجة في الوقت نفسه).' },
+  { n: '4 · تحاشي الإخصاب الذاتي (2): النضج في أوقات متباينة', d: 'الطريقة الثانية لتحاشي الإخصاب الذاتي: نمو ونضج البيوض في أوقات متباينة، فلا تكون النطف والبيوض ناضجة في الوقت نفسه.' },
   { n: '5 · الدودة الشريطية: إخصاب ذاتي', d: 'للديدان الشريطية القدرة على الإخصاب الذاتي كونها من الخناث، أي إن الأعضاء الذكرية والأنثوية على نفس الفرد لذلك تنتج نطفاً وبيوضاً.' }
 ];
+/* دودة أرض: جسم أسطواني يستدق عند الطرفين، حلقات، سرج (حزام) قرب الأمام، ورأس مدبب.
+   P نقاط المحور من الذيل إلى الرأس، W أقصى نصف عرض */
+function hmEarthworm(P, W, opt){
+  opt = opt || {};
+  const PP = prepPath(P), L = PP.len, N = 60, left = [], right = [], wAt = u => W * (u < 0.08 ? 0.35 + 0.65 * Math.sin(u / 0.08 * Math.PI / 2) : u > 0.9 ? 0.25 + 0.75 * Math.cos((u - 0.9) / 0.1 * Math.PI / 2) : 1) * (u > 0.62 && u < 0.74 ? 1.12 : 1);
+  const fr = u => { const p = alongPath(PP, u * L), q = alongPath(PP, Math.min(L, u * L + 1.5)), r = alongPath(PP, Math.max(0, u * L - 1.5)), a = Math.atan2(q[1] - r[1], q[0] - r[0]); return { p, nx: -Math.sin(a), ny: Math.cos(a) }; };
+  for (let i = 0; i <= N; i++){ const u = i / N, f = fr(u), w = wAt(u); left.push([f.p[0] + f.nx * w, f.p[1] + f.ny * w]); right.push([f.p[0] - f.nx * w, f.p[1] - f.ny * w]); }
+  const outline = smoothClosed(left.concat(right.reverse()));
+  let rings = '';
+  for (let i = 3; i < N - 2; i++){ const u = i / N; if (u > 0.62 && u < 0.74) continue; const f = fr(u), w = wAt(u) * 0.92;
+    rings += `M${n2(f.p[0] + f.nx * w)},${n2(f.p[1] + f.ny * w)} Q${n2(f.p[0] + f.nx * w * 0.1 - f.ny * 2)},${n2(f.p[1] + f.ny * w * 0.1 + f.nx * 2)} ${n2(f.p[0] - f.nx * w)},${n2(f.p[1] - f.ny * w)} `; }
+  /* السرج */
+  const cl = []; for (let i = 0; i <= 12; i++){ const u = 0.62 + 0.12 * i / 12, f = fr(u), w = wAt(u) * 1.02; cl.push([f.p[0] + f.nx * w, f.p[1] + f.ny * w]); }
+  const cr = []; for (let i = 12; i >= 0; i--){ const u = 0.62 + 0.12 * i / 12, f = fr(u), w = wAt(u) * 1.02; cr.push([f.p[0] - f.nx * w, f.p[1] - f.ny * w]); }
+  const hi = []; for (let i = 4; i <= N - 4; i++){ const u = i / N, f = fr(u), w = wAt(u) * 0.45; hi.push([f.p[0] + f.nx * w, f.p[1] + f.ny * w]); }
+  const head = fr(0.985);
+  const id = 'hmG' + (opt.gid || 0);
+  return `<defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f5b3ae"/><stop offset=".55" stop-color="#e08a86"/><stop offset="1" stop-color="#b8605e"/></linearGradient></defs>
+    <path d="${outline}" fill="url(#${id})" stroke="#8e4646" stroke-width="1.6"/>
+    <path d="${rings}" fill="none" stroke="#a65454" stroke-width="1" opacity=".55"/>
+    <path d="${smoothOpen(cl.concat(cr))}Z" fill="#c45a6a" stroke="#8e3a48" stroke-width="1.4" opacity=".95"/>
+    <path d="${smoothOpen(hi)}" fill="none" stroke="#ffe0dc" stroke-width="${n2(W * 0.22)}" stroke-linecap="round" opacity=".35"/>
+    <circle cx="${n2(head.p[0] + head.nx * W * 0.2)}" cy="${n2(head.p[1] + head.ny * W * 0.2)}" r="${n2(W * 0.12)}" fill="#5a2a2a"/>`;
+}
+/* دودة شريطية: رأس بممصات وتاج خطاطيف، عنق، وقطع تكبر نحو الذيل */
+function hmTapeworm(x0, y, n, mature){
+  let s = `<circle cx="${x0}" cy="${y}" r="15" fill="#f6efdf" stroke="#c9b48a" stroke-width="2"/>` +
+    [[-6, -6], [6, -6], [-6, 6], [6, 6]].map(([dx, dy]) => `<circle cx="${x0 + dx}" cy="${y + dy}" r="4" fill="#e8dcc0" stroke="#b09a6a" stroke-width="1.2"/>`).join('') +
+    Array.from({ length: 9 }, (_, i) => { const a = Math.PI + (i - 4) * 0.28; return `<path d="M${n2(x0 + Math.cos(a) * 13)},${n2(y + Math.sin(a) * 13)} q${n2(Math.cos(a) * 6)},${n2(Math.sin(a) * 6 - 2)} ${n2(Math.cos(a) * 7 + 2)},${n2(Math.sin(a) * 9)}" fill="none" stroke="#8a6a3a" stroke-width="1.6" stroke-linecap="round"/>`; }).join('') +
+    `<path d="M${x0 + 14},${y - 3} L${x0 + 40},${y - 3} L${x0 + 40},${y + 3} L${x0 + 14},${y + 3}Z" fill="#f6efdf" stroke="#c9b48a" stroke-width="1.2"/>`;
+  let x = x0 + 40;
+  for (let i = 0; i < n; i++){ const w = 10 + i * 2.6, h = 10 + i * 2.3;
+    s += `<path d="M${n2(x)},${n2(y - h / 2 + 1)} L${n2(x + w)},${n2(y - h / 2 - 1)} L${n2(x + w)},${n2(y + h / 2 + 1)} L${n2(x)},${n2(y + h / 2 - 1)}Z" fill="#f6efdf" stroke="#c9b48a" stroke-width="1.4"/>`;
+    if (i >= n - mature){ for (let j = 0; j < 6; j++) s += `<circle cx="${n2(x + 4 + (j % 3) * (w - 8) / 2)}" cy="${n2(y - h * 0.3 + Math.floor(j / 3) * h * 0.6)}" r="${n2(Math.min(2.8, w * 0.07))}" fill="#7fb2ff"/>`;
+      s += `<ellipse cx="${n2(x + w / 2)}" cy="${y}" rx="${n2(w * 0.2)}" ry="${n2(h * 0.14)}" fill="#ff9ec7"/>`; }
+    x += w + 1.5; }
+  return { svg: s, end: x };
+}
+function hmHydra(x, y, k){ k = k || 1;
+  return `<path d="M${x - 10 * k},${y + 46 * k} Q${x - 14 * k},${y + 10 * k} ${x - 9 * k},${y - 26 * k} L${x + 9 * k},${y - 26 * k} Q${x + 14 * k},${y + 10 * k} ${x + 10 * k},${y + 46 * k}Z" fill="#a8dc8e" stroke="#e0ffd0" stroke-width="1.6"/>` +
+    `<ellipse cx="${x}" cy="${y + 47 * k}" rx="${13 * k}" ry="${4 * k}" fill="#7fb86a"/><ellipse cx="${x}" cy="${y - 27 * k}" rx="${6 * k}" ry="${4 * k}" fill="#7fb86a"/>` +
+    [-1, -0.55, -0.15, 0.25, 0.65, 1].map(t => `<path d="M${x + t * 7 * k},${y - 28 * k} q${t * 18 * k},${-16 * k} ${t * 30 * k + 4 * k},${-4 * k} t${t * 8 * k},${14 * k}" fill="none" stroke="#a8dc8e" stroke-width="${2.6 * k}" stroke-linecap="round"/>`).join('') +
+    `<path d="M${x + 9 * k},${y + 8 * k} q${12 * k},${-4 * k} ${16 * k},${-14 * k} q${4 * k},${6 * k} ${-2 * k},${12 * k}" fill="#bfe8a8" stroke="#e0ffd0" stroke-width="1.2"/>`; }
+function hmCrab(x, y, k){ k = k || 1;
+  return [-1, 1].map(sg => [0, 1, 2].map(j => `<path d="M${x + sg * 18 * k},${y + (2 + j * 6) * k} q${sg * 14 * k},${4 * k} ${sg * 20 * k},${16 * k}" fill="none" stroke="#e0703e" stroke-width="${3 * k}" stroke-linecap="round"/>`).join('') +
+    `<path d="M${x + sg * 16 * k},${y - 8 * k} q${sg * 14 * k},${-14 * k} ${sg * 22 * k},${-10 * k}" fill="none" stroke="#e0703e" stroke-width="${3.4 * k}"/><path d="M${x + sg * 36 * k},${y - 22 * k} q${sg * 8 * k},${4 * k} ${sg * 2 * k},${10 * k} q${-sg * 6 * k},${-2 * k} ${-sg * 2 * k},${-10 * k}Z" fill="#f08a5a" stroke="#ffd0b0"/>`).join('') +
+    `<ellipse cx="${x}" cy="${y}" rx="${26 * k}" ry="${17 * k}" fill="#f08a5a" stroke="#ffd0b0" stroke-width="1.6"/><circle cx="${x - 7 * k}" cy="${y - 15 * k}" r="${3 * k}" fill="#222"/><circle cx="${x + 7 * k}" cy="${y - 15 * k}" r="${3 * k}" fill="#222"/>`; }
+function hmFish(x, y, k){ k = k || 1;
+  return `<path d="M${x + 30 * k},${y} l${16 * k},${-14 * k} l${-3 * k},${14 * k} l${3 * k},${14 * k}Z" fill="#5fb0d8"/><path d="M${x - 10 * k},${y - 16 * k} q${10 * k},${-12 * k} ${22 * k},${-2 * k}" fill="#5fb0d8"/>` +
+    `<path d="M${x - 32 * k},${y} Q${x - 4 * k},${y - 22 * k} ${x + 32 * k},${y} Q${x - 4 * k},${y + 22 * k} ${x - 32 * k},${y}Z" fill="#7fc8e8" stroke="#d8f4ff" stroke-width="1.6"/>` +
+    `<path d="M${x - 8 * k},${y - 10 * k} q${4 * k},${10 * k} 0,${20 * k}" fill="none" stroke="#4a98c0" stroke-width="1.4"/><circle cx="${x - 20 * k}" cy="${y - 4 * k}" r="${3 * k}" fill="#123"/>`; }
+
 function huHerm(still){
-  const ROW = [62, 178, 294, 410, 526], RH = 108, X0 = [290, 290, 60, 60, 60], X1 = 960;
-  const frame = i => `<g class="hmFrame" data-i="${i}"><rect x="${X0[i]}" y="${ROW[i]}" width="${X1 - X0[i]}" height="${RH}" rx="14" fill="rgba(255,255,255,.035)" stroke="rgba(255,255,255,.18)" stroke-width="2"/>
-    ${still ? '' : `<circle cx="${X1 - 16}" cy="${ROW[i] + 16}" r="14" fill="#ffd98a" stroke="#5a4a3a" stroke-width="2"/><text x="${X1 - 16}" y="${ROW[i] + 21}" text-anchor="middle" font-size="15" font-weight="800" fill="#2a1a10">${i + 1}</text>`}</g>`;
-  const ttl = (i, t) => `<text class="cap sm" x="${X1 - 40}" y="${ROW[i] + 22}" text-anchor="start" fill="#ffe2b0">${t}</text>`;
-  /* 1) دودة أرض خنثى: أعضاء ذكرية (أزرق) وأنثوية (وردي) في الفرد نفسه */
-  const yc = ROW[0] + 66, W0 = Array.from({ length: 9 }, (_, i) => [360 + i * 62, yc + Math.sin(i * 0.9) * 6]);
-  const w1 = huWorm(W0, true) + `<circle cx="${W0[8][0] + 6}" cy="${W0[8][1]}" r="3" fill="#5a2a2a"/>`;
-  const male = [[700, -6], [716, 6], [732, -6], [748, 6]].map(([x, dy]) => `<circle cx="${x}" cy="${yc + dy + Math.sin(x / 70) * 4}" r="6" fill="#7fb2ff" stroke="#fff" stroke-width="1.2"/>`).join('');
-  const fem = [[650, -4], [668, 6]].map(([x, dy]) => `<ellipse cx="${x}" cy="${yc + dy + Math.sin(x / 70) * 4}" rx="9" ry="7" fill="#ff9ec7" stroke="#fff" stroke-width="1.2"/>`).join('');
-  const r1 = part('huEarthworm', w1) + part('huMaleOrg', male) + part('huFemOrg', fem) +
-    `<text class="cap sm" x="740" y="${yc + 38}" text-anchor="middle" fill="#9fc8ff">ذكرية ← نطف</text><text class="cap sm" x="652" y="${yc + 38}" text-anchor="middle" fill="#ffb8d8">أنثوية ← بيوض</text>`;
-  /* 2) أمثلة: هيدرا، دودة شريطية، دودة أرض، قشريات، أسماك */
-  const yE = ROW[1] + 62;
-  const hydra = (x) => `<path d="M${x - 8},${yE + 30} Q${x - 10},${yE} ${x - 6},${yE - 16} L${x + 6},${yE - 16} Q${x + 10},${yE} ${x + 8},${yE + 30}Z" fill="#9fd08a" stroke="#d8ffc8" stroke-width="1.4"/>` +
-    [-1, -0.4, 0.4, 1].map(k => `<path d="M${x + k * 5},${yE - 16} q${k * 14},-14 ${k * 20},-6" fill="none" stroke="#9fd08a" stroke-width="2.4" stroke-linecap="round"/>`).join('');
-  const tapeI = (x) => { let s = `<circle cx="${x - 40}" cy="${yE}" r="5" fill="#f2ead8"/>`; let xx = x - 34; for (let i = 0; i < 8; i++){ const w = 6 + i * 1.4; s += `<rect x="${n2(xx)}" y="${n2(yE - 4 - i)}" width="${n2(w)}" height="${n2(8 + i * 2)}" rx="2" fill="#f2ead8" stroke="#c9b48a"/>`; xx += w + 1.5; } return s; };
-  const wormI = (x) => huWorm(Array.from({ length: 5 }, (_, i) => [x - 44 + i * 22, yE + Math.sin(i) * 4]), true).replace(/stroke-width="28"/g, 'stroke-width="12"');
-  const crab = (x) => `<ellipse cx="${x}" cy="${yE}" rx="22" ry="14" fill="#f08a5a" stroke="#ffd0b0" stroke-width="1.4"/>` + [-1, 1].map(sg => `<path d="M${x + sg * 20},${yE - 6} q${sg * 12},-12 ${sg * 18},-4 M${x + sg * 16},${yE + 8} l${sg * 12},10 M${x + sg * 8},${yE + 12} l${sg * 6},12" fill="none" stroke="#f08a5a" stroke-width="3" stroke-linecap="round"/>`).join('');
-  const fish = (x) => `<path d="M${x - 24},${yE} Q${x},${yE - 18} ${x + 22},${yE} Q${x},${yE + 18} ${x - 24},${yE}Z" fill="#7fc8e8" stroke="#d8f4ff" stroke-width="1.4"/><path d="M${x + 20},${yE} l14,-10 l0,20Z" fill="#7fc8e8"/><circle cx="${x - 12}" cy="${yE - 3}" r="2.4" fill="#123"/>`;
-  const EX = [[870, 'huHydra', hydra, 'بعض الهيدرات'], [750, 'huTapeworm', tapeI, 'الدودة الشريطية'], [620, 'huEarthworm', wormI, 'دودة الأرض'], [500, 'huCrust', crab, 'القشريات'], [380, 'huFishH', fish, 'الأسماك (فقريات)']];
-  const r2 = EX.map(([x, id, f, nm]) => part(id, f(x)) + `<text class="cap sm" x="${x}" y="${ROW[1] + 100}" text-anchor="middle">${nm}</text>`).join('') +
-    `<line x1="440" y1="${ROW[1] + 34}" x2="440" y2="${ROW[1] + 96}" stroke="rgba(255,255,255,.25)" stroke-dasharray="4 4"/>`;
-  /* 3) دودتان متقابلتان تتبادلان النطف */
-  const y3 = ROW[2] + 50, WA = [[150, y3 - 16], [260, y3 - 22], [370, y3 - 16], [480, y3 - 20], [590, y3 - 16], [720, y3 - 20]];
-  const WB = [[720, y3 + 22], [610, y3 + 28], [500, y3 + 22], [390, y3 + 26], [280, y3 + 22], [150, y3 + 26]];
-  const exA = huMov('huExA', [[520, y3 - 10], [500, y3 + 2], [480, y3 + 14]], 3, () => `<circle r="3.6" fill="#7fb2ff" stroke="#fff" stroke-width=".8"/>`);
-  const exB = huMov('huExB', [[400, y3 + 14], [420, y3 + 2], [440, y3 - 10]], 3, () => `<circle r="3.6" fill="#7fb2ff" stroke="#fff" stroke-width=".8"/>`);
-  const r3 = part('huEarthworm', huWorm(WA, true).replace(/stroke-width="28"/g, 'stroke-width="22"') + huWorm(WB, false).replace(/stroke-width="28"/g, 'stroke-width="22"')) +
-    part('huSpEx', `<path d="M520,${y3 - 8} L480,${y3 + 12} M400,${y3 + 12} L440,${y3 - 8}" stroke="#ffe08a" stroke-width="2" stroke-dasharray="4 4"/>`) + (still ? '' : exA.svg + exB.svg) +
-    `<text class="cap sm" x="440" y="${ROW[2] + 98}" text-anchor="middle">بيوض كل دودة تخصبها نطف الدودة الأخرى، والعكس بالعكس</text>`;
-  /* 4) خط زمني: نضج النطف ثم نضج البيوض في وقت آخر */
-  const y4 = ROW[3] + 78;
-  const r4 = part('huTimeMat', `<line x1="120" y1="${y4}" x2="760" y2="${y4}" stroke="#d8d0e8" stroke-width="2"/><path d="M760,${y4} l-9,-5 l0,10Z" fill="#d8d0e8"/>
-      <rect x="150" y="${y4 - 52}" width="250" height="22" rx="8" fill="#7fb2ff" opacity=".85"/><rect x="460" y="${y4 - 26}" width="250" height="22" rx="8" fill="#ff9ec7" opacity=".85"/>`) +
-    `<text class="cap sm" x="275" y="${y4 - 36}" text-anchor="middle">نضج النطف</text><text class="cap sm" x="585" y="${y4 - 10}" text-anchor="middle">نضج البيوض</text><text class="cap sm" x="790" y="${y4 + 5}" text-anchor="middle">الزمن</text>
-    <line id="huTm" x1="150" y1="${y4 - 60}" x2="150" y2="${y4}" stroke="#ffe08a" stroke-width="2"/>`;
-  /* 5) الدودة الشريطية: نطف وبيوض في القطعة نفسها وإخصاب ذاتي */
-  const y5 = ROW[4] + 60;
-  let tape = `<circle cx="190" cy="${y5}" r="12" fill="#f2ead8" stroke="#c9b48a" stroke-width="2"/><circle cx="184" cy="${y5 - 5}" r="3" fill="#c9b48a"/><circle cx="192" cy="${y5 + 6}" r="3" fill="#c9b48a"/><path d="M202,${y5} L222,${y5}" stroke="#f2ead8" stroke-width="8"/>`;
-  let x = 222; for (let i = 0; i < 13; i++){ const w = 14 + i * 3, h = 14 + i * 2.6; tape += `<rect x="${n2(x)}" y="${n2(y5 - h / 2)}" width="${n2(w)}" height="${n2(h)}" rx="3" fill="#f2ead8" stroke="#c9b48a" stroke-width="1.6"/>`;
-    if (i >= 8){ for (let j = 0; j < 4; j++) tape += `<circle cx="${n2(x + 6 + (j % 2) * (w - 12))}" cy="${n2(y5 - h / 4 + Math.floor(j / 2) * h / 2)}" r="2.6" fill="#7fb2ff"/>`;
-      tape += `<ellipse cx="${n2(x + w / 2)}" cy="${y5}" rx="${n2(w * 0.22)}" ry="${n2(h * 0.16)}" fill="#ff9ec7"/>`; }
-    x += w + 2; }
-  const selfA = `<path d="M${n2(x - 48)},${y5 - 34} q16,-24 32,0" fill="none" stroke="#ffd166" stroke-width="2.6"/><path d="M${n2(x - 16)},${y5 - 34} l-6,-7 m6,7 l-9,2" stroke="#ffd166" stroke-width="2.6" fill="none"/>`;
-  const r5 = part('huTapeworm', tape + selfA) + `<text class="cap sm" x="${n2(x + 14)}" y="${y5 + 5}" text-anchor="end">نطف ● وبيوض ● في القطعة نفسها</text>`;
-  const body = `${[0, 1, 2, 3, 4].map(frame).join('')}
-    ${part('huHerm', ttl(0, 'الخناث: أعضاء ذكرية وأنثوية في نفس الفرد'))}${ttl(1, 'أمثلة')}${ttl(2, 'الطريقة 1: تبادل الخلايا التناسلية')}${ttl(3, 'الطريقة 2: النضج في أوقات متباينة')}${ttl(4, 'الدودة الشريطية تخصب نفسها')}
-    <g data-st="0">${r1}</g><g data-st="1">${r2}</g><g data-st="2">${r3}</g><g data-st="3">${r4}</g><g data-st="4">${r5}</g>
-    <text class="cap sm" x="500" y="664" text-anchor="middle">التكاثر الخنثي (ص125): الخناث تنتج النطف والبيوض، وأغلبها يتحاشى الإخصاب الذاتي بطريقتين</text>`;
-  const ctl = stageCtl(HU_HERM_ST, { dur: 30 });
+  const exam = still || (typeof document !== 'undefined' && document.body.classList.contains('examMode'));
+  /* كل خطوة لوحة كبيرة في وسط المشهد (إحداثيات المشهد مباشرة)؛ وشريط أرقام الخطوات في الأسفل */
+  const PY = 120;
+  const pan = [];
+  /* 1) دودة أرض خنثى + مكبّر للأعضاء */
+  const WORM1 = Array.from({ length: 9 }, (_, i) => [160 + i * 85, PY + 170 + Math.sin(i * 0.8) * 18]);
+  const M1 = [[640, PY + 80], [660, PY + 96], [680, PY + 80], [700, PY + 96]], F1 = [[575, PY + 88], [602, PY + 96]];
+  pan[0] = `${part('huEarthworm', hmEarthworm(WORM1, 30, { gid: 1 }))}
+    <circle cx="640" cy="${PY + 175}" r="44" fill="none" stroke="#ffe08a" stroke-width="2.5" stroke-dasharray="6 4"/>
+    <path d="M610,${PY + 140} L590,${PY + 120} M670,${PY + 140} L700,${PY + 120}" stroke="#ffe08a" stroke-width="1.6" stroke-dasharray="4 4"/>
+    <rect x="545" y="${PY + 52}" width="190" height="70" rx="16" fill="rgba(255,240,235,.95)" stroke="#ffe08a" stroke-width="2"/>
+    ${part('huMaleOrg', M1.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="8" fill="#7fb2ff" stroke="#3a6ac0" stroke-width="1.4"/>`).join(''))}
+    ${part('huFemOrg', F1.map(([x, y]) => `<ellipse cx="${x}" cy="${y}" rx="11" ry="9" fill="#ff9ec7" stroke="#c04a7a" stroke-width="1.4"/>`).join(''))}
+    <text class="cap sm" x="670" y="${PY + 140 - 120}" text-anchor="middle" fill="#9fc8ff">أعضاء ذكرية ← نطف</text>
+    <text class="cap sm" x="560" y="${PY + 20}" text-anchor="middle" fill="#ffb8d8">أعضاء أنثوية ← بيوض</text>
+    <text class="cap" x="500" y="${PY + 270}" text-anchor="middle" fill="#ffe2b0">دودة أرض واحدة فيها الأعضاء الذكرية والأنثوية معاً</text>`;
+  /* 2) أمثلة: بطاقات */
+  const tp = hmTapeworm(0, 0, 9, 3);
+  const card = (cx, t, inner, id) => `<rect x="${cx - 66}" y="${PY + 30}" width="132" height="200" rx="16" fill="rgba(255,255,255,.05)" stroke="rgba(255,255,255,.2)"/>${part(id, inner)}<text class="cap sm" x="${cx}" y="${PY + 218}" text-anchor="middle" fill="#ffe2b0">${t}</text>`;
+  pan[1] = card(900, 'بعض الهيدرات', hmHydra(900, PY + 120, 1.15), 'huHydra') +
+    card(760, 'الدودة الشريطية', `<g transform="translate(760,${PY + 130}) rotate(-90) scale(.62) translate(${-tp.end / 2},0)">${tp.svg}</g>`, 'huTapeworm') +
+    card(620, 'دودة الأرض', hmEarthworm(Array.from({ length: 5 }, (_, i) => [575 + i * 22, PY + 175 - i * 30 + Math.sin(i * 1.3) * 10]), 11, { gid: 2 }), 'huEarthworm') +
+    card(480, 'القشريات', hmCrab(480, PY + 125, 1.2), 'huCrust') +
+    card(340, 'الأسماك (فقريات)', hmFish(340, PY + 125, 1.2), 'huFishH') +
+    `<line x1="410" y1="${PY + 40}" x2="410" y2="${PY + 220}" stroke="rgba(255,255,255,.3)" stroke-dasharray="5 5"/>
+    <text class="cap sm" x="690" y="${PY + 262}" text-anchor="middle">لافقريات</text><text class="cap sm" x="340" y="${PY + 262}" text-anchor="middle">فقريات: نادر عدا الأسماك</text>`;
+  /* 3) دودتان متعاكستان تتبادلان النطف عند السرجين */
+  const WA = Array.from({ length: 8 }, (_, i) => [130 + i * 100, PY + 120 + Math.sin(i * 0.7) * 6]);
+  const WB = Array.from({ length: 8 }, (_, i) => [830 - i * 100, PY + 190 + Math.sin(i * 0.7 + 1) * 6]);
+  const exA = huMov('huExA', [[640, PY + 132], [600, PY + 155], [560, PY + 178]], 4, () => `<g><circle r="4" fill="#7fb2ff" stroke="#fff" stroke-width=".9"/><path d="M4,0 q6,-3 12,0" stroke="#7fb2ff" stroke-width="1.4" fill="none"/></g>`);
+  const exB = huMov('huExB', [[320, PY + 178], [360, PY + 155], [400, PY + 132]], 4, () => `<g><circle r="4" fill="#7fb2ff" stroke="#fff" stroke-width=".9"/><path d="M-4,0 q-6,3 -12,0" stroke="#7fb2ff" stroke-width="1.4" fill="none"/></g>`);
+  pan[2] = part('huEarthworm', hmEarthworm(WA, 24, { gid: 3 }) + hmEarthworm(WB, 24, { gid: 4 })) +
+    part('huSpEx', `<path d="M640,${PY + 134} Q600,${PY + 156} 560,${PY + 178}" stroke="#ffe08a" stroke-width="2.2" fill="none" stroke-dasharray="5 4"/><path d="M320,${PY + 178} Q360,${PY + 156} 400,${PY + 134}" stroke="#ffe08a" stroke-width="2.2" fill="none" stroke-dasharray="5 4"/>`) +
+    (exam ? '' : exA.svg + exB.svg) +
+    `<text class="cap" x="500" y="${PY + 270}" text-anchor="middle" fill="#ffe2b0">نطف كل دودة تذهب إلى الأخرى فتخصب بيوضها، والعكس بالعكس</text>`;
+  /* 4) دودة واحدة وخط زمني: النطف تنضج أولاً ثم البيوض */
+  const W4 = Array.from({ length: 8 }, (_, i) => [180 + i * 92, PY + 90 + Math.sin(i * 0.9) * 8]);
+  pan[3] = `${hmEarthworm(W4, 22, { gid: 5 })}
+    <g id="hmM4">${[[620, PY + 82], [640, PY + 96], [660, PY + 84]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="7" fill="#7fb2ff" stroke="#fff" stroke-width="1.2"/>`).join('')}</g>
+    <g id="hmF4">${[[560, PY + 90], [584, PY + 96]].map(([x, y]) => `<ellipse cx="${x}" cy="${y}" rx="9" ry="7" fill="#ff9ec7" stroke="#fff" stroke-width="1.2"/>`).join('')}</g>
+    ${part('huTimeMat', `<line x1="170" y1="${PY + 240}" x2="820" y2="${PY + 240}" stroke="#d8d0e8" stroke-width="2.4"/><path d="M820,${PY + 240} l-10,-6 l0,12Z" fill="#d8d0e8"/>
+      <rect x="200" y="${PY + 168}" width="280" height="26" rx="10" fill="#7fb2ff"/><rect x="510" y="${PY + 200}" width="280" height="26" rx="10" fill="#ff9ec7"/>`)}
+    <text class="cap sm" x="340" y="${PY + 186}" text-anchor="middle" fill="#0d1b3a">وقت نضج النطف</text><text class="cap sm" x="650" y="${PY + 218}" text-anchor="middle" fill="#3a0d22">وقت نضج البيوض</text>
+    <text class="cap sm" x="845" y="${PY + 246}" text-anchor="middle">الزمن</text>
+    <line id="huTm" x1="200" y1="${PY + 150}" x2="200" y2="${PY + 240}" stroke="#ffe08a" stroke-width="2.5"/>
+    <text class="cap" x="500" y="${PY + 278}" text-anchor="middle" fill="#ffe2b0">لا تنضج النطف والبيوض في الوقت نفسه</text>`;
+  /* 5) دودة شريطية كبيرة + مكبّر قطعة ناضجة */
+  const tp5 = hmTapeworm(310, PY + 110, 14, 4);
+  pan[4] = part('huTapeworm', tp5.svg) +
+    `<circle cx="${n2(tp5.end - 30)}" cy="${PY + 110}" r="34" fill="none" stroke="#ffe08a" stroke-width="2.5" stroke-dasharray="6 4"/>
+    <path d="M${n2(tp5.end - 50)},${PY + 140} L520,${PY + 170} M${n2(tp5.end - 10)},${PY + 140} L800,${PY + 170}" stroke="#ffe08a" stroke-width="1.5" stroke-dasharray="4 4"/>
+    <rect x="520" y="${PY + 170}" width="280" height="96" rx="12" fill="#f6efdf" stroke="#c9b48a" stroke-width="2.5"/>
+    ${[0, 1, 2, 3, 4, 5, 6, 7].map(j => `<circle cx="${560 + (j % 4) * 66}" cy="${PY + 190 + Math.floor(j / 4) * 56}" r="7" fill="#7fb2ff" stroke="#3a6ac0"/>`).join('')}
+    <ellipse cx="660" cy="${PY + 218}" rx="34" ry="16" fill="#ff9ec7" stroke="#c04a7a" stroke-width="1.5"/>
+    <path d="M600,${PY + 196} Q620,${PY + 214} 640,${PY + 214}" stroke="#ffd166" stroke-width="2.4" fill="none"/><path d="M640,${PY + 214} l-8,-5 m8,5 l-7,5" stroke="#ffd166" stroke-width="2.4" fill="none"/>
+    <text class="cap sm" x="660" y="${PY + 290}" text-anchor="middle">قطعة ناضجة: نطف ● وبيوض ● في القطعة نفسها ← إخصاب ذاتي</text>
+    <text class="cap sm" x="400" y="${PY + 160}" text-anchor="middle">رأس بممصات وخطاطيف ← عنق ← قطع</text>`;
+  /* شريط أرقام الخطوات */
+  const NM = ['الخناث', 'أمثلة', 'تبادل الخلايا', 'أوقات متباينة', 'الدودة الشريطية'];
+  const strip = exam ? '' : NM.map((t, i) => { const x = 820 - i * 160; return `<g class="hmStep" data-i="${i}" pointer-events="none"><rect x="${x - 72}" y="590" width="144" height="40" rx="20" fill="rgba(255,255,255,.06)" stroke="rgba(255,255,255,.25)" stroke-width="2"/>
+    <circle cx="${x + 52}" cy="610" r="13" fill="#ffd98a" stroke="#5a4a3a" stroke-width="2"/><text x="${x + 52}" y="615" text-anchor="middle" font-size="14" font-weight="800" fill="#2a1a10">${i + 1}</text>
+    <text class="cap sm" x="${x - 10}" y="615" text-anchor="middle">${t}</text></g>`; }).join('') +
+    NM.slice(1).map((_, i) => `<path d="M${820 - i * 160 - 76},610 l-8,0" stroke="#ffd98a" stroke-width="2"/>`).join('');
+  const body = `${part('huHerm', `<text class="cap" x="500" y="74" text-anchor="middle" fill="#ffd98a">التكاثر الخنثي (الخناث)</text>`)}
+    ${pan.map((p, i) => `<g class="hmPan" data-i="${i}"${exam && i ? ' display="none"' : ''}>${p}</g>`).join('')}${strip}`;
+  const ctl = stageCtl(HU_HERM_ST, { dur: 32 });
+  /* الأسماء لكل خطوة */
+  const L = [
+    { huHerm: [500, 80, 300, 44, 'C'], huEarthworm: [240, PY + 170, 134, PY + 200, 'L'], huMaleOrg: [700, PY + 96, 866, PY + 110, 'R'], huFemOrg: [575, PY + 97, 470, PY + 52, 'C'] },
+    { huHydra: [900, PY + 80, 900, PY + 310, 'C'], huTapeworm: [760, PY + 160, 760, PY + 310, 'C'], huEarthworm: [620, PY + 130, 620, PY + 310, 'C'], huCrust: [480, PY + 140, 480, PY + 310, 'C'], huFishH: [340, PY + 130, 340, PY + 310, 'C'] },
+    { huEarthworm: [190, PY + 120, 134, PY + 90, 'L'], huSpEx: [600, PY + 156, 866, PY + 156, 'R'] },
+    { huTimeMat: [790, PY + 213, 866, PY + 200, 'R'] },
+    { huTapeworm: [310, PY + 110, 300, PY + 200, 'C'] }
+  ];
+  const parts = Object.keys(L[0]).map(id => ({ id, anchor: [L[0][id][0], L[0][id][1]], label: [L[0][id][2], L[0][id][3]], side: L[0][id][4] }))
+    .concat(exam ? [] : [['huHydra', 1], ['huTapeworm', 1], ['huCrust', 1], ['huFishH', 1], ['huSpEx', 2], ['huTimeMat', 3]].map(([id, i]) => ({ id, anchor: [L[i][id][0], L[i][id][1]], label: [L[i][id][2], L[i][id][3]], side: L[i][id][4] })));
+  let lastS = -1;
   return {
-    body, stages: HU_HERM_ST, fnParts: ['huSpEx', 'huTimeMat'],
-    parts: [
-      { id: 'huHerm', anchor: [X1 - 60, ROW[0] + 18], label: [600, 44], side: 'C' },
-      { id: 'huMaleOrg', anchor: [748, yc + 6], label: [880, yc + 26], side: 'C' },
-      { id: 'huFemOrg', anchor: [650, yc - 8], label: [560, ROW[0] + 18], side: 'C' },
-      { id: 'huHydra', anchor: [870, yE - 16], label: [912, ROW[1] + 52], side: 'C' },
-      { id: 'huCrust', anchor: [500, yE - 14], label: [500, ROW[1] + 30], side: 'C' },
-      { id: 'huFishH', anchor: [380, yE - 10], label: [360, ROW[1] + 30], side: 'C' },
-      { id: 'huEarthworm', anchor: [720, y3 - 20], label: [866, y3 - 10], side: 'R' },
-      { id: 'huSpEx', anchor: [460, y3 + 2], label: [134, y3 + 2], side: 'L' },
-      { id: 'huTimeMat', anchor: [710, y4 - 15], label: [866, y4 - 20], side: 'R' },
-      { id: 'huTapeworm', anchor: [190, y5 + 12], label: [134, y5 + 30], side: 'L' }
-    ],
+    body, stages: HU_HERM_ST, fnParts: ['huSpEx', 'huTimeMat'], parts,
     tools: ctl.tools.concat([{ id: 'info:huHerm', label: 'تعريف الخناث' }]),
-    init(){ if (!still) ctl.start(); },
+    init(){ if (!exam) ctl.start(); },
     onSlider: v => ctl.onSlider(v), onTool: id => ctl.onTool(id),
     tick(dt, t, a){
-      if (still) return;
-      ctl.tick(dt); const s = STG.idx;
-      stageShow(a, s, STG.k);
-      a.all('.hmFrame').forEach(g => { const i = +g.dataset.i, on = i === s, r = g.querySelector('rect'); r.setAttribute('stroke', on ? '#ffd98a' : 'rgba(255,255,255,.18)'); r.setAttribute('stroke-width', on ? 4 : 2);
-        r.style.filter = on ? `drop-shadow(0 0 ${n2(4 + 3 * Math.sin(t * 4))}px #ffd98a)` : ''; const c = g.querySelector('circle'); if (c) c.setAttribute('r', on ? 18 : 14); });
-      huMovTick(a, exA, t, 22); huMovTick(a, exB, t, 22);
-      const p = (t * 0.12) % 1, xm = 150 + p * 560, tm = a.el('#huTm'); if (tm){ tm.setAttribute('x1', n2(xm)); tm.setAttribute('x2', n2(xm)); }
+      if (exam) return;
+      ctl.tick(dt); const s = STG.idx, k = STG.k;
+      a.all('.hmPan').forEach(g => { const i = +g.dataset.i; g.style.display = i === s ? '' : 'none'; g.setAttribute('opacity', i === s ? n2(Math.min(1, k * 6)) : 0); });
+      a.all('.hmStep').forEach(g => { const i = +g.dataset.i, on = i === s, r = g.querySelector('rect'); r.setAttribute('stroke', on ? '#ffd98a' : 'rgba(255,255,255,.25)'); r.setAttribute('fill', on ? 'rgba(255,217,138,.18)' : 'rgba(255,255,255,.06)');
+        g.setAttribute('opacity', i <= s ? 1 : 0.5); });
+      if (s !== lastS || !a.el('#labelLayer').dataset.gam){ lastS = s; const m = Object.assign({}, L[s]); delete m.huHerm; gamRelabel(a, m); a.el('#labelLayer').dataset.gam = 1; }
+      huMovTick(a, exA, t, 26); huMovTick(a, exB, t, 26);
+      const p = (t * 0.14) % 1, xm = 200 + p * 590, tm = a.el('#huTm'); if (tm){ tm.setAttribute('x1', n2(xm)); tm.setAttribute('x2', n2(xm)); }
+      const inM = xm >= 200 && xm <= 480, inF = xm >= 510 && xm <= 790, gm = a.el('#hmM4'), gf = a.el('#hmF4');
+      if (gm){ gm.setAttribute('opacity', inM ? 1 : 0.25); gm.style.filter = inM ? 'drop-shadow(0 0 6px #7fb2ff)' : ''; }
+      if (gf){ gf.setAttribute('opacity', inF ? 1 : 0.25); gf.style.filter = inF ? 'drop-shadow(0 0 6px #ff9ec7)' : ''; }
     }
   };
 }
