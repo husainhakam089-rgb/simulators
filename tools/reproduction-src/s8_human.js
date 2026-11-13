@@ -6,7 +6,10 @@
    ══════════════════════════════════════════════════════════════════════════ */
 const HU_VIEWS = [
   { id: 'huvMale', label: 'الجهاز الذكري' },
-  { id: 'huvSperm', label: 'تركيب النطفة' },
+  { id: 'huvSperm', label: 'تركيب النطفة' }
+];
+/* الجهاز الأنثوي تبويب مستقل حتى يظهر بوضوح (على الموبايل كان زره مخفياً في نهاية الشريط) */
+const HUF_VIEWS = [
   { id: 'huvFemale', label: 'الجهاز الأنثوي' },
   { id: 'huvFert', label: 'الإخصاب والحمل' }
 ];
@@ -21,14 +24,27 @@ const HUC = { test: '#f2a48e', testS: '#ffd9cc', epi: '#d0606e', epiL: '#ee8c98'
   wall: '#f5b5b8', wallS: '#ffdfe2', lin: '#d9606e', cav: '#8e1a30', tube: '#c0384c', tubeL: '#f6c0c6', ovary: '#f6f1e6', ovS: '#d6c6a8',
   egg: '#ffe08a', yellow: '#f2c14e', est: '#ff8fc0', prog: '#ffd166', fsh: '#7fb2ff', lh: '#c79bff' };
 
+SCENES.humanF = {
+  title: 'الجهاز التناسلي الأنثوي في الإنسان',
+  get src(){ return ({ huvFemale: 'ملزمة ص109–111', huvFert: 'ملزمة ص112–113' })[SEL.hufv] || 'ملزمة ص109'; },
+  tint: ['rgba(210,90,130,.26)', 'rgba(120,90,170,.16)'],
+  model3d: () => 'hu_' + (HUF_VIEWS.some(x => x.id === SEL.hufv) ? SEL.hufv : 'huvFemale'),
+  build(){
+    const v = HUF_VIEWS.some(x => x.id === SEL.hufv) ? SEL.hufv : 'huvFemale';
+    const s = v === 'huvFert' ? huFert() : huFemale();
+    s.rebuildOnRadio = 'hufv';
+    s.tools = HUF_VIEWS.map(x => ({ id: x.id, label: x.label, radio: 'hufv', on: x.id === v })).concat(s.tools || []);
+    return s;
+  }
+};
 SCENES.human = {
-  title: 'التكاثر في الإنسان',
+  title: 'الجهاز التناسلي الذكري في الإنسان',
   get src(){ return ({ huvMale: 'ملزمة ص105–106', huvSperm: 'ملزمة ص107', huvFemale: 'ملزمة ص109–111', huvFert: 'ملزمة ص112–113' })[SEL.huv] || 'ملزمة ص105'; },
   tint: ['rgba(190,90,110,.26)', 'rgba(90,110,170,.16)'],
   model3d: () => 'hu_' + (HU_VIEWS.some(x => x.id === SEL.huv) ? SEL.huv : 'huvMale'),
   build(){
     const v = HU_VIEWS.some(x => x.id === SEL.huv) ? SEL.huv : 'huvMale';
-    const s = v === 'huvSperm' ? huSperm() : v === 'huvFemale' ? huFemale() : v === 'huvFert' ? huFert() : huMale();
+    const s = v === 'huvSperm' ? huSperm() : huMale();
     s.rebuildOnRadio = 'huv';
     s.tools = HU_VIEWS.map(x => ({ id: x.id, label: x.label, radio: 'huv', on: x.id === v })).concat(s.tools || []);
     return s;

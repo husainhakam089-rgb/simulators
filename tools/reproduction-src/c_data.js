@@ -2863,8 +2863,9 @@ QUIZ.push(
     why: 'بيوض دودة الأرض تخصب من قبل الفرد المقترن بها والعكس بالعكس (ملزمة ص125).' }
 );
 
-CH.tabs.push({ k: 'human', t: 'الإنسان' }, { k: 'cycle', t: 'الدورة الحيضية' });
+CH.tabs.push({ k: 'human', t: 'الجهاز الذكري' }, { k: 'humanF', t: 'الجهاز الأنثوي' }, { k: 'cycle', t: 'الدورة الحيضية' });
 CH.sel.huv = 'huvMale';
+CH.sel.hufv = 'huvFemale';
 CH.sel.cyv = 'cyvMens';
 Object.assign(CH.toolIcons, { huvMale: 'layers', huvSperm: 'target', huvFemale: 'cell', huvFert: 'grow', cyvMens: 'moon', cyvOv: 'route', cyvParth: 'mol', cyvHerm: 'compare' });
 CH.exam.push(
