@@ -6764,8 +6764,7 @@ const FL_POLLEN_STAGES = [
 /* كيس لقاح مكبّر: محتواه يتبع المرحلة (خلايا أم ← رباعيات ← أبواغ منفصلة ← حبوب لقاح) */
 const FL_SZ = [[-44, -30], [0, -44], [44, -30], [-44, 14], [0, 2], [44, 14], [-22, 46], [22, 46]];
 function flSacZoom(){
-  let s = `<ellipse cx="0" cy="0" rx="104" ry="92" fill="#6fb85e" stroke="#d4f5c0" stroke-width="3"/>` +
-    part('flPollenSac', `<ellipse cx="0" cy="0" rx="86" ry="76" fill="#2f6b3a" stroke="#b8e8a8" stroke-width="3"/>`);
+  let s = part('flPollenSac', `<ellipse cx="0" cy="0" rx="104" ry="92" fill="#6fb85e" stroke="#d4f5c0" stroke-width="3"/><ellipse cx="0" cy="0" rx="86" ry="76" fill="#2f6b3a" stroke="#b8e8a8" stroke-width="3"/>`);
   const mot = FL_SZ.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="17" fill="${FLC.mother}" stroke="#ffc0b0" stroke-width="1.6"/><circle cx="${x}" cy="${y}" r="6.5" fill="#6a1a1a"/>`).join('');
   const sp = (x, y, r) => `<circle cx="${n2(x)}" cy="${n2(y)}" r="${r}" fill="${FLC.mega}" stroke="${FLC.megaL}" stroke-width="1.2"/><circle cx="${n2(x)}" cy="${n2(y)}" r="${n2(r * 0.3)}" fill="#5a2a0a"/>`;
   const tet = FL_SZ.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="18" fill="none" stroke="#ffd0a0" stroke-width="1.2" opacity=".7"/>` + [[-7, -7], [7, -7], [-7, 7], [7, 7]].map(([dx, dy]) => sp(x + dx, y + dy, 7)).join('')).join('');
@@ -6775,7 +6774,7 @@ function flSacZoom(){
   s += `<g class="szSt" data-s="1">${part('flMicroMother', mot)}</g><g class="szSt" data-s="2">${part('flMicrospores', tet)}</g><g class="szSt" data-s="3">${part('flMicrospores', sep)}</g><g class="szSt" data-s="4">${part('flPollen', pg)}</g>`;
   return s;
 }
-const FLP_SEC_S = [270, 335, 0.66], FLP_SEC_B = [480, 365, 1.75], FLP_SZ_S = [270, 535, 0.62], FLP_SZ_B = [480, 370, 2.25], FLP_MAT_ST = [470, 600, 0.5], FLP_MAT_S = [270, 335, 0.8];
+const FLP_SEC_S = [270, 335, 0.66], FLP_SEC_B = [480, 365, 1.75], FLP_SZ_S = [270, 535, 0.62], FLP_SZ_B = [480, 370, 2.25], FLP_MAT_ST = [470, 600, 0.5], FLP_MAT_S = [400, 330, 0.75];
 const flpTr = (p, ox, oy) => `translate(${n2(p[0])},${n2(p[1])}) scale(${n2(p[2])}) translate(${-ox},${-oy})`;
 function flPollen(still){
   const X = 720;
@@ -6798,13 +6797,14 @@ function flPollen(still){
   /* متك ناضج (إحداثيات أصلية حول 430,562) */
   const mOut = `<ellipse cx="362" cy="562" rx="64" ry="42" fill="#6fb85e" stroke="#d4f5c0" stroke-width="2.2"/><ellipse cx="498" cy="562" rx="64" ry="42" fill="#6fb85e" stroke="#d4f5c0" stroke-width="2.2"/>` +
     `<ellipse cx="430" cy="562" rx="24" ry="26" fill="#9ad486" stroke="#d8f5c8" stroke-width="1.4"/><circle cx="430" cy="562" r="8" fill="#3d7f9e"/>` +
-    `<ellipse cx="364" cy="566" rx="46" ry="28" fill="#1f4a2a"/><ellipse cx="496" cy="566" rx="46" ry="28" fill="#1f4a2a"/>`;
+    ``;
+  const cav = `<ellipse cx="364" cy="566" rx="46" ry="28" fill="#1f4a2a"/><ellipse cx="496" cy="566" rx="46" ry="28" fill="#1f4a2a"/>`;
   const slit = `<path d="M318,536 L330,546 L322,530" fill="#10251a" stroke="#ffe08a" stroke-width="2"/><path d="M542,536 L530,546 L538,530" fill="#10251a" stroke="#ffe08a" stroke-width="2"/>`;
   const rp = rng(91); let pin = '';
   [364, 496].forEach(cx => { for (let i = 0; i < 12; i++) pin += `<circle cx="${n2(cx - 36 + rp() * 72)}" cy="${n2(552 + rp() * 28)}" r="3.6" fill="#ffd35a" stroke="#a5781a" stroke-width=".6"/>`; });
   let esc = ''; for (let i = 0; i < 10; i++){ const L = i % 2, p = (i * 0.1) % 1;
     esc += `<circle class="flEsc" data-i="${i}" data-l="${L}" cx="${n2(L ? 538 + p * 50 : 322 - p * 50)}" cy="${n2(530 - p * 60)}" r="3.6" fill="#ffd35a" stroke="#a5781a" stroke-width=".6" opacity="${still ? 0.8 : 0}"/>`; }
-  const mat = mOut + part('flSlit', slit) + part('flPollenGrains', pin + `<g>${esc}</g>`);
+  const mat = mOut + part('flPollenGrains', cav + pin + `<g>${esc}</g>`) + part('flSlit', slit + `<circle cx="323" cy="537" r="11" fill="rgba(0,0,0,0)"/><circle cx="537" cy="537" r="11" fill="rgba(0,0,0,0)"/>`);
   /* مخطط تكوين حبة اللقاح (المراحل 2–6) */
   const mother = `<circle cx="${X}" cy="95" r="28" fill="${FLC.mother}" stroke="#ffc0b0" stroke-width="2"/><circle cx="${X}" cy="95" r="10" fill="#6a1a1a"/>`;
   const spore = (x, y) => `<circle cx="${n2(x)}" cy="${n2(y)}" r="13" fill="${FLC.mega}" stroke="${FLC.megaL}" stroke-width="1.6"/><circle cx="${n2(x)}" cy="${n2(y)}" r="3.6" fill="#5a2a0a"/>`;
@@ -6851,9 +6851,9 @@ function flPollen(still){
   const ov = Object.assign({}, base, secL(FLP_SEC_S), { flSlit: [...mP(FLP_MAT_ST, 320, 534), 330, 640, 'C'], flPollenGrains: [...mP(FLP_MAT_ST, 340, 568), 600, 640, 'C'] });
   const b0 = Object.assign({ flAnther: base.flAnther, flFilament: base.flFilament }, { flLobe: [...sP(FLP_SEC_B, 306, 340), 134, 300, 'L'], flPollenSac: [...sP(FLP_SEC_B, 326, 414), 134, 420, 'L'],
     flConnective: [...sP(FLP_SEC_B, 404, 388), 866, 470, 'R'], flVascular: [...sP(FLP_SEC_B, 430, 381), 866, 560, 'R'] });
-  const b1 = { flPollenSac: [...zP(FLP_SZ_B, -86, 10), 134, 420, 'L'], flMicroMother: [...zP(FLP_SZ_B, 61, 14), 866, 400, 'R'] };
+  const b1 = { flPollenSac: [...zP(FLP_SZ_B, -96, -28), 134, 420, 'L'], flMicroMother: [...zP(FLP_SZ_B, 61, 14), 866, 400, 'R'] };
   const live = Object.assign({}, base, secL(FLP_SEC_S));
-  const l5 = Object.assign({}, base, { flSlit: [...mP(FLP_MAT_S, 320, 534), 390, 250, 'C'], flPollenGrains: [...mP(FLP_MAT_S, 340, 568), 134, 420, 'L'], flPollenSac: [...zP(FLP_SZ_S, -86, 10), 134, 520, 'L'] });
+  const l5 = Object.assign({}, base, { flSlit: [...mP(FLP_MAT_S, 323, 537), 330, 250, 'C'], flPollenGrains: [...mP(FLP_MAT_S, 396, 578), 134, 420, 'L'], flPollenSac: [...zP(FLP_SZ_S, -96, -28), 134, 520, 'L'] });
   const parts = Object.keys(ov).map(id => ({ id, anchor: [ov[id][0], ov[id][1]], label: [ov[id][2], ov[id][3]], side: ov[id][4] }));
   let lastL = null;
   return {
@@ -6875,7 +6875,7 @@ function flPollen(still){
         if (mt){ mt.setAttribute('transform', flpTr(FLP_MAT_S, 430, 562)); mt.setAttribute('opacity', idx === 5 ? n2(e) : 0); mt.style.pointerEvents = idx === 5 ? '' : 'none'; }
         if (stn) stn.setAttribute('opacity', idx === 0 ? 1 : 0.85);
         const mg = a.el('#flpMag'); if (mg) mg.setAttribute('opacity', idx === 0 ? n2(0.5 + 0.5 * Math.sin(t * 4)) : 1);
-        a.all('.szSt').forEach(g => { const s0 = +g.dataset.s, cur = Math.max(1, Math.min(4, idx)); g.setAttribute('opacity', s0 === cur ? 1 : 0); g.style.pointerEvents = s0 === cur ? '' : 'none'; });
+        a.all('.szSt').forEach(g => { const s0 = +g.dataset.s, cur = Math.max(1, Math.min(4, idx)); g.setAttribute('opacity', s0 === cur ? 1 : 0); g.style.pointerEvents = s0 === cur && idx < 5 ? '' : 'none'; });
         const key = idx === 0 ? 'b0' : idx === 1 ? (e > 0.6 ? 'b1' : 'x') : idx === 2 && e < 0.6 ? 'x' : idx === 5 ? 'l5' : 'live';
         if (key !== lastL || !a.el('#labelLayer').dataset.gam){ gamRelabel(a, ({ b0, b1, live, l5, x: {} })[key]); lastL = key; a.el('#labelLayer').dataset.gam = 1; }
       }
