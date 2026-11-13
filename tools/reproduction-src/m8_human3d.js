@@ -176,30 +176,51 @@ function ovcModel(B){
 /* ═════════════ 6) التكاثر الخنثي (ص125) ═════════════ */
 const worm = (P, r, seg) => merge([tube({ pts: P, r: u => r * (1 - 0.35 * Math.abs(u - 0.4)), sides: 10 })].concat(seg ? P.filter((_, i) => i % 2 === 0).map(p => place(ellipsoid({ r: [r * 1.05, r * 1.05, 0.02], rows: 4, cols: 12 }), { at: p })) : []));
 function hermModel(B){
-  /* دودتا أرض متقابلتان رأساً لذيل تتبادلان الخلايا التناسلية */
-  const W1 = Array.from({ length: 21 }, (_, i) => [-2.2 + i * 0.22, 1.2 + Math.sin(i * 0.4) * 0.08, 0.18]);
-  const W2 = Array.from({ length: 21 }, (_, i) => [2.2 - i * 0.22, 1.2 + Math.sin(i * 0.4 + 1) * 0.08, -0.18]);
-  B.add(merge([worm(W1, 0.16), worm(W2, 0.16)]), fx('huEarthworm', '#d88a8a', { rimColor: '#ffd8d8' }));
-  B.add(merge([place(capsule({ r: 0.2, len: 0.45, rows: 4, cols: 14 }), { rot: [0, 0, Math.PI / 2], at: [-1.0, 1.2, 0.18] }), place(capsule({ r: 0.2, len: 0.45, rows: 4, cols: 14 }), { rot: [0, 0, Math.PI / 2], at: [1.0, 1.2, -0.18] })]), fx('huEarthworm', '#b8606a'));
-  const ex = t => merge(Array.from({ length: 10 }, (_, i) => { const u = (t * 0.4 + i / 10) % 1, sg = i % 2 ? 1 : -1; return ball(0.06, [sg * (0.7 - 1.4 * u), 1.2, sg * (0.18 - 0.36 * u)], 6); }));
-  const exO = B.add(ex(0), fx('huSpEx', '#ffffff', { pop: false, center: [0, 1.2, 0] }));
-  /* مادة مخاطية تربط الدودتين أثناء التبادل */
-  B.add(place(capsule({ r: 0.32, len: 1.4, rows: 4, cols: 16 }), { rot: [0, 0, Math.PI / 2], at: [0, 1.2, 0] }), fx('huSpEx', '#e8f4ff', { alpha: 0.3, shell: { size: 1.2 } }));
-  /* النضج في أوقات متباينة: منطقة الخصى تنضج قبل منطقة المبايض في الدودة نفسها */
-  const W3 = Array.from({ length: 21 }, (_, i) => [-2.0 + i * 0.2, 0, 0]);
-  B.add(worm(W3, 0.14), { color: '#e0a0a0', rim: 0.5 });
-  const zone = x => place(capsule({ r: 0.17, len: 0.3, rows: 4, cols: 14 }), { rot: [0, 0, Math.PI / 2], at: [x, 0, 0] });
-  const tm = B.add(merge([zone(-0.6), zone(0.5)]), fx('huTimeMat', '#7aa0f0', { pop: false }));
-  /* الدودة الشريطية: قطع تحمل كل منها أعضاء ذكرية وأنثوية */
-  const TP = [-2.4, -1.3, 0];
-  B.add(merge([ball(0.12, TP, 8)].concat(Array.from({ length: 14 }, (_, i) => place(G3.superEll({ h: [0.1 + i * 0.008, 0.06, 0.12 + i * 0.012], e: 0.3, rows: 4, cols: 10 }), { at: add(TP, [0.25 + i * (0.24 + i * 0.008), Math.sin(i * 0.5) * 0.05, 0]) })))), fx('huTapeworm', '#f2ead0', { rimColor: '#ffffff' }));
-  B.label('huEarthworm', [-1.6, 1.35, 0.2], [-0.5, 1, 0.2]);
-  B.label('huSpEx', [0, 1.25, 0.1], [0, 1, 0.4]);
-  B.label('huTimeMat', [0.5, 0.15, 0], [0.5, 1, 0.3]);
-  B.label('huTapeworm', [1.0, -1.25, 0.1], [0.5, -1, 0.3]);
-  B.caption([0, -2.0, 0], () => ['التكاثر الخنثي: أعضاء ذكرية وأنثوية في الفرد نفسه', 'دودة الأرض تتبادل النطف ولا تخصب نفسها (تنضج أعضاؤها في أوقات متباينة) · الدودة الشريطية تخصب نفسها']);
-  return { dist: 8.6, yaw: 0.2, pitch: 0.3, target: [0, 0, 0], live2d: true,
-    anim(t){ B.update(exO, ex(t)); const ph = (t * 0.25) % 1; tm.col = ph < 0.5 ? [0.48, 0.63, 0.94] : [0.94, 0.55, 0.7]; } };
+  /* خمسة صفوف مرقّمة مثل الرسم المسطّح: الصف الحالي يتوهج والقادم باهت */
+  const RY = [2.3, 1.15, 0, -1.15, -2.3], rows = [[], [], [], [], []];
+  const A = (i, mesh, o) => { const r = B.add(mesh, Object.assign({ pop: false, center: [0, RY[i], 0] }, o)); rows[i].push(r); return r; };
+  const line = (y, x0, x1, n, amp, z) => Array.from({ length: n }, (_, i) => [x0 + (x1 - x0) * i / (n - 1), y + Math.sin(i * 0.6) * (amp || 0.05), z || 0]);
+  /* 1) دودة خنثى: أعضاء ذكرية (أزرق) وأنثوية (وردي) */
+  A(0, worm(line(RY[0], -2.2, 2.2, 21), 0.16), fx('huEarthworm', '#d88a8a', { rimColor: '#ffd8d8' }));
+  A(0, merge([0.95, 1.15, 1.35, 1.55].map(x => ball(0.07, [x, RY[0] + 0.05, 0.15], 8))), fx('huMaleOrg', '#7fb2ff', { rimColor: '#ffffff' }));
+  A(0, merge([0.45, 0.68].map(x => place(ellipsoid({ r: [0.1, 0.08, 0.08], rows: 6, cols: 8 }), { at: [x, RY[0] + 0.05, 0.15] }))), fx('huFemOrg', '#ff9ec7', { rimColor: '#ffffff' }));
+  /* 2) أمثلة */
+  const y2 = RY[1], EXX = [2.2, 1.1, 0, -1.1, -2.2];
+  A(1, merge([place(capsule({ r: 0.1, len: 0.45, rows: 4, cols: 10 }), { at: [EXX[0], y2, 0] })].concat([-1, -0.4, 0.4, 1].map(k => tube({ pts: [[EXX[0] + k * 0.05, y2 + 0.3, 0], [EXX[0] + k * 0.2, y2 + 0.5, 0], [EXX[0] + k * 0.28, y2 + 0.42, 0]], r: 0.02, sides: 4 })))), fx('huHydra', '#9fd08a', { rimColor: '#e0ffd0' }));
+  A(1, merge([ball(0.06, [EXX[1] - 0.45, y2, 0], 6)].concat(Array.from({ length: 9 }, (_, i) => place(G3.superEll({ h: [0.04 + i * 0.004, 0.03, 0.05 + i * 0.007], e: 0.3, rows: 3, cols: 8 }), { at: [EXX[1] - 0.35 + i * 0.1, y2, 0] })))), fx('huTapeworm', '#f2ead8', { rimColor: '#ffffff' }));
+  A(1, worm(line(y2, EXX[2] - 0.45, EXX[2] + 0.45, 9, 0.03), 0.08), fx('huEarthworm', '#d88a8a', { rimColor: '#ffd8d8' }));
+  A(1, merge([place(ellipsoid({ r: [0.28, 0.12, 0.2], rows: 8, cols: 12 }), { at: [EXX[3], y2, 0] })].concat([-1, 1].flatMap(sg => [0, 1, 2].map(j => tube({ pts: [[EXX[3] + sg * 0.2, y2 - 0.02, -0.1 + j * 0.1], [EXX[3] + sg * 0.42, y2 - 0.14, -0.15 + j * 0.15]], r: 0.025, sides: 4 }))))), fx('huCrust', '#f08a5a', { rimColor: '#ffd0b0' }));
+  A(1, merge([place(ellipsoid({ r: [0.3, 0.13, 0.08], rows: 8, cols: 12 }), { at: [EXX[4], y2, 0] }), place(ellipsoid({ r: [0.03, 0.14, 0.1], rows: 4, cols: 6 }), { at: [EXX[4] + 0.33, y2, 0] })]), fx('huFishH', '#7fc8e8', { rimColor: '#e0f6ff' }));
+  /* 3) دودتان متقابلتان تتبادلان الخلايا التناسلية */
+  A(2, merge([worm(line(RY[2] + 0.18, -2.2, 2.2, 21, 0.04, 0.12), 0.14), worm(line(RY[2] - 0.18, 2.2, -2.2, 21, 0.04, -0.12), 0.14)]), fx('huEarthworm', '#d88a8a', { rimColor: '#ffd8d8' }));
+  const ex = t => merge(Array.from({ length: 10 }, (_, i) => { const u = (t * 0.4 + i / 10) % 1, sg = i % 2 ? 1 : -1; return ball(0.05, [sg * (0.6 - 1.2 * u), RY[2] + sg * (0.18 - 0.36 * u), 0.15], 6); }));
+  const exO = A(2, ex(0), fx('huSpEx', '#7fb2ff', { rimColor: '#ffffff' }));
+  /* 4) دودة: منطقة النطف تنضج ثم منطقة البيوض في وقت آخر */
+  A(3, worm(line(RY[3], -2.0, 2.0, 21, 0.03), 0.13), { color: '#e0a0a0', rim: 0.5 });
+  const zM = A(3, place(capsule({ r: 0.16, len: 0.35, rows: 4, cols: 14 }), { rot: [0, 0, Math.PI / 2], at: [0.9, RY[3], 0] }), fx('huTimeMat', '#7fb2ff'));
+  const zF = A(3, place(capsule({ r: 0.16, len: 0.35, rows: 4, cols: 14 }), { rot: [0, 0, Math.PI / 2], at: [-0.4, RY[3], 0] }), fx('huTimeMat', '#ff9ec7'));
+  /* 5) الدودة الشريطية */
+  const TP = [-2.2, RY[4], 0];
+  A(4, merge([ball(0.12, TP, 8)].concat(Array.from({ length: 13 }, (_, i) => place(G3.superEll({ h: [0.1 + i * 0.008, 0.06, 0.12 + i * 0.012], e: 0.3, rows: 4, cols: 10 }), { at: add(TP, [0.25 + i * 0.27, 0, 0]) })))), fx('huTapeworm', '#f2ead8', { rimColor: '#ffffff' }));
+  A(4, merge(Array.from({ length: 5 }, (_, i) => merge([ball(0.035, add(TP, [2.5 + i * 0.27, 0.05, 0.13]), 5), ball(0.05, add(TP, [2.5 + i * 0.27, -0.05, 0.13]), 6)]))), fx('huTapeworm', '#ff9ec7'));
+  B.label('huMaleOrg', [1.25, RY[0] + 0.1, 0.2], [1, 0.6, 0.2]);
+  B.label('huFemOrg', [0.55, RY[0] + 0.1, 0.2], [0.2, 1, 0.2]);
+  B.label('huEarthworm', [-1.8, RY[0] + 0.1, 0.1], [-1, 0.4, 0.2]);
+  B.label('huHydra', [EXX[0], y2 + 0.5, 0], [0.4, 1, 0.2]);
+  B.label('huCrust', [EXX[3], y2 + 0.1, 0.1], [0, 1, 0.2]);
+  B.label('huFishH', [EXX[4] - 0.2, y2, 0.05], [-1, 0.3, 0.2]);
+  B.label('huSpEx', [0, RY[2], 0.15], [0, -1, 0.4]);
+  B.label('huTimeMat', [0.9, RY[3] + 0.15, 0], [1, 0.5, 0.3]);
+  B.label('huTapeworm', [-2.2, RY[4] - 0.1, 0.1], [-1, -0.4, 0.2]);
+  const T = ['الخناث: أعضاء ذكرية وأنثوية في نفس الفرد', 'أمثلة على الخناث', 'الطريقة 1: تبادل الخلايا التناسلية', 'الطريقة 2: النضج في أوقات متباينة', 'الدودة الشريطية تخصب نفسها'];
+  RY.forEach((y, i) => B.caption([2.75, y + 0.05, 0], () => [STG.idx === i ? '◀ ' + (i + 1) + ' ▶' : String(i + 1)]));
+  RY.forEach((y, i) => B.caption([0, y + 0.42, 0], () => [STG.idx === i ? T[i] : '']));
+  let last = -1;
+  return { dist: 11.4, yaw: 0, pitch: 0.08, target: [0.2, 0, 0], live2d: true,
+    anim(t){ const s = STG.idx;
+      if (s !== last){ last = s; rows.forEach((R, i) => R.forEach(o => { if (o.base === undefined) o.base = o.alpha; o.alpha = i <= s ? o.base : o.base * 0.4; })); }
+      rows[s].forEach(o => { o.glow = 0.4 + 0.35 * Math.sin(t * 4); });
+      B.update(exO, ex(t)); const ph = (t * 0.25) % 1; zM.hide = ph >= 0.5; zF.hide = ph < 0.5; } };
 }
 
 /* ═════════════ 7) الدورة المبيضية والرحمية (ص117–121) — ثلاث محطات تتحرك مع اليوم ═════════════

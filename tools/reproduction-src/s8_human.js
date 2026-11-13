@@ -700,46 +700,89 @@ function huWorm(P, head){
   return `${huTube(P, '#d98a8a', 28)}<path d="${seg}" stroke="#b86868" stroke-width="1.3"/>
     <ellipse cx="${n2(c0[0])}" cy="${n2(c0[1])}" rx="30" ry="16" fill="#c25a6a" opacity=".9"/>`;
 }
+const HU_HERM_ST = [
+  { n: '1 · الخناث', d: 'الخناث حيوانات تمتلك أعضاء تكاثرية ذكرية وأنثوية في نفس الفرد وتستطيع إنتاج النطف والبيوض.' },
+  { n: '2 · أمثلة على الخناث', d: 'يحدث التكاثر الخنثي في اللافقريات: بعض الهيدرات، والديدان المسطحة كالدودة الشريطية، والديدان الحلقية كدودة الأرض، وأنواع من القشريات. أما في الفقريات فهو نادر وقليل الوضوح عدا الأسماك.' },
+  { n: '3 · تحاشي الإخصاب الذاتي (1): تبادل الخلايا التناسلية', d: 'تتحاشى الخناث الإخصاب الذاتي بتبادل خلاياها التناسلية مع بعضها؛ فبيوض دودة الأرض تخصب من قبل الفرد المقترن بها والعكس بالعكس.' },
+  { n: '4 · تحاشي الإخصاب الذاتي (2): النضج في أوقات متباينة', d: 'الطريقة الثانية لتحاشي الإخصاب الذاتي: نمو ونضج البيوض في أوقات متباينة (فلا تكون النطف والبيوض ناضجة في الوقت نفسه).' },
+  { n: '5 · الدودة الشريطية: إخصاب ذاتي', d: 'للديدان الشريطية القدرة على الإخصاب الذاتي كونها من الخناث، أي إن الأعضاء الذكرية والأنثوية على نفس الفرد لذلك تنتج نطفاً وبيوضاً.' }
+];
 function huHerm(still){
-  const WA = [[230, 160], [330, 150], [430, 160], [530, 158], [640, 150], [770, 158]];
-  const WB = [[770, 230], [670, 238], [570, 230], [470, 232], [360, 240], [230, 232]];
-  const exA = huMov('huExA', [[560, 172], [540, 195], [520, 218]], 3, () => `<circle r="3.4" fill="#7fb2ff" stroke="#fff" stroke-width=".8"/>`);
-  const exB = huMov('huExB', [[440, 218], [460, 195], [480, 172]], 3, () => `<circle r="3.4" fill="#ff9ec7" stroke="#fff" stroke-width=".8"/>`);
-  let tape = `<circle cx="250" cy="508" r="12" fill="#f2ead8" stroke="#c9b48a" stroke-width="2"/><circle cx="244" cy="503" r="3" fill="#c9b48a"/><circle cx="252" cy="514" r="3" fill="#c9b48a"/><path d="M262,508 L290,508" stroke="#f2ead8" stroke-width="8"/>`;
-  let x = 290; for (let i = 0; i < 12; i++){ const w = 14 + i * 3.2, h = 16 + i * 2.6; tape += `<rect x="${n2(x)}" y="${n2(508 - h / 2)}" width="${n2(w)}" height="${n2(h)}" rx="3" fill="#f2ead8" stroke="#c9b48a" stroke-width="1.6"/>`;
-    if (i >= 7){ for (let j = 0; j < 4; j++) tape += `<circle cx="${n2(x + 6 + (j % 2) * (w - 12))}" cy="${n2(508 - h / 4 + Math.floor(j / 2) * h / 2)}" r="2.6" fill="#7fb2ff"/>`;
-      tape += `<ellipse cx="${n2(x + w / 2)}" cy="508" rx="${n2(w * 0.22)}" ry="${n2(h * 0.16)}" fill="#ff9ec7"/>`; }
+  const ROW = [62, 178, 294, 410, 526], RH = 108, X0 = [290, 290, 60, 60, 60], X1 = 960;
+  const frame = i => `<g class="hmFrame" data-i="${i}"><rect x="${X0[i]}" y="${ROW[i]}" width="${X1 - X0[i]}" height="${RH}" rx="14" fill="rgba(255,255,255,.035)" stroke="rgba(255,255,255,.18)" stroke-width="2"/>
+    ${still ? '' : `<circle cx="${X1 - 16}" cy="${ROW[i] + 16}" r="14" fill="#ffd98a" stroke="#5a4a3a" stroke-width="2"/><text x="${X1 - 16}" y="${ROW[i] + 21}" text-anchor="middle" font-size="15" font-weight="800" fill="#2a1a10">${i + 1}</text>`}</g>`;
+  const ttl = (i, t) => `<text class="cap sm" x="${X1 - 40}" y="${ROW[i] + 22}" text-anchor="start" fill="#ffe2b0">${t}</text>`;
+  /* 1) دودة أرض خنثى: أعضاء ذكرية (أزرق) وأنثوية (وردي) في الفرد نفسه */
+  const yc = ROW[0] + 66, W0 = Array.from({ length: 9 }, (_, i) => [360 + i * 62, yc + Math.sin(i * 0.9) * 6]);
+  const w1 = huWorm(W0, true) + `<circle cx="${W0[8][0] + 6}" cy="${W0[8][1]}" r="3" fill="#5a2a2a"/>`;
+  const male = [[700, -6], [716, 6], [732, -6], [748, 6]].map(([x, dy]) => `<circle cx="${x}" cy="${yc + dy + Math.sin(x / 70) * 4}" r="6" fill="#7fb2ff" stroke="#fff" stroke-width="1.2"/>`).join('');
+  const fem = [[650, -4], [668, 6]].map(([x, dy]) => `<ellipse cx="${x}" cy="${yc + dy + Math.sin(x / 70) * 4}" rx="9" ry="7" fill="#ff9ec7" stroke="#fff" stroke-width="1.2"/>`).join('');
+  const r1 = part('huEarthworm', w1) + part('huMaleOrg', male) + part('huFemOrg', fem) +
+    `<text class="cap sm" x="740" y="${yc + 38}" text-anchor="middle" fill="#9fc8ff">ذكرية ← نطف</text><text class="cap sm" x="652" y="${yc + 38}" text-anchor="middle" fill="#ffb8d8">أنثوية ← بيوض</text>`;
+  /* 2) أمثلة: هيدرا، دودة شريطية، دودة أرض، قشريات، أسماك */
+  const yE = ROW[1] + 62;
+  const hydra = (x) => `<path d="M${x - 8},${yE + 30} Q${x - 10},${yE} ${x - 6},${yE - 16} L${x + 6},${yE - 16} Q${x + 10},${yE} ${x + 8},${yE + 30}Z" fill="#9fd08a" stroke="#d8ffc8" stroke-width="1.4"/>` +
+    [-1, -0.4, 0.4, 1].map(k => `<path d="M${x + k * 5},${yE - 16} q${k * 14},-14 ${k * 20},-6" fill="none" stroke="#9fd08a" stroke-width="2.4" stroke-linecap="round"/>`).join('');
+  const tapeI = (x) => { let s = `<circle cx="${x - 40}" cy="${yE}" r="5" fill="#f2ead8"/>`; let xx = x - 34; for (let i = 0; i < 8; i++){ const w = 6 + i * 1.4; s += `<rect x="${n2(xx)}" y="${n2(yE - 4 - i)}" width="${n2(w)}" height="${n2(8 + i * 2)}" rx="2" fill="#f2ead8" stroke="#c9b48a"/>`; xx += w + 1.5; } return s; };
+  const wormI = (x) => huWorm(Array.from({ length: 5 }, (_, i) => [x - 44 + i * 22, yE + Math.sin(i) * 4]), true).replace(/stroke-width="28"/g, 'stroke-width="12"');
+  const crab = (x) => `<ellipse cx="${x}" cy="${yE}" rx="22" ry="14" fill="#f08a5a" stroke="#ffd0b0" stroke-width="1.4"/>` + [-1, 1].map(sg => `<path d="M${x + sg * 20},${yE - 6} q${sg * 12},-12 ${sg * 18},-4 M${x + sg * 16},${yE + 8} l${sg * 12},10 M${x + sg * 8},${yE + 12} l${sg * 6},12" fill="none" stroke="#f08a5a" stroke-width="3" stroke-linecap="round"/>`).join('');
+  const fish = (x) => `<path d="M${x - 24},${yE} Q${x},${yE - 18} ${x + 22},${yE} Q${x},${yE + 18} ${x - 24},${yE}Z" fill="#7fc8e8" stroke="#d8f4ff" stroke-width="1.4"/><path d="M${x + 20},${yE} l14,-10 l0,20Z" fill="#7fc8e8"/><circle cx="${x - 12}" cy="${yE - 3}" r="2.4" fill="#123"/>`;
+  const EX = [[870, 'huHydra', hydra, 'بعض الهيدرات'], [750, 'huTapeworm', tapeI, 'الدودة الشريطية'], [620, 'huEarthworm', wormI, 'دودة الأرض'], [500, 'huCrust', crab, 'القشريات'], [380, 'huFishH', fish, 'الأسماك (فقريات)']];
+  const r2 = EX.map(([x, id, f, nm]) => part(id, f(x)) + `<text class="cap sm" x="${x}" y="${ROW[1] + 100}" text-anchor="middle">${nm}</text>`).join('') +
+    `<line x1="440" y1="${ROW[1] + 34}" x2="440" y2="${ROW[1] + 96}" stroke="rgba(255,255,255,.25)" stroke-dasharray="4 4"/>`;
+  /* 3) دودتان متقابلتان تتبادلان النطف */
+  const y3 = ROW[2] + 50, WA = [[150, y3 - 16], [260, y3 - 22], [370, y3 - 16], [480, y3 - 20], [590, y3 - 16], [720, y3 - 20]];
+  const WB = [[720, y3 + 22], [610, y3 + 28], [500, y3 + 22], [390, y3 + 26], [280, y3 + 22], [150, y3 + 26]];
+  const exA = huMov('huExA', [[520, y3 - 10], [500, y3 + 2], [480, y3 + 14]], 3, () => `<circle r="3.6" fill="#7fb2ff" stroke="#fff" stroke-width=".8"/>`);
+  const exB = huMov('huExB', [[400, y3 + 14], [420, y3 + 2], [440, y3 - 10]], 3, () => `<circle r="3.6" fill="#7fb2ff" stroke="#fff" stroke-width=".8"/>`);
+  const r3 = part('huEarthworm', huWorm(WA, true).replace(/stroke-width="28"/g, 'stroke-width="22"') + huWorm(WB, false).replace(/stroke-width="28"/g, 'stroke-width="22"')) +
+    part('huSpEx', `<path d="M520,${y3 - 8} L480,${y3 + 12} M400,${y3 + 12} L440,${y3 - 8}" stroke="#ffe08a" stroke-width="2" stroke-dasharray="4 4"/>`) + (still ? '' : exA.svg + exB.svg) +
+    `<text class="cap sm" x="440" y="${ROW[2] + 98}" text-anchor="middle">بيوض كل دودة تخصبها نطف الدودة الأخرى، والعكس بالعكس</text>`;
+  /* 4) خط زمني: نضج النطف ثم نضج البيوض في وقت آخر */
+  const y4 = ROW[3] + 78;
+  const r4 = part('huTimeMat', `<line x1="120" y1="${y4}" x2="760" y2="${y4}" stroke="#d8d0e8" stroke-width="2"/><path d="M760,${y4} l-9,-5 l0,10Z" fill="#d8d0e8"/>
+      <rect x="150" y="${y4 - 52}" width="250" height="22" rx="8" fill="#7fb2ff" opacity=".85"/><rect x="460" y="${y4 - 26}" width="250" height="22" rx="8" fill="#ff9ec7" opacity=".85"/>`) +
+    `<text class="cap sm" x="275" y="${y4 - 36}" text-anchor="middle">نضج النطف</text><text class="cap sm" x="585" y="${y4 - 10}" text-anchor="middle">نضج البيوض</text><text class="cap sm" x="790" y="${y4 + 5}" text-anchor="middle">الزمن</text>
+    <line id="huTm" x1="150" y1="${y4 - 60}" x2="150" y2="${y4}" stroke="#ffe08a" stroke-width="2"/>`;
+  /* 5) الدودة الشريطية: نطف وبيوض في القطعة نفسها وإخصاب ذاتي */
+  const y5 = ROW[4] + 60;
+  let tape = `<circle cx="190" cy="${y5}" r="12" fill="#f2ead8" stroke="#c9b48a" stroke-width="2"/><circle cx="184" cy="${y5 - 5}" r="3" fill="#c9b48a"/><circle cx="192" cy="${y5 + 6}" r="3" fill="#c9b48a"/><path d="M202,${y5} L222,${y5}" stroke="#f2ead8" stroke-width="8"/>`;
+  let x = 222; for (let i = 0; i < 13; i++){ const w = 14 + i * 3, h = 14 + i * 2.6; tape += `<rect x="${n2(x)}" y="${n2(y5 - h / 2)}" width="${n2(w)}" height="${n2(h)}" rx="3" fill="#f2ead8" stroke="#c9b48a" stroke-width="1.6"/>`;
+    if (i >= 8){ for (let j = 0; j < 4; j++) tape += `<circle cx="${n2(x + 6 + (j % 2) * (w - 12))}" cy="${n2(y5 - h / 4 + Math.floor(j / 2) * h / 2)}" r="2.6" fill="#7fb2ff"/>`;
+      tape += `<ellipse cx="${n2(x + w / 2)}" cy="${y5}" rx="${n2(w * 0.22)}" ry="${n2(h * 0.16)}" fill="#ff9ec7"/>`; }
     x += w + 2; }
-  const self = `<path d="M${n2(x - 40)},${n2(478)} q14,-22 28,0" fill="none" stroke="#ffd166" stroke-width="2.4"/><path d="M${n2(x - 12)},478 l-6,-6 m6,6 l-8,2" stroke="#ffd166" stroke-width="2.4" fill="none"/>`;
-  const body = `
-    ${part('huHerm', `<text class="cap" x="500" y="58" text-anchor="middle">التكاثر الخنثي: أعضاء ذكرية وأنثوية في نفس الفرد</text>`)}
-    <text class="cap sm" x="500" y="104" text-anchor="middle">كيف تتحاشى الخناث الإخصاب الذاتي؟</text>
-    ${part('huEarthworm', huWorm(WA, true) + huWorm(WB, false) + `<circle cx="776" cy="158" r="3" fill="#5a2a2a"/><circle cx="224" cy="232" r="3" fill="#5a2a2a"/>`)}
-    ${part('huSpEx', `<path d="M560,174 L520,216 M440,216 L480,174" stroke="#ffe08a" stroke-width="2" stroke-dasharray="4 4"/>`)}
-    ${still ? '' : exA.svg + exB.svg}
-    <text class="cap sm" x="500" y="284" text-anchor="middle">1) تبادل الخلايا التناسلية: بيوض كل دودة أرض تخصب من قبل الفرد المقترن بها والعكس بالعكس</text>
-    ${part('huTimeMat', `<line x1="260" y1="404" x2="742" y2="404" stroke="#d8d0e8" stroke-width="2"/><path d="M742,404 l-9,-5 l0,10Z" fill="#d8d0e8"/>
-      <rect x="282" y="334" width="200" height="22" rx="8" fill="#7fb2ff" opacity=".85"/><rect x="520" y="366" width="200" height="22" rx="8" fill="#ff9ec7" opacity=".85"/>`)}
-    <text class="cap sm" x="382" y="350" text-anchor="middle">نضج النطف</text><text class="cap sm" x="620" y="382" text-anchor="middle">نضج البيوض</text><text class="cap sm" x="756" y="420" text-anchor="middle">الزمن</text>
-    <line id="huTm" x1="282" y1="326" x2="282" y2="404" stroke="#ffe08a" stroke-width="2"/>
-    <text class="cap sm" x="500" y="434" text-anchor="middle">2) نمو ونضج البيوض (والنطف) في أوقات متباينة</text>
-    ${part('huTapeworm', tape + self)}
-    <text class="cap sm" x="500" y="568" text-anchor="middle">الدودة الشريطية خنثى قادرة على الإخصاب الذاتي (نطف ● وبيوض ● في نفس القطعة)</text>
-    <text class="cap sm" x="500" y="608" text-anchor="middle">اللافقريات: بعض الهيدرات، الديدان المسطحة (الشريطية)، الحلقية (دودة الأرض)، القشريات — الفقريات: نادرة عدا الأسماك</text>
-    <text class="cap sm" x="500" y="640" text-anchor="middle">الخناث (ص125): حيوانات تمتلك أعضاء تكاثرية ذكرية وأنثوية في نفس الفرد وتستطيع إنتاج النطف والبيوض</text>`;
+  const selfA = `<path d="M${n2(x - 48)},${y5 - 34} q16,-24 32,0" fill="none" stroke="#ffd166" stroke-width="2.6"/><path d="M${n2(x - 16)},${y5 - 34} l-6,-7 m6,7 l-9,2" stroke="#ffd166" stroke-width="2.6" fill="none"/>`;
+  const r5 = part('huTapeworm', tape + selfA) + `<text class="cap sm" x="${n2(x + 14)}" y="${y5 + 5}" text-anchor="end">نطف ● وبيوض ● في القطعة نفسها</text>`;
+  const body = `${[0, 1, 2, 3, 4].map(frame).join('')}
+    ${part('huHerm', ttl(0, 'الخناث: أعضاء ذكرية وأنثوية في نفس الفرد'))}${ttl(1, 'أمثلة')}${ttl(2, 'الطريقة 1: تبادل الخلايا التناسلية')}${ttl(3, 'الطريقة 2: النضج في أوقات متباينة')}${ttl(4, 'الدودة الشريطية تخصب نفسها')}
+    <g data-st="0">${r1}</g><g data-st="1">${r2}</g><g data-st="2">${r3}</g><g data-st="3">${r4}</g><g data-st="4">${r5}</g>
+    <text class="cap sm" x="500" y="664" text-anchor="middle">التكاثر الخنثي (ص125): الخناث تنتج النطف والبيوض، وأغلبها يتحاشى الإخصاب الذاتي بطريقتين</text>`;
+  const ctl = stageCtl(HU_HERM_ST, { dur: 30 });
   return {
-    body, fnParts: ['huSpEx', 'huTimeMat'],
+    body, stages: HU_HERM_ST, fnParts: ['huSpEx', 'huTimeMat'],
     parts: [
-      { id: 'huEarthworm', anchor: [770, 160], label: [866, 160], side: 'R' },
-      { id: 'huSpEx', anchor: [470, 196], label: [134, 196], side: 'L' },
-      { id: 'huTimeMat', anchor: [722, 377], label: [866, 377], side: 'R' },
-      { id: 'huTapeworm', anchor: [250, 520], label: [134, 510], side: 'L' }
+      { id: 'huHerm', anchor: [X1 - 60, ROW[0] + 18], label: [600, 44], side: 'C' },
+      { id: 'huMaleOrg', anchor: [748, yc + 6], label: [880, yc + 26], side: 'C' },
+      { id: 'huFemOrg', anchor: [650, yc - 8], label: [560, ROW[0] + 18], side: 'C' },
+      { id: 'huHydra', anchor: [870, yE - 16], label: [912, ROW[1] + 52], side: 'C' },
+      { id: 'huCrust', anchor: [500, yE - 14], label: [500, ROW[1] + 30], side: 'C' },
+      { id: 'huFishH', anchor: [380, yE - 10], label: [360, ROW[1] + 30], side: 'C' },
+      { id: 'huEarthworm', anchor: [720, y3 - 20], label: [866, y3 - 10], side: 'R' },
+      { id: 'huSpEx', anchor: [460, y3 + 2], label: [134, y3 + 2], side: 'L' },
+      { id: 'huTimeMat', anchor: [710, y4 - 15], label: [866, y4 - 20], side: 'R' },
+      { id: 'huTapeworm', anchor: [190, y5 + 12], label: [134, y5 + 30], side: 'L' }
     ],
-    tools: [{ id: 'info:huHerm', label: 'تعريف الخناث' }],
+    tools: ctl.tools.concat([{ id: 'info:huHerm', label: 'تعريف الخناث' }]),
+    init(){ if (!still) ctl.start(); },
+    onSlider: v => ctl.onSlider(v), onTool: id => ctl.onTool(id),
     tick(dt, t, a){
       if (still) return;
+      ctl.tick(dt); const s = STG.idx;
+      stageShow(a, s, STG.k);
+      a.all('.hmFrame').forEach(g => { const i = +g.dataset.i, on = i === s, r = g.querySelector('rect'); r.setAttribute('stroke', on ? '#ffd98a' : 'rgba(255,255,255,.18)'); r.setAttribute('stroke-width', on ? 4 : 2);
+        r.style.filter = on ? `drop-shadow(0 0 ${n2(4 + 3 * Math.sin(t * 4))}px #ffd98a)` : ''; const c = g.querySelector('circle'); if (c) c.setAttribute('r', on ? 18 : 14); });
       huMovTick(a, exA, t, 22); huMovTick(a, exB, t, 22);
-      const p = (t * 0.12) % 1, xm = 282 + p * 440, tm = a.el('#huTm'); if (tm){ tm.setAttribute('x1', n2(xm)); tm.setAttribute('x2', n2(xm)); }
+      const p = (t * 0.12) % 1, xm = 150 + p * 560, tm = a.el('#huTm'); if (tm){ tm.setAttribute('x1', n2(xm)); tm.setAttribute('x2', n2(xm)); }
     }
   };
 }

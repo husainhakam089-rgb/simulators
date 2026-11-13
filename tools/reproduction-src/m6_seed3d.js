@@ -317,6 +317,58 @@ function fruitModel(B){
 }
 
 /* ═════════════ 7) أنواع الثمار وانتشارها (ص86–88) ═════════════ */
+/* ═════════════ تكوّن أنواع الثمار — خطوات (ص86) ═════════════
+   ثلاثة أعمدة (من اليمين): زهرة بمدقة واحدة ← مشمش، زهرة بكربلات منفصلة على تخت ← توت أسود،
+   أزهار متجمعة على محور ← أناناس. الخطوة القادمة مخفية، والحالية تتوهج. */
+function ftModel(B){
+  const X = [3.1, 0.85, -1.4], YF = 1.05, YR = -1.25, objs = [];
+  const A = (mesh, o, st) => { const r = B.add(mesh, Object.assign({ pop: false, center: [0, 0, 0] }, o)); r.st = st; objs.push(r); return r; };
+  const petals = (c, n, L, col, part, st, tilt) => A(merge(Array.from({ length: n }, (_, i) => { const a = i / n * 6.2832, d = norm([Math.cos(a), tilt || 0.35, Math.sin(a)]);
+    return place(ellipsoid({ r: [0.09, L, 0.03], rows: 5, cols: 8 }), { at: add(c, mul(d, L * 0.9)), dir: d }); })), fx(part, col, { rimColor: '#ffe0ea' }), st);
+  /* 1) زهرة بمدقة واحدة */
+  const c1 = [X[0], YF, 0];
+  A(tube({ pts: [add(c1, [0, -0.9, 0]), c1], r: 0.05, sides: 6 }), fx('sdFlw1', '#4f9a3a'), 0);
+  petals(c1, 5, 0.38, '#f59ab0', 'sdFlw1', 0);
+  A(merge([place(ellipsoid({ r: [0.16, 0.2, 0.16], rows: 10, cols: 12 }), { at: add(c1, [0, 0.12, 0]) }), tube({ pts: [add(c1, [0, 0.3, 0]), add(c1, [0, 0.62, 0])], r: 0.03, sides: 5 }), ball(0.06, add(c1, [0, 0.65, 0]), 8)]), fx('flOvary', '#9ae07a', { rimColor: '#e6ffcc' }), 0);
+  /* 2) مشمش */
+  A(merge([ball(0.55, [X[0], YR, 0], 16), tube({ pts: [[X[0], YR + 0.52, 0], [X[0] + 0.1, YR + 0.8, 0]], r: 0.04, sides: 5 })]), fx('sdSimple', '#f6a33a', { rimColor: '#ffe0a0' }), 1);
+  /* 3) زهرة بكربلات عديدة منفصلة على تخت محدب */
+  const c2 = [X[1], YF, 0];
+  A(tube({ pts: [add(c2, [0, -0.9, 0]), c2], r: 0.05, sides: 6 }), fx('sdFlwN', '#4f9a3a'), 2);
+  petals(c2, 5, 0.4, '#f7f0f6', 'sdFlwN', 2, 0.15);
+  A(place(ellipsoid({ r: [0.32, 0.22, 0.32], rows: 10, cols: 14 }), { at: add(c2, [0, 0.05, 0]) }), fx('flReceptacle', '#9bd26b', { rimColor: '#e0ffc0' }), 2);
+  A(merge(Array.from({ length: 14 }, (_, i) => { const a = i * 2.4, b = Math.acos(1 - (i + 0.5) / 14), d = [Math.cos(a) * Math.sin(b), Math.cos(b), Math.sin(a) * Math.sin(b)];
+    const p = add(c2, [d[0] * 0.3, 0.05 + d[1] * 0.22, d[2] * 0.3]); return merge([ball(0.06, p, 6), tube({ pts: [p, add(p, mul(norm(d), 0.12))], r: 0.012, sides: 4 })]); })), fx('flCarpel', '#5fbf45', { rimColor: '#e6ffcc' }), 2);
+  /* 4) توت أسود: ثمرات صغيرة كثيرة على تخت واحد */
+  A(merge(Array.from({ length: 40 }, (_, i) => { const a = i * 2.4, b = Math.acos(1 - 2 * (i + 0.5) / 40), d = [Math.cos(a) * Math.sin(b) * 0.45, Math.cos(b) * 0.58, Math.sin(a) * Math.sin(b) * 0.45]; return ball(0.12, add([X[1], YR, 0], d), 7); })), fx('sdAggr', '#3a1d4a', { rimColor: '#a080c0' }), 3);
+  /* 5) عدة أزهار صغيرة على محور */
+  const c3 = [X[2], YF, 0];
+  A(tube({ pts: [add(c3, [0, -0.95, 0]), add(c3, [0, 0.75, 0])], r: 0.05, sides: 6 }), fx('sdFlwM', '#4f9a3a'), 4);
+  Array.from({ length: 9 }, (_, i) => { const a = i * 2.2, y = -0.55 + i * 0.16, p = add(c3, [Math.cos(a) * 0.22, y, Math.sin(a) * 0.22]); petals(p, 5, 0.1, '#c07ad8', 'sdFlwM', 4, 0.6); });
+  /* 6) أناناس */
+  A(merge([place(ellipsoid({ r: [0.48, 0.7, 0.48], rows: 14, cols: 18 }), { at: [X[2], YR - 0.05, 0] })].concat(Array.from({ length: 36 }, (_, i) => { const a = i * 0.9, y = -0.55 + (i % 9) * 0.13, rr = 0.48 * Math.sqrt(Math.max(0.05, 1 - (y / 0.7) ** 2));
+    return place(ellipsoid({ r: [0.09, 0.07, 0.04], rows: 4, cols: 6 }), { at: [X[2] + Math.cos(a) * rr, YR - 0.05 + y, Math.sin(a) * rr] }); }))), fx('sdMulti', '#e6a93a', { rimColor: '#ffd28a' }), 5);
+  A(merge(Array.from({ length: 8 }, (_, i) => { const a = i * 0.785, d = norm([Math.cos(a) * 0.5, 1, Math.sin(a) * 0.5]); return place(ellipsoid({ r: [0.04, 0.32, 0.09], rows: 4, cols: 6 }), { at: add([X[2], YR + 0.62, 0], mul(d, 0.28)), dir: d }); })), fx('sdMulti', '#4f9a3a'), 5);
+  /* أسهم: ينمو المبيض ← ثمرة */
+  X.forEach((x, i) => A(merge([tube({ pts: [[x, YF - 0.98, 0.2], [x, YR + 0.98, 0.2]], r: 0.03, sides: 5 }), place(ellipsoid({ r: [0.08, 0.16, 0.08], rows: 5, cols: 8, disp: q => 1 - 0.85 * Math.max(0, q[1]) }), { at: [x, YR + 0.9, 0.2], dir: [0, -1, 0] })]), { color: '#ff9a5a', rim: 0.4 }, i * 2 + 1));
+  B.label('sdFlw1', add(c1, [-0.4, 0.05, 0]), [1, 0.2, 0.2], () => STG.idx >= 0);
+  B.label('flOvary', add(c1, [0.16, 0.14, 0.05]), [1, 0.5, 0.3]);
+  B.label('sdSimple', [X[0] + 0.55, YR, 0], [1, -0.2, 0.2], () => STG.idx >= 1);
+  B.label('flCarpel', add(c2, [0.1, 0.32, 0.1]), [0.3, 1, 0.3], () => STG.idx >= 2);
+  B.label('flReceptacle', add(c2, [0.32, 0, 0]), [1, -0.3, 0.2], () => STG.idx >= 2);
+  B.label('sdFlwN', add(c2, [-0.45, 0.1, 0]), [-0.3, 1, 0.2], () => STG.idx >= 2);
+  B.label('sdAggr', [X[1] + 0.5, YR, 0], [1, -0.2, 0.2], () => STG.idx >= 3);
+  B.label('sdFlwM', add(c3, [-0.25, 0.3, 0]), [-1, 0.2, 0.2], () => STG.idx >= 4);
+  B.label('sdMulti', [X[2] - 0.5, YR, 0], [-1, -0.2, 0.2], () => STG.idx >= 5);
+  const titles = [['ثمرة بسيطة', 'الباقلاء · الطماطة · الخيار · البرتقال · المشمش'], ['ثمرة متجمعة', 'التوت الأسود'], ['ثمرة مركبة (مضاعفة)', 'الأناناس']];
+  X.forEach((x, i) => { B.caption([x, YF + 1.05, 0], () => [titles[i][0]]); B.caption([x, YR - 0.95, 0], () => STG.idx >= i * 2 + 1 ? [titles[i][1]] : ['']); });
+  [[X[0], YF], [X[0], YR], [X[1], YF], [X[1], YR], [X[2], YF], [X[2], YR]].forEach(([x, y], i) => B.caption([x + 0.95, y + 0.55, 0], () => [STG.idx === i ? '◀ ' + (i + 1) + ' ▶' : String(i + 1)]));
+  let last = -1;
+  return { dist: 10.4, yaw: 0, pitch: 0.1, target: [0.75, -0.05, 0], live2d: true,
+    anim(t){ const s = STG.idx; if (s !== last){ last = s; objs.forEach(o => { o.hide = o.st > s; }); }
+      objs.forEach(o => { if (o.st === s) o.glow = 0.45 + 0.4 * Math.sin(t * 4); }); } };
+}
+
 function typesModel(B){
   const X = [-2.4, 0, 2.4], Y1 = 1.0, Y2 = -1.4;
   /* بسيطة: ثمرة واحدة من مبيض واحد (مشمش) */
@@ -352,5 +404,5 @@ function typesModel(B){
     anim(t){ B.update(windO, wind(t)); B.update(cocoO, coco(t)); } };
 }
 
-Object.assign(G3.models, { sdp_sdpPol: polModel, sdp_sdpTube: tubeModel, sdp_sdpFert: fertModel, sdp_sdpEmb: embModel, sds_sdsSeed: seedsModel, sds_sdsFruit: fruitModel, sds_sdsTypes: typesModel });
+Object.assign(G3.models, { sdp_sdpPol: polModel, sdp_sdpTube: tubeModel, sdp_sdpFert: fertModel, sdp_sdpEmb: embModel, sds_sdsSeed: seedsModel, sds_sdsFruit: fruitModel, sds_sdsTypes: typesModel, sds_sdsFT: ftModel });
 })();

@@ -3086,6 +3086,9 @@ Object.assign(INFO, {
     def: 'هو عملية تحول ونضج مبايض بعض الأزهار إلى ثمار عديمة البذور بدون إخصاب، وهو على نوعين: طبيعي واصطناعي.',
     note: 'علل (وزاري 23/2 و20/2): ينتج الأناناس ثماراً عذرية طبيعية؟ لأن مبايضه ذات محتوى هرموني عالٍ يحفز على نضجها وتحولها إلى ثمار بدون إخصاب.'
   },
+  sdFlw1: { name: 'زهرة واحدة ذات كربلة واحدة', src: 'ملزمة ص86', def: 'زهرة واحدة ذات كربلة واحدة أو عدة كربلات ملتحمة، ينمو مبيضها ويتحول إلى ثمرة بسيطة.' },
+  sdFlwN: { name: 'زهرة واحدة ذات كربلات عديدة منفصلة', src: 'ملزمة ص86', def: 'زهرة واحدة ذات كربلات عديدة منفصلة على تخت واحد، تنتج ثمرة متجمعة ترتبط ثمراتها معاً بالتخت.' },
+  sdFlwM: { name: 'عدة أزهار متجمعة', src: 'ملزمة ص86', def: 'عدة أزهار متجمعة تنشأ من كل واحدة منها ثمرة وتبقى مرتبطة مع بعضها عند النضج فتتكون الثمرة المركبة.' },
   sdSimple: { name: 'ثمرة بسيطة', src: 'ملزمة ص86–87', def: 'الثمار الناتجة من زهرة واحدة ذات كربلة واحدة أو عدة كربلات ملتحمة.', struct: 'كما في الباقلاء والطماطة والخيار والبرتقال والمشمش.', note: 'وزاري 2/20 و22/2 — عرّف الثمار البسيطة. علل (وزاري 2/21): ثمار الباقلاء والبرتقال بسيطة؟ لأنها تنتج من زهرة واحدة ذات كربلة واحدة أو عدة كربلات ملتحمة.' },
   sdAggr: { name: 'ثمرة متجمعة', src: 'ملزمة ص86–87', def: 'الثمار الناتجة من زهرة واحدة ذات كربلات عديدة منفصلة ترتبط الثمرات معاً بتخت واحد.', struct: 'كما في التوت الأسود.', note: 'وزاري 16/1 و2/19 و21/ت — عرّف الثمار المتجمعة. ثمار التوت الأسود ثمار متجمعة (وزاري 3/20).' },
   sdMulti: { name: 'ثمرة مركبة (مضاعفة)', src: 'ملزمة ص86–87', def: 'الثمار التي تتكون من عدة أزهار متجمعة تنشأ من كل واحدة منها ثمرة وتبقى مرتبطة مع بعضها عند النضج.', struct: 'كما في الأناناس.', note: 'وزاري 14/ت و2/18 و21/1 و23/2 — عرّف الثمار المركبة.' },
@@ -3246,7 +3249,7 @@ QUIZ.push(
 CH.tabs.push({ k: 'sdPollin', t: 'التلقيح والإخصاب' }, { k: 'sdSeedFruit', t: 'البذرة والثمرة' });
 CH.sel.sdpv = 'sdpPol';
 CH.sel.sdsv = 'sdsSeed';
-Object.assign(CH.toolIcons, { sdpPol: 'spark', sdpTube: 'grow', sdpFert: 'target', sdpEmb: 'cell', sdsSeed: 'leaf', sdsFruit: 'layers', sdsTypes: 'list', sdGrow: 'grow' });
+Object.assign(CH.toolIcons, { sdpPol: 'spark', sdpTube: 'grow', sdpFert: 'target', sdpEmb: 'cell', sdsSeed: 'leaf', sdsFruit: 'layers', sdsTypes: 'list', sdsFT: 'grow', sdGrow: 'grow' });
 CH.exam.push(
   { k: 'sd_pol', t: 'التلقيح الذاتي والخلطي' }, { k: 'sd_tube', t: 'تكوين أنبوب اللقاح' }, { k: 'sd_fert', t: 'الإخصاب المزدوج' },
   { k: 'sd_torp', t: 'مرحلة الطوربيد' }, { k: 'sd_mature', t: 'مرحلة الجنين الناضج' }, { k: 'sd_seeds', t: 'تركيب البذور (3-19)' },
@@ -3959,6 +3962,11 @@ Object.assign(INFO, {
     def: 'من الديدان الحلقية الخنثية.',
     note: 'علل: لا تخصب نطف دودة الأرض بيوضها رغم كونها خنثية؟ لأنها تتحاشى الإخصاب الذاتي بتبادل الخلايا التناسلية مع الفرد المقترن بها.'
   },
+  huMaleOrg: { name: 'أعضاء تكاثرية ذكرية', src: 'ملزمة ص125', fn: 'تنتج النطف.', note: 'في الخناث تكون الأعضاء الذكرية والأنثوية في نفس الفرد.' },
+  huFemOrg: { name: 'أعضاء تكاثرية أنثوية', src: 'ملزمة ص125', fn: 'تنتج البيوض.', note: 'في الخناث تكون الأعضاء الذكرية والأنثوية في نفس الفرد.' },
+  huHydra: { name: 'الهيدرات', src: 'ملزمة ص125', def: 'بعض الهيدرات من اللافقريات الخنثية.' },
+  huCrust: { name: 'القشريات', src: 'ملزمة ص125', def: 'أنواع من القشريات من اللافقريات الخنثية.' },
+  huFishH: { name: 'الأسماك', src: 'ملزمة ص125', def: 'التكاثر الخنثي في الفقريات نادر وقليل الوضوح عدا الأسماك.' },
   huSpEx: { name: 'تبادل الخلايا التناسلية', src: 'ملزمة ص125', def: 'الطريقة الأولى لتحاشي الإخصاب الذاتي: بيوض دودة الأرض تخصب من قبل الفرد المقترن بها والعكس بالعكس.' },
   huTimeMat: { name: 'النضج في أوقات متباينة', src: 'ملزمة ص125', def: 'الطريقة الثانية لتحاشي الإخصاب الذاتي: نمو ونضج البيوض في أوقات متباينة.' },
   huTapeworm: {
@@ -7004,6 +7012,7 @@ const SD_VIEWS_P = [
 const SD_VIEWS_S = [
   { id: 'sdsSeed',  label: 'تركيب البذرة' },
   { id: 'sdsFruit', label: 'تركيب الثمرة' },
+  { id: 'sdsFT',    label: 'تكوّن أنواع الثمار' },
   { id: 'sdsTypes', label: 'أنواع الثمار والانتشار' }
 ];
 
@@ -7022,12 +7031,12 @@ SCENES.sdPollin = {
 };
 SCENES.sdSeedFruit = {
   title: 'البذرة والثمرة',
-  get src(){ return ({ sdsSeed: 'ملزمة ص77–79', sdsFruit: 'ملزمة ص82–86', sdsTypes: 'ملزمة ص86–88' })[SEL.sdsv] || 'ملزمة ص77'; },
+  get src(){ return ({ sdsSeed: 'ملزمة ص77–79', sdsFruit: 'ملزمة ص82–86', sdsFT: 'ملزمة ص82 وص86', sdsTypes: 'ملزمة ص86–88' })[SEL.sdsv] || 'ملزمة ص77'; },
   tint: ['rgba(210,140,70,.24)', 'rgba(110,160,90,.15)'],
   model3d: () => 'sds_' + (SD_VIEWS_S.some(x => x.id === SEL.sdsv) ? SEL.sdsv : 'sdsSeed'),
   build(){
     const v = SD_VIEWS_S.some(x => x.id === SEL.sdsv) ? SEL.sdsv : 'sdsSeed';
-    const s = v === 'sdsFruit' ? sdFruit() : v === 'sdsTypes' ? sdTypes() : sdSeeds();
+    const s = v === 'sdsFruit' ? sdFruit() : v === 'sdsTypes' ? sdTypes() : v === 'sdsFT' ? sdFTypes() : sdSeeds();
     s.rebuildOnRadio = 'sdsv';
     s.tools = SD_VIEWS_S.map(x => ({ id: x.id, label: x.label, radio: 'sdsv', on: x.id === v })).concat(s.tools || []);
     return s;
@@ -7043,6 +7052,7 @@ SCENES.sd_seeds  = { title: 'تركيب البذور (شكل 3-19)', build: () =
 SCENES.sd_seedM  = { title: 'تركيب بذرة ذوات الفلقة الواحدة', build: () => sdSeedOne('m') };
 SCENES.sd_seedD  = { title: 'تركيب بذرة ذوات الفلقتين', build: () => sdSeedOne('d') };
 SCENES.sd_fruit  = { title: 'تركيب الثمرة', build: () => sdFruit(true) };
+SCENES.sd_ftypes = { title: 'تكوّن الثمار البسيطة والمتجمعة والمركبة', build: () => sdFTypes(true) };
 SCENES.sd_types  = { title: 'أنواع الثمار وانتشارها', build: () => sdTypes(true) };
 
 /* ───────── أدوات مشتركة ───────── */
@@ -7632,6 +7642,82 @@ function sdFruit(still){
 }
 
 /* ═════════ 7) أنواع الثمار وانتشار الثمار والبذور — ملزمة ص86–88 ═════════ */
+/* ───────── تكوّن أنواع الثمار خطوة بخطوة (ص82 وص86) ─────────
+   ثلاثة أعمدة من اليمين: بسيطة · متجمعة · مركبة. في كل عمود الزهرة (أو الأزهار) أولاً،
+   ثم ينمو المبيض ويتحول إلى ثمرة، ومثال كل نوع من الملزمة. */
+const SD_FT_ST = [
+  { n: '1 · ثمرة بسيطة: زهرة واحدة', d: 'تبدأ الثمرة البسيطة من زهرة واحدة ذات كربلة واحدة أو عدة كربلات ملتحمة (مدقة واحدة في وسط الزهرة).' },
+  { n: '2 · ثمرة بسيطة: ثمرة واحدة', d: 'ينمو المبيض ويتحول إلى ثمرة، فتنتج ثمرة واحدة من الزهرة الواحدة، كما في الباقلاء والطماطة والخيار والبرتقال والمشمش.' },
+  { n: '3 · ثمرة متجمعة: زهرة واحدة بكربلات عديدة', d: 'تبدأ الثمرة المتجمعة من زهرة واحدة ذات كربلات عديدة منفصلة موجودة على تخت واحد.' },
+  { n: '4 · ثمرة متجمعة: ثمرات صغيرة على تخت واحد', d: 'تنمو كل كربلة إلى ثمرة صغيرة، وترتبط الثمرات معاً بتخت واحد، كما في التوت الأسود.' },
+  { n: '5 · ثمرة مركبة: عدة أزهار متجمعة', d: 'تبدأ الثمرة المركبة (المضاعفة) من عدة أزهار متجمعة وليس من زهرة واحدة.' },
+  { n: '6 · ثمرة مركبة: ثمرات مرتبطة عند النضج', d: 'تنشأ من كل زهرة ثمرة، وتبقى الثمرات مرتبطة مع بعضها عند النضج فتبدو ثمرة واحدة، كما في الأناناس.' }
+];
+function sdFTypes(still){
+  const XS = 810, XA = 590, XM = 370, YF = 215, YR = 488;
+  const petal = (x, y, a, L, W, col) => `<ellipse cx="${n2(x + Math.cos(a) * L * 0.55)}" cy="${n2(y + Math.sin(a) * L * 0.55)}" rx="${n2(L * 0.55)}" ry="${W}" transform="rotate(${n2(a * 57.3)} ${n2(x + Math.cos(a) * L * 0.55)} ${n2(y + Math.sin(a) * L * 0.55)})" fill="${col}" stroke="#ffd3de" stroke-width="1.2"/>`;
+  /* زهرة بسيطة: مدقة واحدة (المبيض منتفخ) */
+  const fl1 = `<path d="M${XS},${YF + 110} Q${XS + 6},${YF + 80} ${XS},${YF + 44}" stroke="#4f9a3a" stroke-width="6" fill="none"/>` +
+    [-2.5, -0.64].map(a => petal(XS, YF + 40, a, 60, 16, '#f59ab0')).join('') + petal(XS, YF + 40, -1.57, 54, 15, '#f7a9bc') +
+    `<ellipse cx="${XS}" cy="${YF + 44}" rx="28" ry="11" fill="#5fae45" stroke="#c8f0a0" stroke-width="1.5"/>` +
+    [-1, 1].map(sg => `<line x1="${XS + sg * 14}" y1="${YF + 36}" x2="${XS + sg * 30}" y2="${YF - 26}" stroke="#e8e070" stroke-width="2.4"/><ellipse cx="${XS + sg * 31}" cy="${YF - 32}" rx="6" ry="9" fill="#f7c531"/>`).join('');
+  const pis1 = `<ellipse cx="${XS}" cy="${YF + 18}" rx="17" ry="22" fill="#9ae07a" stroke="#e6ffcc" stroke-width="2"/><line x1="${XS}" y1="${YF - 4}" x2="${XS}" y2="${YF - 52}" stroke="#7fcf5f" stroke-width="4"/><circle cx="${XS}" cy="${YF - 56}" r="7" fill="#c8f0a0"/>`;
+  /* زهرة بكربلات عديدة منفصلة على تخت محدب */
+  const dome = `<path d="M${XA - 46},${YF + 42} Q${XA},${YF - 30} ${XA + 46},${YF + 42}Z" fill="#9bd26b" stroke="#e0ffc0" stroke-width="2"/>`;
+  let carp = ''; [[-30, 26], [-18, 6], [0, -2], [18, 6], [30, 26], [-10, 24], [10, 24], [-22, 36], [22, 36], [0, 14]].forEach(([dx, dy]) => {
+    carp += `<ellipse cx="${XA + dx}" cy="${YF + dy}" rx="6" ry="8" fill="#5fbf45" stroke="#e6ffcc" stroke-width="1.2"/><line x1="${XA + dx}" y1="${YF + dy - 8}" x2="${XA + dx * 1.15}" y2="${YF + dy - 20}" stroke="#7fcf5f" stroke-width="2"/>`; });
+  const flN = `<path d="M${XA},${YF + 112} L${XA},${YF + 44}" stroke="#4f9a3a" stroke-width="6"/>` + [-2.7, -0.44, -1.57].map(a => petal(XA, YF + 44, a, 62, 15, '#f7f0f6')).join('') + `<ellipse cx="${XA}" cy="${YF + 46}" rx="34" ry="9" fill="#5fae45"/>`;
+  /* عدة أزهار صغيرة متجمعة على محور واحد */
+  let flM = `<line x1="${XM}" y1="${YF + 115}" x2="${XM}" y2="${YF - 70}" stroke="#4f9a3a" stroke-width="7" stroke-linecap="round"/>`;
+  const tiny = (x, y) => [0, 1, 2, 3, 4].map(i => { const a = i * 1.2566 - 1.57; return `<ellipse cx="${n2(x + Math.cos(a) * 8)}" cy="${n2(y + Math.sin(a) * 8)}" rx="7" ry="4" transform="rotate(${n2(a * 57.3)} ${n2(x + Math.cos(a) * 8)} ${n2(y + Math.sin(a) * 8)})" fill="#c07ad8" stroke="#f0d0ff" stroke-width="1"/>`; }).join('') + `<circle cx="${x}" cy="${y}" r="4.5" fill="#ffd166"/>`;
+  [[-26, -54], [24, -40], [-28, -14], [26, 2], [-26, 28], [24, 44], [-22, 70], [0, -76]].forEach(([dx, dy]) => { flM += `<line x1="${XM}" y1="${YF + dy + 6}" x2="${XM + dx * 0.8}" y2="${YF + dy}" stroke="#4f9a3a" stroke-width="2"/>` + tiny(XM + dx, YF + dy); });
+  /* الثمار */
+  const T1 = YR;
+  const apricot = `<path d="M${XS},${T1 - 52} Q${XS + 10},${T1 - 75} ${XS + 32},${T1 - 80}" fill="none" stroke="#6a4a2a" stroke-width="4"/>` +
+    `<path d="${smoothClosed([[XS + 32, T1 - 80], [XS + 62, T1 - 92], [XS + 70, T1 - 74], [XS + 40, T1 - 70]])}" fill="#5fae45" stroke="#2f6f25"/>` +
+    `<circle cx="${XS}" cy="${T1 + 4}" r="56" fill="#f5a742" stroke="#ffd59a" stroke-width="2"/><path d="M${XS - 4},${T1 - 50} Q${XS - 24},${T1 + 4} ${XS - 4},${T1 + 58}" fill="none" stroke="#d9802a" stroke-width="3"/>`;
+  const g = rng(5); let dr = '';
+  for (let r = 0; r < 5; r++) for (let c = 0; c < 4 + (r % 2); c++){ const x = XA - (3 + (r % 2)) * 11 + c * 22 + (g() - 0.5) * 3, y = T1 - 30 + r * 19;
+    if ((x - XA) ** 2 / 2500 + (y - T1 - 8) ** 2 / 2900 > 1) continue;
+    dr += `<circle cx="${n2(x)}" cy="${n2(y)}" r="11.5" fill="#3a1d4a" stroke="#6a3a80" stroke-width="1.4"/><circle cx="${n2(x - 3.5)}" cy="${n2(y - 3.5)}" r="3" fill="#a080c0" opacity=".7"/>`; }
+  const berry = `<path d="M${XA},${T1 - 58} L${XA},${T1 - 82}" stroke="#4f8a35" stroke-width="4"/>` + [-40, -14, 14, 40].map(d => `<path d="${smoothClosed([[XA, T1 - 52], [XA + d, T1 - 64], [XA + d * 1.3, T1 - 48]])}" fill="#5fae45" stroke="#2f6f25"/>`).join('') + dr;
+  let pl = ''; for (let k = -5; k <= 5; k++) pl += `<line x1="${XM + k * 18 - 60}" y1="${T1 - 50}" x2="${XM + k * 18 + 60}" y2="${T1 + 90}" stroke="#a8701a" stroke-width="1.6"/><line x1="${XM + k * 18 + 60}" y1="${T1 - 50}" x2="${XM + k * 18 - 60}" y2="${T1 + 90}" stroke="#a8701a" stroke-width="1.6"/>`;
+  const pine = `<clipPath id="sdFtPine"><ellipse cx="${XM}" cy="${T1 + 14}" rx="48" ry="62"/></clipPath><ellipse cx="${XM}" cy="${T1 + 14}" rx="48" ry="62" fill="#e6a93a"/><g clip-path="url(#sdFtPine)">${pl}</g>` +
+    `<ellipse cx="${XM}" cy="${T1 + 14}" rx="48" ry="62" fill="none" stroke="#ffd28a" stroke-width="2"/>` +
+    [-32, -18, -6, 6, 18, 32].map((d, i) => `<path d="M${XM},${T1 - 44} Q${XM + d * 0.6},${T1 - 70} ${XM + d},${T1 - 90 + Math.abs(d) * 0.6}" fill="none" stroke="${i % 2 ? '#4f9a3a' : '#6fbf4a'}" stroke-width="6" stroke-linecap="round"/>`).join('');
+  const arrow = (x, st) => `<g data-st="${st}">${gArrow(x, YF + 152, x, YR - 96, '#ff9a5a')}</g>`;
+  const head = (x, t, sub) => `<text class="cap" x="${x}" y="78" text-anchor="middle" fill="#ffe2b0">${t}</text><text class="cap sm" x="${x}" y="98" text-anchor="middle">${sub}</text>`;
+  const ex = (x, t, st) => `<g data-st="${st}"><text class="cap sm" x="${x}" y="${YR + 88}" text-anchor="middle" fill="#cfe8ff">${t}</text></g>`;
+  const col = x => `<rect x="${x - 106}" y="52" width="212" height="566" rx="16" fill="rgba(255,255,255,.035)" stroke="rgba(255,255,255,.14)"/>`;
+  const badge = (x, y, i) => still ? '' : `<g class="plBadge" data-i="${i}" pointer-events="none"><circle cx="${x}" cy="${y}" r="14" fill="#ffd98a" stroke="#5a4a3a" stroke-width="2"/><text x="${x}" y="${y + 5}" text-anchor="middle" font-size="15" font-weight="800" fill="#2a1a10">${i + 1}</text></g>`;
+  const body = `${col(XS)}${col(XA)}${col(XM)}
+    ${head(XS, 'ثمرة بسيطة', 'زهرة واحدة · كربلة واحدة أو ملتحمة')}${head(XA, 'ثمرة متجمعة', 'زهرة واحدة · كربلات عديدة منفصلة')}${head(XM, 'ثمرة مركبة (مضاعفة)', 'عدة أزهار متجمعة')}
+    <g data-st="0">${part('sdFlw1', fl1)}${part('flOvary', pis1)}</g>${arrow(XS, 1)}<g data-st="1">${part('sdSimple', apricot)}</g>${ex(XS, 'الباقلاء · الطماطة · الخيار', 1)}<g data-st="1"><text class="cap sm" x="${XS}" y="${YR + 104}" text-anchor="middle" fill="#cfe8ff">البرتقال · المشمش</text></g>
+    <g data-st="2">${part('sdFlwN', flN)}${part('flReceptacle', dome)}${part('flCarpel', carp)}</g>${arrow(XA, 3)}<g data-st="3">${part('sdAggr', berry)}</g>${ex(XA, 'التوت الأسود', 3)}
+    <g data-st="4">${part('sdFlwM', flM)}</g>${arrow(XM, 5)}<g data-st="5">${part('sdMulti', pine)}</g>${ex(XM, 'الأناناس', 5)}
+    ${badge(XS + 86, YF - 60, 0)}${badge(XS + 86, YR - 60, 1)}${badge(XA + 86, YF - 60, 2)}${badge(XA + 86, YR - 60, 3)}${badge(XM + 86, YF - 60, 4)}${badge(XM + 86, YR - 60, 5)}
+    <text class="cap sm" x="500" y="660" text-anchor="middle">أنواع الثمار (ص86): البسيطة والمتجمعة من زهرة واحدة، والمركبة من عدة أزهار متجمعة</text>`;
+  const ctl = stageCtl(SD_FT_ST, { dur: 30 });
+  return {
+    body, stages: SD_FT_ST, fnParts: ['sdSimple', 'sdAggr', 'sdMulti'],
+    parts: [
+      { id: 'sdFlw1', anchor: [XS - 50, YF + 26], label: [XS, YF + 132], side: 'C' },
+      { id: 'flOvary', anchor: [XS + 17, YF + 18], label: [XS + 60, YF + 8], side: 'C' },
+      { id: 'sdSimple', anchor: [XS + 40, T1 + 40], label: [XS, YR + 126], side: 'C' },
+      { id: 'sdFlwN', anchor: [XA - 56, YF + 30], label: [XA, YF + 132], side: 'C' },
+      { id: 'flReceptacle', anchor: [XA + 40, YF + 36], label: [XA + 82, YF + 74], side: 'C' },
+      { id: 'flCarpel', anchor: [XA, YF + 12], label: [XA, YF - 64], side: 'C' },
+      { id: 'sdAggr', anchor: [XA + 40, T1 + 20], label: [XA, YR + 110], side: 'C' },
+      { id: 'sdFlwM', anchor: [XM + 24, YF + 44], label: [XM, YF + 132], side: 'C' },
+      { id: 'sdMulti', anchor: [XM + 40, T1 + 44], label: [XM, YR + 110], side: 'C' }
+    ],
+    tools: ctl.tools.concat([{ id: 'tbl:sdFruitTypes', label: 'أنواع الثمار (ص86)' }]),
+    init(){ if (!still) ctl.start(); },
+    onSlider: v => ctl.onSlider(v), onTool: id => ctl.onTool(id),
+    tick(dt, t, a){ if (!still) ctl.tick(dt); stageShow(a, still ? 9 : STG.idx, still ? 1 : STG.k); if (!still) plBadgeTick(a, STG.idx, t); }
+  };
+}
+
 function sdTypes(still){
   const card = (x, y, t) => `<rect x="${x - 120}" y="${y - 122}" width="240" height="230" rx="16" fill="rgba(255,255,255,.04)" stroke="rgba(255,255,255,.18)"/>` +
     `<text class="cap sm" x="${x}" y="${y - 98}" text-anchor="middle" fill="#ffe2b0">${t}</text>`;
@@ -9004,46 +9090,89 @@ function huWorm(P, head){
   return `${huTube(P, '#d98a8a', 28)}<path d="${seg}" stroke="#b86868" stroke-width="1.3"/>
     <ellipse cx="${n2(c0[0])}" cy="${n2(c0[1])}" rx="30" ry="16" fill="#c25a6a" opacity=".9"/>`;
 }
+const HU_HERM_ST = [
+  { n: '1 · الخناث', d: 'الخناث حيوانات تمتلك أعضاء تكاثرية ذكرية وأنثوية في نفس الفرد وتستطيع إنتاج النطف والبيوض.' },
+  { n: '2 · أمثلة على الخناث', d: 'يحدث التكاثر الخنثي في اللافقريات: بعض الهيدرات، والديدان المسطحة كالدودة الشريطية، والديدان الحلقية كدودة الأرض، وأنواع من القشريات. أما في الفقريات فهو نادر وقليل الوضوح عدا الأسماك.' },
+  { n: '3 · تحاشي الإخصاب الذاتي (1): تبادل الخلايا التناسلية', d: 'تتحاشى الخناث الإخصاب الذاتي بتبادل خلاياها التناسلية مع بعضها؛ فبيوض دودة الأرض تخصب من قبل الفرد المقترن بها والعكس بالعكس.' },
+  { n: '4 · تحاشي الإخصاب الذاتي (2): النضج في أوقات متباينة', d: 'الطريقة الثانية لتحاشي الإخصاب الذاتي: نمو ونضج البيوض في أوقات متباينة (فلا تكون النطف والبيوض ناضجة في الوقت نفسه).' },
+  { n: '5 · الدودة الشريطية: إخصاب ذاتي', d: 'للديدان الشريطية القدرة على الإخصاب الذاتي كونها من الخناث، أي إن الأعضاء الذكرية والأنثوية على نفس الفرد لذلك تنتج نطفاً وبيوضاً.' }
+];
 function huHerm(still){
-  const WA = [[230, 160], [330, 150], [430, 160], [530, 158], [640, 150], [770, 158]];
-  const WB = [[770, 230], [670, 238], [570, 230], [470, 232], [360, 240], [230, 232]];
-  const exA = huMov('huExA', [[560, 172], [540, 195], [520, 218]], 3, () => `<circle r="3.4" fill="#7fb2ff" stroke="#fff" stroke-width=".8"/>`);
-  const exB = huMov('huExB', [[440, 218], [460, 195], [480, 172]], 3, () => `<circle r="3.4" fill="#ff9ec7" stroke="#fff" stroke-width=".8"/>`);
-  let tape = `<circle cx="250" cy="508" r="12" fill="#f2ead8" stroke="#c9b48a" stroke-width="2"/><circle cx="244" cy="503" r="3" fill="#c9b48a"/><circle cx="252" cy="514" r="3" fill="#c9b48a"/><path d="M262,508 L290,508" stroke="#f2ead8" stroke-width="8"/>`;
-  let x = 290; for (let i = 0; i < 12; i++){ const w = 14 + i * 3.2, h = 16 + i * 2.6; tape += `<rect x="${n2(x)}" y="${n2(508 - h / 2)}" width="${n2(w)}" height="${n2(h)}" rx="3" fill="#f2ead8" stroke="#c9b48a" stroke-width="1.6"/>`;
-    if (i >= 7){ for (let j = 0; j < 4; j++) tape += `<circle cx="${n2(x + 6 + (j % 2) * (w - 12))}" cy="${n2(508 - h / 4 + Math.floor(j / 2) * h / 2)}" r="2.6" fill="#7fb2ff"/>`;
-      tape += `<ellipse cx="${n2(x + w / 2)}" cy="508" rx="${n2(w * 0.22)}" ry="${n2(h * 0.16)}" fill="#ff9ec7"/>`; }
+  const ROW = [62, 178, 294, 410, 526], RH = 108, X0 = [290, 290, 60, 60, 60], X1 = 960;
+  const frame = i => `<g class="hmFrame" data-i="${i}"><rect x="${X0[i]}" y="${ROW[i]}" width="${X1 - X0[i]}" height="${RH}" rx="14" fill="rgba(255,255,255,.035)" stroke="rgba(255,255,255,.18)" stroke-width="2"/>
+    ${still ? '' : `<circle cx="${X1 - 16}" cy="${ROW[i] + 16}" r="14" fill="#ffd98a" stroke="#5a4a3a" stroke-width="2"/><text x="${X1 - 16}" y="${ROW[i] + 21}" text-anchor="middle" font-size="15" font-weight="800" fill="#2a1a10">${i + 1}</text>`}</g>`;
+  const ttl = (i, t) => `<text class="cap sm" x="${X1 - 40}" y="${ROW[i] + 22}" text-anchor="start" fill="#ffe2b0">${t}</text>`;
+  /* 1) دودة أرض خنثى: أعضاء ذكرية (أزرق) وأنثوية (وردي) في الفرد نفسه */
+  const yc = ROW[0] + 66, W0 = Array.from({ length: 9 }, (_, i) => [360 + i * 62, yc + Math.sin(i * 0.9) * 6]);
+  const w1 = huWorm(W0, true) + `<circle cx="${W0[8][0] + 6}" cy="${W0[8][1]}" r="3" fill="#5a2a2a"/>`;
+  const male = [[700, -6], [716, 6], [732, -6], [748, 6]].map(([x, dy]) => `<circle cx="${x}" cy="${yc + dy + Math.sin(x / 70) * 4}" r="6" fill="#7fb2ff" stroke="#fff" stroke-width="1.2"/>`).join('');
+  const fem = [[650, -4], [668, 6]].map(([x, dy]) => `<ellipse cx="${x}" cy="${yc + dy + Math.sin(x / 70) * 4}" rx="9" ry="7" fill="#ff9ec7" stroke="#fff" stroke-width="1.2"/>`).join('');
+  const r1 = part('huEarthworm', w1) + part('huMaleOrg', male) + part('huFemOrg', fem) +
+    `<text class="cap sm" x="740" y="${yc + 38}" text-anchor="middle" fill="#9fc8ff">ذكرية ← نطف</text><text class="cap sm" x="652" y="${yc + 38}" text-anchor="middle" fill="#ffb8d8">أنثوية ← بيوض</text>`;
+  /* 2) أمثلة: هيدرا، دودة شريطية، دودة أرض، قشريات، أسماك */
+  const yE = ROW[1] + 62;
+  const hydra = (x) => `<path d="M${x - 8},${yE + 30} Q${x - 10},${yE} ${x - 6},${yE - 16} L${x + 6},${yE - 16} Q${x + 10},${yE} ${x + 8},${yE + 30}Z" fill="#9fd08a" stroke="#d8ffc8" stroke-width="1.4"/>` +
+    [-1, -0.4, 0.4, 1].map(k => `<path d="M${x + k * 5},${yE - 16} q${k * 14},-14 ${k * 20},-6" fill="none" stroke="#9fd08a" stroke-width="2.4" stroke-linecap="round"/>`).join('');
+  const tapeI = (x) => { let s = `<circle cx="${x - 40}" cy="${yE}" r="5" fill="#f2ead8"/>`; let xx = x - 34; for (let i = 0; i < 8; i++){ const w = 6 + i * 1.4; s += `<rect x="${n2(xx)}" y="${n2(yE - 4 - i)}" width="${n2(w)}" height="${n2(8 + i * 2)}" rx="2" fill="#f2ead8" stroke="#c9b48a"/>`; xx += w + 1.5; } return s; };
+  const wormI = (x) => huWorm(Array.from({ length: 5 }, (_, i) => [x - 44 + i * 22, yE + Math.sin(i) * 4]), true).replace(/stroke-width="28"/g, 'stroke-width="12"');
+  const crab = (x) => `<ellipse cx="${x}" cy="${yE}" rx="22" ry="14" fill="#f08a5a" stroke="#ffd0b0" stroke-width="1.4"/>` + [-1, 1].map(sg => `<path d="M${x + sg * 20},${yE - 6} q${sg * 12},-12 ${sg * 18},-4 M${x + sg * 16},${yE + 8} l${sg * 12},10 M${x + sg * 8},${yE + 12} l${sg * 6},12" fill="none" stroke="#f08a5a" stroke-width="3" stroke-linecap="round"/>`).join('');
+  const fish = (x) => `<path d="M${x - 24},${yE} Q${x},${yE - 18} ${x + 22},${yE} Q${x},${yE + 18} ${x - 24},${yE}Z" fill="#7fc8e8" stroke="#d8f4ff" stroke-width="1.4"/><path d="M${x + 20},${yE} l14,-10 l0,20Z" fill="#7fc8e8"/><circle cx="${x - 12}" cy="${yE - 3}" r="2.4" fill="#123"/>`;
+  const EX = [[870, 'huHydra', hydra, 'بعض الهيدرات'], [750, 'huTapeworm', tapeI, 'الدودة الشريطية'], [620, 'huEarthworm', wormI, 'دودة الأرض'], [500, 'huCrust', crab, 'القشريات'], [380, 'huFishH', fish, 'الأسماك (فقريات)']];
+  const r2 = EX.map(([x, id, f, nm]) => part(id, f(x)) + `<text class="cap sm" x="${x}" y="${ROW[1] + 100}" text-anchor="middle">${nm}</text>`).join('') +
+    `<line x1="440" y1="${ROW[1] + 34}" x2="440" y2="${ROW[1] + 96}" stroke="rgba(255,255,255,.25)" stroke-dasharray="4 4"/>`;
+  /* 3) دودتان متقابلتان تتبادلان النطف */
+  const y3 = ROW[2] + 50, WA = [[150, y3 - 16], [260, y3 - 22], [370, y3 - 16], [480, y3 - 20], [590, y3 - 16], [720, y3 - 20]];
+  const WB = [[720, y3 + 22], [610, y3 + 28], [500, y3 + 22], [390, y3 + 26], [280, y3 + 22], [150, y3 + 26]];
+  const exA = huMov('huExA', [[520, y3 - 10], [500, y3 + 2], [480, y3 + 14]], 3, () => `<circle r="3.6" fill="#7fb2ff" stroke="#fff" stroke-width=".8"/>`);
+  const exB = huMov('huExB', [[400, y3 + 14], [420, y3 + 2], [440, y3 - 10]], 3, () => `<circle r="3.6" fill="#7fb2ff" stroke="#fff" stroke-width=".8"/>`);
+  const r3 = part('huEarthworm', huWorm(WA, true).replace(/stroke-width="28"/g, 'stroke-width="22"') + huWorm(WB, false).replace(/stroke-width="28"/g, 'stroke-width="22"')) +
+    part('huSpEx', `<path d="M520,${y3 - 8} L480,${y3 + 12} M400,${y3 + 12} L440,${y3 - 8}" stroke="#ffe08a" stroke-width="2" stroke-dasharray="4 4"/>`) + (still ? '' : exA.svg + exB.svg) +
+    `<text class="cap sm" x="440" y="${ROW[2] + 98}" text-anchor="middle">بيوض كل دودة تخصبها نطف الدودة الأخرى، والعكس بالعكس</text>`;
+  /* 4) خط زمني: نضج النطف ثم نضج البيوض في وقت آخر */
+  const y4 = ROW[3] + 78;
+  const r4 = part('huTimeMat', `<line x1="120" y1="${y4}" x2="760" y2="${y4}" stroke="#d8d0e8" stroke-width="2"/><path d="M760,${y4} l-9,-5 l0,10Z" fill="#d8d0e8"/>
+      <rect x="150" y="${y4 - 52}" width="250" height="22" rx="8" fill="#7fb2ff" opacity=".85"/><rect x="460" y="${y4 - 26}" width="250" height="22" rx="8" fill="#ff9ec7" opacity=".85"/>`) +
+    `<text class="cap sm" x="275" y="${y4 - 36}" text-anchor="middle">نضج النطف</text><text class="cap sm" x="585" y="${y4 - 10}" text-anchor="middle">نضج البيوض</text><text class="cap sm" x="790" y="${y4 + 5}" text-anchor="middle">الزمن</text>
+    <line id="huTm" x1="150" y1="${y4 - 60}" x2="150" y2="${y4}" stroke="#ffe08a" stroke-width="2"/>`;
+  /* 5) الدودة الشريطية: نطف وبيوض في القطعة نفسها وإخصاب ذاتي */
+  const y5 = ROW[4] + 60;
+  let tape = `<circle cx="190" cy="${y5}" r="12" fill="#f2ead8" stroke="#c9b48a" stroke-width="2"/><circle cx="184" cy="${y5 - 5}" r="3" fill="#c9b48a"/><circle cx="192" cy="${y5 + 6}" r="3" fill="#c9b48a"/><path d="M202,${y5} L222,${y5}" stroke="#f2ead8" stroke-width="8"/>`;
+  let x = 222; for (let i = 0; i < 13; i++){ const w = 14 + i * 3, h = 14 + i * 2.6; tape += `<rect x="${n2(x)}" y="${n2(y5 - h / 2)}" width="${n2(w)}" height="${n2(h)}" rx="3" fill="#f2ead8" stroke="#c9b48a" stroke-width="1.6"/>`;
+    if (i >= 8){ for (let j = 0; j < 4; j++) tape += `<circle cx="${n2(x + 6 + (j % 2) * (w - 12))}" cy="${n2(y5 - h / 4 + Math.floor(j / 2) * h / 2)}" r="2.6" fill="#7fb2ff"/>`;
+      tape += `<ellipse cx="${n2(x + w / 2)}" cy="${y5}" rx="${n2(w * 0.22)}" ry="${n2(h * 0.16)}" fill="#ff9ec7"/>`; }
     x += w + 2; }
-  const self = `<path d="M${n2(x - 40)},${n2(478)} q14,-22 28,0" fill="none" stroke="#ffd166" stroke-width="2.4"/><path d="M${n2(x - 12)},478 l-6,-6 m6,6 l-8,2" stroke="#ffd166" stroke-width="2.4" fill="none"/>`;
-  const body = `
-    ${part('huHerm', `<text class="cap" x="500" y="58" text-anchor="middle">التكاثر الخنثي: أعضاء ذكرية وأنثوية في نفس الفرد</text>`)}
-    <text class="cap sm" x="500" y="104" text-anchor="middle">كيف تتحاشى الخناث الإخصاب الذاتي؟</text>
-    ${part('huEarthworm', huWorm(WA, true) + huWorm(WB, false) + `<circle cx="776" cy="158" r="3" fill="#5a2a2a"/><circle cx="224" cy="232" r="3" fill="#5a2a2a"/>`)}
-    ${part('huSpEx', `<path d="M560,174 L520,216 M440,216 L480,174" stroke="#ffe08a" stroke-width="2" stroke-dasharray="4 4"/>`)}
-    ${still ? '' : exA.svg + exB.svg}
-    <text class="cap sm" x="500" y="284" text-anchor="middle">1) تبادل الخلايا التناسلية: بيوض كل دودة أرض تخصب من قبل الفرد المقترن بها والعكس بالعكس</text>
-    ${part('huTimeMat', `<line x1="260" y1="404" x2="742" y2="404" stroke="#d8d0e8" stroke-width="2"/><path d="M742,404 l-9,-5 l0,10Z" fill="#d8d0e8"/>
-      <rect x="282" y="334" width="200" height="22" rx="8" fill="#7fb2ff" opacity=".85"/><rect x="520" y="366" width="200" height="22" rx="8" fill="#ff9ec7" opacity=".85"/>`)}
-    <text class="cap sm" x="382" y="350" text-anchor="middle">نضج النطف</text><text class="cap sm" x="620" y="382" text-anchor="middle">نضج البيوض</text><text class="cap sm" x="756" y="420" text-anchor="middle">الزمن</text>
-    <line id="huTm" x1="282" y1="326" x2="282" y2="404" stroke="#ffe08a" stroke-width="2"/>
-    <text class="cap sm" x="500" y="434" text-anchor="middle">2) نمو ونضج البيوض (والنطف) في أوقات متباينة</text>
-    ${part('huTapeworm', tape + self)}
-    <text class="cap sm" x="500" y="568" text-anchor="middle">الدودة الشريطية خنثى قادرة على الإخصاب الذاتي (نطف ● وبيوض ● في نفس القطعة)</text>
-    <text class="cap sm" x="500" y="608" text-anchor="middle">اللافقريات: بعض الهيدرات، الديدان المسطحة (الشريطية)، الحلقية (دودة الأرض)، القشريات — الفقريات: نادرة عدا الأسماك</text>
-    <text class="cap sm" x="500" y="640" text-anchor="middle">الخناث (ص125): حيوانات تمتلك أعضاء تكاثرية ذكرية وأنثوية في نفس الفرد وتستطيع إنتاج النطف والبيوض</text>`;
+  const selfA = `<path d="M${n2(x - 48)},${y5 - 34} q16,-24 32,0" fill="none" stroke="#ffd166" stroke-width="2.6"/><path d="M${n2(x - 16)},${y5 - 34} l-6,-7 m6,7 l-9,2" stroke="#ffd166" stroke-width="2.6" fill="none"/>`;
+  const r5 = part('huTapeworm', tape + selfA) + `<text class="cap sm" x="${n2(x + 14)}" y="${y5 + 5}" text-anchor="end">نطف ● وبيوض ● في القطعة نفسها</text>`;
+  const body = `${[0, 1, 2, 3, 4].map(frame).join('')}
+    ${part('huHerm', ttl(0, 'الخناث: أعضاء ذكرية وأنثوية في نفس الفرد'))}${ttl(1, 'أمثلة')}${ttl(2, 'الطريقة 1: تبادل الخلايا التناسلية')}${ttl(3, 'الطريقة 2: النضج في أوقات متباينة')}${ttl(4, 'الدودة الشريطية تخصب نفسها')}
+    <g data-st="0">${r1}</g><g data-st="1">${r2}</g><g data-st="2">${r3}</g><g data-st="3">${r4}</g><g data-st="4">${r5}</g>
+    <text class="cap sm" x="500" y="664" text-anchor="middle">التكاثر الخنثي (ص125): الخناث تنتج النطف والبيوض، وأغلبها يتحاشى الإخصاب الذاتي بطريقتين</text>`;
+  const ctl = stageCtl(HU_HERM_ST, { dur: 30 });
   return {
-    body, fnParts: ['huSpEx', 'huTimeMat'],
+    body, stages: HU_HERM_ST, fnParts: ['huSpEx', 'huTimeMat'],
     parts: [
-      { id: 'huEarthworm', anchor: [770, 160], label: [866, 160], side: 'R' },
-      { id: 'huSpEx', anchor: [470, 196], label: [134, 196], side: 'L' },
-      { id: 'huTimeMat', anchor: [722, 377], label: [866, 377], side: 'R' },
-      { id: 'huTapeworm', anchor: [250, 520], label: [134, 510], side: 'L' }
+      { id: 'huHerm', anchor: [X1 - 60, ROW[0] + 18], label: [600, 44], side: 'C' },
+      { id: 'huMaleOrg', anchor: [748, yc + 6], label: [880, yc + 26], side: 'C' },
+      { id: 'huFemOrg', anchor: [650, yc - 8], label: [560, ROW[0] + 18], side: 'C' },
+      { id: 'huHydra', anchor: [870, yE - 16], label: [912, ROW[1] + 52], side: 'C' },
+      { id: 'huCrust', anchor: [500, yE - 14], label: [500, ROW[1] + 30], side: 'C' },
+      { id: 'huFishH', anchor: [380, yE - 10], label: [360, ROW[1] + 30], side: 'C' },
+      { id: 'huEarthworm', anchor: [720, y3 - 20], label: [866, y3 - 10], side: 'R' },
+      { id: 'huSpEx', anchor: [460, y3 + 2], label: [134, y3 + 2], side: 'L' },
+      { id: 'huTimeMat', anchor: [710, y4 - 15], label: [866, y4 - 20], side: 'R' },
+      { id: 'huTapeworm', anchor: [190, y5 + 12], label: [134, y5 + 30], side: 'L' }
     ],
-    tools: [{ id: 'info:huHerm', label: 'تعريف الخناث' }],
+    tools: ctl.tools.concat([{ id: 'info:huHerm', label: 'تعريف الخناث' }]),
+    init(){ if (!still) ctl.start(); },
+    onSlider: v => ctl.onSlider(v), onTool: id => ctl.onTool(id),
     tick(dt, t, a){
       if (still) return;
+      ctl.tick(dt); const s = STG.idx;
+      stageShow(a, s, STG.k);
+      a.all('.hmFrame').forEach(g => { const i = +g.dataset.i, on = i === s, r = g.querySelector('rect'); r.setAttribute('stroke', on ? '#ffd98a' : 'rgba(255,255,255,.18)'); r.setAttribute('stroke-width', on ? 4 : 2);
+        r.style.filter = on ? `drop-shadow(0 0 ${n2(4 + 3 * Math.sin(t * 4))}px #ffd98a)` : ''; const c = g.querySelector('circle'); if (c) c.setAttribute('r', on ? 18 : 14); });
       huMovTick(a, exA, t, 22); huMovTick(a, exB, t, 22);
-      const p = (t * 0.12) % 1, xm = 282 + p * 440, tm = a.el('#huTm'); if (tm){ tm.setAttribute('x1', n2(xm)); tm.setAttribute('x2', n2(xm)); }
+      const p = (t * 0.12) % 1, xm = 150 + p * 560, tm = a.el('#huTm'); if (tm){ tm.setAttribute('x1', n2(xm)); tm.setAttribute('x2', n2(xm)); }
     }
   };
 }
@@ -12303,6 +12432,58 @@ function fruitModel(B){
 }
 
 /* ═════════════ 7) أنواع الثمار وانتشارها (ص86–88) ═════════════ */
+/* ═════════════ تكوّن أنواع الثمار — خطوات (ص86) ═════════════
+   ثلاثة أعمدة (من اليمين): زهرة بمدقة واحدة ← مشمش، زهرة بكربلات منفصلة على تخت ← توت أسود،
+   أزهار متجمعة على محور ← أناناس. الخطوة القادمة مخفية، والحالية تتوهج. */
+function ftModel(B){
+  const X = [3.1, 0.85, -1.4], YF = 1.05, YR = -1.25, objs = [];
+  const A = (mesh, o, st) => { const r = B.add(mesh, Object.assign({ pop: false, center: [0, 0, 0] }, o)); r.st = st; objs.push(r); return r; };
+  const petals = (c, n, L, col, part, st, tilt) => A(merge(Array.from({ length: n }, (_, i) => { const a = i / n * 6.2832, d = norm([Math.cos(a), tilt || 0.35, Math.sin(a)]);
+    return place(ellipsoid({ r: [0.09, L, 0.03], rows: 5, cols: 8 }), { at: add(c, mul(d, L * 0.9)), dir: d }); })), fx(part, col, { rimColor: '#ffe0ea' }), st);
+  /* 1) زهرة بمدقة واحدة */
+  const c1 = [X[0], YF, 0];
+  A(tube({ pts: [add(c1, [0, -0.9, 0]), c1], r: 0.05, sides: 6 }), fx('sdFlw1', '#4f9a3a'), 0);
+  petals(c1, 5, 0.38, '#f59ab0', 'sdFlw1', 0);
+  A(merge([place(ellipsoid({ r: [0.16, 0.2, 0.16], rows: 10, cols: 12 }), { at: add(c1, [0, 0.12, 0]) }), tube({ pts: [add(c1, [0, 0.3, 0]), add(c1, [0, 0.62, 0])], r: 0.03, sides: 5 }), ball(0.06, add(c1, [0, 0.65, 0]), 8)]), fx('flOvary', '#9ae07a', { rimColor: '#e6ffcc' }), 0);
+  /* 2) مشمش */
+  A(merge([ball(0.55, [X[0], YR, 0], 16), tube({ pts: [[X[0], YR + 0.52, 0], [X[0] + 0.1, YR + 0.8, 0]], r: 0.04, sides: 5 })]), fx('sdSimple', '#f6a33a', { rimColor: '#ffe0a0' }), 1);
+  /* 3) زهرة بكربلات عديدة منفصلة على تخت محدب */
+  const c2 = [X[1], YF, 0];
+  A(tube({ pts: [add(c2, [0, -0.9, 0]), c2], r: 0.05, sides: 6 }), fx('sdFlwN', '#4f9a3a'), 2);
+  petals(c2, 5, 0.4, '#f7f0f6', 'sdFlwN', 2, 0.15);
+  A(place(ellipsoid({ r: [0.32, 0.22, 0.32], rows: 10, cols: 14 }), { at: add(c2, [0, 0.05, 0]) }), fx('flReceptacle', '#9bd26b', { rimColor: '#e0ffc0' }), 2);
+  A(merge(Array.from({ length: 14 }, (_, i) => { const a = i * 2.4, b = Math.acos(1 - (i + 0.5) / 14), d = [Math.cos(a) * Math.sin(b), Math.cos(b), Math.sin(a) * Math.sin(b)];
+    const p = add(c2, [d[0] * 0.3, 0.05 + d[1] * 0.22, d[2] * 0.3]); return merge([ball(0.06, p, 6), tube({ pts: [p, add(p, mul(norm(d), 0.12))], r: 0.012, sides: 4 })]); })), fx('flCarpel', '#5fbf45', { rimColor: '#e6ffcc' }), 2);
+  /* 4) توت أسود: ثمرات صغيرة كثيرة على تخت واحد */
+  A(merge(Array.from({ length: 40 }, (_, i) => { const a = i * 2.4, b = Math.acos(1 - 2 * (i + 0.5) / 40), d = [Math.cos(a) * Math.sin(b) * 0.45, Math.cos(b) * 0.58, Math.sin(a) * Math.sin(b) * 0.45]; return ball(0.12, add([X[1], YR, 0], d), 7); })), fx('sdAggr', '#3a1d4a', { rimColor: '#a080c0' }), 3);
+  /* 5) عدة أزهار صغيرة على محور */
+  const c3 = [X[2], YF, 0];
+  A(tube({ pts: [add(c3, [0, -0.95, 0]), add(c3, [0, 0.75, 0])], r: 0.05, sides: 6 }), fx('sdFlwM', '#4f9a3a'), 4);
+  Array.from({ length: 9 }, (_, i) => { const a = i * 2.2, y = -0.55 + i * 0.16, p = add(c3, [Math.cos(a) * 0.22, y, Math.sin(a) * 0.22]); petals(p, 5, 0.1, '#c07ad8', 'sdFlwM', 4, 0.6); });
+  /* 6) أناناس */
+  A(merge([place(ellipsoid({ r: [0.48, 0.7, 0.48], rows: 14, cols: 18 }), { at: [X[2], YR - 0.05, 0] })].concat(Array.from({ length: 36 }, (_, i) => { const a = i * 0.9, y = -0.55 + (i % 9) * 0.13, rr = 0.48 * Math.sqrt(Math.max(0.05, 1 - (y / 0.7) ** 2));
+    return place(ellipsoid({ r: [0.09, 0.07, 0.04], rows: 4, cols: 6 }), { at: [X[2] + Math.cos(a) * rr, YR - 0.05 + y, Math.sin(a) * rr] }); }))), fx('sdMulti', '#e6a93a', { rimColor: '#ffd28a' }), 5);
+  A(merge(Array.from({ length: 8 }, (_, i) => { const a = i * 0.785, d = norm([Math.cos(a) * 0.5, 1, Math.sin(a) * 0.5]); return place(ellipsoid({ r: [0.04, 0.32, 0.09], rows: 4, cols: 6 }), { at: add([X[2], YR + 0.62, 0], mul(d, 0.28)), dir: d }); })), fx('sdMulti', '#4f9a3a'), 5);
+  /* أسهم: ينمو المبيض ← ثمرة */
+  X.forEach((x, i) => A(merge([tube({ pts: [[x, YF - 0.98, 0.2], [x, YR + 0.98, 0.2]], r: 0.03, sides: 5 }), place(ellipsoid({ r: [0.08, 0.16, 0.08], rows: 5, cols: 8, disp: q => 1 - 0.85 * Math.max(0, q[1]) }), { at: [x, YR + 0.9, 0.2], dir: [0, -1, 0] })]), { color: '#ff9a5a', rim: 0.4 }, i * 2 + 1));
+  B.label('sdFlw1', add(c1, [-0.4, 0.05, 0]), [1, 0.2, 0.2], () => STG.idx >= 0);
+  B.label('flOvary', add(c1, [0.16, 0.14, 0.05]), [1, 0.5, 0.3]);
+  B.label('sdSimple', [X[0] + 0.55, YR, 0], [1, -0.2, 0.2], () => STG.idx >= 1);
+  B.label('flCarpel', add(c2, [0.1, 0.32, 0.1]), [0.3, 1, 0.3], () => STG.idx >= 2);
+  B.label('flReceptacle', add(c2, [0.32, 0, 0]), [1, -0.3, 0.2], () => STG.idx >= 2);
+  B.label('sdFlwN', add(c2, [-0.45, 0.1, 0]), [-0.3, 1, 0.2], () => STG.idx >= 2);
+  B.label('sdAggr', [X[1] + 0.5, YR, 0], [1, -0.2, 0.2], () => STG.idx >= 3);
+  B.label('sdFlwM', add(c3, [-0.25, 0.3, 0]), [-1, 0.2, 0.2], () => STG.idx >= 4);
+  B.label('sdMulti', [X[2] - 0.5, YR, 0], [-1, -0.2, 0.2], () => STG.idx >= 5);
+  const titles = [['ثمرة بسيطة', 'الباقلاء · الطماطة · الخيار · البرتقال · المشمش'], ['ثمرة متجمعة', 'التوت الأسود'], ['ثمرة مركبة (مضاعفة)', 'الأناناس']];
+  X.forEach((x, i) => { B.caption([x, YF + 1.05, 0], () => [titles[i][0]]); B.caption([x, YR - 0.95, 0], () => STG.idx >= i * 2 + 1 ? [titles[i][1]] : ['']); });
+  [[X[0], YF], [X[0], YR], [X[1], YF], [X[1], YR], [X[2], YF], [X[2], YR]].forEach(([x, y], i) => B.caption([x + 0.95, y + 0.55, 0], () => [STG.idx === i ? '◀ ' + (i + 1) + ' ▶' : String(i + 1)]));
+  let last = -1;
+  return { dist: 10.4, yaw: 0, pitch: 0.1, target: [0.75, -0.05, 0], live2d: true,
+    anim(t){ const s = STG.idx; if (s !== last){ last = s; objs.forEach(o => { o.hide = o.st > s; }); }
+      objs.forEach(o => { if (o.st === s) o.glow = 0.45 + 0.4 * Math.sin(t * 4); }); } };
+}
+
 function typesModel(B){
   const X = [-2.4, 0, 2.4], Y1 = 1.0, Y2 = -1.4;
   /* بسيطة: ثمرة واحدة من مبيض واحد (مشمش) */
@@ -12338,7 +12519,7 @@ function typesModel(B){
     anim(t){ B.update(windO, wind(t)); B.update(cocoO, coco(t)); } };
 }
 
-Object.assign(G3.models, { sdp_sdpPol: polModel, sdp_sdpTube: tubeModel, sdp_sdpFert: fertModel, sdp_sdpEmb: embModel, sds_sdsSeed: seedsModel, sds_sdsFruit: fruitModel, sds_sdsTypes: typesModel });
+Object.assign(G3.models, { sdp_sdpPol: polModel, sdp_sdpTube: tubeModel, sdp_sdpFert: fertModel, sdp_sdpEmb: embModel, sds_sdsSeed: seedsModel, sds_sdsFruit: fruitModel, sds_sdsTypes: typesModel, sds_sdsFT: ftModel });
 })();
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -12792,30 +12973,51 @@ function ovcModel(B){
 /* ═════════════ 6) التكاثر الخنثي (ص125) ═════════════ */
 const worm = (P, r, seg) => merge([tube({ pts: P, r: u => r * (1 - 0.35 * Math.abs(u - 0.4)), sides: 10 })].concat(seg ? P.filter((_, i) => i % 2 === 0).map(p => place(ellipsoid({ r: [r * 1.05, r * 1.05, 0.02], rows: 4, cols: 12 }), { at: p })) : []));
 function hermModel(B){
-  /* دودتا أرض متقابلتان رأساً لذيل تتبادلان الخلايا التناسلية */
-  const W1 = Array.from({ length: 21 }, (_, i) => [-2.2 + i * 0.22, 1.2 + Math.sin(i * 0.4) * 0.08, 0.18]);
-  const W2 = Array.from({ length: 21 }, (_, i) => [2.2 - i * 0.22, 1.2 + Math.sin(i * 0.4 + 1) * 0.08, -0.18]);
-  B.add(merge([worm(W1, 0.16), worm(W2, 0.16)]), fx('huEarthworm', '#d88a8a', { rimColor: '#ffd8d8' }));
-  B.add(merge([place(capsule({ r: 0.2, len: 0.45, rows: 4, cols: 14 }), { rot: [0, 0, Math.PI / 2], at: [-1.0, 1.2, 0.18] }), place(capsule({ r: 0.2, len: 0.45, rows: 4, cols: 14 }), { rot: [0, 0, Math.PI / 2], at: [1.0, 1.2, -0.18] })]), fx('huEarthworm', '#b8606a'));
-  const ex = t => merge(Array.from({ length: 10 }, (_, i) => { const u = (t * 0.4 + i / 10) % 1, sg = i % 2 ? 1 : -1; return ball(0.06, [sg * (0.7 - 1.4 * u), 1.2, sg * (0.18 - 0.36 * u)], 6); }));
-  const exO = B.add(ex(0), fx('huSpEx', '#ffffff', { pop: false, center: [0, 1.2, 0] }));
-  /* مادة مخاطية تربط الدودتين أثناء التبادل */
-  B.add(place(capsule({ r: 0.32, len: 1.4, rows: 4, cols: 16 }), { rot: [0, 0, Math.PI / 2], at: [0, 1.2, 0] }), fx('huSpEx', '#e8f4ff', { alpha: 0.3, shell: { size: 1.2 } }));
-  /* النضج في أوقات متباينة: منطقة الخصى تنضج قبل منطقة المبايض في الدودة نفسها */
-  const W3 = Array.from({ length: 21 }, (_, i) => [-2.0 + i * 0.2, 0, 0]);
-  B.add(worm(W3, 0.14), { color: '#e0a0a0', rim: 0.5 });
-  const zone = x => place(capsule({ r: 0.17, len: 0.3, rows: 4, cols: 14 }), { rot: [0, 0, Math.PI / 2], at: [x, 0, 0] });
-  const tm = B.add(merge([zone(-0.6), zone(0.5)]), fx('huTimeMat', '#7aa0f0', { pop: false }));
-  /* الدودة الشريطية: قطع تحمل كل منها أعضاء ذكرية وأنثوية */
-  const TP = [-2.4, -1.3, 0];
-  B.add(merge([ball(0.12, TP, 8)].concat(Array.from({ length: 14 }, (_, i) => place(G3.superEll({ h: [0.1 + i * 0.008, 0.06, 0.12 + i * 0.012], e: 0.3, rows: 4, cols: 10 }), { at: add(TP, [0.25 + i * (0.24 + i * 0.008), Math.sin(i * 0.5) * 0.05, 0]) })))), fx('huTapeworm', '#f2ead0', { rimColor: '#ffffff' }));
-  B.label('huEarthworm', [-1.6, 1.35, 0.2], [-0.5, 1, 0.2]);
-  B.label('huSpEx', [0, 1.25, 0.1], [0, 1, 0.4]);
-  B.label('huTimeMat', [0.5, 0.15, 0], [0.5, 1, 0.3]);
-  B.label('huTapeworm', [1.0, -1.25, 0.1], [0.5, -1, 0.3]);
-  B.caption([0, -2.0, 0], () => ['التكاثر الخنثي: أعضاء ذكرية وأنثوية في الفرد نفسه', 'دودة الأرض تتبادل النطف ولا تخصب نفسها (تنضج أعضاؤها في أوقات متباينة) · الدودة الشريطية تخصب نفسها']);
-  return { dist: 8.6, yaw: 0.2, pitch: 0.3, target: [0, 0, 0], live2d: true,
-    anim(t){ B.update(exO, ex(t)); const ph = (t * 0.25) % 1; tm.col = ph < 0.5 ? [0.48, 0.63, 0.94] : [0.94, 0.55, 0.7]; } };
+  /* خمسة صفوف مرقّمة مثل الرسم المسطّح: الصف الحالي يتوهج والقادم باهت */
+  const RY = [2.3, 1.15, 0, -1.15, -2.3], rows = [[], [], [], [], []];
+  const A = (i, mesh, o) => { const r = B.add(mesh, Object.assign({ pop: false, center: [0, RY[i], 0] }, o)); rows[i].push(r); return r; };
+  const line = (y, x0, x1, n, amp, z) => Array.from({ length: n }, (_, i) => [x0 + (x1 - x0) * i / (n - 1), y + Math.sin(i * 0.6) * (amp || 0.05), z || 0]);
+  /* 1) دودة خنثى: أعضاء ذكرية (أزرق) وأنثوية (وردي) */
+  A(0, worm(line(RY[0], -2.2, 2.2, 21), 0.16), fx('huEarthworm', '#d88a8a', { rimColor: '#ffd8d8' }));
+  A(0, merge([0.95, 1.15, 1.35, 1.55].map(x => ball(0.07, [x, RY[0] + 0.05, 0.15], 8))), fx('huMaleOrg', '#7fb2ff', { rimColor: '#ffffff' }));
+  A(0, merge([0.45, 0.68].map(x => place(ellipsoid({ r: [0.1, 0.08, 0.08], rows: 6, cols: 8 }), { at: [x, RY[0] + 0.05, 0.15] }))), fx('huFemOrg', '#ff9ec7', { rimColor: '#ffffff' }));
+  /* 2) أمثلة */
+  const y2 = RY[1], EXX = [2.2, 1.1, 0, -1.1, -2.2];
+  A(1, merge([place(capsule({ r: 0.1, len: 0.45, rows: 4, cols: 10 }), { at: [EXX[0], y2, 0] })].concat([-1, -0.4, 0.4, 1].map(k => tube({ pts: [[EXX[0] + k * 0.05, y2 + 0.3, 0], [EXX[0] + k * 0.2, y2 + 0.5, 0], [EXX[0] + k * 0.28, y2 + 0.42, 0]], r: 0.02, sides: 4 })))), fx('huHydra', '#9fd08a', { rimColor: '#e0ffd0' }));
+  A(1, merge([ball(0.06, [EXX[1] - 0.45, y2, 0], 6)].concat(Array.from({ length: 9 }, (_, i) => place(G3.superEll({ h: [0.04 + i * 0.004, 0.03, 0.05 + i * 0.007], e: 0.3, rows: 3, cols: 8 }), { at: [EXX[1] - 0.35 + i * 0.1, y2, 0] })))), fx('huTapeworm', '#f2ead8', { rimColor: '#ffffff' }));
+  A(1, worm(line(y2, EXX[2] - 0.45, EXX[2] + 0.45, 9, 0.03), 0.08), fx('huEarthworm', '#d88a8a', { rimColor: '#ffd8d8' }));
+  A(1, merge([place(ellipsoid({ r: [0.28, 0.12, 0.2], rows: 8, cols: 12 }), { at: [EXX[3], y2, 0] })].concat([-1, 1].flatMap(sg => [0, 1, 2].map(j => tube({ pts: [[EXX[3] + sg * 0.2, y2 - 0.02, -0.1 + j * 0.1], [EXX[3] + sg * 0.42, y2 - 0.14, -0.15 + j * 0.15]], r: 0.025, sides: 4 }))))), fx('huCrust', '#f08a5a', { rimColor: '#ffd0b0' }));
+  A(1, merge([place(ellipsoid({ r: [0.3, 0.13, 0.08], rows: 8, cols: 12 }), { at: [EXX[4], y2, 0] }), place(ellipsoid({ r: [0.03, 0.14, 0.1], rows: 4, cols: 6 }), { at: [EXX[4] + 0.33, y2, 0] })]), fx('huFishH', '#7fc8e8', { rimColor: '#e0f6ff' }));
+  /* 3) دودتان متقابلتان تتبادلان الخلايا التناسلية */
+  A(2, merge([worm(line(RY[2] + 0.18, -2.2, 2.2, 21, 0.04, 0.12), 0.14), worm(line(RY[2] - 0.18, 2.2, -2.2, 21, 0.04, -0.12), 0.14)]), fx('huEarthworm', '#d88a8a', { rimColor: '#ffd8d8' }));
+  const ex = t => merge(Array.from({ length: 10 }, (_, i) => { const u = (t * 0.4 + i / 10) % 1, sg = i % 2 ? 1 : -1; return ball(0.05, [sg * (0.6 - 1.2 * u), RY[2] + sg * (0.18 - 0.36 * u), 0.15], 6); }));
+  const exO = A(2, ex(0), fx('huSpEx', '#7fb2ff', { rimColor: '#ffffff' }));
+  /* 4) دودة: منطقة النطف تنضج ثم منطقة البيوض في وقت آخر */
+  A(3, worm(line(RY[3], -2.0, 2.0, 21, 0.03), 0.13), { color: '#e0a0a0', rim: 0.5 });
+  const zM = A(3, place(capsule({ r: 0.16, len: 0.35, rows: 4, cols: 14 }), { rot: [0, 0, Math.PI / 2], at: [0.9, RY[3], 0] }), fx('huTimeMat', '#7fb2ff'));
+  const zF = A(3, place(capsule({ r: 0.16, len: 0.35, rows: 4, cols: 14 }), { rot: [0, 0, Math.PI / 2], at: [-0.4, RY[3], 0] }), fx('huTimeMat', '#ff9ec7'));
+  /* 5) الدودة الشريطية */
+  const TP = [-2.2, RY[4], 0];
+  A(4, merge([ball(0.12, TP, 8)].concat(Array.from({ length: 13 }, (_, i) => place(G3.superEll({ h: [0.1 + i * 0.008, 0.06, 0.12 + i * 0.012], e: 0.3, rows: 4, cols: 10 }), { at: add(TP, [0.25 + i * 0.27, 0, 0]) })))), fx('huTapeworm', '#f2ead8', { rimColor: '#ffffff' }));
+  A(4, merge(Array.from({ length: 5 }, (_, i) => merge([ball(0.035, add(TP, [2.5 + i * 0.27, 0.05, 0.13]), 5), ball(0.05, add(TP, [2.5 + i * 0.27, -0.05, 0.13]), 6)]))), fx('huTapeworm', '#ff9ec7'));
+  B.label('huMaleOrg', [1.25, RY[0] + 0.1, 0.2], [1, 0.6, 0.2]);
+  B.label('huFemOrg', [0.55, RY[0] + 0.1, 0.2], [0.2, 1, 0.2]);
+  B.label('huEarthworm', [-1.8, RY[0] + 0.1, 0.1], [-1, 0.4, 0.2]);
+  B.label('huHydra', [EXX[0], y2 + 0.5, 0], [0.4, 1, 0.2]);
+  B.label('huCrust', [EXX[3], y2 + 0.1, 0.1], [0, 1, 0.2]);
+  B.label('huFishH', [EXX[4] - 0.2, y2, 0.05], [-1, 0.3, 0.2]);
+  B.label('huSpEx', [0, RY[2], 0.15], [0, -1, 0.4]);
+  B.label('huTimeMat', [0.9, RY[3] + 0.15, 0], [1, 0.5, 0.3]);
+  B.label('huTapeworm', [-2.2, RY[4] - 0.1, 0.1], [-1, -0.4, 0.2]);
+  const T = ['الخناث: أعضاء ذكرية وأنثوية في نفس الفرد', 'أمثلة على الخناث', 'الطريقة 1: تبادل الخلايا التناسلية', 'الطريقة 2: النضج في أوقات متباينة', 'الدودة الشريطية تخصب نفسها'];
+  RY.forEach((y, i) => B.caption([2.75, y + 0.05, 0], () => [STG.idx === i ? '◀ ' + (i + 1) + ' ▶' : String(i + 1)]));
+  RY.forEach((y, i) => B.caption([0, y + 0.42, 0], () => [STG.idx === i ? T[i] : '']));
+  let last = -1;
+  return { dist: 11.4, yaw: 0, pitch: 0.08, target: [0.2, 0, 0], live2d: true,
+    anim(t){ const s = STG.idx;
+      if (s !== last){ last = s; rows.forEach((R, i) => R.forEach(o => { if (o.base === undefined) o.base = o.alpha; o.alpha = i <= s ? o.base : o.base * 0.4; })); }
+      rows[s].forEach(o => { o.glow = 0.4 + 0.35 * Math.sin(t * 4); });
+      B.update(exO, ex(t)); const ph = (t * 0.25) % 1; zM.hide = ph >= 0.5; zF.hide = ph < 0.5; } };
 }
 
 /* ═════════════ 7) الدورة المبيضية والرحمية (ص117–121) — ثلاث محطات تتحرك مع اليوم ═════════════

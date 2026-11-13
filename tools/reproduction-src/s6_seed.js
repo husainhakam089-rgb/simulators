@@ -12,6 +12,7 @@ const SD_VIEWS_P = [
 const SD_VIEWS_S = [
   { id: 'sdsSeed',  label: 'تركيب البذرة' },
   { id: 'sdsFruit', label: 'تركيب الثمرة' },
+  { id: 'sdsFT',    label: 'تكوّن أنواع الثمار' },
   { id: 'sdsTypes', label: 'أنواع الثمار والانتشار' }
 ];
 
@@ -30,12 +31,12 @@ SCENES.sdPollin = {
 };
 SCENES.sdSeedFruit = {
   title: 'البذرة والثمرة',
-  get src(){ return ({ sdsSeed: 'ملزمة ص77–79', sdsFruit: 'ملزمة ص82–86', sdsTypes: 'ملزمة ص86–88' })[SEL.sdsv] || 'ملزمة ص77'; },
+  get src(){ return ({ sdsSeed: 'ملزمة ص77–79', sdsFruit: 'ملزمة ص82–86', sdsFT: 'ملزمة ص82 وص86', sdsTypes: 'ملزمة ص86–88' })[SEL.sdsv] || 'ملزمة ص77'; },
   tint: ['rgba(210,140,70,.24)', 'rgba(110,160,90,.15)'],
   model3d: () => 'sds_' + (SD_VIEWS_S.some(x => x.id === SEL.sdsv) ? SEL.sdsv : 'sdsSeed'),
   build(){
     const v = SD_VIEWS_S.some(x => x.id === SEL.sdsv) ? SEL.sdsv : 'sdsSeed';
-    const s = v === 'sdsFruit' ? sdFruit() : v === 'sdsTypes' ? sdTypes() : sdSeeds();
+    const s = v === 'sdsFruit' ? sdFruit() : v === 'sdsTypes' ? sdTypes() : v === 'sdsFT' ? sdFTypes() : sdSeeds();
     s.rebuildOnRadio = 'sdsv';
     s.tools = SD_VIEWS_S.map(x => ({ id: x.id, label: x.label, radio: 'sdsv', on: x.id === v })).concat(s.tools || []);
     return s;
@@ -51,6 +52,7 @@ SCENES.sd_seeds  = { title: 'تركيب البذور (شكل 3-19)', build: () =
 SCENES.sd_seedM  = { title: 'تركيب بذرة ذوات الفلقة الواحدة', build: () => sdSeedOne('m') };
 SCENES.sd_seedD  = { title: 'تركيب بذرة ذوات الفلقتين', build: () => sdSeedOne('d') };
 SCENES.sd_fruit  = { title: 'تركيب الثمرة', build: () => sdFruit(true) };
+SCENES.sd_ftypes = { title: 'تكوّن الثمار البسيطة والمتجمعة والمركبة', build: () => sdFTypes(true) };
 SCENES.sd_types  = { title: 'أنواع الثمار وانتشارها', build: () => sdTypes(true) };
 
 /* ───────── أدوات مشتركة ───────── */
@@ -640,6 +642,82 @@ function sdFruit(still){
 }
 
 /* ═════════ 7) أنواع الثمار وانتشار الثمار والبذور — ملزمة ص86–88 ═════════ */
+/* ───────── تكوّن أنواع الثمار خطوة بخطوة (ص82 وص86) ─────────
+   ثلاثة أعمدة من اليمين: بسيطة · متجمعة · مركبة. في كل عمود الزهرة (أو الأزهار) أولاً،
+   ثم ينمو المبيض ويتحول إلى ثمرة، ومثال كل نوع من الملزمة. */
+const SD_FT_ST = [
+  { n: '1 · ثمرة بسيطة: زهرة واحدة', d: 'تبدأ الثمرة البسيطة من زهرة واحدة ذات كربلة واحدة أو عدة كربلات ملتحمة (مدقة واحدة في وسط الزهرة).' },
+  { n: '2 · ثمرة بسيطة: ثمرة واحدة', d: 'ينمو المبيض ويتحول إلى ثمرة، فتنتج ثمرة واحدة من الزهرة الواحدة، كما في الباقلاء والطماطة والخيار والبرتقال والمشمش.' },
+  { n: '3 · ثمرة متجمعة: زهرة واحدة بكربلات عديدة', d: 'تبدأ الثمرة المتجمعة من زهرة واحدة ذات كربلات عديدة منفصلة موجودة على تخت واحد.' },
+  { n: '4 · ثمرة متجمعة: ثمرات صغيرة على تخت واحد', d: 'تنمو كل كربلة إلى ثمرة صغيرة، وترتبط الثمرات معاً بتخت واحد، كما في التوت الأسود.' },
+  { n: '5 · ثمرة مركبة: عدة أزهار متجمعة', d: 'تبدأ الثمرة المركبة (المضاعفة) من عدة أزهار متجمعة وليس من زهرة واحدة.' },
+  { n: '6 · ثمرة مركبة: ثمرات مرتبطة عند النضج', d: 'تنشأ من كل زهرة ثمرة، وتبقى الثمرات مرتبطة مع بعضها عند النضج فتبدو ثمرة واحدة، كما في الأناناس.' }
+];
+function sdFTypes(still){
+  const XS = 810, XA = 590, XM = 370, YF = 215, YR = 488;
+  const petal = (x, y, a, L, W, col) => `<ellipse cx="${n2(x + Math.cos(a) * L * 0.55)}" cy="${n2(y + Math.sin(a) * L * 0.55)}" rx="${n2(L * 0.55)}" ry="${W}" transform="rotate(${n2(a * 57.3)} ${n2(x + Math.cos(a) * L * 0.55)} ${n2(y + Math.sin(a) * L * 0.55)})" fill="${col}" stroke="#ffd3de" stroke-width="1.2"/>`;
+  /* زهرة بسيطة: مدقة واحدة (المبيض منتفخ) */
+  const fl1 = `<path d="M${XS},${YF + 110} Q${XS + 6},${YF + 80} ${XS},${YF + 44}" stroke="#4f9a3a" stroke-width="6" fill="none"/>` +
+    [-2.5, -0.64].map(a => petal(XS, YF + 40, a, 60, 16, '#f59ab0')).join('') + petal(XS, YF + 40, -1.57, 54, 15, '#f7a9bc') +
+    `<ellipse cx="${XS}" cy="${YF + 44}" rx="28" ry="11" fill="#5fae45" stroke="#c8f0a0" stroke-width="1.5"/>` +
+    [-1, 1].map(sg => `<line x1="${XS + sg * 14}" y1="${YF + 36}" x2="${XS + sg * 30}" y2="${YF - 26}" stroke="#e8e070" stroke-width="2.4"/><ellipse cx="${XS + sg * 31}" cy="${YF - 32}" rx="6" ry="9" fill="#f7c531"/>`).join('');
+  const pis1 = `<ellipse cx="${XS}" cy="${YF + 18}" rx="17" ry="22" fill="#9ae07a" stroke="#e6ffcc" stroke-width="2"/><line x1="${XS}" y1="${YF - 4}" x2="${XS}" y2="${YF - 52}" stroke="#7fcf5f" stroke-width="4"/><circle cx="${XS}" cy="${YF - 56}" r="7" fill="#c8f0a0"/>`;
+  /* زهرة بكربلات عديدة منفصلة على تخت محدب */
+  const dome = `<path d="M${XA - 46},${YF + 42} Q${XA},${YF - 30} ${XA + 46},${YF + 42}Z" fill="#9bd26b" stroke="#e0ffc0" stroke-width="2"/>`;
+  let carp = ''; [[-30, 26], [-18, 6], [0, -2], [18, 6], [30, 26], [-10, 24], [10, 24], [-22, 36], [22, 36], [0, 14]].forEach(([dx, dy]) => {
+    carp += `<ellipse cx="${XA + dx}" cy="${YF + dy}" rx="6" ry="8" fill="#5fbf45" stroke="#e6ffcc" stroke-width="1.2"/><line x1="${XA + dx}" y1="${YF + dy - 8}" x2="${XA + dx * 1.15}" y2="${YF + dy - 20}" stroke="#7fcf5f" stroke-width="2"/>`; });
+  const flN = `<path d="M${XA},${YF + 112} L${XA},${YF + 44}" stroke="#4f9a3a" stroke-width="6"/>` + [-2.7, -0.44, -1.57].map(a => petal(XA, YF + 44, a, 62, 15, '#f7f0f6')).join('') + `<ellipse cx="${XA}" cy="${YF + 46}" rx="34" ry="9" fill="#5fae45"/>`;
+  /* عدة أزهار صغيرة متجمعة على محور واحد */
+  let flM = `<line x1="${XM}" y1="${YF + 115}" x2="${XM}" y2="${YF - 70}" stroke="#4f9a3a" stroke-width="7" stroke-linecap="round"/>`;
+  const tiny = (x, y) => [0, 1, 2, 3, 4].map(i => { const a = i * 1.2566 - 1.57; return `<ellipse cx="${n2(x + Math.cos(a) * 8)}" cy="${n2(y + Math.sin(a) * 8)}" rx="7" ry="4" transform="rotate(${n2(a * 57.3)} ${n2(x + Math.cos(a) * 8)} ${n2(y + Math.sin(a) * 8)})" fill="#c07ad8" stroke="#f0d0ff" stroke-width="1"/>`; }).join('') + `<circle cx="${x}" cy="${y}" r="4.5" fill="#ffd166"/>`;
+  [[-26, -54], [24, -40], [-28, -14], [26, 2], [-26, 28], [24, 44], [-22, 70], [0, -76]].forEach(([dx, dy]) => { flM += `<line x1="${XM}" y1="${YF + dy + 6}" x2="${XM + dx * 0.8}" y2="${YF + dy}" stroke="#4f9a3a" stroke-width="2"/>` + tiny(XM + dx, YF + dy); });
+  /* الثمار */
+  const T1 = YR;
+  const apricot = `<path d="M${XS},${T1 - 52} Q${XS + 10},${T1 - 75} ${XS + 32},${T1 - 80}" fill="none" stroke="#6a4a2a" stroke-width="4"/>` +
+    `<path d="${smoothClosed([[XS + 32, T1 - 80], [XS + 62, T1 - 92], [XS + 70, T1 - 74], [XS + 40, T1 - 70]])}" fill="#5fae45" stroke="#2f6f25"/>` +
+    `<circle cx="${XS}" cy="${T1 + 4}" r="56" fill="#f5a742" stroke="#ffd59a" stroke-width="2"/><path d="M${XS - 4},${T1 - 50} Q${XS - 24},${T1 + 4} ${XS - 4},${T1 + 58}" fill="none" stroke="#d9802a" stroke-width="3"/>`;
+  const g = rng(5); let dr = '';
+  for (let r = 0; r < 5; r++) for (let c = 0; c < 4 + (r % 2); c++){ const x = XA - (3 + (r % 2)) * 11 + c * 22 + (g() - 0.5) * 3, y = T1 - 30 + r * 19;
+    if ((x - XA) ** 2 / 2500 + (y - T1 - 8) ** 2 / 2900 > 1) continue;
+    dr += `<circle cx="${n2(x)}" cy="${n2(y)}" r="11.5" fill="#3a1d4a" stroke="#6a3a80" stroke-width="1.4"/><circle cx="${n2(x - 3.5)}" cy="${n2(y - 3.5)}" r="3" fill="#a080c0" opacity=".7"/>`; }
+  const berry = `<path d="M${XA},${T1 - 58} L${XA},${T1 - 82}" stroke="#4f8a35" stroke-width="4"/>` + [-40, -14, 14, 40].map(d => `<path d="${smoothClosed([[XA, T1 - 52], [XA + d, T1 - 64], [XA + d * 1.3, T1 - 48]])}" fill="#5fae45" stroke="#2f6f25"/>`).join('') + dr;
+  let pl = ''; for (let k = -5; k <= 5; k++) pl += `<line x1="${XM + k * 18 - 60}" y1="${T1 - 50}" x2="${XM + k * 18 + 60}" y2="${T1 + 90}" stroke="#a8701a" stroke-width="1.6"/><line x1="${XM + k * 18 + 60}" y1="${T1 - 50}" x2="${XM + k * 18 - 60}" y2="${T1 + 90}" stroke="#a8701a" stroke-width="1.6"/>`;
+  const pine = `<clipPath id="sdFtPine"><ellipse cx="${XM}" cy="${T1 + 14}" rx="48" ry="62"/></clipPath><ellipse cx="${XM}" cy="${T1 + 14}" rx="48" ry="62" fill="#e6a93a"/><g clip-path="url(#sdFtPine)">${pl}</g>` +
+    `<ellipse cx="${XM}" cy="${T1 + 14}" rx="48" ry="62" fill="none" stroke="#ffd28a" stroke-width="2"/>` +
+    [-32, -18, -6, 6, 18, 32].map((d, i) => `<path d="M${XM},${T1 - 44} Q${XM + d * 0.6},${T1 - 70} ${XM + d},${T1 - 90 + Math.abs(d) * 0.6}" fill="none" stroke="${i % 2 ? '#4f9a3a' : '#6fbf4a'}" stroke-width="6" stroke-linecap="round"/>`).join('');
+  const arrow = (x, st) => `<g data-st="${st}">${gArrow(x, YF + 152, x, YR - 96, '#ff9a5a')}</g>`;
+  const head = (x, t, sub) => `<text class="cap" x="${x}" y="78" text-anchor="middle" fill="#ffe2b0">${t}</text><text class="cap sm" x="${x}" y="98" text-anchor="middle">${sub}</text>`;
+  const ex = (x, t, st) => `<g data-st="${st}"><text class="cap sm" x="${x}" y="${YR + 88}" text-anchor="middle" fill="#cfe8ff">${t}</text></g>`;
+  const col = x => `<rect x="${x - 106}" y="52" width="212" height="566" rx="16" fill="rgba(255,255,255,.035)" stroke="rgba(255,255,255,.14)"/>`;
+  const badge = (x, y, i) => still ? '' : `<g class="plBadge" data-i="${i}" pointer-events="none"><circle cx="${x}" cy="${y}" r="14" fill="#ffd98a" stroke="#5a4a3a" stroke-width="2"/><text x="${x}" y="${y + 5}" text-anchor="middle" font-size="15" font-weight="800" fill="#2a1a10">${i + 1}</text></g>`;
+  const body = `${col(XS)}${col(XA)}${col(XM)}
+    ${head(XS, 'ثمرة بسيطة', 'زهرة واحدة · كربلة واحدة أو ملتحمة')}${head(XA, 'ثمرة متجمعة', 'زهرة واحدة · كربلات عديدة منفصلة')}${head(XM, 'ثمرة مركبة (مضاعفة)', 'عدة أزهار متجمعة')}
+    <g data-st="0">${part('sdFlw1', fl1)}${part('flOvary', pis1)}</g>${arrow(XS, 1)}<g data-st="1">${part('sdSimple', apricot)}</g>${ex(XS, 'الباقلاء · الطماطة · الخيار', 1)}<g data-st="1"><text class="cap sm" x="${XS}" y="${YR + 104}" text-anchor="middle" fill="#cfe8ff">البرتقال · المشمش</text></g>
+    <g data-st="2">${part('sdFlwN', flN)}${part('flReceptacle', dome)}${part('flCarpel', carp)}</g>${arrow(XA, 3)}<g data-st="3">${part('sdAggr', berry)}</g>${ex(XA, 'التوت الأسود', 3)}
+    <g data-st="4">${part('sdFlwM', flM)}</g>${arrow(XM, 5)}<g data-st="5">${part('sdMulti', pine)}</g>${ex(XM, 'الأناناس', 5)}
+    ${badge(XS + 86, YF - 60, 0)}${badge(XS + 86, YR - 60, 1)}${badge(XA + 86, YF - 60, 2)}${badge(XA + 86, YR - 60, 3)}${badge(XM + 86, YF - 60, 4)}${badge(XM + 86, YR - 60, 5)}
+    <text class="cap sm" x="500" y="660" text-anchor="middle">أنواع الثمار (ص86): البسيطة والمتجمعة من زهرة واحدة، والمركبة من عدة أزهار متجمعة</text>`;
+  const ctl = stageCtl(SD_FT_ST, { dur: 30 });
+  return {
+    body, stages: SD_FT_ST, fnParts: ['sdSimple', 'sdAggr', 'sdMulti'],
+    parts: [
+      { id: 'sdFlw1', anchor: [XS - 50, YF + 26], label: [XS, YF + 132], side: 'C' },
+      { id: 'flOvary', anchor: [XS + 17, YF + 18], label: [XS + 60, YF + 8], side: 'C' },
+      { id: 'sdSimple', anchor: [XS + 40, T1 + 40], label: [XS, YR + 126], side: 'C' },
+      { id: 'sdFlwN', anchor: [XA - 56, YF + 30], label: [XA, YF + 132], side: 'C' },
+      { id: 'flReceptacle', anchor: [XA + 40, YF + 36], label: [XA + 82, YF + 74], side: 'C' },
+      { id: 'flCarpel', anchor: [XA, YF + 12], label: [XA, YF - 64], side: 'C' },
+      { id: 'sdAggr', anchor: [XA + 40, T1 + 20], label: [XA, YR + 110], side: 'C' },
+      { id: 'sdFlwM', anchor: [XM + 24, YF + 44], label: [XM, YF + 132], side: 'C' },
+      { id: 'sdMulti', anchor: [XM + 40, T1 + 44], label: [XM, YR + 110], side: 'C' }
+    ],
+    tools: ctl.tools.concat([{ id: 'tbl:sdFruitTypes', label: 'أنواع الثمار (ص86)' }]),
+    init(){ if (!still) ctl.start(); },
+    onSlider: v => ctl.onSlider(v), onTool: id => ctl.onTool(id),
+    tick(dt, t, a){ if (!still) ctl.tick(dt); stageShow(a, still ? 9 : STG.idx, still ? 1 : STG.k); if (!still) plBadgeTick(a, STG.idx, t); }
+  };
+}
+
 function sdTypes(still){
   const card = (x, y, t) => `<rect x="${x - 120}" y="${y - 122}" width="240" height="230" rx="16" fill="rgba(255,255,255,.04)" stroke="rgba(255,255,255,.18)"/>` +
     `<text class="cap sm" x="${x}" y="${y - 98}" text-anchor="middle" fill="#ffe2b0">${t}</text>`;
