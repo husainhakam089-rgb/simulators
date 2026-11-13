@@ -101,56 +101,83 @@ function partsModel(B){
   return { dist: 9.6, yaw: 0.2, pitch: 0.15, target: [0, 0.1, 0] };
 }
 
-/* ═════════════ 3) المتك وتكوين حبوب اللقاح (ص59–61) — يتبع المرحلة ═════════════ */
+/* ═════════════ 3) المتك وتكوين حبوب اللقاح (ص59–61) — خطوات مثل الرسم المسطّح ═════════════
+   1 مقطع عرضي في المتك مكبّراً · 2 كيس لقاح مكبّراً بخلاياه الأم · 3–5 يصغران يساراً ويظهر المخطط
+   خطوة خطوة ويتغير محتوى الكيس معه · 6 متك ناضج بشق طولي تنتشر منه حبوب اللقاح. */
+const pXf = (m, s, at) => { const p = new Array(m.p.length); for (let i = 0; i < m.p.length; i += 3){ p[i] = m.p[i] * s + at[0]; p[i + 1] = m.p[i + 1] * s + at[1]; p[i + 2] = m.p[i + 2] * s + at[2]; } return { p, n: m.n, l: m.l, i: m.i }; };
 function pollenModel(B){
-  /* سداة صغيرة على اليسار، ومقطع عرضي في المتك بالوسط: أربعة فصوص (أكياس لقاح) حول نسيج رابط */
-  const MS = [-2.6, -0.6, 0];
-  B.add(tube({ pts: [MS, add(MS, [0.05, 1.3, 0])], r: 0.04, sides: 6 }), fx('flFilament', '#f0a640'));
-  B.add(merge([-1, 1].map(sg => place(ellipsoid({ r: [0.09, 0.3, 0.09], rows: 8, cols: 10 }), { at: add(MS, [sg * 0.08 + 0.05, 1.6, 0]) }))), fx('flAnther', C.anth));
-  const AC = [-0.4, 0, 0], H = 0.9, LB = [[-0.55, 0.32], [-0.55, -0.32], [0.55, 0.32], [0.55, -0.32]];
-  const cyl = (c, r, h) => place(capsule({ r, len: h, rows: 4, cols: 16 }), { at: c });
-  B.add(merge(LB.map(([x, z]) => cyl(add(AC, [x, 0, z]), 0.4, H))), fx('flLobe', '#7cc95a', { alpha: 0.35, shell: { size: 1.2 }, rimColor: '#d8ffc0' }));
-  B.add(place(capsule({ r: 0.32, len: H, rows: 4, cols: 16 }), { at: AC }), fx('flConnective', '#6aae4a', { rimColor: '#d8ffc0' }));
-  B.add(place(capsule({ r: 0.1, len: H + 0.05, rows: 4, cols: 12 }), { at: add(AC, [0, 0, 0.3]) }), fx('flVascular', '#2f6aa0', { rimColor: '#c0e0ff' }));
-  const sacs = B.add(merge(LB.map(([x, z]) => cyl(add(AC, [x * 1.05, 0, z * 1.05]), 0.26, H - 0.1))), fx('flPollenSac', '#e8a040', { alpha: 0.6, shell: { size: 0.6 }, rimColor: '#ffe0a0', pop: false, center: AC }));
-  const sacCells = B.add(merge(LB.flatMap(([x, z], j) => Array.from({ length: 6 }, (_, i) => ball(0.07, add(AC, [x * 1.05 + Math.cos(i) * 0.12, (i / 5 - 0.5) * 0.6, z * 1.05 + Math.sin(i) * 0.12]), 6)))), fx('flPollenSac', '#d05a2a', { pop: false, center: AC }));
-  const slit = B.add(merge([-1, 1].map(sg => tube({ pts: [add(AC, [sg * 0.62, -H / 2, 0]), add(AC, [sg * 0.62, H / 2, 0])], r: 0.04, sides: 5 }))), fx('flSlit', '#3a2a10', { pop: false, center: AC }));
-  const release = k => merge(Array.from({ length: 12 }, (_, i) => { const sg = i % 2 ? 1 : -1; return pollenGrain(add(AC, [sg * (0.7 + k * 0.9), (i / 11 - 0.5) * 1.2 + k * 0.4, Math.sin(i) * 0.4 * k]), 0.07); }));
-  const relO = B.add(release(0), fx('flPollenGrains', C.pollen, { pop: false, center: AC }));
-  /* تكوين حبة اللقاح، خلية مكبّرة على اليمين */
-  const D = [2.2, 0.1, 0];
-  const mother = B.add(ball(0.42, D, 14), fx('flMicroMother', '#e0362c', { alpha: 0.75, rimColor: '#ffc0b0', pop: false, center: D }));
-  const motherN = B.add(ball(0.16, D, 10), fx('flMicroMother', '#7a1010', { pop: false, center: D }));
-  const tet = sp => merge([[0.6, 0.45, 0.4], [-0.6, 0.45, -0.4], [0.5, -0.5, -0.55], [-0.5, -0.5, 0.55]].map(d => ball(0.21, add(D, mul(norm(d), 0.22 + sp)), 10)));
-  const tetO = B.add(tet(0), fx('flMicrospores', '#f2a050', { rimColor: '#ffe0b0', pop: false, center: D }));
-  const pol = B.add(pollenGrain(D, 0.45), fx('flPollenWall', '#f0b040', { alpha: 0.5, shell: { size: 1.0 }, rimColor: '#fff0c0', pop: false, center: D }));
-  const polIn = B.add(ball(0.36, D, 14), fx('flPollen', '#ffe0a0', { alpha: 0.6, shell: { size: 0.7 }, pop: false, center: D }));
-  const gen = B.add(place(ellipsoid({ r: [0.12, 0.08, 0.08], rows: 8, cols: 10 }), { at: add(D, [0.1, 0.1, 0.12]) }), fx('flGenCell', '#4a8a3a', { pop: false, center: D }));
-  const tubeN = B.add(ball(0.11, add(D, [-0.12, -0.08, 0.1]), 10), fx('flTubeCell', '#7a3ab0', { pop: false, center: D }));
-  const pores = B.add(merge([[1, 0, 0], [-0.5, 0, 0.87], [-0.5, 0, -0.87]].map(d => place(ellipsoid({ r: [0.04, 0.1, 0.1], rows: 6, cols: 8 }), { at: add(D, mul(d, 0.46)), dir: d }))), fx('flGermPore', '#8a5010', { pop: false, center: D }));
+  const recs = [], G = (mesh, o, grp, st) => { const r = B.add(mesh, Object.assign({ pop: false, center: [0, 0, 0] }, o)); recs.push({ r, mesh, grp, st }); return r; };
+  /* (A) مقطع المتك الفتي */
+  const SAC = [[-0.75, 0.28], [-0.75, -0.28], [0.75, 0.28], [0.75, -0.28]];
+  G(merge([-1, 1].map(sg => place(ellipsoid({ r: [0.82, 0.6, 0.32], rows: 12, cols: 20 }), { at: [sg * 0.72, 0, 0] }))), fx('flLobe', '#7cc95a', { alpha: 0.45, shell: { size: 1.6 }, rimColor: '#d8ffc0' }), 'A');
+  G(merge(SAC.map(([x, y]) => place(ellipsoid({ r: [0.3, 0.22, 0.2], rows: 8, cols: 12 }), { at: [x, y, 0.14] }))), fx('flPollenSac', '#2f6b3a', { rimColor: '#b8e8a8' }), 'A');
+  G(merge(SAC.flatMap(([x, y]) => [[-0.12, -0.05], [0.03, -0.09], [0.14, 0.02], [-0.04, 0.07], [0.1, 0.09]].map(([dx, dy]) => ball(0.05, [x + dx, y + dy, 0.33], 6)))), fx('flPollenSac', '#d64a3a', { rimColor: '#ffb0a0' }), 'A');
+  G(place(ellipsoid({ r: [0.34, 0.3, 0.28], rows: 10, cols: 14 }), { at: [0, 0, 0.05] }), fx('flConnective', '#9ad486', { rimColor: '#e8ffd8' }), 'A');
+  G(ball(0.11, [0, 0, 0.32], 10), fx('flVascular', '#3d7f9e', { rimColor: '#cfe8f5' }), 'A');
+  G(tube({ pts: Array.from({ length: 25 }, (_, i) => [-0.75 + Math.cos(i / 24 * 6.2832) * 0.4, -0.28 + Math.sin(i / 24 * 6.2832) * 0.31, 0.38]), r: 0.025, sides: 5 }), { color: '#ffe08a', rim: 0.6 }, 'A');
+  /* سداة صغيرة (للخطوة 1) */
+  const ST0 = [-2.75, -0.6, 0];
+  G(tube({ pts: [ST0, add(ST0, [0.05, 1.0, 0])], r: 0.035, sides: 6 }), fx('flFilament', '#e8e070'), 'S');
+  G(merge([-1, 1].map(sg => place(ellipsoid({ r: [0.08, 0.26, 0.08], rows: 8, cols: 10 }), { at: add(ST0, [sg * 0.08 + 0.05, 1.25, 0]) }))), fx('flAnther', C.anth), 'S');
+  /* (Z) كيس لقاح مكبّر: أسطوانة قصيرة ووجهها الأمامي، ومحتواه يتبع الخطوة */
+  G(tube({ pts: [[0, 0, -0.6], [0, 0, 0]], r: 1.0, sides: 36 }), fx('flPollenSac', '#6fb85e', { rimColor: '#d4f5c0' }), 'Z');
+  G(place(ellipsoid({ r: [0.88, 0.88, 0.02], rows: 6, cols: 36 }), { at: [0, 0, 0] }), fx('flPollenSac', '#2f6b3a', { rimColor: '#b8e8a8' }), 'Z');
+  const ZC = [[-0.44, 0.3], [0, 0.44], [0.44, 0.3], [-0.44, -0.14], [0, -0.02], [0.44, -0.14], [-0.22, -0.46], [0.22, -0.46]];
+  const q4 = (d) => [[-1, 1], [1, 1], [-1, -1], [1, -1]].map(([a, b]) => [a * d, b * d]);
+  const zMot = [G(merge(ZC.map(([x, y]) => ball(0.17, [x, y, 0.1], 10))), fx('flMicroMother', '#e0362c', { rimColor: '#ffc0b0' }), 'Z', 1), G(merge(ZC.map(([x, y]) => ball(0.07, [x, y, 0.26], 8))), fx('flMicroMother', '#6a1a1a'), 'Z', 1)];
+  const zTet = G(merge(ZC.flatMap(([x, y]) => q4(0.07).map(([dx, dy]) => ball(0.07, [x + dx, y + dy, 0.1], 7)))), fx('flMicrospores', '#f2a050', { rimColor: '#ffe0b0' }), 'Z', 2);
+  const zSep = G(merge(ZC.flatMap(([x, y]) => q4(0.11).map(([dx, dy]) => ball(0.065, [x + dx, y + dy, 0.1], 7)))), fx('flMicrospores', '#f2a050', { rimColor: '#ffe0b0' }), 'Z', 3);
+  const zPol = G(merge(ZC.flatMap(([x, y]) => q4(0.11).map(([dx, dy]) => pollenGrain([x + dx, y + dy, 0.1], 0.07)))), fx('flPollen', C.pollen, { rimColor: '#fff0c0' }), 'Z', 4);
+  /* (M) متك ناضج: ردهة واحدة في كل فص مفتوحة بشق طولي */
+  G(merge([-1, 1].map(sg => place(ellipsoid({ r: [0.75, 0.48, 0.3], rows: 12, cols: 18 }), { at: [sg * 0.72, 0, 0] }))), fx('flLobe', '#6fb85e', { alpha: 0.5, shell: { size: 1.5 }, rimColor: '#d4f5c0' }), 'M');
+  G(merge([-1, 1].map(sg => place(ellipsoid({ r: [0.52, 0.3, 0.2], rows: 8, cols: 12 }), { at: [sg * 0.74, 0, 0.12] }))), fx('flPollenGrains', '#1f4a2a', { rimColor: '#9fd09a' }), 'M');
+  G(merge([-1, 1].map(sg => tube({ pts: [[sg * 1.35, 0.25, 0.1], [sg * 1.45, 0, 0.12], [sg * 1.35, -0.25, 0.1]], r: 0.05, sides: 5 }))), fx('flSlit', '#ffe08a', { rimColor: '#ffffff' }), 'M');
+  const relM = k => merge(Array.from({ length: 14 }, (_, i) => { const sg = i % 2 ? 1 : -1, p = (k + i / 14) % 1; return pollenGrain([sg * (0.9 + p * 1.0), (i / 13 - 0.5) * 0.5 + p * 0.5, 0.25], 0.06); }));
+  const relO = G(relM(0), fx('flPollenGrains', C.pollen), 'M');
+  /* المخطط على اليمين: خلية أم ← أبواغ ← انفصال ← حبة لقاح ← جدار وثقوب */
+  const LX = 1.7, Y = [1.8, 0.95, 0.1, -0.78, -1.65], lin = [];
+  const L = (mesh, o, st) => { const r = B.add(mesh, Object.assign({ pop: false, center: [LX, 0, 0] }, o)); r.st = st; lin.push(r); return r; };
+  L(ball(0.28, [LX, Y[0], 0], 12), fx('flMicroMother', '#e0362c', { rimColor: '#ffc0b0' }), 1); L(ball(0.1, [LX, Y[0], 0.22], 8), fx('flMicroMother', '#6a1a1a'), 1);
+  L(merge(q4(0.13).map(([dx, dy]) => ball(0.13, [LX + dx, Y[1] + dy, 0], 9))), fx('flMicrospores', '#f2a050', { rimColor: '#ffe0b0' }), 2);
+  L(merge(q4(0.3).map(([dx, dy]) => ball(0.12, [LX + dx * 1.2, Y[2] + dy * 0.8, 0], 9))), fx('flMicrospores', '#f2a050', { rimColor: '#ffe0b0' }), 3);
+  L(ball(0.34, [LX, Y[3], 0], 14), fx('flPollen', '#ffe0a0', { alpha: 0.7, shell: { size: 0.7 } }), 4);
+  L(place(ellipsoid({ r: [0.11, 0.07, 0.07], rows: 8, cols: 10 }), { at: [LX + 0.1, Y[3] + 0.1, 0.2] }), fx('flGenCell', '#e3237a'), 4);
+  L(ball(0.1, [LX - 0.12, Y[3] - 0.08, 0.2], 10), fx('flTubeCell', '#d0302a'), 4);
+  L(pollenGrain([LX, Y[4], 0], 0.36), fx('flPollenWall', '#f0b040', { rimColor: '#fff0c0' }), 5);
+  L(merge([[1, 0, 0], [-0.5, 0.2, 0.84], [-0.5, -0.2, 0.84]].map(d => place(ellipsoid({ r: [0.04, 0.09, 0.09], rows: 6, cols: 8 }), { at: add([LX, Y[4], 0], mul(norm(d), 0.37)), dir: norm(d) }))), fx('flGermPore', '#fff3cf', { rimColor: '#c9801a' }), 5);
+  for (let i = 0; i < 4; i++) L(tube({ pts: [[LX, Y[i] - 0.33, 0], [LX, Y[i + 1] + 0.38, 0]], r: 0.025, sides: 5 }), { color: '#d9784a', rim: 0.4 }, i + 2);
+  /* المواقع */
+  const POS = s => ({ A: s === 0 ? [1.3, [0, 0, 0]] : [0.55, [-1.75, 0.75, 0]], Z: s === 1 ? [1.45, [0, 0, 0]] : [0.6, [-1.75, -1.15, 0]], M: [0.6, [-1.75, 0.75, 0]], S: [1, [0, 0, 0]] });
   const vis = (...ss) => () => ss.includes(STG.idx);
-  B.label('flAnther', add(MS, [0.15, 1.75, 0]), [1, 0.6, 0]);
-  B.label('flFilament', add(MS, [0.05, 0.6, 0]), [-1, 0, 0]);
-  B.label('flLobe', add(AC, [-0.95, 0.3, 0.32]), [-1, 0.4, 0.2]);
-  B.label('flPollenSac', add(AC, [-0.6, 0.48, -0.32]), [-0.4, 1, -0.2], vis(0, 1, 2, 3));
-  B.label('flConnective', add(AC, [0.2, 0.45, -0.2]), [0.3, 1, -0.4]);
-  B.label('flVascular', add(AC, [0, 0.48, 0.32]), [0.2, 1, 0.6]);
-  B.label('flSlit', add(AC, [0.65, 0, 0]), [1, -0.2, 0.3], vis(4));
-  B.label('flPollenGrains', add(AC, [1.4, 0.4, 0]), [1, 0.5, 0.2], vis(4));
-  B.label('flMicroMother', add(D, [0.42, 0.1, 0]), [1, 0.3, 0], vis(0, 1));
-  B.label('flMicrospores', add(D, [0.4, 0.2, 0.3]), [1, 0.3, 0.3], vis(1, 2));
-  B.label('flPollen', add(D, [0, 0.36, 0]), [0, 1, 0.2], vis(3, 4));
-  B.label('flPollenWall', add(D, [0.45, -0.2, 0]), [1, -0.3, 0], vis(3, 4));
-  B.label('flGenCell', add(D, [0.15, 0.12, 0.18]), [1, 0.4, 0.5], vis(3, 4));
-  B.label('flTubeCell', add(D, [-0.15, -0.1, 0.18]), [-1, -0.3, 0.5], vis(3, 4));
-  B.label('flGermPore', add(D, [0.48, 0, 0]), [1, 0, 0.2], vis(3, 4));
-  B.caption([0, -1.6, 0], () => [(FL_POLLEN_STAGES[STG.idx] || {}).n || '']);
-  return { dist: 8.8, yaw: 0.25, pitch: 0.45, target: [0, 0, 0], live2d: true,
-    anim(){ const s = STG.idx, k = sm(STG.k);
-      mother.hide = motherN.hide = !(s === 0 || (s === 1 && k < 0.4));
-      tetO.hide = !((s === 1 && k >= 0.4) || s === 2); if (!tetO.hide) B.update(tetO, tet(s === 2 ? 0.25 * k : 0));
-      [pol, polIn, gen, tubeN, pores].forEach(o => o.hide = s < 3);
-      sacCells.hide = s === 4; slit.hide = relO.hide = s !== 4; if (s === 4) B.update(relO, release(k));
+  const W = (g, s, x, y, z) => { const p = POS(s)[g]; return [x * p[0] + p[1][0], y * p[0] + p[1][1], (z || 0) * p[0] + p[1][2]]; };
+  B.label('flAnther', add(ST0, [0.15, 1.4, 0]), [-0.4, 1, 0], vis(0));
+  B.label('flFilament', add(ST0, [0.04, 0.5, 0]), [-1, 0, 0], vis(0));
+  B.label('flLobe', W('A', 0, -1.45, 0.25, 0.1), [-1, 0.4, 0.2], vis(0));
+  B.label('flPollenSac', W('A', 0, -0.75, -0.5, 0.2), [-0.6, -1, 0.3], vis(0));
+  B.label('flConnective', W('A', 0, 0.2, 0.25, 0.25), [0.4, 1, 0.3], vis(0));
+  B.label('flVascular', W('A', 0, 0.08, -0.06, 0.4), [0.5, -1, 0.4], vis(0));
+  B.label('flPollenSac', W('Z', 1, -0.98, 0.2, 0), [-1, 0.2, 0.2], vis(1));
+  B.label('flMicroMother', W('Z', 1, 0.6, 0.3, 0.2), [1, 0.3, 0.3], vis(1));
+  B.label('flLobe', W('A', 2, -1.45, 0.25, 0.1), [-1, 0.4, 0.2], vis(2, 3, 4));
+  B.label('flPollenSac', W('Z', 2, -0.98, 0.2, 0), [-1, 0.2, 0.2], vis(2, 3, 4, 5));
+  B.label('flSlit', W('M', 5, -1.45, 0, 0.12), [-1, 0.3, 0.2], vis(5));
+  B.label('flPollenGrains', W('M', 5, 1.4, 0.3, 0.25), [0.3, 1, 0.2], vis(5));
+  B.label('flMicroMother', [LX + 0.28, Y[0], 0], [1, 0.2, 0.2], vis(2, 3, 4, 5));
+  B.label('flMicrospores', [LX + 0.26, Y[1], 0], [1, 0.1, 0.2], vis(2, 3, 4, 5));
+  B.label('flPollen', [LX + 0.34, Y[3] + 0.1, 0], [1, 0.2, 0.2], vis(4, 5));
+  B.label('flGenCell', [LX + 0.12, Y[3] + 0.12, 0.25], [1, 0.4, 0.4], vis(4, 5));
+  B.label('flTubeCell', [LX - 0.14, Y[3] - 0.1, 0.25], [-1, -0.2, 0.4], vis(4, 5));
+  B.label('flPollenWall', [LX + 0.4, Y[4] - 0.1, 0], [1, -0.2, 0.2], vis(5));
+  B.label('flGermPore', [LX + 0.37, Y[4], 0.05], [1, 0.2, 0.3], vis(5));
+  B.caption([-0.1, -2.5, 0], () => [(FL_POLLEN_STAGES[STG.idx] || {}).n || '']);
+  let last = -1;
+  return { dist: 9.9, yaw: 0.05, pitch: 0.08, target: [-0.1, -0.1, 0], live2d: true,
+    anim(t){ const s = STG.idx;
+      if (s !== last){ last = s; const P = POS(s);
+        recs.forEach(R => { const p = P[R.grp]; B.update(R.r, pXf(R.mesh, p[0], p[1]));
+          R.r.hide = R.grp === 'A' ? s === 5 : R.grp === 'S' ? s !== 0 : R.grp === 'Z' ? (s === 0 || (R.st && R.st !== Math.max(1, Math.min(4, s)))) : s !== 5; });
+        lin.forEach(o => { o.hide = s < 2 || o.st > s; }); }
+      if (s === 5){ const p = POS(5).M; B.update(relO, pXf(relM(t * 0.25), p[0], p[1])); }
     } };
 }
 

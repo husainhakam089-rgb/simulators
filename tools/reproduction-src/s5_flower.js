@@ -266,21 +266,36 @@ function flCycle(still){
 
 /* ───────── 4) المرحلة الأولى: المتك وتكوين حبوب اللقاح (ص59–61) ───────── */
 const FL_POLLEN_STAGES = [
-  { n: '1 · تركيب المتك', d: 'يتألف المتك من فصين متطاولين يربط بينهما نسيج حشوي يمتد من قاعدة المتك حتى قمته ويحيط بحزمة وعائية (خشب ولحاء)، وكل فص يتألف من ردهتين كل منهما كيس اللقاح (حافظة الأبواغ الصغيرة) تحتوي في البداية على الخلايا الأم للأبواغ الصغيرة (2س).' },
-  { n: '2 · انقسام اختزالي ← أربعة أبواغ صغيرة (س)', d: 'تمر الخلية الأم للأبواغ الصغيرة (2س) بعملية انقسام اختزالي فتتكون أربعة أبواغ صغيرة (س).' },
-  { n: '3 · انفصال الأبواغ الصغيرة', d: 'تنفصل الأبواغ الصغيرة الأربعة بعضها عن بعض وتتخذ شكلاً مميزاً حسب نوع النبات.' },
-  { n: '4 · حبة اللقاح: خلية أنبوبية + خلية مولدة (س)', d: 'تنقسم نواة البوغ الصغير انقساماً اعتيادياً وتحاط كل من النواتين بالسايتوبلازم مكوّنة خلية أنبوبية وخلية مولدة (س)، ويطلق عليها حبة اللقاح، وتمثل الطور المشيجي الذكري غير الناضج.' },
-  { n: '5 · نضج المتك وانتشار حبوب اللقاح', d: 'عند نضج المتك تنحل خلايا النسيج الرابط بين ردهتي الفص الواحد فتصبح ردهة واحدة مفتوحة للخارج بشق طولي، وتنتشر حبوب اللقاح بالمئات. حبة اللقاح محاطة بجدار سميك ذي أشواك أو أهداب أو خشن، فيه مناطق رقيقة تدعى ثقوب الإنبات.' }
+  { n: '1 · تركيب المتك (مقطع عرضي)', d: 'يتألف المتك من فصين متطاولين يربط بينهما نسيج حشوي يمتد من قاعدة المتك حتى قمته ويحيط بحزمة وعائية (خشب ولحاء)، وكل فص يتألف من ردهتين كل منهما كيس اللقاح (حافظة الأبواغ الصغيرة).' },
+  { n: '2 · كيس اللقاح: الخلايا الأم للأبواغ الصغيرة (2س)', d: 'تحتوي أكياس اللقاح في البداية على الخلايا الأم للأبواغ الصغيرة (2س).' },
+  { n: '3 · انقسام اختزالي ← أربعة أبواغ صغيرة (س)', d: 'تمر الخلية الأم للأبواغ الصغيرة (2س) بعملية انقسام اختزالي فتتكون أربعة أبواغ صغيرة (س).' },
+  { n: '4 · انفصال الأبواغ الصغيرة', d: 'تنفصل الأبواغ الصغيرة الأربعة بعضها عن بعض وتتخذ شكلاً مميزاً حسب نوع النبات.' },
+  { n: '5 · حبة اللقاح: خلية أنبوبية + خلية مولدة (س)', d: 'تنقسم نواة البوغ الصغير انقساماً اعتيادياً وتحاط كل من النواتين بالسايتوبلازم مكوّنة خلية أنبوبية وخلية مولدة (س)، ويطلق عليها حبة اللقاح، وتمثل الطور المشيجي الذكري غير الناضج.' },
+  { n: '6 · نضج المتك وانتشار حبوب اللقاح', d: 'عند نضج المتك تنحل خلايا النسيج الرابط بين ردهتي الفص الواحد فتصبح ردهة واحدة مفتوحة للخارج بشق طولي، وتنتشر حبوب اللقاح بالمئات. حبة اللقاح محاطة بجدار سميك ذي أشواك أو أهداب أو خشن، فيه مناطق رقيقة تدعى ثقوب الإنبات.' }
 ];
+/* كيس لقاح مكبّر: محتواه يتبع المرحلة (خلايا أم ← رباعيات ← أبواغ منفصلة ← حبوب لقاح) */
+const FL_SZ = [[-44, -30], [0, -44], [44, -30], [-44, 14], [0, 2], [44, 14], [-22, 46], [22, 46]];
+function flSacZoom(){
+  let s = `<ellipse cx="0" cy="0" rx="104" ry="92" fill="#6fb85e" stroke="#d4f5c0" stroke-width="3"/>` +
+    part('flPollenSac', `<ellipse cx="0" cy="0" rx="86" ry="76" fill="#2f6b3a" stroke="#b8e8a8" stroke-width="3"/>`);
+  const mot = FL_SZ.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="17" fill="${FLC.mother}" stroke="#ffc0b0" stroke-width="1.6"/><circle cx="${x}" cy="${y}" r="6.5" fill="#6a1a1a"/>`).join('');
+  const sp = (x, y, r) => `<circle cx="${n2(x)}" cy="${n2(y)}" r="${r}" fill="${FLC.mega}" stroke="${FLC.megaL}" stroke-width="1.2"/><circle cx="${n2(x)}" cy="${n2(y)}" r="${n2(r * 0.3)}" fill="#5a2a0a"/>`;
+  const tet = FL_SZ.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="18" fill="none" stroke="#ffd0a0" stroke-width="1.2" opacity=".7"/>` + [[-7, -7], [7, -7], [-7, 7], [7, 7]].map(([dx, dy]) => sp(x + dx, y + dy, 7)).join('')).join('');
+  const sep = FL_SZ.map(([x, y]) => [[-11, -10], [11, -10], [-11, 10], [11, 10]].map(([dx, dy]) => sp(x + dx * 1.1, y + dy * 1.05, 6.5)).join('')).join('');
+  const pg = FL_SZ.map(([x, y]) => [[-11, -10], [11, -10], [-11, 10], [11, 10]].map(([dx, dy]) => { const px = x + dx * 1.1, py = y + dy * 1.05;
+    return `<circle cx="${n2(px)}" cy="${n2(py)}" r="7.5" fill="${FLC.pollen}" stroke="#c9801a" stroke-width="1.6"/><line x1="${n2(px - 4)}" y1="${n2(py + 1.5)}" x2="${n2(px)}" y2="${n2(py + 1.5)}" stroke="#d0302a" stroke-width="2"/><circle cx="${n2(px + 3)}" cy="${n2(py - 2)}" r="1.8" fill="#e3237a"/>`; }).join('')).join('');
+  s += `<g class="szSt" data-s="1">${part('flMicroMother', mot)}</g><g class="szSt" data-s="2">${part('flMicrospores', tet)}</g><g class="szSt" data-s="3">${part('flMicrospores', sep)}</g><g class="szSt" data-s="4">${part('flPollen', pg)}</g>`;
+  return s;
+}
+const FLP_SEC_S = [270, 335, 0.66], FLP_SEC_B = [480, 365, 1.75], FLP_SZ_S = [270, 535, 0.62], FLP_SZ_B = [480, 370, 2.25], FLP_MAT_ST = [470, 600, 0.5], FLP_MAT_S = [270, 335, 0.8];
+const flpTr = (p, ox, oy) => `translate(${n2(p[0])},${n2(p[1])}) scale(${n2(p[2])}) translate(${-ox},${-oy})`;
 function flPollen(still){
   const X = 720;
-  /* السداة الكاملة (ص61) */
-  const antherW = `<ellipse cx="452" cy="104" rx="13" ry="42" fill="#d98a2b" stroke="#ffd08a" stroke-width="2"/><ellipse cx="472" cy="104" rx="13" ry="42" fill="#c97a22" stroke="#ffd08a" stroke-width="2"/>` +
-    `<line x1="462" y1="66" x2="462" y2="142" stroke="#8a4f12" stroke-width="2"/>`;
-  const filW = `<path d="M462,146 Q468,196 458,250" fill="none" stroke="#e8e070" stroke-width="6" stroke-linecap="round"/>`;
-  const cut = `<line x1="428" y1="104" x2="500" y2="104" stroke="#fff" stroke-width="1.6" stroke-dasharray="5 4" opacity=".7"/>` +
-    `<path d="M500,112 Q540,170 520,272" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="2" stroke-dasharray="6 5"/><path d="M520,280 l-7,-12 l13,1z" fill="rgba(255,255,255,.7)"/>`;
-  /* مقطع عرضي في متك فتي: فصان، كل فص ردهتان (أكياس اللقاح) */
+  /* السداة الكاملة صغيرة أعلى المشهد */
+  const SX = 560, SY = 100;
+  const antherW = `<ellipse cx="${SX - 10}" cy="${SY}" rx="11" ry="34" fill="#d98a2b" stroke="#ffd08a" stroke-width="2"/><ellipse cx="${SX + 10}" cy="${SY}" rx="11" ry="34" fill="#c97a22" stroke="#ffd08a" stroke-width="2"/><line x1="${SX}" y1="${SY - 32}" x2="${SX}" y2="${SY + 32}" stroke="#8a4f12" stroke-width="2"/>`;
+  const filW = `<path d="M${SX},${SY + 36} Q${SX + 6},${SY + 70} ${SX - 4},${SY + 110}" fill="none" stroke="#e8e070" stroke-width="6" stroke-linecap="round"/>`;
+  /* مقطع عرضي في متك فتي (إحداثيات أصلية حول 430,370) */
   const outline = smoothClosed([[430, 338], [460, 304], [505, 290], [545, 305], [556, 335], [540, 365], [556, 400], [545, 432], [505, 450], [460, 436], [430, 402],
     [400, 436], [355, 450], [315, 432], [304, 400], [320, 365], [304, 335], [315, 305], [355, 290], [400, 304]]);
   const rr = rng(57);
@@ -290,7 +305,9 @@ function flPollen(still){
     [[-12, -6], [4, -9], [16, 2], [-4, 7], [-16, 6], [10, 12]].map(([dx, dy]) => `<circle cx="${x + dx}" cy="${y + dy}" r="5.5" fill="#d64a3a" stroke="#ffb0a0" stroke-width=".8"/>`).join('')).join('');
   const conn = `<ellipse cx="430" cy="370" rx="36" ry="30" fill="#9ad486" stroke="#d8f5c8" stroke-width="1.4"/>`;
   const vasc = `<circle cx="430" cy="370" r="11" fill="#3d7f9e" stroke="#cfe8f5" stroke-width="1.6"/><circle cx="427" cy="367" r="3" fill="#cfe8f5"/><circle cx="434" cy="373" r="2.4" fill="#cfe8f5"/>`;
-  /* متك ناضج: ردهة واحدة في كل فص، مفتوحة بشق طولي */
+  const mag = `<ellipse id="flpMag" cx="355" cy="412" rx="38" ry="31" fill="none" stroke="#ffe08a" stroke-width="3.5"/>`;
+  const sec = part('flLobe', `<path d="${outline}" fill="#6fb85e" stroke="#d4f5c0" stroke-width="2.4"/>${epi}`) + part('flPollenSac', sacs + mag) + part('flConnective', conn) + part('flVascular', vasc);
+  /* متك ناضج (إحداثيات أصلية حول 430,562) */
   const mOut = `<ellipse cx="362" cy="562" rx="64" ry="42" fill="#6fb85e" stroke="#d4f5c0" stroke-width="2.2"/><ellipse cx="498" cy="562" rx="64" ry="42" fill="#6fb85e" stroke="#d4f5c0" stroke-width="2.2"/>` +
     `<ellipse cx="430" cy="562" rx="24" ry="26" fill="#9ad486" stroke="#d8f5c8" stroke-width="1.4"/><circle cx="430" cy="562" r="8" fill="#3d7f9e"/>` +
     `<ellipse cx="364" cy="566" rx="46" ry="28" fill="#1f4a2a"/><ellipse cx="496" cy="566" rx="46" ry="28" fill="#1f4a2a"/>`;
@@ -299,11 +316,12 @@ function flPollen(still){
   [364, 496].forEach(cx => { for (let i = 0; i < 12; i++) pin += `<circle cx="${n2(cx - 36 + rp() * 72)}" cy="${n2(552 + rp() * 28)}" r="3.6" fill="#ffd35a" stroke="#a5781a" stroke-width=".6"/>`; });
   let esc = ''; for (let i = 0; i < 10; i++){ const L = i % 2, p = (i * 0.1) % 1;
     esc += `<circle class="flEsc" data-i="${i}" data-l="${L}" cx="${n2(L ? 538 + p * 50 : 322 - p * 50)}" cy="${n2(530 - p * 60)}" r="3.6" fill="#ffd35a" stroke="#a5781a" stroke-width=".6" opacity="${still ? 0.8 : 0}"/>`; }
-  /* مخطط تكوين حبة اللقاح (ص61 للاطلاع) */
+  const mat = mOut + part('flSlit', slit) + part('flPollenGrains', pin + `<g>${esc}</g>`);
+  /* مخطط تكوين حبة اللقاح (المراحل 2–6) */
   const mother = `<circle cx="${X}" cy="95" r="28" fill="${FLC.mother}" stroke="#ffc0b0" stroke-width="2"/><circle cx="${X}" cy="95" r="10" fill="#6a1a1a"/>`;
   const spore = (x, y) => `<circle cx="${n2(x)}" cy="${n2(y)}" r="13" fill="${FLC.mega}" stroke="${FLC.megaL}" stroke-width="1.6"/><circle cx="${n2(x)}" cy="${n2(y)}" r="3.6" fill="#5a2a0a"/>`;
   const tetra = [[-13, -13], [13, -13], [-13, 13], [13, 13]].map(([dx, dy]) => spore(X + dx, 190 + dy)).join('');
-  const sepS = [[-1, -1], [1, -1], [-1, 1], [1, 1]].map(([sx, sy], i) => `<g class="flSep" data-sx="${sx}" data-sy="${sy}" transform="translate(${n2(sx * 30)},${n2(sy * 22)})">${spore(X, 300)}</g>`).join('');
+  const sepS = [[-1, -1], [1, -1], [-1, 1], [1, 1]].map(([sx, sy]) => `<g class="flSep" data-sx="${sx}" data-sy="${sy}" transform="translate(${n2(sx * 30)},${n2(sy * 22)})">${spore(X, 300)}</g>`).join('');
   const grain = `<circle cx="${X}" cy="420" r="36" fill="${FLC.pollen}" stroke="#ffe7b0" stroke-width="2.4"/>`;
   const tube = `<line class="flTubeN" x1="${X - 28}" y1="426" x2="${X - 6}" y2="426" stroke="#d0302a" stroke-width="5" stroke-linecap="round"/>`;
   const gen = `<circle class="flGenN" cx="${X + 16}" cy="410" r="7.5" fill="#e3237a" stroke="#ffc0dc" stroke-width="1.4"/>`;
@@ -313,61 +331,76 @@ function flPollen(still){
     `<line x1="${X - 22}" y1="566" x2="${X - 2}" y2="566" stroke="#d0302a" stroke-width="4.5" stroke-linecap="round"/><circle cx="${X + 14}" cy="550" r="6.5" fill="#e3237a"/>`;
   const pores = [2, 10, 18].map(i => { const a = i / 24 * 6.283; return `<ellipse cx="${n2(X + Math.cos(a) * 40)}" cy="${n2(560 + Math.sin(a) * 40)}" rx="5" ry="3" transform="rotate(${n2(a * 57.3 + 90)} ${n2(X + Math.cos(a) * 40)} ${n2(560 + Math.sin(a) * 40)})" fill="#fff3cf" stroke="#c9801a" stroke-width="1"/>`; }).join('');
   const cap = (x, y, t, st) => `<g data-st="${st}"><text class="cap sm" x="${x}" y="${y}" text-anchor="middle">${t}</text></g>`;
-  const body = `
-    <g data-st="0">${part('flAnther', antherW)}${part('flFilament', filW)}${cut}</g>
-    <g data-st="0">${part('flLobe', `<path d="${outline}" fill="#6fb85e" stroke="#d4f5c0" stroke-width="2.4"/>${epi}`)}
-      ${part('flPollenSac', sacs)}${part('flConnective', conn)}${part('flVascular', vasc)}</g>
-    ${flArrow(430, 456, 430, 512, 4)}${cap(500, 486, 'عند النضوج', 4)}
-    <g data-st="4">${mOut}${part('flSlit', slit)}${part('flPollenGrains', pin + `<g>${esc}</g>`)}</g>
-    ${part('flMicroMother', `<g data-st="0">${mother}</g>`)}
-    ${flArrow(X, 126, X, 162, 1)}${cap(640, 148, 'انقسام اختزالي', 1)}
-    ${part('flMicrospores', `<g data-st="1">${tetra}</g>`)}
-    ${flArrow(X, 220, X, 262, 2)}${cap(640, 245, 'انفصال الأبواغ', 2)}
-    <g data-st="2">${sepS}</g>
-    ${flArrow(X, 334, X, 376, 3)}${cap(632, 358, 'انقسام اعتيادي للنواة', 3)}
-    <g data-st="3">${part('flPollen', grain)}${part('flTubeCell', tube)}${part('flGenCell', gen)}</g>
-    ${flArrow(X, 462, X, 500, 4)}${cap(640, 484, 'الانتشار', 4)}
-    <g data-st="4">${part('flPollenWall', wall)}${part('flGermPore', pores)}</g>
-    <text class="cap sm" x="500" y="645" text-anchor="middle">تركيب المتك في نبات زهري (ص59) ومراحل تكوين حبة اللقاح (ص61): خلية أم (2س) ← 4 أبواغ صغيرة (س) ← حبة لقاح (س)</text>`;
-  const ctl = stageCtl(FL_POLLEN_STAGES, { dur: 30 });
+  const flow = `${part('flMicroMother', `<g data-st="1">${mother}</g>`)}
+    ${flArrow(X, 126, X, 162, 2)}${cap(640, 148, 'انقسام اختزالي', 2)}
+    ${part('flMicrospores', `<g data-st="2">${tetra}</g>`)}
+    ${flArrow(X, 220, X, 262, 3)}${cap(640, 245, 'انفصال الأبواغ', 3)}
+    <g data-st="3">${sepS}</g>
+    ${flArrow(X, 334, X, 376, 4)}${cap(632, 358, 'انقسام اعتيادي للنواة', 4)}
+    <g data-st="4">${part('flPollen', grain)}${part('flTubeCell', tube)}${part('flGenCell', gen)}</g>
+    ${flArrow(X, 462, X, 500, 5)}${cap(640, 484, 'الانتشار', 5)}
+    <g data-st="5">${part('flPollenWall', wall)}${part('flGermPore', pores)}</g>`;
+  const zoomL = `<g id="flpZoom"><path d="M${n2(FLP_SEC_S[0] + (355 - 430) * FLP_SEC_S[2] - 22)},${n2(FLP_SEC_S[1] + (412 - 370) * FLP_SEC_S[2] + 14)} L${n2(FLP_SZ_S[0] - 60)},${n2(FLP_SZ_S[1] - 30)} M${n2(FLP_SEC_S[0] + (355 - 430) * FLP_SEC_S[2] + 22)},${n2(FLP_SEC_S[1] + (412 - 370) * FLP_SEC_S[2] + 14)} L${n2(FLP_SZ_S[0] + 60)},${n2(FLP_SZ_S[1] - 30)}" stroke="#ffe08a" stroke-width="1.6" stroke-dasharray="5 5" fill="none" opacity=".75"/>
+    <path d="M${n2(FLP_SZ_S[0] + 66)},${n2(FLP_SZ_S[1] - 10)} Q${X - 200},${300} ${X - 34},${95}" stroke="#ffe08a" stroke-width="1.6" stroke-dasharray="5 5" fill="none" opacity=".6"/></g>`;
+  const body = `${zoomL}
+    <g id="flpStamen">${part('flAnther', antherW)}${part('flFilament', filW)}</g>
+    <g id="flpFlow">${flow}</g>
+    <g id="flpMat" transform="${flpTr(FLP_MAT_ST, 430, 562)}">${mat}</g>
+    <g id="flpSZ" transform="${gamTr(FLP_SZ_S)}">${flSacZoom()}</g>
+    <g id="flpSec" transform="${flpTr(FLP_SEC_S, 430, 370)}">${sec}</g>
+    <text class="cap sm" x="500" y="668" text-anchor="middle">تركيب المتك (ص59) ومراحل تكوين حبة اللقاح (ص61): خلية أم (2س) ← 4 أبواغ صغيرة (س) ← حبة لقاح (س)</text>`;
+  const ctl = stageCtl(FL_POLLEN_STAGES, { dur: 34 });
+  const sP = (p, x, y) => [p[0] + (x - 430) * p[2], p[1] + (y - 370) * p[2]];
+  const zP = (p, x, y) => [p[0] + x * p[2], p[1] + y * p[2]];
+  const mP = (p, x, y) => [p[0] + (x - 430) * p[2], p[1] + (y - 562) * p[2]];
+  const base = {
+    flAnther: [SX + 21, SY - 10, SX + 120, 52, 'C'], flFilament: [SX + 4, SY + 72, SX - 110, 160, 'C'],
+    flMicroMother: [X + 28, 95, 866, 95, 'R'], flMicrospores: [X + 26, 190, 866, 190, 'R'],
+    flGenCell: [X + 23, 408, 866, 392, 'R'], flTubeCell: [X - 10, 428, 866, 448, 'R'], flPollen: [X + 26, 446, 866, 498, 'R'],
+    flPollenWall: [X + 46, 548, 866, 545, 'R'], flGermPore: [X + 29, 588, 866, 600, 'R']
+  };
+  const secL = p => ({ flLobe: [...sP(p, 306, 340), 134, 300, 'L'], flPollenSac: [...sP(p, 326, 414), 134, 355, 'L'], flConnective: [...sP(p, 404, 388), 134, 410, 'L'], flVascular: [...sP(p, 424, 378), 134, 465, 'L'] });
+  const ov = Object.assign({}, base, secL(FLP_SEC_S), { flSlit: [...mP(FLP_MAT_ST, 320, 534), 330, 640, 'C'], flPollenGrains: [...mP(FLP_MAT_ST, 340, 568), 600, 640, 'C'] });
+  const b0 = Object.assign({ flAnther: base.flAnther, flFilament: base.flFilament }, { flLobe: [...sP(FLP_SEC_B, 306, 340), 134, 300, 'L'], flPollenSac: [...sP(FLP_SEC_B, 326, 414), 134, 420, 'L'],
+    flConnective: [...sP(FLP_SEC_B, 404, 388), 866, 470, 'R'], flVascular: [...sP(FLP_SEC_B, 430, 381), 866, 560, 'R'] });
+  const b1 = { flPollenSac: [...zP(FLP_SZ_B, -86, 10), 134, 420, 'L'], flMicroMother: [...zP(FLP_SZ_B, 61, 14), 866, 400, 'R'] };
+  const live = Object.assign({}, base, secL(FLP_SEC_S));
+  const l5 = Object.assign({}, base, { flSlit: [...mP(FLP_MAT_S, 320, 534), 390, 250, 'C'], flPollenGrains: [...mP(FLP_MAT_S, 340, 568), 134, 420, 'L'], flPollenSac: [...zP(FLP_SZ_S, -86, 10), 134, 520, 'L'] });
+  const parts = Object.keys(ov).map(id => ({ id, anchor: [ov[id][0], ov[id][1]], label: [ov[id][2], ov[id][3]], side: ov[id][4] }));
+  let lastL = null;
   return {
-    body, stages: FL_POLLEN_STAGES, fnParts: ['flMicroMother', 'flSlit', 'flGermPore'],
-    parts: [
-      { id: 'flAnther', anchor: [486, 86], label: [575, 62], side: 'C' },
-      { id: 'flFilament', anchor: [464, 210], label: [568, 214], side: 'C' },
-      { id: 'flLobe', anchor: [306, 340], label: [134, 290], side: 'L' },
-      { id: 'flPollenSac', anchor: [326, 414], label: [134, 345], side: 'L' },
-      { id: 'flConnective', anchor: [404, 388], label: [134, 400], side: 'L' },
-      { id: 'flVascular', anchor: [424, 378], label: [134, 455], side: 'L' },
-      { id: 'flSlit', anchor: [320, 534], label: [134, 520], side: 'L' },
-      { id: 'flPollenGrains', anchor: [340, 568], label: [134, 585], side: 'L' },
-      { id: 'flMicroMother', anchor: [X + 28, 95], label: [866, 95], side: 'R' },
-      { id: 'flMicrospores', anchor: [X + 26, 190], label: [866, 190], side: 'R' },
-      { id: 'flGenCell', anchor: [X + 23, 408], label: [866, 392], side: 'R' },
-      { id: 'flTubeCell', anchor: [X - 10, 428], label: [866, 448], side: 'R' },
-      { id: 'flPollen', anchor: [X + 26, 446], label: [866, 498], side: 'R' },
-      { id: 'flPollenWall', anchor: [X + 46, 548], label: [866, 545], side: 'R' },
-      { id: 'flGermPore', anchor: [X + 29, 588], label: [866, 600], side: 'R' }
-    ],
+    body, stages: FL_POLLEN_STAGES, fnParts: ['flMicroMother', 'flSlit', 'flGermPore'], parts,
     tools: ctl.tools.concat([{ id: 'tbl:flOrigin', label: 'المنشأ والمجموعة الكروموسومية (ص66)' }]),
     init(){ if (!still) ctl.start(); },
     onSlider: v => ctl.onSlider(v), onTool: id => ctl.onTool(id),
     tick(dt, t, a){
       if (!still) ctl.tick(dt);
-      const idx = still ? 9 : STG.idx, k = still ? 1 : STG.k;
+      const idx = still ? 9 : STG.idx, k = still ? 1 : STG.k, e = gamSm(k / 0.3);
+      if (!still){
+        const secP = idx === 0 ? FLP_SEC_B : idx === 1 ? gamLerp(FLP_SEC_B, FLP_SEC_S, e) : FLP_SEC_S;
+        const szP = idx === 0 ? FLP_SZ_B : idx === 1 ? gamLerp(FLP_SEC_S.slice(0, 2).concat([0.15]), FLP_SZ_B, e) : idx === 2 ? gamLerp(FLP_SZ_B, FLP_SZ_S, e) : FLP_SZ_S;
+        const sg = a.el('#flpSec'), sz = a.el('#flpSZ'), fl = a.el('#flpFlow'), zm = a.el('#flpZoom'), mt = a.el('#flpMat'), stn = a.el('#flpStamen');
+        if (sg){ sg.setAttribute('transform', flpTr(secP, 430, 370)); sg.setAttribute('opacity', idx === 1 ? n2(1 - e) : idx === 2 ? n2(e) : idx === 5 ? n2(1 - e) : 1); sg.style.pointerEvents = idx === 1 || idx === 5 ? 'none' : ''; }
+        if (sz){ sz.setAttribute('transform', gamTr(szP)); sz.setAttribute('opacity', idx === 0 ? 0 : idx === 1 ? n2(e) : 1); sz.style.pointerEvents = idx === 0 ? 'none' : ''; }
+        if (fl){ fl.setAttribute('opacity', idx < 2 ? 0 : idx === 2 ? n2(e) : 1); fl.style.pointerEvents = idx < 2 ? 'none' : ''; }
+        if (zm) zm.setAttribute('opacity', idx < 2 ? 0 : idx === 2 ? n2(e) : 1);
+        if (mt){ mt.setAttribute('transform', flpTr(FLP_MAT_S, 430, 562)); mt.setAttribute('opacity', idx === 5 ? n2(e) : 0); mt.style.pointerEvents = idx === 5 ? '' : 'none'; }
+        if (stn) stn.setAttribute('opacity', idx === 0 ? 1 : 0.85);
+        const mg = a.el('#flpMag'); if (mg) mg.setAttribute('opacity', idx === 0 ? n2(0.5 + 0.5 * Math.sin(t * 4)) : 1);
+        a.all('.szSt').forEach(g => { const s0 = +g.dataset.s, cur = Math.max(1, Math.min(4, idx)); g.setAttribute('opacity', s0 === cur ? 1 : 0); g.style.pointerEvents = s0 === cur ? '' : 'none'; });
+        const key = idx === 0 ? 'b0' : idx === 1 ? (e > 0.6 ? 'b1' : 'x') : idx === 2 && e < 0.6 ? 'x' : idx === 5 ? 'l5' : 'live';
+        if (key !== lastL || !a.el('#labelLayer').dataset.gam){ gamRelabel(a, ({ b0, b1, live, l5, x: {} })[key]); lastL = key; a.el('#labelLayer').dataset.gam = 1; }
+      }
       stageShow(a, idx, k);
-      /* انفصال الأبواغ الأربعة تدريجياً */
-      const s = idx > 2 ? 1 : idx < 2 ? 0 : flSm(flCl(k * 1.4));
+      const s = idx > 3 ? 1 : idx < 3 ? 0 : flSm(flCl(k * 1.4));
       a.all('.flSep').forEach(g => g.setAttribute('transform', `translate(${n2(+g.dataset.sx * (13 + 17 * s))},${n2(+g.dataset.sy * (13 + 9 * s))})`));
-      /* انقسام نواة البوغ الصغير: النواتان تتباعدان */
-      const m = idx > 3 ? 1 : idx < 3 ? 0 : flSm(flCl(k * 1.6));
+      const m = idx > 4 ? 1 : idx < 4 ? 0 : flSm(flCl(k * 1.6));
       const tb = a.el('.flTubeN'), gn = a.el('.flGenN');
       if (tb){ tb.setAttribute('x1', n2(X - 6 - 22 * m)); tb.setAttribute('x2', n2(X + 6 - 12 * m)); }
       if (gn){ gn.setAttribute('cx', n2(X + 16 * m)); gn.setAttribute('cy', n2(418 - 8 * m)); }
-      /* حبوب اللقاح تنتشر من الشق الطولي */
       if (!still) a.all('.flEsc').forEach(c => { const i = +c.dataset.i, L = +c.dataset.l, p = (t * 0.3 + i * 0.1) % 1;
         c.setAttribute('cx', n2(L ? 538 + p * 60 : 322 - p * 60)); c.setAttribute('cy', n2(532 - p * 70 + Math.sin(p * 9 + i) * 5));
-        c.setAttribute('opacity', idx >= 4 ? n2(Math.sin(p * Math.PI)) : 0); });
+        c.setAttribute('opacity', idx >= 5 ? n2(Math.sin(p * Math.PI)) : 0); });
     }
   };
 }

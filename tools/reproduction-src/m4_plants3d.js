@@ -31,6 +31,8 @@ function leafy(base, h, seed, lean){
 }
 /* كأس قمة الساق (أنثريديا أو أركيكونا) */
 const cup = (at, col) => merge(Array.from({ length: 9 }, (_, i) => { const a = i / 9 * 6.2832, d = norm([Math.cos(a), 1.1, Math.sin(a)]); return place(ellipsoid({ r: [0.04, 0.16, 0.08], rows: 4, cols: 6 }), { at: add(at, mul(d, 0.12)), dir: d }); }));
+/* رقم كل خطوة في مكانها من المجسّم (مثل أرقام الرسم المسطّح)، والحالية بين سهمين */
+const stepCap = (B, pts) => pts.forEach((p, i) => B.caption(p, () => [STG.idx === i ? '◀ ' + (i + 1) + ' ▶' : String(i + 1)]));
 function mossModel(B){
   B.add(ground(2.6, -1.15), { color: '#5a4a2a', rim: 0.3, rimColor: '#a08a5a' });
   const M = leafy([0.7, -1.1, 0], 1.6, 3, 0.1), F = leafy([-0.6, -1.1, 0.1], 1.7, 5, -0.05);
@@ -70,6 +72,7 @@ function mossModel(B){
   B.label('plMSpores', add(capTop, [0.6, 0.1, 0]), [1, 0.5, 0.2], vis(4));
   B.label('plMProto', [1.2, -1.0, 0.6], [1, 0.3, 0.4], vis(5));
   B.caption([0, -1.7, 0], () => [(PL_MOSS_ST[STG.idx] || {}).n || '']);
+  stepCap(B, [add(mul(add(M.top, F.top), 0.5), [0, 0.15, 0.3]), add(mul(add(M.top, F.top), 0.5), [0, 1.0, 0.1]), add(F.top, [-0.35, 0.1, 0.1]), add(F.top, [-0.3, 0.7, 0]), add(capTop, [0.5, -0.15, 0]), [1.45, -0.75, 0.6]]);
   return { dist: 7.6, yaw: 0.35, pitch: 0.25, target: [0, 0, 0], live2d: true,
     anim(t){ const s = STG.idx, k = sm(STG.k);
       spO.hide = s !== 1; if (s === 1) B.update(spO, swim(t * 0.35));
@@ -136,6 +139,7 @@ function fernModel(B){
   B.label('plFYoung', add(PC, [0.08, 0.5, -0.25]), [-0.5, 1, 0], vis(4));
   B.label('plFVis', add(PC, [1.3, 0.3, 0.6]), [1, 0.5, 0.3], vis(4));
   B.caption([0, -1.75, 0], () => [(PL_FERN_ST[STG.idx] || {}).n || '']);
+  stepCap(B, [add(FB, [0, 1.75, 0]), add(SO, [0.8, 0.45, 0]), add(PC, [0.65, 0.4, 0]), add(PC, [-0.1, 0.65, -0.25]), add(PC, [1.05, 0.75, 0.6])]);
   return { dist: 8.4, yaw: 0.3, pitch: 0.4, target: [0, -0.4, 0], live2d: true,
     anim(t){ const s = STG.idx, k = sm(STG.k);
       spO.hide = germ.hide = s !== 1; if (s === 1) B.update(spO, spores(k));
@@ -175,6 +179,8 @@ function altModel(B){
   B.add(tube({ pts: [[-R - 0.4, 0, -0.1], [R + 0.4, 0, -0.1]], r: 0.012, sides: 4 }), { color: '#ffe08a', alpha: 0.6, rim: 0.3 });
   st.forEach((x, i) => B.label(x.part, x.at, [Math.cos(ANG[i]), Math.sin(ANG[i]), 0.3]));
   B.label('plMito', P(mitoA), [Math.cos(mitoA), Math.sin(mitoA), 0.3]);
+  ANG.forEach((a, i) => B.caption([Math.cos(a) * (R - 0.5), Math.sin(a) * (R - 0.5), 0.1], () => [STG.idx === i ? '◀ ' + (i + 1) + ' ▶' : String(i + 1)]));
+  B.caption([0, -2.6, 0], () => [(PL_ALT_ST[STG.idx] || {}).n || '']);
   B.caption([0, 0.35, 0.1], () => ['2س — الطور البوغي']);
   B.caption([0, -0.35, 0.1], () => ['س — الطور المشيجي']);
   return { dist: 9.4, yaw: 0, pitch: 0.05, target: [0, -0.15, 0], live2d: true, noSpin: true,

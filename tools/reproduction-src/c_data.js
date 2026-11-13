@@ -1186,8 +1186,8 @@ QUIZ.push(
     why: 'أركيكونيا وأنثريديا السرخسيات وأشباه الجذور (س) منشؤها الثالوس الأولي (جدول ص50)، أما في الحزازيات فمنشؤها الساق الورقي.' }
 );
 
-CH.tabs.push({ k: 'plants1', t: 'الحزازيات والسرخسيات' });
-CH.sel.plv = 'plvAlt';
+CH.tabs.push({ k: 'altgen', t: 'تعاقب الأجيال' }, { k: 'plants1', t: 'الحزازيات والسرخسيات' });
+CH.sel.plv = 'plvMoss';
 Object.assign(CH.toolIcons, { plvWays: 'list', plvAlt: 'route', plvMoss: 'leaf', plvFern: 'grow' });
 CH.exam.push({ k: 'pl_alt', t: 'تعاقب الأجيال في تكاثر النبات' }, { k: 'pl_moss', t: 'دورة حياة البوليتراكم' }, { k: 'pl_fern', t: 'دورة حياة السرخس' });
 CH.draw.push(
@@ -2866,6 +2866,7 @@ CH.exam.push(
 );
 CH.draw.push(
   { g: 'human', gt: 'الإنسان', k: 'hu_male', t: 'الجهاز الذكري للإنسان (وزاري 1/17م و2/18خ و3/20)', order: ['huBladder', 'huUreter', 'huSemVes', 'huProst', 'huEjac', 'huCowper', 'huPenis', 'huUreth', 'huTestis', 'huEpid', 'huVas'] },
+  { g: 'human', gt: 'الإنسان', k: 'hu_female', t: 'الجهاز الأنثوي للإنسان', order: ['huUterus', 'huCervix', 'huVagina', 'huFallop', 'huFimb', 'huOvary', 'huGraaf'] },
   { g: 'human', gt: 'الإنسان', k: 'hu_sperm', t: 'نطفة الإنسان الناضجة (وزاري)', order: ['huHead', 'huCap', 'huAcro', 'huNuc', 'huNeck', 'huMid', 'huTubules', 'huTail'] },
   { g: 'human', gt: 'الإنسان', k: 'hu_ovc', t: 'أحداث الدورة المبيضية (احتياطاً ص128)', order: ['huOvary', 'huPrimord', 'huPrimF', 'huSecF', 'huMatF', 'ooSec', 'polar1', 'huOvul', 'huCL', 'huCA'] }
 );
@@ -2873,6 +2874,9 @@ Object.assign(CH.drawShape, {
   huBladder: 'كيساً مستديراً في أعلى الوسط (المثانة)', huUreter: 'أنبوبين مائلين يدخلان المثانة من أعلاها', huSemVes: 'كيسين مفصصين مائلين أسفل المثانة على الجانبين',
   huProst: 'غدة بيضوية داكنة تحت المثانة', huEjac: 'قناتين قصيرتين تلتقيان وتنزلان خلال البروستات', huCowper: 'دائرتين صغيرتين على جانبي الإحليل عند قاعدة القضيب',
   huPenis: 'عموداً طويلاً تحت البروستات', huUreth: 'خطاً داكناً في وسط القضيب (الإحليل)', huTestis: 'شكلين بيضويين كبيرين في الأسفل على الجانبين',
+  huUterus: 'كمثرى مقلوبة في الوسط (الرحم) وتجويفه مثلث داكن', huCervix: 'جزءاً ضيقاً أسفل الرحم (عنق الرحم)', huVagina: 'أنبوباً عريضاً تحت عنق الرحم (المهبل)',
+  huFallop: 'أنبوبين منحنيين يخرجان من أعلى جانبي الرحم (قناتا فالوب)', huFimb: 'أطرافاً مهدبة كالقمع في نهاية كل قناة فالوب',
+  huGraaf: 'حويصلة كبيرة عند حافة المبيض (حويصلة كراف)',
   huEpid: 'أنبوباً منحنياً ملتصقاً بالجانب الخارجي لكل خصية', huVas: 'أنبوباً طويلاً من أسفل كل خصية يصعد إلى الأعلى ويلتف خلف المثانة',
   huHead: 'رأساً بيضوياً كبيراً في الأعلى', huCap: 'قبعة هلالية تغطي مقدمة الرأس', huAcro: 'هلالاً صغيراً عند الحافة الأمامية للرأس (الجسيم الطرفي)',
   huNuc: 'نواة بيضوية كبيرة داخل الرأس', huNeck: 'عنقاً قصيراً ضيقاً تحت الرأس', huMid: 'قطعة أسطوانية قصيرة تحت العنق',

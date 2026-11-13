@@ -5,7 +5,6 @@
    ══════════════════════════════════════════════════════════════════════════ */
 const PL_VIEWS = [
   { id: 'plvWays', label: 'التكاثر في النباتات' },
-  { id: 'plvAlt',  label: 'تعاقب الأجيال' },
   { id: 'plvMoss', label: 'دورة حياة الحزاز' },
   { id: 'plvFern', label: 'دورة حياة السرخس' }
 ];
@@ -16,15 +15,23 @@ SCENES.plants1 = {
   title: 'الحزازيات والسرخسيات',
   get src(){ return ({ plvWays: 'ملزمة ص42–45', plvAlt: 'ملزمة ص42–45', plvMoss: 'ملزمة ص45–47', plvFern: 'ملزمة ص48–50' })[SEL.plv] || 'ملزمة ص42'; },
   tint: ['rgba(90,150,80,.24)', 'rgba(130,100,190,.16)'],
-  /* المخطّطان (الطرق وتعاقب الأجيال) بلا مجسّم */
-  model3d: () => 'pl_' + (PL_VIEWS.some(x => x.id === SEL.plv) ? SEL.plv : 'plvAlt'),
+  /* مخطط طرق التكاثر بلا مجسّم */
+  model3d: () => 'pl_' + (PL_VIEWS.some(x => x.id === SEL.plv) ? SEL.plv : 'plvMoss'),
   build(){
-    const v = PL_VIEWS.some(x => x.id === SEL.plv) ? SEL.plv : 'plvAlt';
-    const s = v === 'plvWays' ? plWays() : v === 'plvMoss' ? plMoss() : v === 'plvFern' ? plFern() : plAlt();
+    const v = PL_VIEWS.some(x => x.id === SEL.plv) ? SEL.plv : 'plvMoss';
+    const s = v === 'plvWays' ? plWays() : v === 'plvFern' ? plFern() : plMoss();
     s.rebuildOnRadio = 'plv';
     s.tools = PL_VIEWS.map(x => ({ id: x.id, label: x.label, radio: 'plv', on: x.id === v })).concat(s.tools || []);
     return s;
   }
+};
+/* تعاقب الأجيال: تبويب مستقل (موضوع قائم بذاته في الملزمة) */
+SCENES.altgen = {
+  title: 'تعاقب الأجيال',
+  src: 'ملزمة ص42–45',
+  tint: ['rgba(130,100,190,.22)', 'rgba(255,180,70,.14)'],
+  model3d: () => 'pl_plvAlt',
+  build(){ return plAlt(); }
 };
 SCENES.pl_ways = { title: 'طرق التكاثر في النباتات', build: () => plWays() };
 SCENES.pl_alt  = { title: 'شكل (3-11) تعاقب الأجيال في تكاثر النبات', build: still => plAlt(still) };
@@ -88,6 +95,12 @@ const plLegend = () => `<g><rect x="22" y="582" width="210" height="54" rx="10" 
 const plStg = (a, cur, k, still) => a.all('[data-st]').forEach(e => { const s = +e.dataset.st;
   e.setAttribute('opacity', still ? 1 : s === cur ? n2(Math.min(1, 0.3 + k * 4)) : s < cur ? 1 : 0.22);
   e.classList.toggle('stNow', !still && s === cur); });
+
+/* أرقام الخطوات على المخطط (مثل الملزمة): الرقم الحالي يكبر ويتوهج والقادمة باهتة */
+const plBadges = (pts, hide) => hide ? '' : pts.map(([x, y], i) => `<g class="plBadge" data-i="${i}" pointer-events="none"><circle cx="${x}" cy="${y}" r="14" fill="#ffd98a" stroke="#5a4a3a" stroke-width="2"/>
+  <text x="${x}" y="${y + 5}" text-anchor="middle" font-size="15" font-weight="800" fill="#2a1a10">${i + 1}</text></g>`).join('');
+const plBadgeTick = (a, s, t) => a.all('.plBadge').forEach(g => { const i = +g.dataset.i, on = i === s, c = g.querySelector('circle');
+  g.setAttribute('opacity', s < 0 || i <= s ? 1 : 0.45); c.setAttribute('r', on ? 18 : 14); c.style.filter = on ? `drop-shadow(0 0 ${n2(4 + 3 * Math.sin(t * 4))}px #ffd98a)` : ''; });
 const plExam = still => !still && document.body.classList.contains('examMode');
 
 /* ───────── 1) التكاثر في النباتات — ص42–45 ───────── */
@@ -176,7 +189,10 @@ function plAlt(still){
       ${plBall(P[6][0] + 22, P[6][1], 9, 'plGZy')}</g>`)}
     ${part('plZyg', `<g data-st="7">${arr(6, '#e9e4f5')}${plBall(P[7][0], P[7][1], 15, 'plGZy', 1.8)}${plTxt(P[7][0] - 2, P[7][1] - 24, '2س', PL.diL)}</g>`)}`;
   const tok = still ? '' : `<g id="plTok" opacity="0" pointer-events="none"><circle r="13" fill="#fff" opacity=".25"/><circle id="plTokC" r="7" fill="${PL.di}" stroke="#fff" stroke-width="2"/></g>`;
-  const body = plDefs() + `${bg}${items}${tok}${plLegend()}
+  const inP = [0, 45, 90, 135, 180, 225, 270, 315].map(th => { const a = (th - 90) * Math.PI / 180; return [n2(C[0] + (R - 36) * Math.cos(a)), n2(C[1] + (R - 36) * Math.sin(a))]; });
+  const expl = hide || still ? '' : `<g id="plExpl" pointer-events="none"><rect x="${C[0] - 104}" y="${C[1] + 38}" width="208" height="112" rx="12" fill="rgba(20,16,32,.82)" stroke="#ffd98a" stroke-width="1.6"/>
+    <text id="plExT" class="cap sm" x="${C[0]}" y="${C[1] + 58}" text-anchor="middle" fill="#ffd98a"></text><text id="plExD" class="cap sm" x="${C[0]}" y="${C[1] + 78}" text-anchor="middle"></text></g>`;
+  const body = plDefs() + `${bg}${items}${tok}${plBadges(inP, hide || still)}${expl}${plLegend()}
     <text class="cap sm" x="560" y="650" text-anchor="middle">شكل (3-11): تعاقب الأجيال في تكاثر النبات — طور بوغي لا جنسي (2س) يتعاقب مع طور مشيجي جنسي (س)</text>`;
   const ctl = stageCtl(PL_ALT_ST, { dur: 32 });
   const mp = pos(337.5);
@@ -198,7 +214,10 @@ function plAlt(still){
     onSlider: v => ctl.onSlider(v), onTool: id => ctl.onTool(id),
     tick(dt, t, a){
       if (!still) ctl.tick(dt);
-      plStg(a, STG.idx, STG.k, still);
+      plStg(a, STG.idx, STG.k, still); plBadgeTick(a, still ? -1 : STG.idx, t);
+      const et = a.el('#plExT'), ed = a.el('#plExD');
+      if (et && et.dataset.s !== String(STG.idx)){ const st = PL_ALT_ST[STG.idx]; et.dataset.s = STG.idx; et.textContent = st.n;
+        ed.innerHTML = wrapName(st.d, 30).slice(0, 5).map((l, i) => `<tspan x="${C[0]}" dy="${i ? 16 : 0}">${l}</tspan>`).join(''); }
       const g = a.el('#plTok'); if (!g) return;
       const th = (STG.idx + Math.min(1, STG.k * 1.15)) * 45, p = pos(th);
       g.setAttribute('opacity', 1); g.setAttribute('transform', `translate(${n2(p[0])},${n2(p[1])})`);
@@ -290,7 +309,7 @@ function plMoss(still){
     ${part('plMZyg', `<g data-st="2">${plFlask(480, 562, 2.9, '#3f9a3e', PL.leafL)}${plBall(480, 566, 12, 'plGDi', 1.6)}${plChip(522, 548, true)}</g>`)}
     <g data-st="3">${plCurve(446, 586, 410, 600, 374, 566, A)}</g>
     ${plLegend()}
-    <text class="cap sm" x="560" y="652" text-anchor="middle">دورة حياة البوليتراكم (الحزازيات): الطور المشيجي أخضر ورقي، والطور البوغي حامل وحافظة فوقه</text>`;
+    <text class="cap sm" x="560" y="652" text-anchor="middle">دورة حياة البوليتراكم (الحزازيات): الطور المشيجي أخضر ورقي، والطور البوغي حامل وحافظة فوقه</text>${plBadges([[522, 450], [462, 322], [432, 548], [376, 300], [498, 168], [690, 118]], plExam(still) || still)}`;
   const ctl = stageCtl(PL_MOSS_ST, { dur: 30 });
   return {
     body, stages: PL_MOSS_ST, fnParts: ['plMSperm', 'plMCaps'],
@@ -311,7 +330,7 @@ function plMoss(still){
     onSlider: v => ctl.onSlider(v), onTool: id => ctl.onTool(id),
     tick(dt, t, a){
       if (!still) ctl.tick(dt);
-      plStg(a, STG.idx, STG.k, still);
+      plStg(a, STG.idx, STG.k, still); plBadgeTick(a, still ? -1 : STG.idx, t);
       a.all('.plSway').forEach(g => g.setAttribute('transform', `rotate(${n2(Math.sin(t * 0.9 + +g.dataset.cx) * 0.9)} ${g.dataset.cx} ${g.dataset.cy})`));
       /* غطاء الحافظة يُفتح في مرحلة تحرر الأبواغ */
       const lid = a.el('#plMLid'), op = still ? 0 : STG.idx === 4 ? Math.min(1, STG.k * 3) : STG.idx === 5 ? 1 - Math.min(1, STG.k * 2) : 0;
@@ -406,7 +425,7 @@ function plFern(still){
     ${part('plFVis', `<g data-st="4">${vis}</g>`)}
     <g data-st="0">${gArrow(452, 418, 424, 404, A)}</g>
     ${plLegend()}
-    <text class="cap sm" x="560" y="652" text-anchor="middle">دورة حياة السرخس (البوليبوديوم) — للاطلاع: الطور البوغي هو السائد، والطور المشيجي هو الثالوس الأولي</text>`;
+    <text class="cap sm" x="560" y="652" text-anchor="middle">دورة حياة السرخس (البوليبوديوم) — للاطلاع: الطور البوغي هو السائد، والطور المشيجي هو الثالوس الأولي</text>${plBadges([[330, 262], [470, 198], [640, 222], [705, 425], [540, 560]], plExam(still) || still)}`;
   const ctl = stageCtl(PL_FERN_ST, { dur: 28 });
   return {
     body, stages: PL_FERN_ST, fnParts: ['plFSori', 'plProth', 'plFSperm'],
@@ -430,7 +449,7 @@ function plFern(still){
     onSlider: v => ctl.onSlider(v), onTool: id => ctl.onTool(id),
     tick(dt, t, a){
       if (!still) ctl.tick(dt);
-      plStg(a, STG.idx, STG.k, still);
+      plStg(a, STG.idx, STG.k, still); plBadgeTick(a, still ? -1 : STG.idx, t);
       a.all('.plSway').forEach(g => g.setAttribute('transform', `rotate(${n2(Math.sin(t * 0.8) * 0.8)} ${g.dataset.cx} ${g.dataset.cy})`));
       a.all('.plFSp').forEach(c => { const i = +c.dataset.i, u = (t * 0.14 + i / 14) % 1;
         c.setAttribute('cx', n2(372 + u * 128 + Math.sin(u * 8 + i) * 5)); c.setAttribute('cy', n2(284 - u * 92 + Math.cos(u * 7 + i) * 5)); });
