@@ -694,8 +694,9 @@ function buildLabels(){
   labState = {};
   const small = window.innerWidth < 700, cmp = compact(), dy = cmp ? 12 : 17;
   svg.classList.toggle('compact', cmp);
-  labels.forEach(L => {
+  labels.forEach((L, li) => {
     const d = INFO[L.part]; if (!d) return;
+    L.key = L.part + '#' + li;
     const g = document.createElementNS(SVGNS, 'g');
     g.setAttribute('class', 'lblG clk'); g.dataset.for = L.part;
     const lines = wrapName(d.name, cmp ? 11 : small ? 13 : 16);
@@ -704,7 +705,7 @@ function buildLabels(){
     labG.appendChild(g);
     const t = g.querySelector('text');
     const bb = t.getBBox();
-    labState[L.part] = { g, t, lines: lines.length, w: bb.width || 60, h: bb.height || 16, side: null };
+    labState[L.key] = { g, t, lines: lines.length, w: bb.width || 60, h: bb.height || 16, side: null };
     g.addEventListener('click', ev => { ev.stopPropagation(); selectPart(L.part); });
     g.addEventListener('mouseenter', () => setHover(L.part));
     g.addEventListener('mouseleave', () => setHover(null));
@@ -737,7 +738,7 @@ function placeLabels(){
   const noL = bottom - topL < 110, topA = top;
   const cols = { L: [], R: [] };
   labels.forEach(L => {
-    const st = labState[L.part]; if (!st) return;
+    const st = labState[L.key]; if (!st) return;
     const vis = !L.vis || L.vis();
     if (st.g.style.display !== (vis ? '' : 'none')) st.g.style.display = vis ? '' : 'none';
     if (!vis) return;

@@ -17,13 +17,26 @@ const phageSvg = (x, y, s, ang, cls) => { const H = []; for (let i = 0; i < 6; i
     <line x1="${n2(x)}" y1="${n2(y + 8 * s)}" x2="${n2(x)}" y2="${n2(y + 24 * s)}" stroke="${MIC.phage}" stroke-width="${n2(3 * s)}"/>
     <path d="M${n2(x)},${n2(y + 24 * s)} l${n2(-7 * s)},${n2(6 * s)} M${n2(x)},${n2(y + 24 * s)} l${n2(7 * s)},${n2(6 * s)}" stroke="${MIC.phage}" stroke-width="${n2(1.6 * s)}" fill="none"/></g>`; };
 
-/* ═════════════ الفايروسات ═════════════ */
+/* ═════════════ الفايروسات ═════════════
+   ثلاثة عروض: دورة التحلل وحدها، ودورة التحلل والإنتاج وحدها — كل منهما مرسومة دورةً
+   مغلقة باسمها ومراحلها حول حلقة، والمرحلة الحالية مكبّرة في وسط الدورة — ثم الدورتان معاً. */
+const VIR_VIEWS = [
+  { id: 'vLyt', label: 'دورة التحلل' },
+  { id: 'vLys', label: 'دورة التحلل والإنتاج' },
+  { id: 'vBoth', label: 'الدورتان معاً' }
+];
 SCENES.virus = {
   title: 'التكاثر في الفايروسات (الرواشح)',
   src: 'ملزمة ص15–18',
   tint: ['rgba(80,160,100,.24)', 'rgba(200,140,80,.16)'],
-  model3d: () => 'vir_cycle',
-  build(){ const s = virCycle(); return s; }
+  model3d: () => ({ vLyt: 'vir_lyt', vLys: 'vir_lys' })[SEL.virv] || 'vir_cycle',
+  build(){
+    const v = VIR_VIEWS.some(x => x.id === SEL.virv) ? SEL.virv : 'vLyt';
+    const s = v === 'vBoth' ? virCycle() : virRing(v === 'vLys');
+    s.rebuildOnRadio = 'virv';
+    s.tools = VIR_VIEWS.map(x => ({ id: x.id, label: x.label, radio: 'virv', on: x.id === v })).concat(s.tools || []);
+    return s;
+  }
 };
 SCENES.vir_cycle = { title: 'تكاثر راشح البلعم البكتيري (دورة التحلل ودورة التحلل والإنتاج)', build: () => virCycle(true) };
 
@@ -35,6 +48,130 @@ const VIR_STAGES = [
   { n: '5 · مرحلة التحرر', d: 'تقود الفيروسات المتكونة إلى تحلل الخلية البكتيرية المضيفة وتتحرر لتصيب بكتريا أخرى، وتستغرق العملية كاملة 25 دقيقة.' },
   { n: '6 · مرحلة التكامل (دورة التحلل والإنتاج)', d: 'يندمج DNA الفيروس مع DNA البكتيريا بدون تحطيم DNA البكتيريا ويسمى عندها البلعم الأولي، ويتضاعف DNA الفيروس مع تكاثر البكتيريا (خليتان بنويتان).' }
 ];
+const LYT_STAGES = VIR_STAGES.slice(0, 5).map((s, i) => i === 4 ? { n: s.n, d: s.d + ' ثم تبدأ الدورة من جديد مع كل بكتريا تصيبها الفيروسات الجديدة.' } : s);
+const LYS_STAGES = [
+  VIR_STAGES[0], VIR_STAGES[1],
+  { n: '3 · مرحلة التكامل', d: 'يندمج DNA الفيروس مع DNA البكتيريا بدون أن يحصل تحطيم لـDNA البكتيريا، ويسمى DNA الفيروس عندها بالبلعم الأولي.' },
+  { n: '4 · تكاثر البكتيريا ومعها البلعم الأولي', d: 'يتضاعف DNA الفيروس (البلعم الأولي) مع تكاثر البكتيريا، فتحتوي كل من الخليتين البنويتين عليه، ويتكرر ذلك مع كل انقسام.' }
+];
+
+/* رسوم المراحل: كل دالة ترسم مرحلة حول (x,y) بمقياس k؛ big = نسخة الوسط بلا أجزاء قابلة للضغط */
+const vLobe = (x, y, k) => `<path d="M${n2(x + 16 * k)},${n2(y - 4 * k)} q${n2(14 * k)},${n2(-12 * k)} ${n2(22 * k)},0 q${n2(-8 * k)},${n2(14 * k)} ${n2(-22 * k)},${n2(4 * k)}" fill="none" stroke="${MIC.vdna}" stroke-width="${n2(3.2 * k)}"/>`;
+const VDRAW = {
+  attach: (x, y, k) => bactSvg(x - 10 * k, y + 8 * k, 124 * k, 44 * k) + `<g class="vApp">${phageSvg(x + 40 * k, y - 34 * k, 1.45 * k, -35)}</g>`,
+  pen: (x, y, k) => bactSvg(x - 10 * k, y + 8 * k, 124 * k, 44 * k) + phageSvg(x + 40 * k, y - 34 * k, 1.1 * k, -35) +
+    `<path class="vInj" d="M${n2(x + 30 * k)},${n2(y - 12 * k)} q${n2(-10 * k)},${n2(8 * k)} ${n2(-20 * k)},${n2(2 * k)} q${n2(-10 * k)},${n2(-6 * k)} ${n2(-18 * k)},${n2(6 * k)}" fill="none" stroke="${MIC.vdna}" stroke-width="${n2(2.8 * k)}" stroke-dasharray="${n2(60 * k)}"/>`,
+  synth: (x, y, k) => { let b = `<rect x="${n2(x - 70 * k)}" y="${n2(y - 25 * k)}" width="${n2(140 * k)}" height="${n2(50 * k)}" rx="${n2(25 * k)}" fill="${MIC.bac}" stroke="${MIC.bacS}" stroke-width="3"/>`;
+    [[-30, -6], [-8, 10], [18, -8], [36, 8]].forEach(([dx, dy]) => { b += `<path d="M${n2(x + dx * k)},${n2(y + dy * k)} q${n2(5 * k)},${n2(-5 * k)} ${n2(10 * k)},0" fill="none" stroke="${MIC.dna}" stroke-width="${n2(2.4 * k)}" opacity=".7"/>`; });
+    const r = rng(7); for (let i = 0; i < 8; i++){ const px = x + (-50 + r() * 100) * k, py = y + (-14 + r() * 28) * k;
+      b += i % 2 ? `<g class="vbit" data-i="${i}"><polygon points="${[0, 1, 2, 3, 4, 5].map(j => n2(px + Math.cos(j * 1.047) * 5 * k) + ',' + n2(py + Math.sin(j * 1.047) * 5 * k)).join(' ')}" fill="${MIC.phageL}" stroke="${MIC.phage}" stroke-width="1.4"/></g>`
+        : `<g class="vbit" data-i="${i}"><path d="M${n2(px - 6 * k)},${n2(py)} q${n2(3 * k)},${n2(-5 * k)} ${n2(6 * k)},0 q${n2(3 * k)},${n2(5 * k)} ${n2(6 * k)},0" fill="none" stroke="${MIC.vdna}" stroke-width="2"/></g>`; }
+    return b; },
+  mature: (x, y, k) => `<rect x="${n2(x - 70 * k)}" y="${n2(y - 25 * k)}" width="${n2(140 * k)}" height="${n2(50 * k)}" rx="${n2(25 * k)}" fill="${MIC.bac}" stroke="${MIC.bacS}" stroke-width="3"/>` +
+    [-44, -16, 12, 40].map((d, i) => phageSvg(x + d * k, y - 12 * k, 0.55 * k, i % 2 ? 20 : -20, 'vpulse')).join(''),
+  release: (x, y, k) => `<path d="M${n2(x - 60 * k)},${n2(y - 22 * k)} L${n2(x + 50 * k)},${n2(y - 22 * k)} A${n2(22 * k)},${n2(22 * k)} 0 0 1 ${n2(x + 50 * k)},${n2(y + 22 * k)} L${n2(x - 60 * k)},${n2(y + 22 * k)} L${n2(x - 48 * k)},${n2(y + 10 * k)} L${n2(x - 62 * k)},${n2(y)} L${n2(x - 48 * k)},${n2(y - 10 * k)}Z" fill="${MIC.bac}" stroke="${MIC.bacS}" stroke-width="3"/>` +
+    Array.from({ length: 6 }, (_, i) => `<g class="vesc" data-i="${i}" data-x="${n2(x - 64 * k)}" data-y="${n2(y)}" data-k="${k}">${phageSvg(0, 0, 0.55 * k, 0)}</g>`).join(''),
+  integ: (x, y, k) => bactSvg(x - 10 * k, y, 132 * k, 46 * k) + `<g class="vGlow">${vLobe(x - 10 * k, y, k)}</g>`,
+  divide: (x, y, k) => bactSvg(x - 44 * k, y - 12 * k, 104 * k, 38 * k, -10) + bactSvg(x + 50 * k, y + 14 * k, 104 * k, 38 * k, -10) +
+    `<g transform="rotate(-10 ${n2(x - 44 * k)} ${n2(y - 12 * k)})" class="vGlow">${vLobe(x - 44 * k, y - 12 * k, 0.8 * k)}</g><g transform="rotate(-10 ${n2(x + 50 * k)} ${n2(y + 14 * k)})" class="vGlow">${vLobe(x + 50 * k, y + 14 * k, 0.8 * k)}</g>`
+};
+function virRing(lyso){
+  const CX = 570, CY = 388, RX = 300, RY = 205, CW = 176, CH_ = 108;
+  const nodes = lyso
+    ? [{ a: -90, d: 'attach', id: 'vAttach', nm: 'مرحلة الاتصال' }, { a: -12, d: 'pen', id: 'vPen', nm: 'مرحلة الاختراق' },
+       { a: 62, d: 'integ', id: 'vInteg', nm: 'مرحلة التكامل' }, { a: 150, d: 'divide', id: 'vDaugh', nm: 'تكاثر البكتيريا' }]
+    : [{ a: -90, d: 'attach', id: 'vAttach', nm: 'مرحلة الاتصال' }, { a: -20, d: 'pen', id: 'vPen', nm: 'مرحلة الاختراق' }, { a: 50, d: 'synth', id: 'vSynth', nm: 'مرحلة التخليق أو البناء' },
+       { a: 120, d: 'mature', id: 'vMature', nm: 'مرحلة الإنضاج' }, { a: 180, d: 'release', id: 'vRelease', nm: 'مرحلة التحرر' }];
+  nodes.forEach(N => { N.x = CX + Math.cos(N.a * Math.PI / 180) * RX; N.y = CY + Math.sin(N.a * Math.PI / 180) * RY; });
+  const STAGES = lyso ? LYS_STAGES : LYT_STAGES;
+  /* أسهم الحلقة: قوس على محيط الدورة من بطاقة إلى التالية */
+  const arcArrow = (a0, a1, col, w, cls) => { const P = []; for (let i = 0; i <= 24; i++){ const a = (a0 + (a1 - a0) * i / 24) * Math.PI / 180; P.push([CX + Math.cos(a) * (RX - 4), CY + Math.sin(a) * (RY - 4)]); }
+    const e = P[P.length - 1], p = P[P.length - 3], an = Math.atan2(e[1] - p[1], e[0] - p[0]), h = 13;
+    return `<g class="${cls || ''}"><path d="${P.map((q, i) => (i ? 'L' : 'M') + n2(q[0]) + ',' + n2(q[1])).join(' ')}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linecap="round"/>
+      <path d="M${n2(e[0])},${n2(e[1])} L${n2(e[0] - h * Math.cos(an - 0.45))},${n2(e[1] - h * Math.sin(an - 0.45))} L${n2(e[0] - h * Math.cos(an + 0.45))},${n2(e[1] - h * Math.sin(an + 0.45))}Z" fill="${col}"/></g>`; };
+  const gapA = d => 180 * (CW * 0.62) / (Math.PI * RX) * (1 + 0.5 * Math.abs(Math.sin(d * Math.PI / 180)));
+  let ring = '';
+  const links = lyso ? [[0, 1], [1, 2], [2, 3]] : nodes.map((_, i) => [i, (i + 1) % nodes.length]);
+  links.forEach(([i, j], li) => { let a0 = nodes[i].a, a1 = nodes[j].a; if (a1 < a0) a1 += 360;
+    ring += `<g class="vArc" data-i="${li}">${arcArrow(a0 + gapA(a0), a1 - gapA(a1), '#e8e0d0', 4)}</g>`; });
+  if (lyso){
+    /* حلقة التضاعف: من «تكاثر البكتيريا» تعود الخلايا البنوية فتنقسم مجدداً ومعها البلعم الأولي */
+    const N = nodes[3], lx = N.x, ly = N.y + CH_ / 2 + 6;
+    ring += `<g class="vArc" data-i="3"><path d="M${n2(lx + 40)},${n2(ly)} C${n2(lx + 90)},${n2(ly + 70)} ${n2(lx - 90)},${n2(ly + 70)} ${n2(lx - 40)},${n2(ly + 4)}" fill="none" stroke="#e8e0d0" stroke-width="4"/>
+      <path d="M${n2(lx - 40)},${n2(ly + 4)} l-2,15 l13,-8Z" fill="#e8e0d0"/></g>
+      <text class="cap sm" x="${n2(lx)}" y="${n2(ly + 74)}" text-anchor="middle" fill="#ffd98a">يتكرر مع كل انقسام</text>`;
+  } else {
+    const N = nodes[4];
+    ring += `<text class="cap sm" x="${n2(N.x)}" y="${n2(N.y + CH_ / 2 + 22)}" text-anchor="middle" fill="#ffd98a">تصيب بكتريا أخرى ↻</text>`;
+  }
+  const card = (N, i) => { const x = N.x - CW / 2, y = N.y - CH_ / 2;
+    return `<g class="vCard" data-i="${i}">${part(N.id, `<rect x="${n2(x)}" y="${n2(y)}" width="${CW}" height="${CH_}" rx="8" fill="rgba(255,255,255,.95)" stroke="#5a4a3a" stroke-width="2"/>
+      <rect x="${n2(x)}" y="${n2(y)}" width="${CW}" height="24" rx="8" fill="#f6dfc0" stroke="#5a4a3a" stroke-width="2"/>
+      <text x="${n2(N.x)}" y="${n2(y + 17)}" text-anchor="middle" font-size="13" font-weight="700" fill="#2a1a10">${N.nm}</text>`)}
+      <circle cx="${n2(x + CW - 2)}" cy="${n2(y + 2)}" r="13" fill="#ffd98a" stroke="#5a4a3a" stroke-width="2"/><text x="${n2(x + CW - 2)}" y="${n2(y + 8)}" text-anchor="middle" font-size="15" font-weight="800" fill="#2a1a10">${i + 1}</text>
+      <g class="vMini">${VDRAW[N.d](N.x, N.y + 12, 0.78)}</g></g>`; };
+  /* أجزاء الخلية والفيروس قابلة للضغط في بطاقة الاتصال */
+  const N0 = nodes[0], k0 = 0.78, bx = N0.x - 10 * k0, by = N0.y + 12 + 8 * k0;
+  const hit = part('vBac', `<rect x="${n2(bx - 40)}" y="${n2(by - 6)}" width="30" height="16" fill="rgba(0,0,0,0)"/>`) +
+    part('vWall', `<rect x="${n2(bx + 40)}" y="${n2(by - 10)}" width="10" height="20" fill="rgba(0,0,0,0)"/>`) +
+    part('vBDNA', `<ellipse cx="${n2(bx)}" cy="${n2(by)}" rx="${n2(30 * k0)}" ry="${n2(10 * k0)}" fill="rgba(0,0,0,0)"/>`) +
+    part('vCoat', `<circle cx="${n2(N0.x + 40 * k0)}" cy="${n2(N0.y + 12 - 34 * k0)}" r="11" fill="rgba(0,0,0,0)"/>`) +
+    part('vNA', `<circle cx="${n2(N0.x + 40 * k0 + 1)}" cy="${n2(N0.y + 12 - 35 * k0)}" r="3.5" fill="rgba(0,0,0,0)"/>`);
+  const title = lyso ? 'دورة التحلل والإنتاج' : 'دورة التحلل';
+  const body = `${ring}${nodes.map(card).join('')}${hit}
+    ${part(lyso ? 'vLyso' : 'vLytic', `<text class="cap" x="${CX}" y="${CY - 92}" text-anchor="middle" font-size="26" fill="#ffd98a">${title}</text>`)}
+    <text id="vNow" class="cap sm" x="${CX}" y="${CY - 62}" text-anchor="middle"></text>
+    <g id="vBig"></g>
+    <text class="cap sm" x="500" y="672" text-anchor="middle">${lyso ? 'دورة التحلل والإنتاج: يندمج DNA الفيروس مع DNA البكتيريا (البلعم الأولي) ولا تتحلل البكتيريا' : 'دورة التحلل: (100–200) فيروس جديد خلال 25 دقيقة وتتحلل الخلية البكتيرية'}</text>`;
+  const ctl = stageCtl(STAGES, { dur: lyso ? 26 : 32 });
+  const kx = N0.x + 40 * k0, ky = N0.y + 12 - 34 * k0;
+  const parts = lyso ? [
+    { id: 'vBac', anchor: [bx - 26, by + 2], label: [390, 128], side: 'C' },
+    { id: 'vWall', anchor: [bx + 46, by], label: [380, 178], side: 'C' },
+    { id: 'vNA', anchor: [kx, ky - 1], label: [770, 108], side: 'C' },
+    { id: 'vCoat', anchor: [kx + 9.5, ky - 5.5], label: [780, 150], side: 'C' },
+    { id: 'vDNA', anchor: [nodes[2].x - 4, nodes[2].y + 10], label: [866, 640], side: 'R' },
+    { id: 'vProph', anchor: [nodes[3].x - 18, nodes[3].y - 2], label: [134, 640], side: 'L' }
+  ] : [
+    { id: 'vBac', anchor: [bx - 26, by + 2], label: [390, 128], side: 'C' },
+    { id: 'vWall', anchor: [bx + 46, by], label: [380, 178], side: 'C' },
+    { id: 'vBDNA', anchor: [bx - 14, by + 6], label: [400, 228], side: 'C' },
+    { id: 'vNA', anchor: [kx, ky - 1], label: [770, 108], side: 'C' },
+    { id: 'vCoat', anchor: [kx + 9.5, ky - 5.5], label: [700, 136], side: 'C' }
+  ];
+  let shown = -1;
+  return {
+    body, stages: STAGES, fnParts: nodes.map(N => N.id), parts,
+    tools: ctl.tools.concat([{ id: 'info:' + (lyso ? 'vLyso' : 'vLytic'), label: 'عن ' + title }, { id: 'tbl:mLytLyso', label: 'التحلل × التحلل والإنتاج' }, { id: 'info:vVirus', label: 'عن الرواشح' }]),
+    init(){ ctl.start(); },
+    onSlider: v => ctl.onSlider(v), onTool: id => ctl.onTool(id),
+    tick(dt, t, a){
+      ctl.tick(dt);
+      const s = STG.idx, k = STG.k;
+      a.all('.vCard').forEach(g => { const on = +g.dataset.i === s, r = g.querySelector('rect'); r.setAttribute('stroke', on ? '#ffb000' : '#5a4a3a'); r.setAttribute('stroke-width', on ? 5 : 2);
+        g.setAttribute('opacity', on || +g.dataset.i < s ? 1 : 0.6); });
+      a.all('.vArc').forEach(g => { const i = +g.dataset.i, on = lyso ? (i === s - 1 || (i === 3 && s === 3)) : i === (s + nodes.length - 1) % nodes.length;
+        g.querySelectorAll('path').forEach(p => { if (p.getAttribute('fill') === 'none') p.setAttribute('stroke', on ? '#ffb000' : '#e8e0d0'); else p.setAttribute('fill', on ? '#ffb000' : '#e8e0d0'); }); });
+      if (s !== shown){ shown = s; const N = nodes[s], big = a.el('#vBig'), now = a.el('#vNow');
+        if (big) big.innerHTML = VDRAW[N.d](CX + 10, CY + 22, 1.35); if (now) now.textContent = 'الآن: ' + N.nm; }
+      /* حركة المراحل في النسخة الكبيرة */
+      const big = a.el('#vBig');
+      if (big){
+        const ap = big.querySelector('.vApp'); if (ap){ const p = Math.min(1, k * 1.6); ap.setAttribute('transform', `translate(${n2((1 - p) * 60)},${n2(-(1 - p) * 46)})`); }
+        const inj = big.querySelector('.vInj'); if (inj) inj.setAttribute('stroke-dashoffset', n2(93 - 93 * Math.min(1, k * 1.3)));
+        big.querySelectorAll('.vbit').forEach(e => { const i = +e.dataset.i; e.setAttribute('transform', `translate(${n2(Math.sin(t * 2 + i) * 6)},${n2(Math.cos(t * 1.7 + i) * 4)})`); });
+        big.querySelectorAll('.vpulse').forEach((e, i) => e.style.opacity = n2(0.6 + 0.4 * Math.sin(t * 3 + i)));
+        big.querySelectorAll('.vesc').forEach(e => { const i = +e.dataset.i, p = (t * 0.35 + i / 6) % 1, an = 2.3 + i * 0.32, x = +e.dataset.x, y = +e.dataset.y, kk = +e.dataset.k;
+          e.setAttribute('transform', `translate(${n2(x + Math.cos(an) * p * 55 * kk)},${n2(y + Math.sin(an) * p * 50 * kk)}) rotate(${n2(an * 57 + 90)})`); e.setAttribute('opacity', n2(1 - p * 0.6)); });
+        big.querySelectorAll('.vGlow').forEach(e => e.style.filter = `drop-shadow(0 0 ${n2(3 + 4 * Math.sin(t * 4))}px #ff6fb0)`);
+      }
+      a.all('.vMini .vesc').forEach(e => { const i = +e.dataset.i, p = (t * 0.3 + i / 6) % 1, an = 2.3 + i * 0.32, x = +e.dataset.x, y = +e.dataset.y, kk = +e.dataset.k;
+        e.setAttribute('transform', `translate(${n2(x + Math.cos(an) * p * 50 * kk)},${n2(y + Math.sin(an) * p * 34 * kk)}) rotate(${n2(an * 57 + 90)})`); e.setAttribute('opacity', n2(1 - p * 0.6)); });
+      a.all('.vMini .vInj').forEach(e => e.setAttribute('stroke-dashoffset', 0));
+    }
+  };
+}
+
 function virCycle(still){
   const BW = 196, BH = 112;
   const B = { 1: [400, 52], 2: [500, 214], 3: [440, 382], 4: [196, 478], 5: [92, 304], 6: [740, 206] };
@@ -125,18 +262,19 @@ function virCycle(still){
 
 /* ═════════════ البدائيات ═════════════ */
 const PRK_VIEWS = [
-  { id: 'bfiss', label: 'الانشطار الثنائي' },
-  { id: 'bconj', label: 'الاقتران وإعادة الخلط' },
-  { id: 'bplas', label: 'انتقال عامل الخصوبة (شكل 3-5)' }
+  { id: 'bfiss', label: 'لاجنسي: الانشطار الثنائي' },
+  { id: 'bdr',   label: 'جنسي: الخلية المعطية والمستلمة' },
+  { id: 'bconj', label: 'جنسي: الاقتران وإعادة الخلط' },
+  { id: 'bplas', label: 'جنسي: انتقال عامل الخصوبة (شكل 3-5)' }
 ];
 SCENES.prok = {
   title: 'التكاثر في البدائيات (البكتيريا)',
-  get src(){ return ({ bfiss: 'ملزمة ص19', bconj: 'ملزمة ص19–22', bplas: 'ملزمة ص21–23' })[SEL.prkv] || 'ملزمة ص19'; },
+  get src(){ return ({ bfiss: 'ملزمة ص19', bdr: 'ملزمة ص21–23', bconj: 'ملزمة ص19–22', bplas: 'ملزمة ص21–23' })[SEL.prkv] || 'ملزمة ص19'; },
   tint: ['rgba(140,200,90,.22)', 'rgba(220,200,80,.14)'],
   model3d: () => 'prk_' + SEL.prkv,
   build(){
     const v = PRK_VIEWS.some(x => x.id === SEL.prkv) ? SEL.prkv : 'bfiss';
-    const s = v === 'bconj' ? prkConj() : v === 'bplas' ? prkPlas() : prkFiss();
+    const s = v === 'bconj' ? prkConj() : v === 'bplas' ? prkPlas() : v === 'bdr' ? prkDonRec() : prkFiss();
     s.rebuildOnRadio = 'prkv';
     s.tools = PRK_VIEWS.map(x => ({ id: x.id, label: x.label, radio: 'prkv', on: x.id === v })).concat(s.tools || []);
     return s;
@@ -144,6 +282,7 @@ SCENES.prok = {
 };
 SCENES.prk_fiss = { title: 'الانشطار الثنائي في البكتيريا', build: () => prkFiss(true) };
 SCENES.prk_conj = { title: 'الاقتران وإعادة الخلط في البكتيريا', build: () => prkConj(true) };
+SCENES.prk_dr = { title: 'الخلية المعطية والخلية المستلمة في بكتيريا القولون', build: () => prkDonRec(true) };
 SCENES.prk_plas = { title: 'الاقتران البكتيري في بكتيريا القولون (شكل 3-5)', build: () => prkPlas(true) };
 
 /* كروموسوم بكتيري: خيط متشابك */
@@ -218,6 +357,65 @@ function prkFiss(still){
     tick(dt, t, a){
       ctl.tick(dt); stageShow(a, STG.idx, STG.k);
       const g = a.el('#bigCell'); if (g) g.innerHTML = `<g transform="translate(270,460) scale(0.85) translate(-270,-460)">${fissState(270, 460, STG.idx, STG.k)}</g>`;
+    }
+  };
+}
+
+/* التكاثر الجنسي في البكتيريا: الخلية المعطية × الخلية المستلمة — جدول ص23 خطوة بخطوة.
+   كل خطوة تبرز صفاً من المقارنة والتركيب الذي يخصه في الخليتين. */
+const DONREC_STAGES = [
+  { n: '1 · ذكرية وأنثوية', d: 'يتم التكاثر الجنسي (الاقتران) في بكتيريا القولون بين خليتين: الخلية المعطية وتمثل خلية ذكرية، والخلية المستلمة وتمثل خلية أنثوية.' },
+  { n: '2 · عامل الخصوبة', d: 'الخلية المعطية تحتوي على عامل الخصوبة (قطعة دائرية صغيرة من الـDNA في السايتوبلازم)، والخلية المستلمة لا تحتوي على عامل الخصوبة.' },
+  { n: '3 · أهلاب الاقتران (الأهلاب الجنسية)', d: 'الخلية المعطية تحتوي على زوائد تعرف بأهلاب الاقتران (الأهلاب الجنسية)، والخلية المستلمة لا تحتوي على أهلاب جنسية.' },
+  { n: '4 · تعطي وتستلم', d: 'المعطية تعطي جزءاً من مادتها الوراثية ولا يبقى نقصان فيها لأنه يتمم نفسه بالتضاعف، والمستلمة تستلم جزءاً من كروموسوم الخلية المعطية ولا يزيد حجم كروموسومها لأن القطعة المستلمة تحل محل جزء مساوٍ لها.' }
+];
+function prkDonRec(still){
+  const DX = 330, RX = 700, CY = 262, W = 170, H = 250;
+  const capsV = cx => `<rect x="${cx - W / 2}" y="${CY - H / 2}" width="${W}" height="${H}" rx="${W / 2}" fill="${MIC.cell}" stroke="${MIC.cellS}" stroke-width="7"/>`;
+  const fig8 = (cx, col) => `<ellipse cx="${cx}" cy="${CY - 40}" rx="36" ry="30" fill="none" stroke="${col}" stroke-width="5"/><ellipse cx="${cx}" cy="${CY + 18}" rx="36" ry="30" fill="none" stroke="${col}" stroke-width="5"/>`;
+  let hairs = ''; for (let i = -3; i <= 3; i++){ const a = -Math.PI / 2 + i * 0.32, x0 = DX + Math.cos(a) * (W / 2 - 4), y0 = CY - H / 2 + W / 2 + Math.sin(a) * (W / 2 - 4);
+    hairs += `<path d="M${n2(x0)},${n2(y0)} l${n2(Math.cos(a) * 30)},${n2(Math.sin(a) * 30)}" stroke="#2a2a2a" stroke-width="5" stroke-linecap="round"/>`; }
+  const cross = (x, y) => `<g opacity=".9"><circle cx="${x}" cy="${y}" r="15" fill="rgba(226,64,62,.15)" stroke="#e2403e" stroke-width="2.4" stroke-dasharray="4 3"/><path d="M${x - 7},${y - 7} l14,14 M${x + 7},${y - 7} l-14,14" stroke="#e2403e" stroke-width="3" stroke-linecap="round"/></g>`;
+  const cells = `
+    <g data-hl="0">${part('cDonor', capsV(DX))}</g>
+    <g data-hl="0">${part('cRecip', capsV(RX))}</g>
+    <g data-hl="3">${part('cPilus', hairs)}</g>
+    <g data-hl="3">${cross(RX, CY - H / 2 - 18)}</g>
+    <g data-hl="4">${part('cChrom', fig8(DX, MIC.donor))}<g>${fig8(RX, MIC.recip)}</g></g>
+    <g data-hl="2">${part('cFert', `<circle cx="${DX}" cy="${CY + 84}" r="18" fill="none" stroke="${MIC.plas}" stroke-width="5"/>`)}</g>
+    <g data-hl="2">${cross(RX, CY + 84)}</g>
+    <text class="cap" x="${DX}" y="${CY + H / 2 + 34}" text-anchor="middle" fill="#ffd98a">الخلية المعطية (ذكرية) ♂</text>
+    <text class="cap" x="${RX}" y="${CY + H / 2 + 34}" text-anchor="middle" fill="#ffd98a">الخلية المستلمة (أنثوية) ♀</text>`;
+  const R = TABLES.mDonRec.rows, wrapL = t => wrapName(t, 44);
+  let rows = '', y = 446;
+  R.forEach((r, i) => { const L = wrapL(r[0]), M = wrapL(r[1]), h = Math.max(L.length, M.length) * 18 + 14;
+    rows += `<g class="drRow" data-r="${i + 1}"><rect x="160" y="${y}" width="710" height="${h}" rx="8" fill="rgba(255,255,255,.06)" stroke="rgba(255,255,255,.15)"/>
+      <text class="cap sm" x="${DX}" y="${y + 22}" text-anchor="middle">${L.map((l, j) => `<tspan x="${DX}" dy="${j ? 18 : 0}">${l}</tspan>`).join('')}</text>
+      <text class="cap sm" x="${RX}" y="${y + 22}" text-anchor="middle">${M.map((l, j) => `<tspan x="${RX}" dy="${j ? 18 : 0}">${l}</tspan>`).join('')}</text>
+      <circle cx="160" cy="${y + h / 2}" r="12" fill="#ffd98a"/><text x="160" y="${y + h / 2 + 5}" text-anchor="middle" font-size="13" font-weight="800" fill="#2a1a10">${i + 1}</text></g>`;
+    y += h + 8; });
+  const body = `${cells}<line x1="515" y1="${CY - H / 2}" x2="515" y2="${CY + H / 2 + 40}" stroke="rgba(255,255,255,.2)" stroke-dasharray="6 6"/>${rows}`;
+  const ctl = stageCtl(DONREC_STAGES, { dur: 28 });
+  return {
+    body, stages: DONREC_STAGES, fnParts: ['cDonor', 'cRecip'],
+    parts: [
+      { id: 'cDonor', anchor: [DX - W / 2 + 3, CY + 60], label: [134, 380], side: 'L' },
+      { id: 'cChrom', anchor: [DX - 36, CY - 40], label: [134, 300], side: 'L' },
+      { id: 'cFert', anchor: [DX + 18, CY + 84], label: [470, 360], side: 'C' },
+      { id: 'cPilus', anchor: [DX + 20, CY - H / 2 - 22], label: [480, 120], side: 'C' },
+      { id: 'cRecip', anchor: [RX + W / 2 - 3, CY + 40], label: [866, 300], side: 'R' }
+    ],
+    tools: ctl.tools.concat([{ id: 'tbl:mDonRec', label: 'المعطية × المستلمة (ص23)' }, { id: 'info:cRecomb', label: 'إعادة الخلط' }]),
+    init(){ if (!still) ctl.start(); },
+    onSlider: v => ctl.onSlider(v), onTool: id => ctl.onTool(id),
+    tick(dt, t, a){
+      if (!still) ctl.tick(dt);
+      const s = still ? -1 : STG.idx + 1;
+      a.all('.drRow').forEach(g => { const on = +g.dataset.r === s, r = g.querySelector('rect');
+        r.setAttribute('fill', on ? 'rgba(255,217,138,.18)' : 'rgba(255,255,255,.06)'); r.setAttribute('stroke', on ? '#ffd98a' : 'rgba(255,255,255,.15)');
+        g.setAttribute('opacity', s < 0 || on || +g.dataset.r < s ? 1 : 0.45); });
+      a.all('[data-hl]').forEach(g => { const h = +g.dataset.hl, on = h === s || (s === 1 && h === 0);
+        g.style.filter = on ? `drop-shadow(0 0 ${n2(4 + 4 * Math.sin(t * 4))}px #ffe08a)` : ''; });
     }
   };
 }

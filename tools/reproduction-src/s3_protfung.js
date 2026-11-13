@@ -360,6 +360,19 @@ function prConj(self, still){
     ${s0}${s1}${s2}${row2}${note}${row3}
     <text class="cap sm" x="560" y="645" text-anchor="middle">${self ? 'الإخصاب الذاتي في البراميسيوم: نواة مندمجة متماثلة العوامل الوراثية — ملزمة ص33–34' : 'الاقتران في البراميسيوم: نواة مندمجة متباينة العوامل الوراثية — ملزمة ص32–34'}</text>`;
   const B = prBuild(self ? PR_SELF_ST : PR_CONJ_ST, still, self ? 34 : 40);
+  /* إطار مرقّم لكل خطوة كما في الملزمة، ويتوهج إطار الخطوة الحالية */
+  const FR = [[c0, Y1], [c1, Y1], [c2, Y1], [c0, Y2]].concat(self ? [[c1, Y2]] : [[c1, Y2], [c2, Y2]]);
+  const frame = ([x, y], i) => `<g class="prFrame" data-i="${i}"><rect x="${x - 82}" y="${y - 102}" width="164" height="204" rx="14" fill="rgba(255,255,255,.035)" stroke="rgba(255,255,255,.22)" stroke-width="2"/>
+    <circle cx="${x + 70}" cy="${y - 92}" r="14" fill="#ffd98a" stroke="#5a4a3a" stroke-width="2"/><text x="${x + 70}" y="${y - 86}" text-anchor="middle" font-size="15" font-weight="800" fill="#2a1a10">${i + 1}</text></g>`;
+  const kidsFr = `<g class="prFrame" data-i="${FR.length}"><rect x="314" y="${YD - 44}" width="512" height="88" rx="14" fill="rgba(255,255,255,.035)" stroke="rgba(255,255,255,.22)" stroke-width="2"/>
+    <circle cx="${826 - 12}" cy="${YD - 34}" r="14" fill="#ffd98a" stroke="#5a4a3a" stroke-width="2"/><text x="${826 - 12}" y="${YD - 28}" text-anchor="middle" font-size="15" font-weight="800" fill="#2a1a10">${FR.length + 1}</text></g>`;
+  const frames = FR.map(frame).join('') + kidsFr;
+  const tick0 = B.o.tick;
+  B.o.tick = (dt, t, a) => { tick0(dt, t, a); const s = still ? -1 : STG.idx;
+    a.all('.prFrame').forEach(g => { const i = +g.dataset.i, on = i === s, r = g.querySelector('rect');
+      r.setAttribute('stroke', on ? '#ffd98a' : 'rgba(255,255,255,.22)'); r.setAttribute('stroke-width', on ? 4 : 2);
+      r.style.filter = on ? `drop-shadow(0 0 ${n2(4 + 3 * Math.sin(t * 4))}px #ffd98a)` : '';
+      g.setAttribute('opacity', s < 0 || i <= s ? 1 : 0.45); }); };
   const parts = [
     { id: 'prMacN', anchor: prPos(c0, Y1, 1, -9, -48), label: [866, 100], side: 'R' },
     { id: 'prMicN', anchor: prPos(c0, Y1, 1, 6, 22), label: [866, 205], side: 'R' },
@@ -380,7 +393,7 @@ function prConj(self, still){
     { id: 'prSep', anchor: [c1 + 48, Y2 + 70], label: [c1, 505], side: 'C' },
     { id: 'prEight', anchor: [333, YD], label: [134, YD], side: 'L' });
   return Object.assign(B.o, {
-    body, fnParts: ['prProtoBr', 'prMeioMic', 'prUneq', self ? 'prFusHom' : 'prExch'], parts,
+    body: frames + body, fnParts: ['prProtoBr', 'prMeioMic', 'prUneq', self ? 'prFusHom' : 'prExch'], parts,
     tools: B.ctl.tools.concat([{ id: 'tbl:prConjSelf', label: 'الاقتران × الإخصاب الذاتي (ص34)' }, { id: 'tbl:prParaOrig', label: 'المنشأ والمجموعة (ص35)' }, { id: 'tbl:prBridges', label: 'الجسر البروتوبلازمي × جسر الاقتران' }])
   });
 }

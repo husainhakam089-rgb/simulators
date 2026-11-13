@@ -24,7 +24,8 @@ function phageMesh(at, s, dir){
     place(capsule({ r: 0.07 * s, len: 0.6 * s, rows: 3, cols: 8 }), { at: Q(0.35, 0), dir: d })].concat([-1, 1].map(sg => tube({ pts: [Q(0.05, 0), Q(-0.15, sg * 0.35)], r: 0.02 * s, sides: 4 })))); }
 /* ═════════════ دورة تكاثر راشح البلعم البكتيري (ص17–18) — تتبع المراحل الست ═════════════
    1 الاتصال · 2 الاختراق · 3 التخليق · 4 الإنضاج · 5 التحرر (دورة التحلل) · 6 التكامل (دورة التحلل والإنتاج) */
-function phageModel(B){
+function phageModel(B, map, stages){
+  const SI = () => map ? map[Math.min(map.length - 1, STG.idx)] : STG.idx;
   const R = srng(17), CELL = rod(0.62, 2.4);
   const wall = B.add(CELL, { part: 'vWall', color: '#c98a4a', alpha: 0.3, rim: 1.3, rimColor: '#ffe2b8', shell: { size: 3.2, inner: 'vBac', tau: 0.3 } });
   const ringPts = ellipsePts([0, 0, 0], 0.9, 0.38, 12, 0.18, 4);
@@ -68,7 +69,7 @@ function phageModel(B){
   const daO = B.add(daughters, { part: 'vDaugh', color: '#c98a4a', alpha: 0.4, rim: 1.2, rimColor: '#ffe2b8', shell: { size: 1.2 }, pop: false });
   const daD = B.add(merge(DC.map(c => merge([ring(ringPts.map(p => add(mul(p, 0.45), c)), 0.025), tube({ pts: spline([0, 1, 2].map(i => add(mul(ringPts[i], 0.45), c)), 4, false), r: 0.04, sides: 5 })]))),
     { part: 'vProph', color: '#ff6fb0', rim: 0.7, rimColor: '#ffd2e8', pop: false });
-  const vis = (...ss) => () => ss.includes(STG.idx);
+  const vis = (...ss) => () => ss.includes(SI());
   B.label('vBac', [-0.9, -0.35, 0.3], [0, -1, 0.4], vis(0, 1, 2, 3));
   B.label('vWall', [-1.6, 0.2, 0.3], [-1, 0.3, 0], vis(0, 1, 2, 3, 5));
   B.label('vBDNA', [-0.8, 0, -0.2], [-0.5, -1, 0], vis(0, 1, 2));
@@ -83,9 +84,9 @@ function phageModel(B){
   B.label('vDNA', [1.0, 0.3, 0.25], [1, 0.5, 0.3], vis(5));
   B.label('vProph', add(ringPts[1], [0, 0.05, 0.05]), [0.4, 1, 0.3], vis(5));
   B.label('vDaugh', [1.35, -1.7, 0], [1, -0.3, 0], vis(5));
-  B.caption([0, -2.4, 0], () => [(VIR_STAGES[STG.idx] || {}).n || '']);
+  B.caption([0, -2.4, 0], () => [((stages || VIR_STAGES)[STG.idx] || {}).n || '']);
   return { dist: 8.2, yaw: 0.4, pitch: 0.22, target: [0.1, -0.1, 0], live2d: true,
-    anim(t){ const s = STG.idx, k = 0.5 - 0.5 * Math.cos(Math.PI * Math.min(1, Math.max(0, STG.k)));
+    anim(t){ const s = SI(), k = 0.5 - 0.5 * Math.cos(Math.PI * Math.min(1, Math.max(0, STG.k)));
       const a = s === 0 ? att(k).at : AT, full = s === 0;
       wall.hide = s === 4; bdna.hide = s >= 2 && s !== 5; frags.hide = s !== 2;
       coatO.hide = tailO.hide = s >= 4; naO.hide = s >= 2;
@@ -206,5 +207,5 @@ function plasModel(B){
     } };
 }
 
-Object.assign(G3.models, { vir_cycle: phageModel, prk_bfiss: fissModel, prk_bconj: conjModel, prk_bplas: plasModel });
+Object.assign(G3.models, { vir_cycle: phageModel, vir_lyt: B => phageModel(B, [0, 1, 2, 3, 4], LYT_STAGES), vir_lys: B => phageModel(B, [0, 1, 5, 5], LYS_STAGES), prk_bfiss: fissModel, prk_bconj: conjModel, prk_bdr: B => { const m = conjModel(B), an = m.anim; m.anim = t => { const i = STG.idx, k = STG.k; STG.idx = 0; STG.k = 0.999; an(t); STG.idx = i; STG.k = k; }; return m; }, prk_bplas: plasModel });
 })();

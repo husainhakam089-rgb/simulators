@@ -1326,6 +1326,23 @@ Object.assign(INFO, {
     fn: 'تتكون فيها النطف.',
     note: 'وزاري ت/17 و2/15 — تتكون النطف في (الخصية) التي تتألف من أعداد كبيرة من (نبيبات منوية ملتوية).'
   },
+  gTestis: {
+    name: 'الخصية', src: 'ملزمة ص6 وص8',
+    struct: 'تتألف من أعداد كبيرة من نبيبات منوية ملتوية.',
+    fn: 'تتكون فيها النطف.',
+    note: 'وزاري ت/17 و2/15 — تتكون النطف في (الخصية) التي تتألف من أعداد كبيرة من (نبيبات منوية ملتوية).'
+  },
+  semTubX: {
+    name: 'مقطع عرضي في نبيب منوي', src: 'ملزمة ص6 وص8',
+    struct: 'يبطن جداره خلايا جرثومية أولية، وتظهر فيه مراحل تكوين النطف من سليفات النطف إلى النطف الناضجة.',
+    fn: 'تتكون فيه النطف.'
+  },
+  gGerm: {
+    name: 'خلايا جرثومية أولية', src: 'ملزمة ص6 وص9',
+    loc: 'تبطن النبيبات المنوية.',
+    fn: 'تنقسم انقسامات غير مباشرة متعددة ومتعاقبة لتنتج سليفات النطف (2س).',
+    note: 'منشأ سليفات النطف: خلايا جرثومية أولية (جدول المنشأ ص9).'
+  },
   spGonium: {
     name: 'سليفة النطفة', src: 'ملزمة ص6 وص10',
     def: 'خلايا (2س) تمثل المرحلة الأولى لتكوين النطف، تنتج من انقسامات غير مباشرة متعددة للخلايا الجرثومية المبطنة للنبيبات المنوية، ثم تعاني انقسامات اعتيادية ونمو ليتكون منها خلايا نطفية أولية.',
@@ -1377,6 +1394,17 @@ Object.assign(INFO, {
     fn: 'تحويل أرومة النطفة (س) إلى نطفة ناضجة (س).'
   },
   /* تكوين البيوض */
+  oGerm: {
+    name: 'خلايا جرثومية', src: 'ملزمة ص7 وص9',
+    loc: 'داخل المبايض.',
+    fn: 'تمر بانقسامات غير مباشرة (اعتيادية) تنتج سليفات البيوض (2س).',
+    note: 'منشأ سليفات البيوض: خلايا جرثومية (جدول المنشأ ص9).'
+  },
+  ooFol: {
+    name: 'حويصلة مبيضية', src: 'ملزمة ص7 وص11',
+    def: 'خلية بيضية أولية (2س) محاطة بخلايا صغيرة تدعى الخلايا الحوصلية.',
+    note: 'وزاري 2/21 و1/18 و3/17 و1/15 — تحاط الخلية البيضية الأولية بـ(الخلايا الحوصلية) وتشكل معها (الحويصلة المبيضية).'
+  },
   ooGonium: {
     name: 'سليفة البيضة', src: 'ملزمة ص7 وص9',
     origin: 'انقسامات غير مباشرة (اعتيادية) للخلايا الجرثومية داخل المبايض.',
@@ -1674,6 +1702,7 @@ QUIZ.push(
 
 CH.tabs.push({ k: 'virus', t: 'الفايروسات' }, { k: 'prok', t: 'البدائيات' });
 CH.sel.prkv = 'bfiss';
+CH.sel.virv = 'vLyt';
 Object.assign(CH.toolIcons, { bfiss: 'cell', bconj: 'route', bplas: 'mol' });
 CH.exam.push({ k: 'vir_cycle', t: 'تكاثر البلعم البكتيري' }, { k: 'prk_fiss', t: 'الانشطار الثنائي في البكتيريا' }, { k: 'prk_conj', t: 'الاقتران في البكتيريا' }, { k: 'prk_plas', t: 'شكل 3-5 الاقتران البكتيري' });
 CH.draw.push(
@@ -4586,141 +4615,315 @@ function intTypes(){
   };
 }
 
-/* ───────── 2) تكوين النطف في الثدييات — شكل (3-1) ص8 ───────── */
+/* ───────── 2) تكوين النطف في الثدييات — شكل (3-1) ص8 ─────────
+   خطوة بخطوة: مقطع في الخصية يُظهر النبيبات المنوية الملتوية، ثم مقطع عرضي في نبيب
+   منوي واحد بطبقات خلاياه، ثم نرجع للمخطط ونمر بالمراحل الخمس واحدة بعد الأخرى.
+   التخطيط الافتراضي (الامتحان والرسم) هو «النظرة العامة»: الخصية والنبيب مصغّران يساراً
+   والمخطط يميناً؛ في الخطوتين الأوليين يكبر الرسم المعني إلى وسط المشهد. */
 const SPERM_STAGES = [
-  { n: '1 · سليفات النطف (2س)', d: 'تتكون النطف في الخصية المؤلفة من أعداد كبيرة من نبيبات منوية ملتوية تبطنها خلايا جرثومية أولية تنقسم انقسامات غير مباشرة متعددة ومتعاقبة لتنتج سليفات النطف (2س) التي تنقسم اعتيادياً لتضاعف أعدادها.' },
-  { n: '2 · الخلايا النطفية الأولية (2س)', d: 'تمر سليفات النطف بمرحلة نمو بعد توقف انقساماتها ويكبر حجمها وتسمى الخلايا النطفية الأولية (2س).' },
-  { n: '3 · الخلايا النطفية الثانوية (س)', d: 'تمر الخلية النطفية الأولية بالانقسام الاختزالي الأول لتنتج خليتين متساويتين بالحجم تسمى كل منهما الخلية النطفية الثانوية (س).' },
-  { n: '4 · أرومات النطف (س)', d: 'تمر الخلية النطفية الثانوية بالانقسام الاختزالي الثاني لتكوّن أربع خلايا متساوية بالحجم تدعى أرومات النطف (س).' },
-  { n: '5 · أربع نطف ناضجة (س)', d: 'تعاني أرومات النطف تغييرات في شكلها وتركيبها (عملية التحول النطفي) مؤدية إلى تكوين أربع نطف ناضجة، كل منها أحادية المجموعة الكروموسومية (س).' }
+  { n: '1 · الخصية (مقطع)', d: 'تتكون النطف في الخصية المؤلفة من أعداد كبيرة من نبيبات منوية ملتوية.' },
+  { n: '2 · مقطع عرضي في نبيب منوي', d: 'تبطن النبيبات المنوية خلايا جرثومية أولية تنقسم انقسامات غير مباشرة متعددة ومتعاقبة، ومنها تبدأ مراحل تكوين النطف حتى النطف الناضجة.' },
+  { n: '3 · سليفات النطف (2س)', d: 'تنقسم الخلايا الجرثومية الأولية المبطنة للنبيبات المنوية انقسامات غير مباشرة متعددة ومتعاقبة لتنتج سليفات النطف (2س) التي تنقسم اعتيادياً لتضاعف أعدادها.' },
+  { n: '4 · الخلايا النطفية الأولية (2س)', d: 'تمر سليفات النطف بمرحلة نمو بعد توقف انقساماتها ويكبر حجمها وتسمى الخلايا النطفية الأولية (2س).' },
+  { n: '5 · الخلايا النطفية الثانوية (س)', d: 'تمر الخلية النطفية الأولية بالانقسام الاختزالي الأول لتنتج خليتين متساويتين بالحجم تسمى كل منهما الخلية النطفية الثانوية (س).' },
+  { n: '6 · أرومات النطف (س)', d: 'تمر الخلية النطفية الثانوية بالانقسام الاختزالي الثاني لتكوّن أربع خلايا متساوية بالحجم تدعى أرومات النطف (س).' },
+  { n: '7 · أربع نطف ناضجة (س)', d: 'تعاني أرومات النطف تغييرات في شكلها وتركيبها (عملية التحول النطفي) مؤدية إلى تكوين أربع نطف ناضجة، كل منها أحادية المجموعة الكروموسومية (س).' }
 ];
+/* أسماء ثابتة تتبع الخطوة: تُنقل خطوطها ونقاطها لمواقعها في كل خطوة، وما ليس للخطوة يُخفى */
+function gamRelabel(a, L){
+  const lh = VB.x < 0 ? 30 : 16;
+  a.all('#labelLayer .lblG').forEach(g => {
+    const p = L[g.dataset.for];
+    if (!p){ g.style.display = 'none'; return; }
+    g.style.display = '';
+    const [ax, ay, lx, ly, side] = p, ln = g.querySelector('.lead'), dot = g.querySelector('.lblDot'), tx = g.querySelector('.lbl');
+    ln.setAttribute('x1', n2(lx)); ln.setAttribute('y1', n2(ly)); ln.setAttribute('x2', n2(ax)); ln.setAttribute('y2', n2(ay));
+    dot.setAttribute('cx', n2(ax)); dot.setAttribute('cy', n2(ay));
+    const X = side === 'R' ? lx + 8 : side === 'L' ? lx - 8 : lx, ts = tx.querySelectorAll('tspan');
+    tx.setAttribute('text-anchor', side === 'R' ? 'end' : side === 'L' ? 'start' : 'middle');
+    tx.setAttribute('x', n2(X)); tx.setAttribute('y', n2(ly - (ts.length - 1) * lh / 2));
+    ts.forEach(t => t.setAttribute('x', n2(X)));
+  });
+}
+const gamSm = k => { k = Math.max(0, Math.min(1, k)); return k * k * (3 - 2 * k); };
+const gamLerp = (A, B, k) => A.map((v, i) => v + (B[i] - v) * k);
+const gamTr = p => `translate(${n2(p[0])},${n2(p[1])}) scale(${n2(p[2])})`;
+
+/* مقطع في الخصية: غلاف، حواجز تقسمها إلى فصوص، وفي كل فص نبيب منوي ملتوٍ */
+function testisSvg(){
+  const RX = 130, RY = 165, M = [70, -105];
+  let s = `<ellipse cx="0" cy="0" rx="${RX + 9}" ry="${RY + 9}" fill="#f7e4d6" stroke="#fff6ee" stroke-width="3"/>
+    <ellipse cx="0" cy="0" rx="${RX}" ry="${RY}" fill="#f0c4ae"/>`;
+  const A = [-1.75, -2.45, -3.05, 2.65, 2.05, 1.45, 0.85, 0.2];
+  let sep = '';
+  A.forEach(a => { const ex = Math.cos(a) * RX, ey = Math.sin(a) * RY; sep += `<path d="M${M[0]},${M[1]} Q${n2((M[0] + ex) / 2 + 10)},${n2((M[1] + ey) / 2)} ${n2(ex)},${n2(ey)}" fill="none" stroke="#fff3ea" stroke-width="3.2"/>`; });
+  /* النبيبات: خط متعرّج داخل كل فص (بين حاجزين) */
+  let tubs = '';
+  for (let i = 0; i < A.length - 1; i++){
+    let a0 = A[i], a1 = A[i + 1]; if (a1 > a0 && i === 2) a1 -= 6.2832;
+    const am = (a0 + a1) / 2, pts = [];
+    for (let j = 0; j <= 26; j++){ const u = j / 26, rr = 0.25 + u * 0.68, aa = am + Math.sin(u * 23) * Math.abs(a1 - a0) * 0.3 * (0.4 + u * 0.6);
+      pts.push([M[0] * (1 - rr) + Math.cos(aa) * RX * rr, M[1] * (1 - rr) + Math.sin(aa) * RY * rr]); }
+    tubs += `<path d="${pts.map((p, j) => (j ? 'L' : 'M') + n2(p[0]) + ',' + n2(p[1])).join(' ')}" fill="none" stroke="#b9764e" stroke-width="5.5" stroke-linejoin="round" stroke-linecap="round"/>
+      <path d="${pts.map((p, j) => (j ? 'L' : 'M') + n2(p[0]) + ',' + n2(p[1])).join(' ')}" fill="none" stroke="#e7a77c" stroke-width="2" stroke-linejoin="round"/>`;
+  }
+  s = part('gTestis', s + sep + `<circle cx="${M[0]}" cy="${M[1]}" r="12" fill="#f7e4d6" stroke="#fff6ee" stroke-width="2"/>`) +
+    part('semTub', tubs + `<g id="tMag"><circle cx="-62" cy="70" r="24" fill="rgba(255,224,138,.12)" stroke="#ffe08a" stroke-width="3.5"/></g>`);
+  return s;
+}
+/* مقطع عرضي في نبيب منوي: الجدار، ثم حلقات الخلايا من الخارج إلى التجويف — كل حلقة
+   تحمل رقم خطوتها (data-hl) فتتوهج عند الوصول إليها */
+const TUB_R = 125;
+const TUB_RINGS = [
+  { id: 'gGerm',    r: 108, n: 30, cr: 6,  fill: '#a8a0c0', nuc: '#4a4466', hl: 2, flat: true },
+  { id: 'spGonium', r: 92,  n: 22, cr: 8.5, fill: '#b07ad8', nuc: '#4a2a7a', hl: 2, a0: -0.87 },
+  { id: 'spPrim',   r: 73,  n: 15, cr: 11, fill: '#b07ad8', nuc: '#4a2a7a', hl: 3, a0: -0.44 },
+  { id: 'spSec',    r: 55,  n: 14, cr: 8,  fill: '#c08ae0', nuc: '#4a2a7a', hl: 4, a0: 0 },
+  { id: 'spTid',    r: 42,  n: 18, cr: 5.5, fill: '#cfa0ec', nuc: '#4a2a7a', hl: 5, a0: 0.44 }
+];
+function tubuleSvg(){
+  let s = part('semTubX', `<circle cx="0" cy="0" r="${TUB_R + 6}" fill="#f3d6c0" stroke="#fff3ea" stroke-width="4"/><circle cx="0" cy="0" r="${TUB_R - 6}" fill="#fbeee4"/>`) +
+    `<circle cx="0" cy="0" r="30" fill="#efe2f4" stroke="#e2cfe8" stroke-width="1.5"/>`;
+  TUB_RINGS.forEach(R => {
+    let g = '';
+    for (let i = 0; i < R.n; i++){ const a = (R.a0 || 0) + i * 6.2832 / R.n, x = Math.cos(a) * R.r, y = Math.sin(a) * R.r;
+      g += R.flat ? `<ellipse cx="${n2(x)}" cy="${n2(y)}" rx="${R.cr * 1.6}" ry="${R.cr * 0.75}" transform="rotate(${n2(a * 57.3 + 90)} ${n2(x)} ${n2(y)})" fill="${R.fill}" stroke="#fff" stroke-width="1"/>`
+        : gCell(x, y, R.cr, R.fill, R.nuc); }
+    s += `<g class="tubRing" data-hl="${R.hl}">${part(R.id, g)}</g>`;
+  });
+  /* نطف ناضجة: رؤوسها نحو الجدار وذيولها في التجويف */
+  let sp = '';
+  for (let i = 0; i < 12; i++){ const a = 0.87 + i * 6.2832 / 12, x = Math.cos(a) * 33, y = Math.sin(a) * 33;
+    sp += spermSvg(n2(x), n2(y), 0.42, a + Math.PI, 'swim', 30 + i); }
+  s += `<g class="tubRing" data-hl="6">${part('spermM', sp)}</g>`;
+  s += `<g id="tWedge" opacity="0" pointer-events="none"><path d="M0,0 L${n2(Math.cos(-0.3) * (TUB_R + 10))},${n2(Math.sin(-0.3) * (TUB_R + 10))} A${TUB_R + 10},${TUB_R + 10} 0 0 1 ${n2(Math.cos(0.3) * (TUB_R + 10))},${n2(Math.sin(0.3) * (TUB_R + 10))}Z" fill="rgba(255,224,138,.1)" stroke="#ffe08a" stroke-width="3" stroke-dasharray="8 5"/></g>`;
+  return s;
+}
+/* مواقع الرسمين: النظرة العامة / مكبّر في الوسط */
+const SP_T_SMALL = [300, 335, 0.6], SP_T_BIG = [500, 365, 1.55];
+const SP_S_SMALL = [300, 560, 0.55], SP_S_BIG = [500, 370, 2.0];
+const ringPt = (pos, r, a) => [pos[0] + Math.cos(a) * r * pos[2], pos[1] + Math.sin(a) * r * pos[2]];
+
 function intSperm(still){
-  const X = 610, Y = [104, 196, 296, 396, 520];
+  const X = 640, Y = [104, 196, 296, 396, 520];
   const c = GAM.cell, n = GAM.nuc;
   let flowA = '';
   const ar = (x0, y0, x1, y1, st) => `<g data-st="${st}">${gArrow(x0, y0, x1, y1, GAM.arr)}</g>`;
-  flowA += ar(X, Y[0] + 22, X, Y[1] - 28, 1);
-  [-1, 1].forEach(s => { flowA += ar(X + s * 8, Y[1] + 28, X + s * 50, Y[2] - 24, 2); });
-  [-75, -25, 25, 75].forEach((dx, i) => { const px = X + (i < 2 ? -50 : 50); flowA += ar(px + (dx < px - X ? -6 : 6) * 0 + (i % 2 ? 6 : -6), Y[2] + 22, X + dx, Y[3] - 18, 3); });
-  [-75, -25, 25, 75].forEach(dx => { flowA += ar(X + dx, Y[3] + 18, X + dx, Y[4] - 34, 4); });
+  flowA += ar(X, Y[0] + 22, X, Y[1] - 28, 3);
+  [-1, 1].forEach(s => { flowA += ar(X + s * 8, Y[1] + 28, X + s * 50, Y[2] - 24, 4); });
+  [-75, -25, 25, 75].forEach((dx, i) => { const px = X + (i < 2 ? -50 : 50); flowA += ar(px + (i % 2 ? 6 : -6), Y[2] + 22, X + dx, Y[3] - 18, 5); });
+  [-75, -25, 25, 75].forEach(dx => { flowA += ar(X + dx, Y[3] + 18, X + dx, Y[4] - 34, 6); });
   const cells = `
-    ${part('spGonium', `<g data-st="0">${gCell(X, Y[0], 20, c, n)}</g>`)}
-    ${part('spPrim', `<g data-st="1">${gCell(X, Y[1], 27, c, n)}</g>`)}
-    ${part('spSec', `<g data-st="2">${gCell(X - 50, Y[2], 21, c, n)}${gCell(X + 50, Y[2], 21, c, n)}</g>`)}
-    ${part('spTid', `<g data-st="3">${[-75, -25, 25, 75].map(dx => gCell(X + dx, Y[3], 15, c, n)).join('')}</g>`)}
-    ${part('spermM', `<g data-st="4">${[-75, -25, 25, 75].map((dx, i) => spermSvg(X + dx, Y[4] - 24, 0.95, Math.PI / 2, 'swim', i)).join('')}</g>`)}`;
+    ${part('spGonium', `<g data-st="2">${gCell(X, Y[0], 20, c, n)}</g>`)}
+    ${part('spPrim', `<g data-st="3">${gCell(X, Y[1], 27, c, n)}</g>`)}
+    ${part('spSec', `<g data-st="4">${gCell(X - 50, Y[2], 21, c, n)}${gCell(X + 50, Y[2], 21, c, n)}</g>`)}
+    ${part('spTid', `<g data-st="5">${[-75, -25, 25, 75].map(dx => gCell(X + dx, Y[3], 15, c, n)).join('')}</g>`)}
+    ${part('spermM', `<g data-st="6">${[-75, -25, 25, 75].map((dx, i) => spermSvg(X + dx, Y[4] - 24, 0.95, Math.PI / 2, 'swim', i)).join('')}</g>`)}`;
   const brk = (x, y0, y1, id, st) => part(id, `<g data-st="${st}"><path d="M${x},${y0} L${x + 12},${y0} L${x + 12},${y1} L${x},${y1}" fill="none" stroke="#ffe08a" stroke-width="2.4"/></g>`);
-  const brackets = brk(X + 104, Y[1] - 6, Y[2] + 14, 'meio1', 2) + brk(X + 104, Y[2] + 22, Y[3] + 14, 'meio2', 3) +
-    part('spermio', `<g data-st="4"><line x1="${X - 110}" y1="${Y[3] + 34}" x2="${X + 116}" y2="${Y[3] + 34}" stroke="#e8e0f0" stroke-width="2.2" stroke-dasharray="9 6"/></g>`);
-  /* مقطع في جدار النبيب المنوي (يسار الشكل) */
-  const T0 = 200, rr = rng(31);
-  let tub = `<path d="M70,90 Q${T0},70 330,92 L326,128 Q${T0},112 74,124Z" fill="${GAM.tub}" stroke="#ffe2c4" stroke-width="2"/>`;
-  for (let row = 0; row < 3; row++) for (let i = 0; i < 6 - row; i++){
-    const x = 92 + row * 22 + i * 44 + rr() * 6, y = 152 + row * 46;
-    tub += `<g data-st="${row === 0 ? 0 : row === 1 ? 1 : 2}">${gCell(x, y, 17 - row * 2, '#8e8ea8', '#3a3a52')}</g>`;
-  }
-  tub += `<path d="M190,140 Q214,190 206,260 Q200,300 186,262 Q170,200 190,140Z" fill="#e2a3b6" stroke="#ffd8e4" stroke-width="2"/><circle cx="195" cy="190" r="8" fill="#8a3a5a"/>`;
-  let fan = '';
-  for (let i = 0; i < 7; i++){ const x = 130 + i * 22; fan += spermSvg(x, 300 + Math.abs(i - 3) * 6, 0.7, Math.PI / 2 + (i - 3) * 0.12, 'swim', i + 5); }
-  const free = [[110, 420], [180, 470], [140, 520], [60, 470]].map(([x, y], i) => spermSvg(x, y, 0.75, 1.9 - i * 0.1, 'swim', i + 12)).join('');
+  const brackets = brk(X + 104, Y[1] - 6, Y[2] + 14, 'meio1', 4) + brk(X + 104, Y[2] + 22, Y[3] + 14, 'meio2', 5) +
+    part('spermio', `<g data-st="6"><line x1="${X - 110}" y1="${Y[3] + 34}" x2="${X + 116}" y2="${Y[3] + 34}" stroke="#e8e0f0" stroke-width="2.2" stroke-dasharray="9 6"/></g>`);
+  /* خطوط التكبير: من النبيب في الخصية إلى المقطع العرضي، ومن الجزء المؤشر من الجدار إلى المخطط */
+  const mag = ringPt(SP_T_SMALL, 1, 0), mT = [SP_T_SMALL[0] - 62 * SP_T_SMALL[2], SP_T_SMALL[1] + 70 * SP_T_SMALL[2]];
+  const zoomLines = `<g id="spZoom">
+    <path d="M${n2(mT[0] - 14)},${n2(mT[1] + 6)} L${n2(SP_S_SMALL[0] - 66)},${n2(SP_S_SMALL[1] - 30)} M${n2(mT[0] + 14)},${n2(mT[1] + 6)} L${n2(SP_S_SMALL[0] + 66)},${n2(SP_S_SMALL[1] - 30)}" stroke="#ffe08a" stroke-width="1.6" stroke-dasharray="5 5" fill="none" opacity=".75"/>
+    <path d="M${n2(SP_S_SMALL[0] + 70)},${n2(SP_S_SMALL[1] - 20)} Q${X - 160},${Y[0] + 120} ${X - 32},${Y[0]}" stroke="#ffe08a" stroke-width="1.6" stroke-dasharray="5 5" fill="none" opacity=".75"/></g>`;
+  void mag;
   const body = `
-    <g transform="translate(20,250)">${part('semTub', tub)}<g data-st="3">${fan}</g></g><g data-st="4" transform="translate(250,40)">${free}</g>
-    ${flowA}${cells}${brackets}
-    <text class="cap sm" x="500" y="640" text-anchor="middle">شكل (3-1): تكوين النطف في الثدييات — من سليفة نطفة واحدة (2س) تنتج أربع نطف ناضجة (س)</text>`;
-  const ctl = stageCtl(SPERM_STAGES, { dur: 26 });
+    ${zoomLines}
+    <g id="spFlow">${flowA}${cells}${brackets}</g>
+    <g id="spTub" transform="${gamTr(SP_S_SMALL)}">${tubuleSvg()}</g>
+    <g id="spTes" transform="${gamTr(SP_T_SMALL)}">${testisSvg()}</g>
+    <text id="spCap" class="cap sm" x="500" y="668" text-anchor="middle">شكل (3-1): تكوين النطف في الثدييات — من سليفة نطفة واحدة (2س) تنتج أربع نطف ناضجة (س)</text>`;
+  const ctl = stageCtl(SPERM_STAGES, { dur: 38 });
+  /* مواقع الأسماء في النظرة العامة (وهي أيضاً مواقع الامتحان) */
+  const T = SP_T_SMALL, S = SP_S_SMALL;
+  const tAt = (x, y, p) => [p[0] + x * p[2], p[1] + y * p[2]];
+  const ov = {
+    gTestis: [...tAt(-130, -20, T), 134, 350, 'L'],
+    semTub: [...tAt(-62, 70, T), 134, 420, 'L'],
+    semTubX: [...ringPt(S, TUB_R + 4, 2.6), 134, 495, 'L'],
+    gGerm: [...ringPt(S, 108, 3.4), 134, 560, 'L'],
+    spGonium: [X + 20, Y[0], 866, Y[0], 'R'],
+    spPrim: [X + 27, Y[1], 866, Y[1] - 18, 'R'],
+    meio1: [X + 116, Y[1] + 40, 866, Y[1] + 40, 'R'],
+    spSec: [X + 71, Y[2], 866, Y[2] + 30, 'R'],
+    meio2: [X + 116, Y[3] - 30, 866, Y[3] - 22, 'R'],
+    spTid: [X + 90, Y[3], 866, Y[3] + 26, 'R'],
+    spermio: [X + 116, Y[3] + 34, 866, Y[3] + 72, 'R'],
+    spermM: [X + 84, Y[4] + 10, 866, Y[4] + 50, 'R']
+  };
+  /* الخطوة 1: الخصية مكبّرة */
+  const TB = SP_T_BIG, SB = SP_S_BIG;
+  const big0 = { gTestis: [...tAt(-139, 40, TB), 134, 420, 'L'], semTub: [...tAt(-62, 70, TB), 866, 540, 'R'] };
+  /* الخطوة 2: النبيب مكبّراً — كل اسم يشير إلى خلية من حلقته */
+  const big1 = {
+    semTubX: [...ringPt(SB, TUB_R + 3, 2.5), 134, 520, 'L'],
+    gGerm: [...ringPt(SB, 108, 3.3), 134, 420, 'L'],
+    spGonium: [...ringPt(SB, 92, -0.87), 866, 170, 'R'],
+    spPrim: [...ringPt(SB, 73, -0.44), 866, 260, 'R'],
+    spSec: [...ringPt(SB, 55, 0), 866, 360, 'R'],
+    spTid: [...ringPt(SB, 42, 0.44), 866, 460, 'R'],
+    spermM: [...ringPt(SB, 33, 0.87), 866, 560, 'R']
+  };
+  const parts = Object.keys(ov).map(id => ({ id, anchor: [ov[id][0], ov[id][1]], label: [ov[id][2], ov[id][3]], side: ov[id][4] }));
+  let lastL = null;
   return {
-    body, stages: SPERM_STAGES, fnParts: ['meio1', 'meio2', 'spermio'],
-    parts: [
-      { id: 'semTub', anchor: [110, 355], label: [134, 300], side: 'L' },
-      { id: 'spGonium', anchor: [X + 20, Y[0]], label: [866, Y[0]], side: 'R' },
-      { id: 'spPrim', anchor: [X + 27, Y[1]], label: [866, Y[1] - 18], side: 'R' },
-      { id: 'meio1', anchor: [X + 116, Y[1] + 40], label: [866, Y[1] + 40], side: 'R' },
-      { id: 'spSec', anchor: [X + 71, Y[2]], label: [866, Y[2] + 30], side: 'R' },
-      { id: 'meio2', anchor: [X + 116, Y[3] - 30], label: [866, Y[3] - 22], side: 'R' },
-      { id: 'spTid', anchor: [X + 90, Y[3]], label: [866, Y[3] + 26], side: 'R' },
-      { id: 'spermio', anchor: [X + 116, Y[3] + 34], label: [866, Y[3] + 72], side: 'R' },
-      { id: 'spermM', anchor: [X + 84, Y[4] + 10], label: [866, Y[4] + 50], side: 'R' }
-    ],
+    body, stages: SPERM_STAGES, fnParts: ['meio1', 'meio2', 'spermio'], parts,
     tools: ctl.tools.concat([{ id: 'tbl:gamOrigin', label: 'المنشأ والمجموعة الكروموسومية (ص9)' }, { id: 'tbl:spermEgg', label: 'النطف × البيوض' }]),
     init(){ if (!still) ctl.start(); else { STG.T = 0.999; } },
     onSlider: v => ctl.onSlider(v), onTool: id => ctl.onTool(id),
-    tick(dt, t, a){ if (!still) ctl.tick(dt); stageShow(a, still ? 9 : STG.idx, still ? 1 : STG.k); wiggle(a, t); }
-  };
-}
-
-/* ───────── 3) تكوين البيوض في الثدييات — شكل (3-2) ص8 ───────── */
-const EGG_STAGES = [
-  { n: '1 · سليفات البيوض (2س)', d: 'تتكون البيوض في المبايض التي بداخلها خلايا جرثومية تمر بانقسامات غير مباشرة (اعتيادية) تنتج سليفات البيوض (2س)، وتعاني انقسامات اعتيادية متعاقبة لتنتج سليفات بيوض إضافية.' },
-  { n: '2 · الخلايا البيضية الأولية (2س)', d: 'يبدأ قسم من السليفات بالنمو فيكبر حجمها وتدعى الخلايا البيضية الأولية (2س)، وتكون محاطة بخلايا صغيرة تدعى الخلايا الحوصلية، وتشكل معها الحويصلة المبيضية.' },
-  { n: '3 · خلية بيضية ثانوية (س) + جسم قطبي أول (س)', d: 'تمر الخلية البيضية الأولية بالانقسام الاختزالي الأول فينتج خليتان غير متساويتين بالحجم بسبب الانقسام السايتوبلازمي غير المتساوي: الكبيرة الخلية البيضية الثانوية والصغيرة الجسم القطبي الأول.' },
-  { n: '4 · أرومة البيضة (س) + أجسام قطبية ثانية (س)', d: 'تمر الخلية البيضية الثانوية بالانقسام الاختزالي الثاني: الكبيرة أرومة البيضة والصغيرة الجسم القطبي الثاني، وقد ينقسم الجسم القطبي الأول فيكوّن جسمين قطبيين آخرين.' },
-  { n: '5 · النتيجة النهائية', d: 'خلية بيضية ناضجة (أرومة البيضة تنمو إلى بيضة ناضجة) + 3 أجسام قطبية تنحل فيما بعد.' }
-];
-function intEgg(still){
-  const X = 650, Y = [100, 196, 316, 470];
-  const c = '#8f7ad8', n = '#2e2266';
-  const ar = (x0, y0, x1, y1, st) => `<g data-st="${st}">${gArrow(x0, y0, x1, y1, GAM.arr)}</g>`;
-  let flow = ar(X, Y[0] + 20, X, Y[1] - 30, 1) + ar(X - 12, Y[1] + 28, X - 78, Y[2] - 16, 2) + ar(X + 10, Y[1] + 30, X + 34, Y[2] - 30, 2) +
-    ar(X - 92, Y[2] + 14, X - 140, Y[3] - 14, 3) + ar(X - 80, Y[2] + 14, X - 90, Y[3] - 14, 3) + ar(X + 30, Y[2] + 30, X - 34, Y[3] - 14, 3) + ar(X + 44, Y[2] + 32, X + 54, Y[3] - 26, 3);
-  const cells = `
-    ${part('ooGonium', `<g data-st="0">${gCell(X, Y[0], 18, c, n)}</g>`)}
-    ${part('ooPrim', `<g data-st="1"><circle cx="${X}" cy="${Y[1]}" r="38" fill="none" stroke="#f2c97a" stroke-width="6" stroke-dasharray="3 5"/>${gCell(X, Y[1], 28, c, n)}</g>`)}
-    ${part('polar1', `<g data-st="2">${gCell(X - 86, Y[2], 12, GAM.polar, n)}</g>`)}
-    ${part('ooSec', `<g data-st="2">${gCell(X + 42, Y[2], 30, c, n)}</g>`)}
-    ${part('polar2', `<g data-st="3">${gCell(X - 146, Y[3], 11, GAM.polar, n)}${gCell(X - 92, Y[3], 11, GAM.polar, n)}${gCell(X - 38, Y[3], 11, GAM.polar, n)}</g>`)}
-    ${part('ootid', `<g data-st="3">${gCell(X + 58, Y[3], 32, '#a98ae8', n)}</g>`)}
-    ${part('ovumM', `<g data-st="4"><circle cx="${X + 58}" cy="${Y[3]}" r="44" fill="none" stroke="#ffe08a" stroke-width="3"/></g>`)}
-    <g data-st="4" id="pbFade"><text class="cap sm" x="${X - 92}" y="${Y[3] + 40}" text-anchor="middle">(تنحل فيما بعد)</text></g>`;
-  const brk = (x, y0, y1, id, st) => part(id, `<g data-st="${st}"><path d="M${x},${y0} L${x + 12},${y0} L${x + 12},${y1} L${x},${y1}" fill="none" stroke="#ffe08a" stroke-width="2.4"/></g>`);
-  const brackets = brk(X + 110, Y[1] + 6, Y[2] + 14, 'oMeio1', 2) + brk(X + 110, Y[2] + 36, Y[3] + 14, 'oMeio2', 3);
-  /* المبيض وقناة البيض وحويصلة كراف والجسم الأصفر (مصغّر يسار المشهد) */
-  const OX = 250, OY = 440, S = 0.8, sp = (dx, dy) => [n2(OX + dx * S), n2(OY + dy * S)];
-  let ov = `<ellipse cx="${OX}" cy="${OY}" rx="150" ry="190" fill="${GAM.ovary}" stroke="#ffe0d8" stroke-width="10" opacity=".95"/><ellipse cx="${OX}" cy="${OY}" rx="138" ry="178" fill="none" stroke="#c9b9a8" stroke-width="4" stroke-dasharray="2 6"/>`;
-  const F = [[-120, -100, 9], [-138, -40, 12], [-134, 30, 16], [-112, 96, 20]];
-  F.forEach(([dx, dy, r], i) => { ov += `<g data-st="${Math.min(2, i)}"><circle cx="${OX + dx}" cy="${OY + dy}" r="${r + 6}" fill="#f6c3b0" stroke="#fff" stroke-width="1.4"/><circle cx="${OX + dx}" cy="${OY + dy}" r="${r * 0.55}" fill="#2a2a6a"/></g>`; });
-  const graaf = `<g data-st="3"><circle cx="${OX - 88}" cy="${OY + 150}" r="40" fill="#f6c3b0" stroke="#fff" stroke-width="2"/><circle cx="${OX - 82}" cy="${OY + 150}" r="26" fill="#cfe7ff" opacity=".8"/><circle cx="${OX - 100}" cy="${OY + 160}" r="10" fill="#2a2a6a"/></g>`;
-  const released = `<g data-st="3" id="relEgg">${gCell(OX - 170, OY + 200, 12, c, n)}</g>`;
-  const cl = `<g data-st="4"><path d="${smoothClosed([[OX + 30, OY + 120], [OX + 60, OY + 108], [OX + 76, OY + 136], [OX + 62, OY + 168], [OX + 30, OY + 166], [OX + 18, OY + 140]])}" fill="${GAM.yellow}" stroke="#fff3c8" stroke-width="2"/>
-    <path d="${smoothClosed([[OX + 90, OY + 40], [OX + 112, OY + 30], [OX + 124, OY + 54], [OX + 108, OY + 76], [OX + 86, OY + 66]])}" fill="${GAM.yellow}" stroke="#fff3c8" stroke-width="2" opacity=".8"/></g>`;
-  let fimb = `<path d="M${OX + 40},${OY - 190} Q${OX - 40},${OY - 250} ${OX - 150},${OY - 210} Q${OX - 200},${OY - 186} ${OX - 190},${OY - 140}" fill="none" stroke="#d9505a" stroke-width="22" stroke-linecap="round"/>`;
-  for (let i = 0; i < 9; i++){ const a = 1.2 + i * 0.22; fimb += `<path d="M${OX - 190},${OY - 140} q${n2(Math.cos(a) * -30)},${n2(Math.sin(a) * 34)} ${n2(Math.cos(a) * -40 + 6)},${n2(Math.sin(a) * 52)}" fill="none" stroke="#e8707a" stroke-width="5" stroke-linecap="round"/>`; }
-  const body = `
-    <g transform="translate(${OX},${OY}) scale(${S}) translate(${-OX},${-OY})">
-    ${part('oviduct', fimb)}
-    ${part('ovary', ov + `<text class="cap" x="${OX + 30}" y="${OY - 20}" text-anchor="middle" fill="#7a2030">مبيض</text>`)}
-    ${part('graaf', graaf)}
-    ${part('corpusL', cl)}
-    ${released}</g>
-    ${flow}${cells}${brackets}
-    <text class="cap sm" x="640" y="640" text-anchor="middle">شكل (3-2): تكوين البيوض في الثدييات — بيضة واحدة ناضجة + 3 أجسام قطبية تنحل فيما بعد</text>`;
-  const ctl = stageCtl(EGG_STAGES, { dur: 26 });
-  return {
-    body, stages: EGG_STAGES, fnParts: ['oMeio1', 'oMeio2', 'polar1'],
-    parts: [
-      { id: 'ooGonium', anchor: [X + 18, Y[0]], label: [866, Y[0]], side: 'R' },
-      { id: 'ooPrim', anchor: [X + 38, Y[1]], label: [866, Y[1] - 26], side: 'R' },
-      { id: 'oMeio1', anchor: [X + 122, Y[1] + 60], label: [866, Y[1] + 40], side: 'R' },
-      { id: 'ooSec', anchor: [X + 72, Y[2]], label: [866, Y[2] + 8], side: 'R' },
-      { id: 'oMeio2', anchor: [X + 122, Y[3] - 40], label: [866, Y[3] - 70], side: 'R' },
-      { id: 'ootid', anchor: [X + 90, Y[3]], label: [866, Y[3] + 30], side: 'R' },
-      { id: 'polar1', anchor: [X - 86, Y[2] - 12], label: [X - 120, Y[2] - 50], side: 'C' },
-      { id: 'polar2', anchor: [X - 92, Y[3] + 11], label: [X - 92, Y[3] + 86], side: 'C' },
-      { id: 'oviduct', anchor: sp(-60, -228), label: [134, 300], side: 'L' },
-      { id: 'ovary', anchor: sp(-150, -40), label: [134, 380], side: 'L' },
-      { id: 'graaf', anchor: sp(-128, 150), label: [134, 520], side: 'L' },
-      { id: 'corpusL', anchor: sp(40, 150), label: [330, 640], side: 'C' }
-    ],
-    tools: ctl.tools.concat([{ id: 'tbl:gamOrigin', label: 'المنشأ والمجموعة الكروموسومية (ص9)' }, { id: 'tbl:spermEgg', label: 'النطف × البيوض' }]),
-    init(){ if (!still) ctl.start(); },
-    onSlider: v => ctl.onSlider(v), onTool: id => ctl.onTool(id),
     tick(dt, t, a){
-      if (!still) ctl.tick(dt); stageShow(a, still ? 9 : STG.idx, still ? 1 : STG.k);
-      /* البيضة المتحررة من حويصلة كراف تتجه نحو قناة البيض */
-      const e = a.el('#relEgg'); if (e){ const p = (t * 0.15) % 1; e.setAttribute('transform', `translate(${n2(-p * 30)},${n2(-p * 60)})`); }
+      if (!still) ctl.tick(dt);
+      const s = still ? 9 : STG.idx, k = still ? 1 : STG.k, e = gamSm(k / 0.3);
+      /* الانتقال: الخصية تكبر (1)، ثم تصغر ويكبر النبيب (2)، ثم يصغر النبيب ويظهر المخطط (3+) */
+      const tP = s === 0 ? TB : s === 1 ? gamLerp(TB, T, e) : T;
+      const sP = s === 0 ? SB : s === 1 ? gamLerp(T.slice(0, 2).concat([0.15]), SB, e) : s === 2 ? gamLerp(SB, S, e) : S;
+      const tes = a.el('#spTes'), tub = a.el('#spTub'), fl = a.el('#spFlow'), zm = a.el('#spZoom');
+      if (tes){ tes.style.pointerEvents = s === 1 ? 'none' : ''; tes.setAttribute('transform', gamTr(tP)); tes.setAttribute('opacity', s === 1 ? n2(1 - e) : s === 2 ? n2(e) : 1); }
+      if (tub){ tub.style.pointerEvents = s === 0 ? 'none' : ''; tub.setAttribute('transform', gamTr(sP)); tub.setAttribute('opacity', s === 0 ? 0 : s === 1 ? n2(e) : 1); }
+      if (fl){ fl.setAttribute('opacity', s < 2 ? 0 : s === 2 ? n2(e) : 1); fl.style.pointerEvents = s < 2 ? 'none' : ''; }
+      if (zm) zm.setAttribute('opacity', s < 2 ? 0 : s === 2 ? n2(e) : 1);
+      const mg = a.el('#tMag'); if (mg) mg.setAttribute('opacity', s === 0 ? n2(0.55 + 0.45 * Math.sin(t * 4)) : 1);
+      const wd = a.el('#tWedge'); if (wd) wd.setAttribute('opacity', s === 1 ? n2(Math.max(0, (k - 0.5) * 2) * (0.6 + 0.4 * Math.sin(t * 4))) : 0);
+      /* حلقات النبيب: في خطوة 2 كلها واضحة، وبعدها تتوهج حلقة الخطوة الحالية */
+      a.all('.tubRing').forEach(g => { const h = +g.dataset.hl; g.setAttribute('opacity', s <= 1 || s > 6 ? 1 : h === s ? 1 : h < s ? 0.75 : 0.3);
+        g.style.filter = s >= 2 && s <= 6 && h === s ? `drop-shadow(0 0 ${n2(3 + 3 * Math.sin(t * 4))}px #ffe08a)` : ''; });
+      stageShow(a, s, k);
+      const L = s === 0 ? big0 : s === 1 ? (e > 0.6 ? big1 : {}) : s === 2 && e < 0.6 ? {} : ov, key = s === 0 ? 'b0' : s === 1 ? (e > 0.6 ? 'b1' : 'x') : s === 2 && e < 0.6 ? 'x' : 'ov';
+      if (key !== lastL || !a.el('#labelLayer').dataset.gam){ gamRelabel(a, L); lastL = key; a.el('#labelLayer').dataset.gam = 1; }
+      wiggle(a, t);
     }
   };
 }
 
+/* ───────── 3) تكوين البيوض في الثدييات — شكل (3-2) ص8 ─────────
+   خطوة بخطوة: مقطع في المبيض أولاً (حويصلات بأحجام متتالية، حويصلة كراف، قناة البيض،
+   الجسم الأصفر)، ثم يصغر المبيض يساراً ونمر بالمراحل واحدة بعد الأخرى؛ مع كل مرحلة
+   تتوهج في المبيض الحويصلة التي تمثلها. */
+const EGG_STAGES = [
+  { n: '1 · المبيض (مقطع)', d: 'تتكون البيوض في المبايض التي بداخلها خلايا جرثومية. في المقطع حويصلات مبيضية بأحجام متتالية، وحويصلة كراف، والجسم الأصفر، وقناة البيض بقمعها المهدب.' },
+  { n: '2 · سليفات البيوض (2س)', d: 'تمر الخلايا الجرثومية داخل المبايض بانقسامات غير مباشرة (اعتيادية) تنتج سليفات البيوض (2س)، وتعاني انقسامات اعتيادية متعاقبة لتنتج سليفات بيوض إضافية.' },
+  { n: '3 · الخلايا البيضية الأولية (2س)', d: 'يبدأ قسم من السليفات بالنمو فيكبر حجمها وتدعى الخلايا البيضية الأولية (2س)، وتكون محاطة بخلايا صغيرة تدعى الخلايا الحوصلية، وتشكل معها الحويصلة المبيضية.' },
+  { n: '4 · خلية بيضية ثانوية (س) + جسم قطبي أول (س)', d: 'تمر الخلية البيضية الأولية بالانقسام الاختزالي الأول فينتج خليتان غير متساويتين بالحجم بسبب الانقسام السايتوبلازمي غير المتساوي: الكبيرة الخلية البيضية الثانوية والصغيرة الجسم القطبي الأول.' },
+  { n: '5 · التحرر من حويصلة كراف', d: 'تتحرر الخلية البيضية الثانوية من حويصلة كراف (حويصلة مبيضية ناضجة كبيرة) إلى خارج المبيض، وتستقبلها قناة البيض بقمعها المهدب.' },
+  { n: '6 · أرومة البيضة (س) + أجسام قطبية ثانية (س)', d: 'تمر الخلية البيضية الثانوية بالانقسام الاختزالي الثاني: الكبيرة أرومة البيضة والصغيرة الجسم القطبي الثاني، وقد ينقسم الجسم القطبي الأول فيكوّن جسمين قطبيين آخرين.' },
+  { n: '7 · النتيجة النهائية', d: 'خلية بيضية ناضجة (أرومة البيضة تنمو إلى بيضة ناضجة) + 3 أجسام قطبية تنحل فيما بعد. ويتكون الجسم الأصفر في المبيض بعد تحرر البيضة من حويصلة كراف.' }
+];
+/* حويصلة: طبقة خلايا حوصلية، تجويف سائل (للحويصلات الكبيرة)، وخلية بيضية في وسطها */
+const follicleSvg = (x, y, R, oR, antrum, oc) => {
+  let s = `<circle cx="${n2(x)}" cy="${n2(y)}" r="${n2(R)}" fill="#f6c3b0" stroke="#fff4ec" stroke-width="1.6"/>`;
+  const n = Math.max(8, Math.round(R * 0.9));
+  for (let i = 0; i < n; i++){ const a = i * 6.2832 / n; s += `<circle cx="${n2(x + Math.cos(a) * R * 0.86)}" cy="${n2(y + Math.sin(a) * R * 0.86)}" r="${n2(Math.max(1.6, R * 0.09))}" fill="#e9a58e"/>`; }
+  if (antrum) s += `<circle cx="${n2(x + R * 0.12)}" cy="${n2(y - R * 0.08)}" r="${n2(R * antrum)}" fill="#cfe7ff" opacity=".9"/>`;
+  return s + gCell(x - (antrum ? R * 0.32 : 0), y + (antrum ? R * 0.3 : 0), oR, oc || '#8f7ad8', '#2e2266');
+};
+const OV_RX = 150, OV_RY = 118;
+/* الحويصلات بالترتيب حول المبيض: data-hl رقم المرحلة التي تمثلها */
+const OV_F = {
+  germ: [-128, 20], prim: [-104, -62], sec: [-30, -92], graaf: [70, -70], rel: [118, 20], cl: [40, 78]
+};
+function ovarySvg(){
+  const F = OV_F;
+  let s = part('ovary', `<ellipse cx="0" cy="0" rx="${OV_RX + 8}" ry="${OV_RY + 8}" fill="#f2b3a8" stroke="#fff0ea" stroke-width="3"/>
+    <ellipse cx="0" cy="0" rx="${OV_RX - 6}" ry="${OV_RY - 6}" fill="#e98a8a"/>
+    <ellipse cx="0" cy="0" rx="${OV_RX * 0.42}" ry="${OV_RY * 0.36}" fill="#d97474" opacity=".7"/>`);
+  /* خلايا جرثومية على حافة المبيض */
+  let germ = ''; for (let i = 0; i < 9; i++){ const a = 2.55 + i * 0.13; germ += `<circle cx="${n2(Math.cos(a) * (OV_RX - 3))}" cy="${n2(Math.sin(a) * (OV_RY - 3))}" r="4.2" fill="#b9a6ec" stroke="#fff" stroke-width=".8"/>`; }
+  s += `<g class="ovF" data-hl="1">${part('oGerm', germ + [[-118, 6], [-122, 36], [-110, 22]].map(([x, y]) => gCell(x, y, 6, '#8f7ad8', '#2e2266')).join(''))}</g>`;
+  s += `<g class="ovF" data-hl="2">${part('ooPrim', follicleSvg(F.prim[0], F.prim[1], 17, 8, 0))}</g>`;
+  s += `<g class="ovF" data-hl="3">${part('ooFol', follicleSvg(F.sec[0], F.sec[1], 26, 9, 0.45))}</g>`;
+  s += `<g class="ovF" data-hl="4">${part('graaf', follicleSvg(F.graaf[0], F.graaf[1], 40, 10, 0.62))}</g>`;
+  /* حويصلة متمزقة عند الحافة تتحرر منها الخلية البيضية الثانوية */
+  s += `<g class="ovF" data-hl="4"><path d="M${F.rel[0] - 22},${F.rel[1] - 26} A30,30 0 1 0 ${F.rel[0] + 26},${F.rel[1] + 12}" fill="#f6c3b0" stroke="#fff4ec" stroke-width="2"/></g>`;
+  s += `<g class="ovF" data-hl="6">${part('corpusL', `<path d="${smoothClosed([[F.cl[0] - 26, F.cl[1] - 6], [F.cl[0] - 8, F.cl[1] - 24], [F.cl[0] + 20, F.cl[1] - 20], [F.cl[0] + 28, F.cl[1] + 4], [F.cl[0] + 10, F.cl[1] + 24], [F.cl[0] - 18, F.cl[1] + 20]])}" fill="${GAM.yellow}" stroke="#fff3c8" stroke-width="2"/>
+    <path d="M${F.cl[0] - 12},${F.cl[1]} q12,-10 24,0 M${F.cl[0] - 8},${F.cl[1] + 9} q8,-6 16,0" stroke="#d9a02e" stroke-width="2" fill="none"/>`)}</g>`;
+  /* قناة البيض وقمعها المهدب عند الحافة اليمنى */
+  let fim = `<path d="M232,-150 Q200,-120 196,-70 Q194,-36 176,-12" fill="none" stroke="#d9505a" stroke-width="22" stroke-linecap="round"/>`;
+  for (let i = 0; i < 8; i++){ const a = 1.7 + i * 0.28; fim += `<path d="M176,-12 q${n2(Math.cos(a) * 22)},${n2(Math.sin(a) * 26)} ${n2(Math.cos(a) * 34)},${n2(Math.sin(a) * 40)}" fill="none" stroke="#e8707a" stroke-width="5" stroke-linecap="round"/>`; }
+  s = part('oviduct', fim) + s;
+  /* الخلية البيضية الثانوية المتحررة (تتحرك في المرحلة 5 نحو القمع) */
+  s += `<g id="ovRel" class="ovF" data-hl="4">${part('ooSec', `<circle cx="0" cy="0" r="17" fill="none" stroke="#f6c3b0" stroke-width="4" stroke-dasharray="3 3"/>` + gCell(0, 0, 11, '#8f7ad8', '#2e2266'))}</g>`;
+  return s;
+}
+const OV_SMALL = [290, 420, 0.8], OV_BIG = [480, 385, 1.85];
+const ovAt = (p, x, y) => [p[0] + x * p[2], p[1] + y * p[2]];
+const ovRelPos = k => [OV_F.rel[0] + 10 + k * 50, OV_F.rel[1] - 6 - k * 22];
+
+function intEgg(still){
+  const X = 650, Y = [100, 196, 316, 470];
+  const c = '#8f7ad8', n = '#2e2266';
+  const ar = (x0, y0, x1, y1, st) => `<g data-st="${st}">${gArrow(x0, y0, x1, y1, GAM.arr)}</g>`;
+  let flow = ar(X, Y[0] + 20, X, Y[1] - 30, 2) + ar(X - 12, Y[1] + 28, X - 78, Y[2] - 16, 3) + ar(X + 10, Y[1] + 30, X + 34, Y[2] - 30, 3) +
+    ar(X - 92, Y[2] + 14, X - 140, Y[3] - 14, 5) + ar(X - 80, Y[2] + 14, X - 90, Y[3] - 14, 5) + ar(X + 30, Y[2] + 30, X - 34, Y[3] - 14, 5) + ar(X + 44, Y[2] + 32, X + 54, Y[3] - 26, 5);
+  const cells = `
+    ${part('ooGonium', `<g data-st="1">${gCell(X, Y[0], 18, c, n)}</g>`)}
+    ${part('ooPrim', `<g data-st="2"><circle cx="${X}" cy="${Y[1]}" r="38" fill="none" stroke="#f2c97a" stroke-width="6" stroke-dasharray="3 5"/>${gCell(X, Y[1], 28, c, n)}</g>`)}
+    ${part('polar1', `<g data-st="3">${gCell(X - 86, Y[2], 12, GAM.polar, n)}</g>`)}
+    ${part('ooSec', `<g data-st="3">${gCell(X + 42, Y[2], 30, c, n)}</g>`)}
+    ${part('polar2', `<g data-st="5">${gCell(X - 146, Y[3], 11, GAM.polar, n)}${gCell(X - 92, Y[3], 11, GAM.polar, n)}${gCell(X - 38, Y[3], 11, GAM.polar, n)}</g>`)}
+    ${part('ootid', `<g data-st="5">${gCell(X + 58, Y[3], 32, '#a98ae8', n)}</g>`)}
+    ${part('ovumM', `<g data-st="6"><circle cx="${X + 58}" cy="${Y[3]}" r="44" fill="none" stroke="#ffe08a" stroke-width="3"/></g>`)}
+    <g data-st="6"><text class="cap sm" x="${X - 92}" y="${Y[3] + 40}" text-anchor="middle">(تنحل فيما بعد)</text></g>`;
+  const brk = (x, y0, y1, id, st) => part(id, `<g data-st="${st}"><path d="M${x},${y0} L${x + 12},${y0} L${x + 12},${y1} L${x},${y1}" fill="none" stroke="#ffe08a" stroke-width="2.4"/></g>`);
+  const brackets = brk(X + 110, Y[1] + 6, Y[2] + 14, 'oMeio1', 3) + brk(X + 110, Y[2] + 36, Y[3] + 14, 'oMeio2', 5);
+  const body = `
+    <g id="egFlow">${flow}${cells}${brackets}</g>
+    <g id="egOv" transform="${gamTr(OV_SMALL)}">${ovarySvg()}</g>
+    <text class="cap sm" x="560" y="668" text-anchor="middle">شكل (3-2): تكوين البيوض في الثدييات — بيضة واحدة ناضجة + 3 أجسام قطبية تنحل فيما بعد</text>`;
+  const ctl = stageCtl(EGG_STAGES, { dur: 38 });
+  const S = OV_SMALL, B = OV_BIG, F = OV_F;
+  const ov = {
+    ooGonium: [X + 18, Y[0], 866, Y[0], 'R'],
+    ooPrim: [X + 38, Y[1], 866, Y[1] - 26, 'R'],
+    oMeio1: [X + 122, Y[1] + 60, 866, Y[1] + 40, 'R'],
+    ooSec: [X + 72, Y[2], 866, Y[2] + 8, 'R'],
+    oMeio2: [X + 122, Y[3] - 40, 866, Y[3] - 70, 'R'],
+    ootid: [X + 90, Y[3], 866, Y[3] + 30, 'R'],
+    ovumM: [X + 98, Y[3] + 20, 866, Y[3] + 80, 'R'],
+    polar1: [X - 86, Y[2] - 12, X - 120, Y[2] - 50, 'C'],
+    polar2: [X - 92, Y[3] + 11, X - 92, Y[3] + 86, 'C'],
+    ovary: [...ovAt(S, -OV_RX - 6, -10), 134, 330, 'L'],
+    oGerm: [...ovAt(S, -122, 36), 134, 405, 'L'],
+    ooFol: [...ovAt(S, F.sec[0] - 20, F.sec[1] - 14), 134, 255, 'L'],
+    graaf: [...ovAt(S, F.graaf[0], F.graaf[1] - 40), 330, 248, 'C'],
+    corpusL: [...ovAt(S, F.cl[0], F.cl[1] + 22), 134, 560, 'L'],
+    oviduct: [...ovAt(S, 210, -110), 460, 236, 'C']
+  };
+  /* الخطوة 1: المبيض مكبّراً */
+  const big0 = {
+    ovary: [...ovAt(B, -OV_RX - 6, -10), 134, 330, 'L'],
+    oGerm: [...ovAt(B, -122, 36), 134, 430, 'L'],
+    ooPrim: [...ovAt(B, F.prim[0], F.prim[1] - 17), 330, 118, 'C'],
+    ooFol: [...ovAt(B, F.sec[0], F.sec[1] - 26), 520, 112, 'C'],
+    graaf: [...ovAt(B, F.graaf[0] + 30, F.graaf[1] - 26), 866, 250, 'R'],
+    oviduct: [...ovAt(B, 210, -120), 866, 140, 'R'],
+    ooSec: [...ovAt(B, ...ovRelPos(0.5)), 866, 400, 'R'],
+    corpusL: [...ovAt(B, F.cl[0] + 26, F.cl[1] + 6), 866, 560, 'R']
+  };
+  const parts = Object.keys(ov).map(id => ({ id, anchor: [ov[id][0], ov[id][1]], label: [ov[id][2], ov[id][3]], side: ov[id][4] }));
+  let lastL = null;
+  return {
+    body, stages: EGG_STAGES, fnParts: ['oMeio1', 'oMeio2', 'polar1'], parts,
+    tools: ctl.tools.concat([{ id: 'tbl:gamOrigin', label: 'المنشأ والمجموعة الكروموسومية (ص9)' }, { id: 'tbl:spermEgg', label: 'النطف × البيوض' }]),
+    init(){ if (!still) ctl.start(); },
+    onSlider: v => ctl.onSlider(v), onTool: id => ctl.onTool(id),
+    tick(dt, t, a){
+      if (!still) ctl.tick(dt);
+      const s = still ? 9 : STG.idx, k = still ? 1 : STG.k, e = gamSm(k / 0.3);
+      const oP = s === 0 ? B : s === 1 ? gamLerp(B, S, e) : S;
+      const og = a.el('#egOv'), fl = a.el('#egFlow');
+      if (og) og.setAttribute('transform', gamTr(oP));
+      if (fl){ fl.setAttribute('opacity', s === 0 ? 0 : s === 1 ? n2(e) : 1); fl.style.pointerEvents = s === 0 ? 'none' : ''; }
+      /* الحويصلة المقابلة للمرحلة تتوهج، والخلية البيضية الثانوية تتحرك نحو القمع في المرحلة 5 */
+      a.all('.ovF').forEach(g => { const h = +g.dataset.hl; g.setAttribute('opacity', s === 0 || s > 6 ? 1 : h === s ? 1 : 0.55);
+        g.style.filter = s >= 1 && s <= 6 && h === s ? `drop-shadow(0 0 ${n2(3 + 3 * Math.sin(t * 4))}px #ffe08a)` : ''; });
+      const rel = a.el('#ovRel'); if (rel){ const p = s === 4 ? gamSm(k) : s > 4 ? 1 : 0.5, q = ovRelPos(s === 0 ? 0.5 : p); rel.setAttribute('transform', `translate(${n2(q[0])},${n2(q[1])})`); }
+      stageShow(a, s, k);
+      const key = s === 0 ? 'b0' : s === 1 && e < 0.6 ? 'x' : 'ov';
+      if (key !== lastL || !a.el('#labelLayer').dataset.gam){ gamRelabel(a, key === 'b0' ? big0 : key === 'x' ? {} : ov); lastL = key; a.el('#labelLayer').dataset.gam = 1; }
+    }
+  };
+}
 /* ══════════════════════════════════════════════════════════════════════════
    4.2 · الفايروسات والبدائيات — ملزمة ص15–25: دورتا تكاثر راشح البلعم
          البكتيري (ص17)، الانشطار الثنائي في البكتيريا (ص19)، والاقتران
@@ -4740,13 +4943,26 @@ const phageSvg = (x, y, s, ang, cls) => { const H = []; for (let i = 0; i < 6; i
     <line x1="${n2(x)}" y1="${n2(y + 8 * s)}" x2="${n2(x)}" y2="${n2(y + 24 * s)}" stroke="${MIC.phage}" stroke-width="${n2(3 * s)}"/>
     <path d="M${n2(x)},${n2(y + 24 * s)} l${n2(-7 * s)},${n2(6 * s)} M${n2(x)},${n2(y + 24 * s)} l${n2(7 * s)},${n2(6 * s)}" stroke="${MIC.phage}" stroke-width="${n2(1.6 * s)}" fill="none"/></g>`; };
 
-/* ═════════════ الفايروسات ═════════════ */
+/* ═════════════ الفايروسات ═════════════
+   ثلاثة عروض: دورة التحلل وحدها، ودورة التحلل والإنتاج وحدها — كل منهما مرسومة دورةً
+   مغلقة باسمها ومراحلها حول حلقة، والمرحلة الحالية مكبّرة في وسط الدورة — ثم الدورتان معاً. */
+const VIR_VIEWS = [
+  { id: 'vLyt', label: 'دورة التحلل' },
+  { id: 'vLys', label: 'دورة التحلل والإنتاج' },
+  { id: 'vBoth', label: 'الدورتان معاً' }
+];
 SCENES.virus = {
   title: 'التكاثر في الفايروسات (الرواشح)',
   src: 'ملزمة ص15–18',
   tint: ['rgba(80,160,100,.24)', 'rgba(200,140,80,.16)'],
-  model3d: () => 'vir_cycle',
-  build(){ const s = virCycle(); return s; }
+  model3d: () => ({ vLyt: 'vir_lyt', vLys: 'vir_lys' })[SEL.virv] || 'vir_cycle',
+  build(){
+    const v = VIR_VIEWS.some(x => x.id === SEL.virv) ? SEL.virv : 'vLyt';
+    const s = v === 'vBoth' ? virCycle() : virRing(v === 'vLys');
+    s.rebuildOnRadio = 'virv';
+    s.tools = VIR_VIEWS.map(x => ({ id: x.id, label: x.label, radio: 'virv', on: x.id === v })).concat(s.tools || []);
+    return s;
+  }
 };
 SCENES.vir_cycle = { title: 'تكاثر راشح البلعم البكتيري (دورة التحلل ودورة التحلل والإنتاج)', build: () => virCycle(true) };
 
@@ -4758,6 +4974,130 @@ const VIR_STAGES = [
   { n: '5 · مرحلة التحرر', d: 'تقود الفيروسات المتكونة إلى تحلل الخلية البكتيرية المضيفة وتتحرر لتصيب بكتريا أخرى، وتستغرق العملية كاملة 25 دقيقة.' },
   { n: '6 · مرحلة التكامل (دورة التحلل والإنتاج)', d: 'يندمج DNA الفيروس مع DNA البكتيريا بدون تحطيم DNA البكتيريا ويسمى عندها البلعم الأولي، ويتضاعف DNA الفيروس مع تكاثر البكتيريا (خليتان بنويتان).' }
 ];
+const LYT_STAGES = VIR_STAGES.slice(0, 5).map((s, i) => i === 4 ? { n: s.n, d: s.d + ' ثم تبدأ الدورة من جديد مع كل بكتريا تصيبها الفيروسات الجديدة.' } : s);
+const LYS_STAGES = [
+  VIR_STAGES[0], VIR_STAGES[1],
+  { n: '3 · مرحلة التكامل', d: 'يندمج DNA الفيروس مع DNA البكتيريا بدون أن يحصل تحطيم لـDNA البكتيريا، ويسمى DNA الفيروس عندها بالبلعم الأولي.' },
+  { n: '4 · تكاثر البكتيريا ومعها البلعم الأولي', d: 'يتضاعف DNA الفيروس (البلعم الأولي) مع تكاثر البكتيريا، فتحتوي كل من الخليتين البنويتين عليه، ويتكرر ذلك مع كل انقسام.' }
+];
+
+/* رسوم المراحل: كل دالة ترسم مرحلة حول (x,y) بمقياس k؛ big = نسخة الوسط بلا أجزاء قابلة للضغط */
+const vLobe = (x, y, k) => `<path d="M${n2(x + 16 * k)},${n2(y - 4 * k)} q${n2(14 * k)},${n2(-12 * k)} ${n2(22 * k)},0 q${n2(-8 * k)},${n2(14 * k)} ${n2(-22 * k)},${n2(4 * k)}" fill="none" stroke="${MIC.vdna}" stroke-width="${n2(3.2 * k)}"/>`;
+const VDRAW = {
+  attach: (x, y, k) => bactSvg(x - 10 * k, y + 8 * k, 124 * k, 44 * k) + `<g class="vApp">${phageSvg(x + 40 * k, y - 34 * k, 1.45 * k, -35)}</g>`,
+  pen: (x, y, k) => bactSvg(x - 10 * k, y + 8 * k, 124 * k, 44 * k) + phageSvg(x + 40 * k, y - 34 * k, 1.1 * k, -35) +
+    `<path class="vInj" d="M${n2(x + 30 * k)},${n2(y - 12 * k)} q${n2(-10 * k)},${n2(8 * k)} ${n2(-20 * k)},${n2(2 * k)} q${n2(-10 * k)},${n2(-6 * k)} ${n2(-18 * k)},${n2(6 * k)}" fill="none" stroke="${MIC.vdna}" stroke-width="${n2(2.8 * k)}" stroke-dasharray="${n2(60 * k)}"/>`,
+  synth: (x, y, k) => { let b = `<rect x="${n2(x - 70 * k)}" y="${n2(y - 25 * k)}" width="${n2(140 * k)}" height="${n2(50 * k)}" rx="${n2(25 * k)}" fill="${MIC.bac}" stroke="${MIC.bacS}" stroke-width="3"/>`;
+    [[-30, -6], [-8, 10], [18, -8], [36, 8]].forEach(([dx, dy]) => { b += `<path d="M${n2(x + dx * k)},${n2(y + dy * k)} q${n2(5 * k)},${n2(-5 * k)} ${n2(10 * k)},0" fill="none" stroke="${MIC.dna}" stroke-width="${n2(2.4 * k)}" opacity=".7"/>`; });
+    const r = rng(7); for (let i = 0; i < 8; i++){ const px = x + (-50 + r() * 100) * k, py = y + (-14 + r() * 28) * k;
+      b += i % 2 ? `<g class="vbit" data-i="${i}"><polygon points="${[0, 1, 2, 3, 4, 5].map(j => n2(px + Math.cos(j * 1.047) * 5 * k) + ',' + n2(py + Math.sin(j * 1.047) * 5 * k)).join(' ')}" fill="${MIC.phageL}" stroke="${MIC.phage}" stroke-width="1.4"/></g>`
+        : `<g class="vbit" data-i="${i}"><path d="M${n2(px - 6 * k)},${n2(py)} q${n2(3 * k)},${n2(-5 * k)} ${n2(6 * k)},0 q${n2(3 * k)},${n2(5 * k)} ${n2(6 * k)},0" fill="none" stroke="${MIC.vdna}" stroke-width="2"/></g>`; }
+    return b; },
+  mature: (x, y, k) => `<rect x="${n2(x - 70 * k)}" y="${n2(y - 25 * k)}" width="${n2(140 * k)}" height="${n2(50 * k)}" rx="${n2(25 * k)}" fill="${MIC.bac}" stroke="${MIC.bacS}" stroke-width="3"/>` +
+    [-44, -16, 12, 40].map((d, i) => phageSvg(x + d * k, y - 12 * k, 0.55 * k, i % 2 ? 20 : -20, 'vpulse')).join(''),
+  release: (x, y, k) => `<path d="M${n2(x - 60 * k)},${n2(y - 22 * k)} L${n2(x + 50 * k)},${n2(y - 22 * k)} A${n2(22 * k)},${n2(22 * k)} 0 0 1 ${n2(x + 50 * k)},${n2(y + 22 * k)} L${n2(x - 60 * k)},${n2(y + 22 * k)} L${n2(x - 48 * k)},${n2(y + 10 * k)} L${n2(x - 62 * k)},${n2(y)} L${n2(x - 48 * k)},${n2(y - 10 * k)}Z" fill="${MIC.bac}" stroke="${MIC.bacS}" stroke-width="3"/>` +
+    Array.from({ length: 6 }, (_, i) => `<g class="vesc" data-i="${i}" data-x="${n2(x - 64 * k)}" data-y="${n2(y)}" data-k="${k}">${phageSvg(0, 0, 0.55 * k, 0)}</g>`).join(''),
+  integ: (x, y, k) => bactSvg(x - 10 * k, y, 132 * k, 46 * k) + `<g class="vGlow">${vLobe(x - 10 * k, y, k)}</g>`,
+  divide: (x, y, k) => bactSvg(x - 44 * k, y - 12 * k, 104 * k, 38 * k, -10) + bactSvg(x + 50 * k, y + 14 * k, 104 * k, 38 * k, -10) +
+    `<g transform="rotate(-10 ${n2(x - 44 * k)} ${n2(y - 12 * k)})" class="vGlow">${vLobe(x - 44 * k, y - 12 * k, 0.8 * k)}</g><g transform="rotate(-10 ${n2(x + 50 * k)} ${n2(y + 14 * k)})" class="vGlow">${vLobe(x + 50 * k, y + 14 * k, 0.8 * k)}</g>`
+};
+function virRing(lyso){
+  const CX = 570, CY = 388, RX = 300, RY = 205, CW = 176, CH_ = 108;
+  const nodes = lyso
+    ? [{ a: -90, d: 'attach', id: 'vAttach', nm: 'مرحلة الاتصال' }, { a: -12, d: 'pen', id: 'vPen', nm: 'مرحلة الاختراق' },
+       { a: 62, d: 'integ', id: 'vInteg', nm: 'مرحلة التكامل' }, { a: 150, d: 'divide', id: 'vDaugh', nm: 'تكاثر البكتيريا' }]
+    : [{ a: -90, d: 'attach', id: 'vAttach', nm: 'مرحلة الاتصال' }, { a: -20, d: 'pen', id: 'vPen', nm: 'مرحلة الاختراق' }, { a: 50, d: 'synth', id: 'vSynth', nm: 'مرحلة التخليق أو البناء' },
+       { a: 120, d: 'mature', id: 'vMature', nm: 'مرحلة الإنضاج' }, { a: 180, d: 'release', id: 'vRelease', nm: 'مرحلة التحرر' }];
+  nodes.forEach(N => { N.x = CX + Math.cos(N.a * Math.PI / 180) * RX; N.y = CY + Math.sin(N.a * Math.PI / 180) * RY; });
+  const STAGES = lyso ? LYS_STAGES : LYT_STAGES;
+  /* أسهم الحلقة: قوس على محيط الدورة من بطاقة إلى التالية */
+  const arcArrow = (a0, a1, col, w, cls) => { const P = []; for (let i = 0; i <= 24; i++){ const a = (a0 + (a1 - a0) * i / 24) * Math.PI / 180; P.push([CX + Math.cos(a) * (RX - 4), CY + Math.sin(a) * (RY - 4)]); }
+    const e = P[P.length - 1], p = P[P.length - 3], an = Math.atan2(e[1] - p[1], e[0] - p[0]), h = 13;
+    return `<g class="${cls || ''}"><path d="${P.map((q, i) => (i ? 'L' : 'M') + n2(q[0]) + ',' + n2(q[1])).join(' ')}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linecap="round"/>
+      <path d="M${n2(e[0])},${n2(e[1])} L${n2(e[0] - h * Math.cos(an - 0.45))},${n2(e[1] - h * Math.sin(an - 0.45))} L${n2(e[0] - h * Math.cos(an + 0.45))},${n2(e[1] - h * Math.sin(an + 0.45))}Z" fill="${col}"/></g>`; };
+  const gapA = d => 180 * (CW * 0.62) / (Math.PI * RX) * (1 + 0.5 * Math.abs(Math.sin(d * Math.PI / 180)));
+  let ring = '';
+  const links = lyso ? [[0, 1], [1, 2], [2, 3]] : nodes.map((_, i) => [i, (i + 1) % nodes.length]);
+  links.forEach(([i, j], li) => { let a0 = nodes[i].a, a1 = nodes[j].a; if (a1 < a0) a1 += 360;
+    ring += `<g class="vArc" data-i="${li}">${arcArrow(a0 + gapA(a0), a1 - gapA(a1), '#e8e0d0', 4)}</g>`; });
+  if (lyso){
+    /* حلقة التضاعف: من «تكاثر البكتيريا» تعود الخلايا البنوية فتنقسم مجدداً ومعها البلعم الأولي */
+    const N = nodes[3], lx = N.x, ly = N.y + CH_ / 2 + 6;
+    ring += `<g class="vArc" data-i="3"><path d="M${n2(lx + 40)},${n2(ly)} C${n2(lx + 90)},${n2(ly + 70)} ${n2(lx - 90)},${n2(ly + 70)} ${n2(lx - 40)},${n2(ly + 4)}" fill="none" stroke="#e8e0d0" stroke-width="4"/>
+      <path d="M${n2(lx - 40)},${n2(ly + 4)} l-2,15 l13,-8Z" fill="#e8e0d0"/></g>
+      <text class="cap sm" x="${n2(lx)}" y="${n2(ly + 74)}" text-anchor="middle" fill="#ffd98a">يتكرر مع كل انقسام</text>`;
+  } else {
+    const N = nodes[4];
+    ring += `<text class="cap sm" x="${n2(N.x)}" y="${n2(N.y + CH_ / 2 + 22)}" text-anchor="middle" fill="#ffd98a">تصيب بكتريا أخرى ↻</text>`;
+  }
+  const card = (N, i) => { const x = N.x - CW / 2, y = N.y - CH_ / 2;
+    return `<g class="vCard" data-i="${i}">${part(N.id, `<rect x="${n2(x)}" y="${n2(y)}" width="${CW}" height="${CH_}" rx="8" fill="rgba(255,255,255,.95)" stroke="#5a4a3a" stroke-width="2"/>
+      <rect x="${n2(x)}" y="${n2(y)}" width="${CW}" height="24" rx="8" fill="#f6dfc0" stroke="#5a4a3a" stroke-width="2"/>
+      <text x="${n2(N.x)}" y="${n2(y + 17)}" text-anchor="middle" font-size="13" font-weight="700" fill="#2a1a10">${N.nm}</text>`)}
+      <circle cx="${n2(x + CW - 2)}" cy="${n2(y + 2)}" r="13" fill="#ffd98a" stroke="#5a4a3a" stroke-width="2"/><text x="${n2(x + CW - 2)}" y="${n2(y + 8)}" text-anchor="middle" font-size="15" font-weight="800" fill="#2a1a10">${i + 1}</text>
+      <g class="vMini">${VDRAW[N.d](N.x, N.y + 12, 0.78)}</g></g>`; };
+  /* أجزاء الخلية والفيروس قابلة للضغط في بطاقة الاتصال */
+  const N0 = nodes[0], k0 = 0.78, bx = N0.x - 10 * k0, by = N0.y + 12 + 8 * k0;
+  const hit = part('vBac', `<rect x="${n2(bx - 40)}" y="${n2(by - 6)}" width="30" height="16" fill="rgba(0,0,0,0)"/>`) +
+    part('vWall', `<rect x="${n2(bx + 40)}" y="${n2(by - 10)}" width="10" height="20" fill="rgba(0,0,0,0)"/>`) +
+    part('vBDNA', `<ellipse cx="${n2(bx)}" cy="${n2(by)}" rx="${n2(30 * k0)}" ry="${n2(10 * k0)}" fill="rgba(0,0,0,0)"/>`) +
+    part('vCoat', `<circle cx="${n2(N0.x + 40 * k0)}" cy="${n2(N0.y + 12 - 34 * k0)}" r="11" fill="rgba(0,0,0,0)"/>`) +
+    part('vNA', `<circle cx="${n2(N0.x + 40 * k0 + 1)}" cy="${n2(N0.y + 12 - 35 * k0)}" r="3.5" fill="rgba(0,0,0,0)"/>`);
+  const title = lyso ? 'دورة التحلل والإنتاج' : 'دورة التحلل';
+  const body = `${ring}${nodes.map(card).join('')}${hit}
+    ${part(lyso ? 'vLyso' : 'vLytic', `<text class="cap" x="${CX}" y="${CY - 92}" text-anchor="middle" font-size="26" fill="#ffd98a">${title}</text>`)}
+    <text id="vNow" class="cap sm" x="${CX}" y="${CY - 62}" text-anchor="middle"></text>
+    <g id="vBig"></g>
+    <text class="cap sm" x="500" y="672" text-anchor="middle">${lyso ? 'دورة التحلل والإنتاج: يندمج DNA الفيروس مع DNA البكتيريا (البلعم الأولي) ولا تتحلل البكتيريا' : 'دورة التحلل: (100–200) فيروس جديد خلال 25 دقيقة وتتحلل الخلية البكتيرية'}</text>`;
+  const ctl = stageCtl(STAGES, { dur: lyso ? 26 : 32 });
+  const kx = N0.x + 40 * k0, ky = N0.y + 12 - 34 * k0;
+  const parts = lyso ? [
+    { id: 'vBac', anchor: [bx - 26, by + 2], label: [390, 128], side: 'C' },
+    { id: 'vWall', anchor: [bx + 46, by], label: [380, 178], side: 'C' },
+    { id: 'vNA', anchor: [kx, ky - 1], label: [770, 108], side: 'C' },
+    { id: 'vCoat', anchor: [kx + 9.5, ky - 5.5], label: [780, 150], side: 'C' },
+    { id: 'vDNA', anchor: [nodes[2].x - 4, nodes[2].y + 10], label: [866, 640], side: 'R' },
+    { id: 'vProph', anchor: [nodes[3].x - 18, nodes[3].y - 2], label: [134, 640], side: 'L' }
+  ] : [
+    { id: 'vBac', anchor: [bx - 26, by + 2], label: [390, 128], side: 'C' },
+    { id: 'vWall', anchor: [bx + 46, by], label: [380, 178], side: 'C' },
+    { id: 'vBDNA', anchor: [bx - 14, by + 6], label: [400, 228], side: 'C' },
+    { id: 'vNA', anchor: [kx, ky - 1], label: [770, 108], side: 'C' },
+    { id: 'vCoat', anchor: [kx + 9.5, ky - 5.5], label: [700, 136], side: 'C' }
+  ];
+  let shown = -1;
+  return {
+    body, stages: STAGES, fnParts: nodes.map(N => N.id), parts,
+    tools: ctl.tools.concat([{ id: 'info:' + (lyso ? 'vLyso' : 'vLytic'), label: 'عن ' + title }, { id: 'tbl:mLytLyso', label: 'التحلل × التحلل والإنتاج' }, { id: 'info:vVirus', label: 'عن الرواشح' }]),
+    init(){ ctl.start(); },
+    onSlider: v => ctl.onSlider(v), onTool: id => ctl.onTool(id),
+    tick(dt, t, a){
+      ctl.tick(dt);
+      const s = STG.idx, k = STG.k;
+      a.all('.vCard').forEach(g => { const on = +g.dataset.i === s, r = g.querySelector('rect'); r.setAttribute('stroke', on ? '#ffb000' : '#5a4a3a'); r.setAttribute('stroke-width', on ? 5 : 2);
+        g.setAttribute('opacity', on || +g.dataset.i < s ? 1 : 0.6); });
+      a.all('.vArc').forEach(g => { const i = +g.dataset.i, on = lyso ? (i === s - 1 || (i === 3 && s === 3)) : i === (s + nodes.length - 1) % nodes.length;
+        g.querySelectorAll('path').forEach(p => { if (p.getAttribute('fill') === 'none') p.setAttribute('stroke', on ? '#ffb000' : '#e8e0d0'); else p.setAttribute('fill', on ? '#ffb000' : '#e8e0d0'); }); });
+      if (s !== shown){ shown = s; const N = nodes[s], big = a.el('#vBig'), now = a.el('#vNow');
+        if (big) big.innerHTML = VDRAW[N.d](CX + 10, CY + 22, 1.35); if (now) now.textContent = 'الآن: ' + N.nm; }
+      /* حركة المراحل في النسخة الكبيرة */
+      const big = a.el('#vBig');
+      if (big){
+        const ap = big.querySelector('.vApp'); if (ap){ const p = Math.min(1, k * 1.6); ap.setAttribute('transform', `translate(${n2((1 - p) * 60)},${n2(-(1 - p) * 46)})`); }
+        const inj = big.querySelector('.vInj'); if (inj) inj.setAttribute('stroke-dashoffset', n2(93 - 93 * Math.min(1, k * 1.3)));
+        big.querySelectorAll('.vbit').forEach(e => { const i = +e.dataset.i; e.setAttribute('transform', `translate(${n2(Math.sin(t * 2 + i) * 6)},${n2(Math.cos(t * 1.7 + i) * 4)})`); });
+        big.querySelectorAll('.vpulse').forEach((e, i) => e.style.opacity = n2(0.6 + 0.4 * Math.sin(t * 3 + i)));
+        big.querySelectorAll('.vesc').forEach(e => { const i = +e.dataset.i, p = (t * 0.35 + i / 6) % 1, an = 2.3 + i * 0.32, x = +e.dataset.x, y = +e.dataset.y, kk = +e.dataset.k;
+          e.setAttribute('transform', `translate(${n2(x + Math.cos(an) * p * 55 * kk)},${n2(y + Math.sin(an) * p * 50 * kk)}) rotate(${n2(an * 57 + 90)})`); e.setAttribute('opacity', n2(1 - p * 0.6)); });
+        big.querySelectorAll('.vGlow').forEach(e => e.style.filter = `drop-shadow(0 0 ${n2(3 + 4 * Math.sin(t * 4))}px #ff6fb0)`);
+      }
+      a.all('.vMini .vesc').forEach(e => { const i = +e.dataset.i, p = (t * 0.3 + i / 6) % 1, an = 2.3 + i * 0.32, x = +e.dataset.x, y = +e.dataset.y, kk = +e.dataset.k;
+        e.setAttribute('transform', `translate(${n2(x + Math.cos(an) * p * 50 * kk)},${n2(y + Math.sin(an) * p * 34 * kk)}) rotate(${n2(an * 57 + 90)})`); e.setAttribute('opacity', n2(1 - p * 0.6)); });
+      a.all('.vMini .vInj').forEach(e => e.setAttribute('stroke-dashoffset', 0));
+    }
+  };
+}
+
 function virCycle(still){
   const BW = 196, BH = 112;
   const B = { 1: [400, 52], 2: [500, 214], 3: [440, 382], 4: [196, 478], 5: [92, 304], 6: [740, 206] };
@@ -4848,18 +5188,19 @@ function virCycle(still){
 
 /* ═════════════ البدائيات ═════════════ */
 const PRK_VIEWS = [
-  { id: 'bfiss', label: 'الانشطار الثنائي' },
-  { id: 'bconj', label: 'الاقتران وإعادة الخلط' },
-  { id: 'bplas', label: 'انتقال عامل الخصوبة (شكل 3-5)' }
+  { id: 'bfiss', label: 'لاجنسي: الانشطار الثنائي' },
+  { id: 'bdr',   label: 'جنسي: الخلية المعطية والمستلمة' },
+  { id: 'bconj', label: 'جنسي: الاقتران وإعادة الخلط' },
+  { id: 'bplas', label: 'جنسي: انتقال عامل الخصوبة (شكل 3-5)' }
 ];
 SCENES.prok = {
   title: 'التكاثر في البدائيات (البكتيريا)',
-  get src(){ return ({ bfiss: 'ملزمة ص19', bconj: 'ملزمة ص19–22', bplas: 'ملزمة ص21–23' })[SEL.prkv] || 'ملزمة ص19'; },
+  get src(){ return ({ bfiss: 'ملزمة ص19', bdr: 'ملزمة ص21–23', bconj: 'ملزمة ص19–22', bplas: 'ملزمة ص21–23' })[SEL.prkv] || 'ملزمة ص19'; },
   tint: ['rgba(140,200,90,.22)', 'rgba(220,200,80,.14)'],
   model3d: () => 'prk_' + SEL.prkv,
   build(){
     const v = PRK_VIEWS.some(x => x.id === SEL.prkv) ? SEL.prkv : 'bfiss';
-    const s = v === 'bconj' ? prkConj() : v === 'bplas' ? prkPlas() : prkFiss();
+    const s = v === 'bconj' ? prkConj() : v === 'bplas' ? prkPlas() : v === 'bdr' ? prkDonRec() : prkFiss();
     s.rebuildOnRadio = 'prkv';
     s.tools = PRK_VIEWS.map(x => ({ id: x.id, label: x.label, radio: 'prkv', on: x.id === v })).concat(s.tools || []);
     return s;
@@ -4867,6 +5208,7 @@ SCENES.prok = {
 };
 SCENES.prk_fiss = { title: 'الانشطار الثنائي في البكتيريا', build: () => prkFiss(true) };
 SCENES.prk_conj = { title: 'الاقتران وإعادة الخلط في البكتيريا', build: () => prkConj(true) };
+SCENES.prk_dr = { title: 'الخلية المعطية والخلية المستلمة في بكتيريا القولون', build: () => prkDonRec(true) };
 SCENES.prk_plas = { title: 'الاقتران البكتيري في بكتيريا القولون (شكل 3-5)', build: () => prkPlas(true) };
 
 /* كروموسوم بكتيري: خيط متشابك */
@@ -4941,6 +5283,65 @@ function prkFiss(still){
     tick(dt, t, a){
       ctl.tick(dt); stageShow(a, STG.idx, STG.k);
       const g = a.el('#bigCell'); if (g) g.innerHTML = `<g transform="translate(270,460) scale(0.85) translate(-270,-460)">${fissState(270, 460, STG.idx, STG.k)}</g>`;
+    }
+  };
+}
+
+/* التكاثر الجنسي في البكتيريا: الخلية المعطية × الخلية المستلمة — جدول ص23 خطوة بخطوة.
+   كل خطوة تبرز صفاً من المقارنة والتركيب الذي يخصه في الخليتين. */
+const DONREC_STAGES = [
+  { n: '1 · ذكرية وأنثوية', d: 'يتم التكاثر الجنسي (الاقتران) في بكتيريا القولون بين خليتين: الخلية المعطية وتمثل خلية ذكرية، والخلية المستلمة وتمثل خلية أنثوية.' },
+  { n: '2 · عامل الخصوبة', d: 'الخلية المعطية تحتوي على عامل الخصوبة (قطعة دائرية صغيرة من الـDNA في السايتوبلازم)، والخلية المستلمة لا تحتوي على عامل الخصوبة.' },
+  { n: '3 · أهلاب الاقتران (الأهلاب الجنسية)', d: 'الخلية المعطية تحتوي على زوائد تعرف بأهلاب الاقتران (الأهلاب الجنسية)، والخلية المستلمة لا تحتوي على أهلاب جنسية.' },
+  { n: '4 · تعطي وتستلم', d: 'المعطية تعطي جزءاً من مادتها الوراثية ولا يبقى نقصان فيها لأنه يتمم نفسه بالتضاعف، والمستلمة تستلم جزءاً من كروموسوم الخلية المعطية ولا يزيد حجم كروموسومها لأن القطعة المستلمة تحل محل جزء مساوٍ لها.' }
+];
+function prkDonRec(still){
+  const DX = 330, RX = 700, CY = 262, W = 170, H = 250;
+  const capsV = cx => `<rect x="${cx - W / 2}" y="${CY - H / 2}" width="${W}" height="${H}" rx="${W / 2}" fill="${MIC.cell}" stroke="${MIC.cellS}" stroke-width="7"/>`;
+  const fig8 = (cx, col) => `<ellipse cx="${cx}" cy="${CY - 40}" rx="36" ry="30" fill="none" stroke="${col}" stroke-width="5"/><ellipse cx="${cx}" cy="${CY + 18}" rx="36" ry="30" fill="none" stroke="${col}" stroke-width="5"/>`;
+  let hairs = ''; for (let i = -3; i <= 3; i++){ const a = -Math.PI / 2 + i * 0.32, x0 = DX + Math.cos(a) * (W / 2 - 4), y0 = CY - H / 2 + W / 2 + Math.sin(a) * (W / 2 - 4);
+    hairs += `<path d="M${n2(x0)},${n2(y0)} l${n2(Math.cos(a) * 30)},${n2(Math.sin(a) * 30)}" stroke="#2a2a2a" stroke-width="5" stroke-linecap="round"/>`; }
+  const cross = (x, y) => `<g opacity=".9"><circle cx="${x}" cy="${y}" r="15" fill="rgba(226,64,62,.15)" stroke="#e2403e" stroke-width="2.4" stroke-dasharray="4 3"/><path d="M${x - 7},${y - 7} l14,14 M${x + 7},${y - 7} l-14,14" stroke="#e2403e" stroke-width="3" stroke-linecap="round"/></g>`;
+  const cells = `
+    <g data-hl="0">${part('cDonor', capsV(DX))}</g>
+    <g data-hl="0">${part('cRecip', capsV(RX))}</g>
+    <g data-hl="3">${part('cPilus', hairs)}</g>
+    <g data-hl="3">${cross(RX, CY - H / 2 - 18)}</g>
+    <g data-hl="4">${part('cChrom', fig8(DX, MIC.donor))}<g>${fig8(RX, MIC.recip)}</g></g>
+    <g data-hl="2">${part('cFert', `<circle cx="${DX}" cy="${CY + 84}" r="18" fill="none" stroke="${MIC.plas}" stroke-width="5"/>`)}</g>
+    <g data-hl="2">${cross(RX, CY + 84)}</g>
+    <text class="cap" x="${DX}" y="${CY + H / 2 + 34}" text-anchor="middle" fill="#ffd98a">الخلية المعطية (ذكرية) ♂</text>
+    <text class="cap" x="${RX}" y="${CY + H / 2 + 34}" text-anchor="middle" fill="#ffd98a">الخلية المستلمة (أنثوية) ♀</text>`;
+  const R = TABLES.mDonRec.rows, wrapL = t => wrapName(t, 44);
+  let rows = '', y = 446;
+  R.forEach((r, i) => { const L = wrapL(r[0]), M = wrapL(r[1]), h = Math.max(L.length, M.length) * 18 + 14;
+    rows += `<g class="drRow" data-r="${i + 1}"><rect x="160" y="${y}" width="710" height="${h}" rx="8" fill="rgba(255,255,255,.06)" stroke="rgba(255,255,255,.15)"/>
+      <text class="cap sm" x="${DX}" y="${y + 22}" text-anchor="middle">${L.map((l, j) => `<tspan x="${DX}" dy="${j ? 18 : 0}">${l}</tspan>`).join('')}</text>
+      <text class="cap sm" x="${RX}" y="${y + 22}" text-anchor="middle">${M.map((l, j) => `<tspan x="${RX}" dy="${j ? 18 : 0}">${l}</tspan>`).join('')}</text>
+      <circle cx="160" cy="${y + h / 2}" r="12" fill="#ffd98a"/><text x="160" y="${y + h / 2 + 5}" text-anchor="middle" font-size="13" font-weight="800" fill="#2a1a10">${i + 1}</text></g>`;
+    y += h + 8; });
+  const body = `${cells}<line x1="515" y1="${CY - H / 2}" x2="515" y2="${CY + H / 2 + 40}" stroke="rgba(255,255,255,.2)" stroke-dasharray="6 6"/>${rows}`;
+  const ctl = stageCtl(DONREC_STAGES, { dur: 28 });
+  return {
+    body, stages: DONREC_STAGES, fnParts: ['cDonor', 'cRecip'],
+    parts: [
+      { id: 'cDonor', anchor: [DX - W / 2 + 3, CY + 60], label: [134, 380], side: 'L' },
+      { id: 'cChrom', anchor: [DX - 36, CY - 40], label: [134, 300], side: 'L' },
+      { id: 'cFert', anchor: [DX + 18, CY + 84], label: [470, 360], side: 'C' },
+      { id: 'cPilus', anchor: [DX + 20, CY - H / 2 - 22], label: [480, 120], side: 'C' },
+      { id: 'cRecip', anchor: [RX + W / 2 - 3, CY + 40], label: [866, 300], side: 'R' }
+    ],
+    tools: ctl.tools.concat([{ id: 'tbl:mDonRec', label: 'المعطية × المستلمة (ص23)' }, { id: 'info:cRecomb', label: 'إعادة الخلط' }]),
+    init(){ if (!still) ctl.start(); },
+    onSlider: v => ctl.onSlider(v), onTool: id => ctl.onTool(id),
+    tick(dt, t, a){
+      if (!still) ctl.tick(dt);
+      const s = still ? -1 : STG.idx + 1;
+      a.all('.drRow').forEach(g => { const on = +g.dataset.r === s, r = g.querySelector('rect');
+        r.setAttribute('fill', on ? 'rgba(255,217,138,.18)' : 'rgba(255,255,255,.06)'); r.setAttribute('stroke', on ? '#ffd98a' : 'rgba(255,255,255,.15)');
+        g.setAttribute('opacity', s < 0 || on || +g.dataset.r < s ? 1 : 0.45); });
+      a.all('[data-hl]').forEach(g => { const h = +g.dataset.hl, on = h === s || (s === 1 && h === 0);
+        g.style.filter = on ? `drop-shadow(0 0 ${n2(4 + 4 * Math.sin(t * 4))}px #ffe08a)` : ''; });
     }
   };
 }
@@ -5414,6 +5815,19 @@ function prConj(self, still){
     ${s0}${s1}${s2}${row2}${note}${row3}
     <text class="cap sm" x="560" y="645" text-anchor="middle">${self ? 'الإخصاب الذاتي في البراميسيوم: نواة مندمجة متماثلة العوامل الوراثية — ملزمة ص33–34' : 'الاقتران في البراميسيوم: نواة مندمجة متباينة العوامل الوراثية — ملزمة ص32–34'}</text>`;
   const B = prBuild(self ? PR_SELF_ST : PR_CONJ_ST, still, self ? 34 : 40);
+  /* إطار مرقّم لكل خطوة كما في الملزمة، ويتوهج إطار الخطوة الحالية */
+  const FR = [[c0, Y1], [c1, Y1], [c2, Y1], [c0, Y2]].concat(self ? [[c1, Y2]] : [[c1, Y2], [c2, Y2]]);
+  const frame = ([x, y], i) => `<g class="prFrame" data-i="${i}"><rect x="${x - 82}" y="${y - 102}" width="164" height="204" rx="14" fill="rgba(255,255,255,.035)" stroke="rgba(255,255,255,.22)" stroke-width="2"/>
+    <circle cx="${x + 70}" cy="${y - 92}" r="14" fill="#ffd98a" stroke="#5a4a3a" stroke-width="2"/><text x="${x + 70}" y="${y - 86}" text-anchor="middle" font-size="15" font-weight="800" fill="#2a1a10">${i + 1}</text></g>`;
+  const kidsFr = `<g class="prFrame" data-i="${FR.length}"><rect x="314" y="${YD - 44}" width="512" height="88" rx="14" fill="rgba(255,255,255,.035)" stroke="rgba(255,255,255,.22)" stroke-width="2"/>
+    <circle cx="${826 - 12}" cy="${YD - 34}" r="14" fill="#ffd98a" stroke="#5a4a3a" stroke-width="2"/><text x="${826 - 12}" y="${YD - 28}" text-anchor="middle" font-size="15" font-weight="800" fill="#2a1a10">${FR.length + 1}</text></g>`;
+  const frames = FR.map(frame).join('') + kidsFr;
+  const tick0 = B.o.tick;
+  B.o.tick = (dt, t, a) => { tick0(dt, t, a); const s = still ? -1 : STG.idx;
+    a.all('.prFrame').forEach(g => { const i = +g.dataset.i, on = i === s, r = g.querySelector('rect');
+      r.setAttribute('stroke', on ? '#ffd98a' : 'rgba(255,255,255,.22)'); r.setAttribute('stroke-width', on ? 4 : 2);
+      r.style.filter = on ? `drop-shadow(0 0 ${n2(4 + 3 * Math.sin(t * 4))}px #ffd98a)` : '';
+      g.setAttribute('opacity', s < 0 || i <= s ? 1 : 0.45); }); };
   const parts = [
     { id: 'prMacN', anchor: prPos(c0, Y1, 1, -9, -48), label: [866, 100], side: 'R' },
     { id: 'prMicN', anchor: prPos(c0, Y1, 1, 6, 22), label: [866, 205], side: 'R' },
@@ -5434,7 +5848,7 @@ function prConj(self, still){
     { id: 'prSep', anchor: [c1 + 48, Y2 + 70], label: [c1, 505], side: 'C' },
     { id: 'prEight', anchor: [333, YD], label: [134, YD], side: 'L' });
   return Object.assign(B.o, {
-    body, fnParts: ['prProtoBr', 'prMeioMic', 'prUneq', self ? 'prFusHom' : 'prExch'], parts,
+    body: frames + body, fnParts: ['prProtoBr', 'prMeioMic', 'prUneq', self ? 'prFusHom' : 'prExch'], parts,
     tools: B.ctl.tools.concat([{ id: 'tbl:prConjSelf', label: 'الاقتران × الإخصاب الذاتي (ص34)' }, { id: 'tbl:prParaOrig', label: 'المنشأ والمجموعة (ص35)' }, { id: 'tbl:prBridges', label: 'الجسر البروتوبلازمي × جسر الاقتران' }])
   });
 }
@@ -9913,8 +10327,9 @@ function buildLabels(){
   labState = {};
   const small = window.innerWidth < 700, cmp = compact(), dy = cmp ? 12 : 17;
   svg.classList.toggle('compact', cmp);
-  labels.forEach(L => {
+  labels.forEach((L, li) => {
     const d = INFO[L.part]; if (!d) return;
+    L.key = L.part + '#' + li;
     const g = document.createElementNS(SVGNS, 'g');
     g.setAttribute('class', 'lblG clk'); g.dataset.for = L.part;
     const lines = wrapName(d.name, cmp ? 11 : small ? 13 : 16);
@@ -9923,7 +10338,7 @@ function buildLabels(){
     labG.appendChild(g);
     const t = g.querySelector('text');
     const bb = t.getBBox();
-    labState[L.part] = { g, t, lines: lines.length, w: bb.width || 60, h: bb.height || 16, side: null };
+    labState[L.key] = { g, t, lines: lines.length, w: bb.width || 60, h: bb.height || 16, side: null };
     g.addEventListener('click', ev => { ev.stopPropagation(); selectPart(L.part); });
     g.addEventListener('mouseenter', () => setHover(L.part));
     g.addEventListener('mouseleave', () => setHover(null));
@@ -9956,7 +10371,7 @@ function placeLabels(){
   const noL = bottom - topL < 110, topA = top;
   const cols = { L: [], R: [] };
   labels.forEach(L => {
-    const st = labState[L.part]; if (!st) return;
+    const st = labState[L.key]; if (!st) return;
     const vis = !L.vis || L.vis();
     if (st.g.style.display !== (vis ? '' : 'none')) st.g.style.display = vis ? '' : 'none';
     if (!vis) return;
@@ -10234,48 +10649,192 @@ function typesModel(B){
     anim(t){ recs.forEach(R => { const q = pos(R.o, t), m = spermMesh(q.at, q.dir, 1, R.o.ph + t * 8); B.update(R.h, m.head); B.update(R.b, m.body); }); } };
 }
 
-/* ═════════════ 2) تكوين النطف: أرومات النطف تتحول إلى أربع نطف ناضجة ═════════════ */
-function spermModel(B){
-  const X = [-1.5, -0.5, 0.5, 1.5];
-  X.forEach((x, i) => B.add(place(ellipsoid({ r: 0.26, rows: 10, cols: 14 }), { at: [x, 1.15, 0] }), { part: 'spTid', color: '#b07ad8', rim: 0.9, rimColor: '#f1dcff' }));
-  X.forEach(x => B.add(place(ellipsoid({ r: 0.11, rows: 8, cols: 10 }), { at: [x - 0.03, 1.17, 0.18] }), { part: 'spTid', color: '#4a2a7a', rim: 0.5, rimColor: '#c9a0e8' }));
-  const recs = X.map((x, i) => { const m = spermMesh([x, 0.3, 0], [0, 1, 0], 1.3, i);
-    return { h: B.add(m.head, { part: 'spermM', color: '#e8ecff', rim: 0.9, rimColor: '#9fb6ff', pop: false, center: [0, 0, 0] }),
-             b: B.add(m.body, { part: 'spermM', color: '#9fb6ff', rim: 0.7, rimColor: '#ffffff', pop: false, center: [0, 0, 0] }), x, i }; });
-  B.add(merge([-1.9, 1.9].map(x => place(capsule({ r: 0.012, len: 0.01, rows: 2, cols: 4 }), { at: [x, 0.75, 0] }))), { part: 'spermio', color: '#e8e0f0', rim: 0.3 });
-  B.add(tube({ pts: [[-2.1, 0.75, 0], [2.1, 0.75, 0]], r: 0.015, sides: 5 }), { part: 'spermio', color: '#e8e0f0', rim: 0.4, rimColor: '#ffffff' });
-  B.label('spTid', [1.75, 1.15, 0], [1, 0.4, 0]);
-  B.label('spermio', [2.1, 0.75, 0], [1, 0, 0]);
-  B.label('spermM', [1.55, 0.25, 0.1], [1, -0.2, 0]);
-  B.caption([0, -1.6, 0], () => ['أرومات النطف (س) تعاني عملية التحول النطفي', 'فتتكون أربع نطف ناضجة أحادية المجموعة الكروموسومية (س)']);
-  return { dist: 9.2, yaw: 0.25, pitch: 0.15, target: [0, 0.45, 0], live2d: true,
-    anim(t){ recs.forEach(R => { const m = spermMesh([R.x, 0.3 + Math.sin(t * 2 + R.i) * 0.03, 0], [Math.sin(t * 1.3 + R.i) * 0.08, 1, 0], 1.3, t * 8 + R.i); B.update(R.h, m.head); B.update(R.b, m.body); }); } };
+/* ── أدوات مشتركة للمجسّمين المرحليين (الخصية/المبيض): نسخة شبكية تُنقل وتُكبّر حسب المرحلة ── */
+const xform = (m, s, at) => { const p = new Array(m.p.length); for (let i = 0; i < m.p.length; i += 3){ p[i] = m.p[i] * s + at[0]; p[i + 1] = m.p[i + 1] * s + at[1]; p[i + 2] = m.p[i + 2] * s + at[2]; }
+  return { p, n: m.n, l: m.l, i: m.i }; };
+/* نصف قشرة خلفية (z ≤ 0) لمجسّم بيضوي، ووجه قطع مسطّح أمامي يُرسم عليه المحتوى */
+const halfShell = (rx, ry, rz) => { const m = G3.mk(), R = 14, C = 28;
+  for (let i = 0; i <= R; i++){ const th = Math.PI * i / R; for (let j = 0; j <= C; j++){ const ph = Math.PI + Math.PI * j / C;
+    const x = rx * Math.sin(th) * Math.cos(ph), y = -ry * Math.cos(th), z = rz * Math.sin(th) * Math.sin(ph); m.p.push(x, y, z); m.l.push(x, y, z); m.n.push(0, 0, 0); } }
+  for (let i = 0; i < R; i++) for (let j = 0; j < C; j++){ const a = i * (C + 1) + j, b = a + 1, c = a + C + 1, d = c + 1; m.i.push(a, b, c, b, d, c); }
+  return G3.computeNormals(m); };
+const faceDisc = (rx, ry) => G3.place(G3.ellipsoid({ r: [rx, ry, 0.02], rows: 6, cols: 40 }), { at: [0, 0, 0] });
+/* سجلّ: كائن واحد بموقعين (مكبّر في الوسط / مصغّر جانباً) — يُحدَّث عند تغيّر المرحلة فقط */
+function staged(B){
+  const recs = [];
+  return {
+    add(mesh, o, grp){ const r = B.add(mesh, Object.assign({ pop: false, center: [0, 0, 0] }, o)); recs.push({ r, mesh, grp }); return r; },
+    place(grp, s, at){ recs.forEach(R => { if (R.grp === grp) B.update(R.r, xform(R.mesh, s, at)); }); },
+    each(fn){ recs.forEach(fn); }
+  };
 }
 
-/* ═════════════ 3) المبيض: حويصلات تنمو، حويصلة كراف تحرر البيضة، الجسم الأصفر ═════════════ */
+/* ═════════════ 2) تكوين النطف — مرحلي: الخصية ← مقطع النبيب المنوي ← المراحل الخمس ═════════════ */
+function spermModel(B){
+  const { add, mul, ellipsoid, tube, place, merge, srng } = G3;
+  const SG = staged(B), ball = (r, at, n) => place(ellipsoid({ r, rows: n || 8, cols: (n || 8) + 4 }), { at });
+  /* 1) الخصية: نصف خلفي + وجه قطع، حواجز وفصوص ونبيبات ملتوية */
+  const RX = 1.3, RY = 1.65, M = [0.7, -1.05];
+  SG.add(halfShell(RX + 0.06, RY + 0.06, 0.9), { part: 'gTestis', color: '#f7e4d6', rim: 1.0, rimColor: '#ffffff' }, 'T');
+  SG.add(faceDisc(RX, RY), { part: 'gTestis', color: '#f0c4ae', rim: 0.5, rimColor: '#ffe8dc' }, 'T');
+  const A = [-1.75, -2.45, -3.05, 2.65, 2.05, 1.45, 0.85, 0.2];
+  SG.add(merge(A.map(a => tube({ pts: [[M[0], -M[1] * 1, 0.03], [(M[0] + Math.cos(a) * RX) / 2 + 0.1, -(M[1] + Math.sin(a) * RY) / 2, 0.03], [Math.cos(a) * RX * 0.98, -Math.sin(a) * RY * 0.98, 0.03]], r: 0.022, sides: 4 }))),
+    { part: 'gTestis', color: '#fff3ea', rim: 0.4 }, 'T');
+  const tubs = [];
+  for (let i = 0; i < A.length - 1; i++){ let a0 = A[i], a1 = A[i + 1]; if (i === 2) a1 -= 6.2832; const am = (a0 + a1) / 2, pts = [];
+    for (let j = 0; j <= 30; j++){ const u = j / 30, rr = 0.25 + u * 0.68, aa = am + Math.sin(u * 23) * Math.abs(a1 - a0) * 0.3 * (0.4 + u * 0.6);
+      pts.push([M[0] * (1 - rr) + Math.cos(aa) * RX * rr, -(M[1] * (1 - rr) + Math.sin(aa) * RY * rr), 0.06]); }
+    tubs.push(tube({ pts, r: 0.04, sides: 5 })); }
+  SG.add(merge(tubs), { part: 'semTub', color: '#b9764e', rim: 0.7, rimColor: '#ffd2b0' }, 'T');
+  const magPts = Array.from({ length: 25 }, (_, i) => [-0.62 + Math.cos(i / 24 * 6.2832) * 0.24, -0.7 + Math.sin(i / 24 * 6.2832) * 0.24, 0.1]);
+  SG.add(tube({ pts: magPts, r: 0.025, sides: 5 }), { color: '#ffe08a', rim: 0.6 }, 'T');
+  /* 2) مقطع عرضي في نبيب منوي: أسطوانة قصيرة ووجهها الأمامي بحلقات الخلايا */
+  const TR = 1.25, rings = [
+    { id: 'gGerm', r: 1.08, n: 30, cr: 0.06, col: '#a8a0c0', flat: true, hl: 2 },
+    { id: 'spGonium', r: 0.92, n: 22, cr: 0.085, col: '#b07ad8', hl: 2, a0: -0.87 },
+    { id: 'spPrim', r: 0.73, n: 15, cr: 0.11, col: '#a565d6', hl: 3, a0: -0.44 },
+    { id: 'spSec', r: 0.55, n: 14, cr: 0.08, col: '#c08ae0', hl: 4, a0: 0 },
+    { id: 'spTid', r: 0.42, n: 18, cr: 0.055, col: '#cfa0ec', hl: 5, a0: 0.44 }];
+  SG.add(tube({ pts: [[0, 0, -0.9], [0, 0, 0]], r: TR + 0.06, sides: 40 }), { part: 'semTubX', color: '#f3d6c0', rim: 1.0, rimColor: '#fff3ea' }, 'S');
+  SG.add(faceDisc(TR, TR), { part: 'semTubX', color: '#fbeee4', rim: 0.4, rimColor: '#ffffff' }, 'S');
+  const ringObj = {};
+  rings.forEach(R => { const ms = [];
+    for (let i = 0; i < R.n; i++){ const a = (R.a0 || 0) + i * 6.2832 / R.n, at = [Math.cos(a) * R.r, -Math.sin(a) * R.r, 0.05];
+      ms.push(R.flat ? place(ellipsoid({ r: [R.cr * 1.6, R.cr * 0.7, R.cr * 0.6], rows: 5, cols: 8 }), { at, rot: [0, 0, -a + Math.PI / 2] }) : ball(R.cr, at, 6)); }
+    ringObj[R.id] = SG.add(merge(ms), { part: R.id, color: R.col, rim: 0.8, rimColor: '#ffffff' }, 'S'); ringObj[R.id].hl = R.hl; });
+  const spH = [], spT = [];
+  for (let i = 0; i < 12; i++){ const a = 0.87 + i * 6.2832 / 12, at = [Math.cos(a) * 0.33, -Math.sin(a) * 0.33, 0.07], m = G3.spermMesh(at, [-Math.cos(a), Math.sin(a), 0], 0.28, i); spH.push(m.head); spT.push(m.body); }
+  ringObj.spermM = SG.add(merge(spH.concat(spT)), { part: 'spermM', color: '#e8ecff', rim: 0.9, rimColor: '#9fb6ff' }, 'S'); ringObj.spermM.hl = 6;
+  /* 3) مخطط المراحل: خلايا تظهر مرحلة بعد مرحلة */
+  const LX = 1.45, Y = [2.15, 1.35, 0.5, -0.32, -1.3], lin = [];
+  const cell = (r, at, st, part) => { const o = B.add(merge([ball(r, at, 10), ball(r * 0.42, add(at, [-r * 0.12, r * 0.1, r * 0.62]), 8)]), { part, color: '#b07ad8', rim: 0.9, rimColor: '#f1dcff', pop: false, center: at }); o.st = st; lin.push(o); return o; };
+  cell(0.2, [LX, Y[0], 0], 2, 'spGonium');
+  cell(0.27, [LX, Y[1], 0], 3, 'spPrim');
+  [-0.5, 0.5].forEach(dx => cell(0.21, [LX + dx, Y[2], 0], 4, 'spSec'));
+  [-0.75, -0.25, 0.25, 0.75].forEach(dx => cell(0.15, [LX + dx, Y[3], 0], 5, 'spTid'));
+  const arr = (p0, p1, st) => { const o = B.add(tube({ pts: [p0, p1], r: 0.02, sides: 5 }), { color: '#d9784a', rim: 0.4, pop: false }); o.st = st; lin.push(o); };
+  arr([LX, Y[0] - 0.22, 0], [LX, Y[1] - (-0.3), 0], 3);
+  [-0.5, 0.5].forEach(dx => arr([LX + dx * 0.15, Y[1] - 0.27, 0], [LX + dx * 0.9, Y[2] + 0.22, 0], 4));
+  [-0.75, -0.25, 0.25, 0.75].forEach(dx => arr([LX + (dx < 0 ? -0.5 : 0.5), Y[2] - 0.21, 0], [LX + dx, Y[3] + 0.16, 0], 5));
+  const spRecs = [-0.75, -0.25, 0.25, 0.75].map((dx, i) => { const m = G3.spermMesh([LX + dx, Y[4] + 0.35, 0], [0, 1, 0], 0.95, i);
+    const h = B.add(m.head, { part: 'spermM', color: '#e8ecff', rim: 0.9, rimColor: '#9fb6ff', pop: false, center: [LX, Y[4], 0] }), b = B.add(m.body, { part: 'spermM', color: '#9fb6ff', rim: 0.7, rimColor: '#ffffff', pop: false, center: [LX, Y[4], 0] });
+    h.st = b.st = 6; lin.push(h, b); return { h, b, x: LX + dx, i }; });
+  const io = B.add(tube({ pts: [[LX - 1.0, Y[3] - 0.32, 0], [LX + 1.0, Y[3] - 0.32, 0]], r: 0.012, sides: 4 }), { part: 'spermio', color: '#e8e0f0', rim: 0.4, pop: false }); io.st = 6; lin.push(io);
+  const m1 = B.add(tube({ pts: [[LX + 1.0, Y[1], 0], [LX + 1.1, Y[1], 0], [LX + 1.1, Y[2], 0], [LX + 1.0, Y[2], 0]], r: 0.02, sides: 4 }), { part: 'meio1', color: '#ffe08a', rim: 0.5, pop: false }); m1.st = 4; lin.push(m1);
+  const m2 = B.add(tube({ pts: [[LX + 1.0, Y[2] - 0.1, 0], [LX + 1.1, Y[2] - 0.1, 0], [LX + 1.1, Y[3], 0], [LX + 1.0, Y[3], 0]], r: 0.02, sides: 4 }), { part: 'meio2', color: '#ffe08a', rim: 0.5, pop: false }); m2.st = 5; lin.push(m2);
+  /* الأسماء حسب المرحلة */
+  const at = (s, ...ss) => () => ss.includes(STG.idx) && (s === undefined || true);
+  const big = { T: [1, [0, 0, 0]], S: [1, [0, 0, 0]] }, small = { S: [0.62, [-1.9, 0.1, 0]] };
+  const P = (grp, x, y, z) => { const p = STG.idx === 0 || STG.idx === 1 ? big[grp] : small[grp]; return [x * p[0] + p[1][0], y * p[0] + p[1][1], (z || 0) * p[0] + p[1][2]]; };
+  void P;
+  B.label('gTestis', [-RX, 0.2, 0.05], [-1, 0.2, 0.3], at(0, 0));
+  B.label('semTub', [-0.62, -0.7, 0.1], [-0.6, -1, 0.4], at(0, 0));
+  B.label('semTubX', [-TR * 0.95, -0.4, 0.05], [-1, -0.3, 0.3], at(0, 1));
+  B.label('gGerm', [-1.02, 0.35, 0.06], [-1, 0.4, 0.3], at(0, 1));
+  [['spGonium', 0.92, -0.87], ['spPrim', 0.73, -0.44], ['spSec', 0.55, 0], ['spTid', 0.42, 0.44], ['spermM', 0.33, 0.87]].forEach(([id, r, a]) =>
+    B.label(id, [Math.cos(a) * r, -Math.sin(a) * r, 0.08], [1, -Math.sin(a) * 0.8, 0.3], at(0, 1)));
+  B.label('spGonium', [LX + 0.2, Y[0], 0], [1, 0.2, 0.2], at(0, 2, 3, 4, 5, 6));
+  B.label('spPrim', [LX + 0.27, Y[1], 0], [1, 0.1, 0.2], at(0, 3, 4, 5, 6));
+  B.label('meio1', [LX + 1.1, (Y[1] + Y[2]) / 2, 0], [1, 0, 0.2], at(0, 4, 5, 6));
+  B.label('spSec', [LX + 0.71, Y[2], 0], [1, 0, 0.2], at(0, 4, 5, 6));
+  B.label('meio2', [LX + 1.1, (Y[2] + Y[3]) / 2, 0], [1, 0, 0.2], at(0, 5, 6));
+  B.label('spTid', [LX + 0.9, Y[3], 0], [1, -0.1, 0.2], at(0, 5, 6));
+  B.label('spermio', [LX - 1.0, Y[3] - 0.32, 0], [-1, -0.2, 0.2], at(0, 6));
+  B.label('spermM', [LX + 0.75, Y[4], 0], [1, -0.3, 0.2], at(0, 6));
+  B.caption([0, -2.45, 0], () => [(SPERM_STAGES[STG.idx] || {}).n || '']);
+  let last = -1;
+  return { dist: 9.0, yaw: 0.1, pitch: 0.1, target: [0.1, 0.05, 0], live2d: true,
+    anim(t){ const s = STG.idx;
+      if (s !== last){ last = s;
+        SG.place('T', 1, [0, 0, 0]); SG.place('S', s === 1 ? 1 : 0.55, s === 1 ? [0, 0, 0] : [-2.0, -1.25, 0]);
+        SG.each(R => { R.r.hide = R.grp === 'T' ? s !== 0 : s === 0; });
+        Object.values(ringObj).forEach(o => { o.alpha = s <= 1 ? 1 : o.hl === s ? 1 : o.hl < s ? 0.85 : 0.35; });
+        lin.forEach(o => { o.hide = s < 2 || o.st > s; }); }
+      Object.values(ringObj).forEach(o => { o.glow = s >= 2 && o.hl === s ? 0.5 + 0.5 * Math.sin(t * 4) : o.glow; });
+      if (s === 6) spRecs.forEach(R => { const m = G3.spermMesh([R.x, Y[4] + 0.35 + Math.sin(t * 2 + R.i) * 0.03, 0], [Math.sin(t * 1.3 + R.i) * 0.08, 1, 0], 0.95, t * 8 + R.i); B.update(R.h, m.head); B.update(R.b, m.body); });
+    } };
+}
+
+/* ═════════════ 3) تكوين البيوض — مرحلي: مقطع المبيض ← المراحل، والحويصلة المقابلة تتوهج ═════════════ */
 function eggModel(B){
-  B.add(ellipsoid({ r: [1.5, 1.9, 1.0], rows: 24, cols: 36 }), { part: 'ovary', color: '#e98a8a', alpha: 0.32, rim: 1.2, rimColor: '#ffe0d8', shell: { size: 3.6 }, pat: 2, patColor: '#c96a6a', patK: 5 });
-  const F = [[-1.0, 1.1, 0.5, 0.14], [-1.25, 0.4, 0.45, 0.2], [-1.2, -0.4, 0.4, 0.27]];
-  F.forEach(([x, y, z, r]) => { B.add(place(ellipsoid({ r: r + 0.08, rows: 10, cols: 14 }), { at: [x, y, z] }), { part: 'ooPrim', color: '#f6c3b0', rim: 0.8, rimColor: '#ffffff' });
-    B.add(place(ellipsoid({ r: r * 0.5, rows: 8, cols: 10 }), { at: [x + 0.04, y, z + r * 0.6] }), { part: 'ooPrim', color: '#2a2a6a', rim: 0.6, rimColor: '#c9b8ff' }); });
-  B.add(place(ellipsoid({ r: 0.5, rows: 14, cols: 20 }), { at: [-0.75, -1.3, 0.55] }), { part: 'graaf', color: '#f6c3b0', alpha: 0.6, rim: 1.1, rimColor: '#ffffff', shell: { size: 1.1 } });
-  B.add(place(ellipsoid({ r: 0.32, rows: 10, cols: 14 }), { at: [-0.7, -1.3, 0.62] }), { part: 'graaf', color: '#cfe7ff', alpha: 0.7, rim: 0.8, rimColor: '#ffffff' });
-  B.add(place(ellipsoid({ r: [0.42, 0.36, 0.3], rows: 10, cols: 14 }), { at: [0.65, -1.05, 0.4] }), { part: 'corpusL', color: '#f2c14e', rim: 0.9, rimColor: '#fff3c8' });
-  const eggO = B.add(place(ellipsoid({ r: 0.13, rows: 8, cols: 10 }), { at: [-1.1, -1.7, 0.8] }), { part: 'ooSec', color: '#8f7ad8', rim: 0.9, rimColor: '#e8e0ff', pop: false, center: [-1.1, -1.7, 0.8] });
-  /* قناة البيض: أنبوب يلتف فوق المبيض وينتهي بقمع مهدب */
-  const duct = spline([[1.6, 2.6, 0], [0.4, 2.7, 0.2], [-1.0, 2.3, 0.5], [-1.9, 1.2, 0.7], [-2.0, 0.1, 0.8]], 8, false);
-  B.add(tube({ pts: duct, r: u => 0.12 + u * 0.14, sides: 12 }), { part: 'oviduct', color: '#d9505a', rim: 0.9, rimColor: '#ffc0c0' });
-  B.add(merge([0, 1, 2, 3, 4, 5, 6, 7].map(i => { const a = i / 8 * 6.2832; return tube({ pts: [[-2.0, 0.1, 0.8], [-2.0 + Math.cos(a) * 0.3, -0.25, 0.8 + Math.sin(a) * 0.3], [-2.0 + Math.cos(a) * 0.45, -0.5, 0.8 + Math.sin(a) * 0.45]], r: 0.04, sides: 5 }); })),
-    { part: 'oviduct', color: '#e8707a', rim: 0.8, rimColor: '#ffd0d0' });
-  B.label('ovary', [1.3, 0.6, 0.4], [1, 0.2, 0.2]);
-  B.label('oviduct', [0.4, 2.7, 0.2], [0.2, 1, 0]);
-  B.label('graaf', [-0.75, -1.75, 0.6], [-0.4, -1, 0.3]);
-  B.label('corpusL', [0.95, -1.15, 0.45], [1, -0.4, 0.2]);
-  B.label('ooPrim', [-1.35, 0.4, 0.5], [-1, 0.1, 0.2]);
-  B.label('ooSec', [-1.1, -1.7, 0.8], [-1, -0.6, 0.3]);
-  B.caption([0, -2.5, 0], () => ['المبيض: حويصلات مبيضية تنمو، وحويصلة كراف تحرر الخلية البيضية الثانوية', 'ثم يتكون الجسم الأصفر']);
-  return { dist: 9.4, yaw: 0.5, pitch: 0.18, target: [-0.2, 0.2, 0], live2d: true,
-    anim(t){ const p = (t * 0.15) % 1; B.update(eggO, place(ellipsoid({ r: 0.13, rows: 8, cols: 10 }), { at: [-1.1 - p * 0.8, -1.7 + p * 1.6, 0.8] })); } };
+  const { add, ellipsoid, tube, place, merge, spline, capsule } = G3;
+  const SG = staged(B), ball = (r, at, n) => place(ellipsoid({ r, rows: n || 8, cols: (n || 8) + 4 }), { at });
+  const RX = 1.5, RY = 1.18, Fp = { germ: [-1.28, -0.2], prim: [-1.04, 0.62], sec: [-0.3, 0.92], graaf: [0.7, 0.7], rel: [1.18, -0.2], cl: [0.4, -0.78] };
+  SG.add(halfShell(RX + 0.08, RY + 0.08, 0.9), { part: 'ovary', color: '#f2b3a8', rim: 1.0, rimColor: '#fff0ea' }, 'O');
+  SG.add(faceDisc(RX, RY), { part: 'ovary', color: '#e98a8a', rim: 0.4, rimColor: '#ffd8d0' }, 'O');
+  const fol = (c, R, oR, antrum) => { const at = [c[0], c[1], 0.05], ms = [place(ellipsoid({ r: [R, R, R * 0.35], rows: 8, cols: 16 }), { at })];
+    const oo = [ball(oR, add(at, [antrum ? -R * 0.32 : 0, antrum ? -R * 0.3 : 0, R * 0.3]), 8)], an = antrum ? [place(ellipsoid({ r: [R * antrum, R * antrum, R * 0.3], rows: 8, cols: 14 }), { at: add(at, [R * 0.12, R * 0.08, R * 0.12]) })] : [];
+    return { wall: merge(ms), oo: merge(oo), an: an.length ? merge(an) : null }; };
+  const hlObjs = [];
+  const addFol = (key, c, R, oR, antrum, part, hl) => { const f = fol(c, R, oR, antrum);
+    const w = SG.add(f.wall, { part, color: '#f6c3b0', rim: 0.8, rimColor: '#ffffff' }, 'O'); w.hl = hl; hlObjs.push(w);
+    if (f.an){ const a = SG.add(f.an, { part, color: '#cfe7ff', rim: 0.6, rimColor: '#ffffff' }, 'O'); a.hl = hl; hlObjs.push(a); }
+    const o = SG.add(f.oo, { part, color: '#8f7ad8', rim: 0.8, rimColor: '#e8e0ff' }, 'O'); o.hl = hl; hlObjs.push(o); };
+  const germ = merge(Array.from({ length: 9 }, (_, i) => { const a = 2.55 + i * 0.13; return ball(0.045, [Math.cos(a) * (RX - 0.04), -Math.sin(a) * (RY - 0.04), 0.05], 5); })
+    .concat([[-1.18, -0.06], [-1.22, -0.36], [-1.1, -0.22]].map(([x, y]) => ball(0.06, [x, y, 0.06], 6))));
+  const g = SG.add(germ, { part: 'oGerm', color: '#b9a6ec', rim: 0.7, rimColor: '#ffffff' }, 'O'); g.hl = 1; hlObjs.push(g);
+  addFol('prim', Fp.prim, 0.17, 0.08, 0, 'ooPrim', 2);
+  addFol('sec', Fp.sec, 0.26, 0.09, 0.45, 'ooFol', 3);
+  addFol('graaf', Fp.graaf, 0.4, 0.1, 0.62, 'graaf', 4);
+  const cl = SG.add(place(ellipsoid({ r: [0.28, 0.24, 0.12], rows: 8, cols: 14 }), { at: [Fp.cl[0], Fp.cl[1], 0.06] }), { part: 'corpusL', color: '#f2c14e', rim: 0.9, rimColor: '#fff3c8' }, 'O'); cl.hl = 6; hlObjs.push(cl);
+  const duct = spline([[2.3, 1.5, 0], [2.0, 1.2, 0.05], [1.96, 0.7, 0.1], [1.76, 0.12, 0.15]], 6, false);
+  SG.add(tube({ pts: duct, r: u => 0.1 + u * 0.06, sides: 10 }), { part: 'oviduct', color: '#d9505a', rim: 0.9, rimColor: '#ffc0c0' }, 'O');
+  SG.add(merge(Array.from({ length: 8 }, (_, i) => { const a = 1.7 + i * 0.28; return tube({ pts: [[1.76, 0.12, 0.15], [1.76 + Math.cos(a) * 0.22, 0.12 - Math.sin(a) * 0.26, 0.15], [1.76 + Math.cos(a) * 0.34, 0.12 - Math.sin(a) * 0.4, 0.15]], r: 0.03, sides: 4 }); })),
+    { part: 'oviduct', color: '#e8707a', rim: 0.8, rimColor: '#ffd0d0' }, 'O');
+  const relMesh = ball(0.11, [0, 0, 0.12], 8);
+  const relO = B.add(relMesh, { part: 'ooSec', color: '#8f7ad8', rim: 0.9, rimColor: '#e8e0ff', pop: false, center: [0, 0, 0] }); relO.hl = 4; hlObjs.push(relO);
+  /* مخطط المراحل يميناً */
+  const LX = 1.3, Y = [2.15, 1.25, 0.1, -1.2], lin = [];
+  const cell = (r, at, st, part, col) => { const o = B.add(merge([ball(r, at, 10), ball(r * 0.42, add(at, [-r * 0.12, r * 0.1, r * 0.62]), 8)]), { part, color: col || '#8f7ad8', rim: 0.9, rimColor: '#e8e0ff', pop: false, center: at }); o.st = st; lin.push(o); return o; };
+  cell(0.18, [LX, Y[0], 0], 1, 'ooGonium');
+  cell(0.28, [LX, Y[1], 0], 2, 'ooPrim');
+  const fc = B.add(tube({ pts: Array.from({ length: 25 }, (_, i) => [LX + Math.cos(i / 24 * 6.2832) * 0.38, Y[1] + Math.sin(i / 24 * 6.2832) * 0.38, 0]), r: 0.03, sides: 5 }), { part: 'ooPrim', color: '#f2c97a', rim: 0.5, pop: false }); fc.st = 2; lin.push(fc);
+  cell(0.12, [LX - 0.86, Y[2], 0], 3, 'polar1', '#c9a0e8');
+  cell(0.3, [LX + 0.42, Y[2], 0], 3, 'ooSec');
+  [-1.46, -0.92, -0.38].forEach(dx => cell(0.11, [LX + dx, Y[3], 0], 5, 'polar2', '#c9a0e8'));
+  cell(0.32, [LX + 0.58, Y[3], 0], 5, 'ootid', '#a98ae8');
+  const ring = B.add(tube({ pts: Array.from({ length: 33 }, (_, i) => [LX + 0.58 + Math.cos(i / 32 * 6.2832) * 0.44, Y[3] + Math.sin(i / 32 * 6.2832) * 0.44, 0]), r: 0.025, sides: 5 }), { part: 'ovumM', color: '#ffe08a', rim: 0.6, pop: false }); ring.st = 6; lin.push(ring);
+  const arr = (p0, p1, st) => { const o = B.add(tube({ pts: [p0, p1], r: 0.02, sides: 5 }), { color: '#d9784a', rim: 0.4, pop: false }); o.st = st; lin.push(o); };
+  arr([LX, Y[0] - 0.2, 0], [LX, Y[1] + 0.4, 0], 2);
+  arr([LX - 0.15, Y[1] - 0.36, 0], [LX - 0.78, Y[2] + 0.14, 0], 3); arr([LX + 0.12, Y[1] - 0.38, 0], [LX + 0.36, Y[2] + 0.3, 0], 3);
+  [-1.46, -0.92].forEach(dx => arr([LX - 0.86, Y[2] - 0.13, 0], [LX + dx, Y[3] + 0.12, 0], 5));
+  arr([LX + 0.3, Y[2] - 0.28, 0], [LX - 0.38, Y[3] + 0.12, 0], 5); arr([LX + 0.46, Y[2] - 0.3, 0], [LX + 0.56, Y[3] + 0.33, 0], 5);
+  const mm1 = B.add(tube({ pts: [[LX + 1.0, Y[1], 0], [LX + 1.1, Y[1], 0], [LX + 1.1, Y[2], 0], [LX + 1.0, Y[2], 0]], r: 0.02, sides: 4 }), { part: 'oMeio1', color: '#ffe08a', rim: 0.5, pop: false }); mm1.st = 3; lin.push(mm1);
+  const mm2 = B.add(tube({ pts: [[LX + 1.0, Y[2] - 0.2, 0], [LX + 1.1, Y[2] - 0.2, 0], [LX + 1.1, Y[3], 0], [LX + 1.0, Y[3], 0]], r: 0.02, sides: 4 }), { part: 'oMeio2', color: '#ffe08a', rim: 0.5, pop: false }); mm2.st = 5; lin.push(mm2);
+  /* الموقعان: مكبّر (المرحلة 1) / مصغّر يساراً */
+  const SMALL = [0.6, [-2.1, -0.9, 0]], BIG = [1.15, [-0.15, 0, 0]];
+  const pos = () => STG.idx === 0 ? BIG : SMALL;
+  const W = (x, y, z) => { const p = pos(); return [x * p[0] + p[1][0], y * p[0] + p[1][1], (z || 0) * p[0] + p[1][2]]; };
+  const vis = (...ss) => () => ss.includes(STG.idx);
+  /* أسماء المبيض بموقعيه: نسختان من كل اسم، واحدة لكل موقع */
+  const ovL = [['ovary', -RX, 0.1, [-1, 0.2, 0.3]], ['oGerm', -1.2, -0.2, [-1, -0.4, 0.3]], ['ooPrim', Fp.prim[0], Fp.prim[1] + 0.17, [-0.6, 1, 0.3]], ['ooFol', Fp.sec[0], Fp.sec[1] + 0.26, [0, 1, 0.3]],
+    ['graaf', Fp.graaf[0] + 0.3, Fp.graaf[1] + 0.25, [0.6, 1, 0.3]], ['oviduct', 2.1, 1.3, [1, 0.6, 0.2]], ['corpusL', Fp.cl[0] + 0.25, Fp.cl[1] - 0.15, [0.5, -1, 0.3]]];
+  ovL.forEach(([id, x, y, n]) => { B.label(id, [x * BIG[0] + BIG[1][0], y * BIG[0], 0.1], n, vis(0)); });
+  B.label('ooSec', [(Fp.rel[0] + 0.25) * BIG[0] + BIG[1][0], (Fp.rel[1] + 0.1) * BIG[0], 0.15], [1, -0.4, 0.3], vis(0));
+  [['ovary', -RX, 0.1, [-1, 0.2, 0.3]], ['graaf', Fp.graaf[0], Fp.graaf[1] + 0.4, [-0.2, 1, 0.3]], ['corpusL', Fp.cl[0], Fp.cl[1] - 0.24, [-0.3, -1, 0.3]], ['oviduct', 2.2, 1.4, [0.2, 1, 0.2]]].forEach(([id, x, y, n]) =>
+    B.label(id, [x * SMALL[0] + SMALL[1][0], y * SMALL[0] + SMALL[1][1], 0.1], n, vis(1, 2, 3, 4, 5, 6)));
+  B.label('ooGonium', [LX + 0.18, Y[0], 0], [1, 0.2, 0.2], vis(1, 2, 3, 4, 5, 6));
+  B.label('ooPrim', [LX + 0.38, Y[1], 0], [1, 0.1, 0.2], vis(2, 3, 4, 5, 6));
+  B.label('oMeio1', [LX + 1.1, (Y[1] + Y[2]) / 2, 0], [1, 0, 0.2], vis(3, 4, 5, 6));
+  B.label('ooSec', [LX + 0.72, Y[2], 0], [1, 0, 0.2], vis(3, 4, 5, 6));
+  B.label('polar1', [LX - 0.86, Y[2] + 0.12, 0], [-0.3, 1, 0.2], vis(3, 4, 5, 6));
+  B.label('oMeio2', [LX + 1.1, (Y[2] + Y[3]) / 2 - 0.1, 0], [1, 0, 0.2], vis(5, 6));
+  B.label('polar2', [LX - 0.92, Y[3] - 0.11, 0], [0, -1, 0.2], vis(5, 6));
+  B.label('ootid', [LX + 0.9, Y[3], 0], [1, -0.2, 0.2], vis(5));
+  B.label('ovumM', [LX + 1.02, Y[3], 0], [1, -0.2, 0.2], vis(6));
+  B.caption([0, -2.45, 0], () => [(EGG_STAGES[STG.idx] || {}).n || '']);
+  let last = -1;
+  return { dist: 9.2, yaw: 0.1, pitch: 0.1, target: [0, 0.15, 0], live2d: true,
+    anim(t){ const s = STG.idx, p = pos();
+      if (s !== last){ last = s; SG.place('O', p[0], p[1]);
+        hlObjs.forEach(o => { o.alpha = s === 0 ? 1 : o.hl === s ? 1 : 0.55; });
+        lin.forEach(o => { o.hide = s === 0 || o.st > s; }); }
+      hlObjs.forEach(o => { if (s >= 1 && o.hl === s) o.glow = 0.5 + 0.5 * Math.sin(t * 4); });
+      /* الخلية البيضية الثانوية: داخل حويصلة كراف، وتتحرر نحو القمع في المرحلة 5 */
+      const k = s === 4 ? Math.min(1, STG.k * 1.3) : s > 4 ? 1 : s === 0 ? 0.5 : 0, c = [Fp.rel[0] + 0.1 + k * 0.5, Fp.rel[1] + 0.06 + k * 0.22, 0];
+      B.update(relO, xform(relMesh, p[0], W(c[0], c[1], c[2])));
+      relO.hide = s >= 1 && s < 3; void capsule;
+    } };
 }
 
 Object.assign(G3.models, { int_itypes: typesModel, int_isperm: spermModel, int_iegg: eggModel });
@@ -10308,7 +10867,8 @@ function phageMesh(at, s, dir){
     place(capsule({ r: 0.07 * s, len: 0.6 * s, rows: 3, cols: 8 }), { at: Q(0.35, 0), dir: d })].concat([-1, 1].map(sg => tube({ pts: [Q(0.05, 0), Q(-0.15, sg * 0.35)], r: 0.02 * s, sides: 4 })))); }
 /* ═════════════ دورة تكاثر راشح البلعم البكتيري (ص17–18) — تتبع المراحل الست ═════════════
    1 الاتصال · 2 الاختراق · 3 التخليق · 4 الإنضاج · 5 التحرر (دورة التحلل) · 6 التكامل (دورة التحلل والإنتاج) */
-function phageModel(B){
+function phageModel(B, map, stages){
+  const SI = () => map ? map[Math.min(map.length - 1, STG.idx)] : STG.idx;
   const R = srng(17), CELL = rod(0.62, 2.4);
   const wall = B.add(CELL, { part: 'vWall', color: '#c98a4a', alpha: 0.3, rim: 1.3, rimColor: '#ffe2b8', shell: { size: 3.2, inner: 'vBac', tau: 0.3 } });
   const ringPts = ellipsePts([0, 0, 0], 0.9, 0.38, 12, 0.18, 4);
@@ -10352,7 +10912,7 @@ function phageModel(B){
   const daO = B.add(daughters, { part: 'vDaugh', color: '#c98a4a', alpha: 0.4, rim: 1.2, rimColor: '#ffe2b8', shell: { size: 1.2 }, pop: false });
   const daD = B.add(merge(DC.map(c => merge([ring(ringPts.map(p => add(mul(p, 0.45), c)), 0.025), tube({ pts: spline([0, 1, 2].map(i => add(mul(ringPts[i], 0.45), c)), 4, false), r: 0.04, sides: 5 })]))),
     { part: 'vProph', color: '#ff6fb0', rim: 0.7, rimColor: '#ffd2e8', pop: false });
-  const vis = (...ss) => () => ss.includes(STG.idx);
+  const vis = (...ss) => () => ss.includes(SI());
   B.label('vBac', [-0.9, -0.35, 0.3], [0, -1, 0.4], vis(0, 1, 2, 3));
   B.label('vWall', [-1.6, 0.2, 0.3], [-1, 0.3, 0], vis(0, 1, 2, 3, 5));
   B.label('vBDNA', [-0.8, 0, -0.2], [-0.5, -1, 0], vis(0, 1, 2));
@@ -10367,9 +10927,9 @@ function phageModel(B){
   B.label('vDNA', [1.0, 0.3, 0.25], [1, 0.5, 0.3], vis(5));
   B.label('vProph', add(ringPts[1], [0, 0.05, 0.05]), [0.4, 1, 0.3], vis(5));
   B.label('vDaugh', [1.35, -1.7, 0], [1, -0.3, 0], vis(5));
-  B.caption([0, -2.4, 0], () => [(VIR_STAGES[STG.idx] || {}).n || '']);
+  B.caption([0, -2.4, 0], () => [((stages || VIR_STAGES)[STG.idx] || {}).n || '']);
   return { dist: 8.2, yaw: 0.4, pitch: 0.22, target: [0.1, -0.1, 0], live2d: true,
-    anim(t){ const s = STG.idx, k = 0.5 - 0.5 * Math.cos(Math.PI * Math.min(1, Math.max(0, STG.k)));
+    anim(t){ const s = SI(), k = 0.5 - 0.5 * Math.cos(Math.PI * Math.min(1, Math.max(0, STG.k)));
       const a = s === 0 ? att(k).at : AT, full = s === 0;
       wall.hide = s === 4; bdna.hide = s >= 2 && s !== 5; frags.hide = s !== 2;
       coatO.hide = tailO.hide = s >= 4; naO.hide = s >= 2;
@@ -10490,7 +11050,7 @@ function plasModel(B){
     } };
 }
 
-Object.assign(G3.models, { vir_cycle: phageModel, prk_bfiss: fissModel, prk_bconj: conjModel, prk_bplas: plasModel });
+Object.assign(G3.models, { vir_cycle: phageModel, vir_lyt: B => phageModel(B, [0, 1, 2, 3, 4], LYT_STAGES), vir_lys: B => phageModel(B, [0, 1, 5, 5], LYS_STAGES), prk_bfiss: fissModel, prk_bconj: conjModel, prk_bdr: B => { const m = conjModel(B), an = m.anim; m.anim = t => { const i = STG.idx, k = STG.k; STG.idx = 0; STG.k = 0.999; an(t); STG.idx = i; STG.k = k; }; return m; }, prk_bplas: plasModel });
 })();
 
 /* ══════════════════════════════════════════════════════════════════════════
