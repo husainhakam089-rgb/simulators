@@ -351,21 +351,21 @@ function ftModel(B){
   A(merge(Array.from({ length: 8 }, (_, i) => { const a = i * 0.785, d = norm([Math.cos(a) * 0.5, 1, Math.sin(a) * 0.5]); return place(ellipsoid({ r: [0.04, 0.32, 0.09], rows: 4, cols: 6 }), { at: add([X[2], YR + 0.62, 0], mul(d, 0.28)), dir: d }); })), fx('sdMulti', '#4f9a3a'), 5);
   /* أسهم: ينمو المبيض ← ثمرة */
   X.forEach((x, i) => A(merge([tube({ pts: [[x, YF - 0.98, 0.2], [x, YR + 0.98, 0.2]], r: 0.03, sides: 5 }), place(ellipsoid({ r: [0.08, 0.16, 0.08], rows: 5, cols: 8, disp: q => 1 - 0.85 * Math.max(0, q[1]) }), { at: [x, YR + 0.9, 0.2], dir: [0, -1, 0] })]), { color: '#ff9a5a', rim: 0.4 }, i * 2 + 1));
-  B.label('sdFlw1', add(c1, [-0.4, 0.05, 0]), [1, 0.2, 0.2], () => STG.idx >= 0);
+  B.label('sdFlw1', add(c1, [-0.4, 0.05, 0]), [1, 0.2, 0.2]);
   B.label('flOvary', add(c1, [0.16, 0.14, 0.05]), [1, 0.5, 0.3]);
-  B.label('sdSimple', [X[0] + 0.55, YR, 0], [1, -0.2, 0.2], () => STG.idx >= 1);
-  B.label('flCarpel', add(c2, [0.1, 0.32, 0.1]), [0.3, 1, 0.3], () => STG.idx >= 2);
-  B.label('flReceptacle', add(c2, [0.32, 0, 0]), [1, -0.3, 0.2], () => STG.idx >= 2);
-  B.label('sdFlwN', add(c2, [-0.45, 0.1, 0]), [-0.3, 1, 0.2], () => STG.idx >= 2);
-  B.label('sdAggr', [X[1] + 0.5, YR, 0], [1, -0.2, 0.2], () => STG.idx >= 3);
-  B.label('sdFlwM', add(c3, [-0.25, 0.3, 0]), [-1, 0.2, 0.2], () => STG.idx >= 4);
-  B.label('sdMulti', [X[2] - 0.5, YR, 0], [-1, -0.2, 0.2], () => STG.idx >= 5);
+  B.label('sdSimple', [X[0] + 0.55, YR, 0], [1, -0.2, 0.2]);
+  B.label('flCarpel', add(c2, [0.1, 0.32, 0.1]), [0.3, 1, 0.3]);
+  B.label('flReceptacle', add(c2, [0.32, 0, 0]), [1, -0.3, 0.2]);
+  B.label('sdFlwN', add(c2, [-0.45, 0.1, 0]), [-0.3, 1, 0.2]);
+  B.label('sdAggr', [X[1] + 0.5, YR, 0], [1, -0.2, 0.2]);
+  B.label('sdFlwM', add(c3, [-0.25, 0.3, 0]), [-1, 0.2, 0.2]);
+  B.label('sdMulti', [X[2] - 0.5, YR, 0], [-1, -0.2, 0.2]);
   const titles = [['ثمرة بسيطة', 'الباقلاء · الطماطة · الخيار · البرتقال · المشمش'], ['ثمرة متجمعة', 'التوت الأسود'], ['ثمرة مركبة (مضاعفة)', 'الأناناس']];
-  X.forEach((x, i) => { B.caption([x, YF + 1.05, 0], () => [titles[i][0]]); B.caption([x, YR - 0.95, 0], () => STG.idx >= i * 2 + 1 ? [titles[i][1]] : ['']); });
+  X.forEach((x, i) => { B.caption([x, YF + 1.05, 0], () => [titles[i][0]]); B.caption([x, YR - 0.95, 0], () => [titles[i][1]]); });
   [[X[0], YF], [X[0], YR], [X[1], YF], [X[1], YR], [X[2], YF], [X[2], YR]].forEach(([x, y], i) => B.caption([x + 0.95, y + 0.55, 0], () => [STG.idx === i ? '◀ ' + (i + 1) + ' ▶' : String(i + 1)]));
   let last = -1;
   return { dist: 10.4, yaw: 0, pitch: 0.1, target: [0.75, -0.05, 0], live2d: true,
-    anim(t){ const s = STG.idx; if (s !== last){ last = s; objs.forEach(o => { o.hide = o.st > s; }); }
+    anim(t){ const s = STG.idx; if (s !== last){ last = s; /* الأنواع الثلاثة ظاهرة دائماً؛ ما لم تصله الخطوة بعد يبقى بشفافية */ objs.forEach(o => { if (o.base === undefined) o.base = o.alpha === undefined ? 1 : o.alpha; o.hide = false; o.alpha = o.st > s ? o.base * 0.9 : o.base; }); }
       objs.forEach(o => { if (o.st === s) o.glow = 0.45 + 0.4 * Math.sin(t * 4); }); } };
 }
 
