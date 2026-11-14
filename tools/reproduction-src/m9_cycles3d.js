@@ -5,7 +5,12 @@ const { add, mul, norm, ellipsoid, capsule, tube, place, merge, spline, superEll
 const B3 = (r, at, n) => place(ellipsoid({ r, rows: n || 10, cols: (n || 10) + 4 }), { at });
 const E3 = (r, at, dir) => place(ellipsoid({ r, rows: 10, cols: 14 }), dir ? { at, dir } : { at });
 const T3 = (pts, r) => tube({ pts, r, sides: 6 });
-const cellM = (at, r, c, nc) => [[B3(r, at, 12), c, { alpha: 0.85 }], [B3(r * 0.42, add(at, [-r * 0.12, r * 0.1, r * 0.55]), 8), nc || '#3a1f6a']];
+const cellM = (at, r, c, nc, pl) => { const nat = add(at, [0, 0, r * 0.62]), out = [[B3(r, at, 12), c, { alpha: pl ? 0.55 : 0.85 }], [B3(r * 0.5, pl ? nat : add(at, [-r * 0.12, r * 0.1, r * 0.55]), 8), pl ? '#f4ecff' : (nc || '#3a1f6a'), pl ? { alpha: 0.5 } : undefined]];
+  if (!pl) return out;
+  /* كروموسومات: 2س = زوجان (أحمر وأزرق)، س = واحد من كل زوج */
+  const ch = pl === 'd' ? [[-0.5, 1, '#e5484d'], [-0.17, 1, '#4a7dff'], [0.2, 0.6, '#e5484d'], [0.48, 0.6, '#4a7dff']] : [[-0.28, 1, '#e5484d'], [0.3, 0.6, '#4a7dff']];
+  ch.forEach(([dx, k, col]) => out.push([place(capsule({ r: r * 0.07, len: r * 0.42 * k, rows: 3, cols: 8 }), { at: add(nat, [dx * r * 0.6, 0, r * 0.12]) }), col]));
+  return out.map(o => o[2] === undefined ? [o[0], o[1]] : o); };
 const sperm3 = (at, s) => [[E3([0.06 * s, 0.09 * s, 0.05 * s], at), '#e8ecff'], [T3(Array.from({ length: 8 }, (_, i) => add(at, [Math.sin(i) * 0.03 * s, -0.08 * s - i * 0.06 * s, 0])), 0.012 * s), '#9fb6ff']];
 const rod3 = (at, r, len, c) => [[place(capsule({ r, len, rows: 6, cols: 16 }), { rot: [0, 0, Math.PI / 2], at }), c || '#ffe680', { alpha: 0.75 }]];
 const para3 = (at, s, c) => [[place(ellipsoid({ r: [0.13 * s, 0.38 * s, 0.1 * s], rows: 10, cols: 12 }), { at }), c || '#a8d8ea', { alpha: 0.6 }]];
@@ -23,23 +28,23 @@ const tape3 = (at, n, s) => { const out = [[B3(0.06 * s, at, 8), '#f6efdf']]; le
 
 const ICON3 = {
   ispermD: [
-    () => [[E3([0.32, 0.4, 0.22], [0, 0, 0]), '#f0c4ae', { alpha: 0.85 }], [merge(Array.from({ length: 5 }, (_, i) => T3(Array.from({ length: 10 }, (_, j) => [-0.2 + i * 0.1 + Math.sin(j * 1.6) * 0.04, -0.3 + j * 0.065, 0.2]), 0.018))), '#b9764e']],
-    () => [[place(capsule({ r: 0.36, len: 0.1, rows: 4, cols: 20 }), { rot: [Math.PI / 2, 0, 0], at: [0, 0, 0] }), '#f3d6c0', { alpha: 0.9 }], [merge(Array.from({ length: 16 }, (_, i) => B3(0.04, [Math.cos(i / 16 * 6.28) * 0.28, Math.sin(i / 16 * 6.28) * 0.28, 0.1], 6)).concat(Array.from({ length: 10 }, (_, i) => B3(0.035, [Math.cos(i / 10 * 6.28) * 0.17, Math.sin(i / 10 * 6.28) * 0.17, 0.1], 6)))), '#b07ad8']],
-    () => cellM([0, 0, 0], 0.16, '#b07ad8'),
-    () => cellM([0, 0, 0], 0.24, '#a565d6'),
-    () => cellM([-0.17, 0, 0], 0.14, '#c08ae0').concat(cellM([0.17, 0, 0], 0.14, '#c08ae0')),
-    () => [-0.3, -0.1, 0.1, 0.3].flatMap(x => cellM([x, 0, 0], 0.09, '#cfa0ec')),
+    () => [[place(capsule({ r: 0.36, len: 0.1, rows: 4, cols: 20 }), { rot: [Math.PI / 2, 0, 0], at: [0, 0, 0] }), '#f3d6c0', { alpha: 0.9 }], [merge(Array.from({ length: 16 }, (_, i) => B3(0.04, [Math.cos(i / 16 * 6.28) * 0.28, Math.sin(i / 16 * 6.28) * 0.28, 0.1], 6)).concat(Array.from({ length: 10 }, (_, i) => B3(0.035, [Math.cos(i / 10 * 6.28) * 0.17, Math.sin(i / 10 * 6.28) * 0.17, 0.1], 6)))), '#b07ad8'], [merge(Array.from({ length: 8 }, (_, i) => B3(0.02, [Math.cos(i / 8 * 6.28) * 0.07, Math.sin(i / 8 * 6.28) * 0.07, 0.12], 5))), '#e8ecff']],
+    () => [[T3(Array.from({ length: 9 }, (_, i) => [-0.4 + i * 0.1, -0.2 + Math.abs(i - 4) * 0.025, -0.05]), 0.05), '#f3d6c0']].concat([-0.24, 0, 0.24].flatMap((x, i) => cellM([x, i === 1 ? 0.03 : -0.02, 0], 0.11, '#b07ad8', 0, 'd'))),
+    () => cellM([0, 0, 0], 0.27, '#a565d6', 0, 'd'),
+    () => cellM([-0.19, 0, 0], 0.17, '#c08ae0', 0, 'h').concat(cellM([0.19, 0, 0], 0.17, '#c08ae0', 0, 'h')),
+    () => [-0.3, -0.1, 0.1, 0.3].flatMap(x => cellM([x, 0, 0], 0.095, '#cfa0ec', 0, 'h')),
     () => [-0.27, -0.09, 0.09, 0.27].flatMap(x => sperm3([x, 0.18, 0], 1.3))
   ],
   ieggD: [
     () => [[E3([0.4, 0.3, 0.2], [0, 0, 0]), '#e98a8a', { alpha: 0.85 }], [merge([B3(0.07, [-0.2, 0.1, 0.18]), B3(0.1, [0, 0.14, 0.18]), B3(0.13, [0.2, 0.05, 0.18])]), '#f6c3b0'], [E3([0.09, 0.07, 0.05], [0.05, -0.16, 0.18]), '#f2c14e']],
-    () => cellM([0, 0, 0], 0.14, '#8f7ad8', '#2e2266'),
-    () => [[B3(0.26, [0, 0, 0], 12), '#f6c3b0', { alpha: 0.55 }]].concat(cellM([0, 0, 0.05], 0.12, '#8f7ad8', '#2e2266')),
-    () => cellM([0.08, 0, 0], 0.2, '#8f7ad8', '#2e2266').concat(cellM([-0.24, 0.08, 0], 0.07, '#c9a0e8', '#2e2266')),
-    () => [[B3(0.3, [-0.06, 0, 0], 12), '#f6c3b0', { alpha: 0.5 }], [B3(0.18, [0, 0.05, 0.05], 10), '#cfe7ff', { alpha: 0.7 }]].concat(cellM([0.32, 0.18, 0], 0.07, '#8f7ad8', '#2e2266')),
-    () => cellM([0.12, 0, 0], 0.18, '#a98ae8', '#2e2266').concat([-0.32, -0.2, -0.08].flatMap(x => cellM([x, -0.12, 0], 0.055, '#c9a0e8', '#2e2266'))),
-    () => cellM([0, 0, 0], 0.2, '#a98ae8', '#2e2266').concat([[ring3([0, 0, 0], 0.27, 0.27, 0.02), '#ffe08a']])
+    () => [[-0.22, -0.06], [0, 0.1], [0.22, -0.06]].flatMap(([x, y]) => cellM([x, y, 0], 0.12, '#8f7ad8', 0, 'd')),
+    () => [[B3(0.3, [0, 0, -0.05], 12), '#f6c3b0', { alpha: 0.45 }]].concat(cellM([0, 0, 0.05], 0.16, '#8f7ad8', 0, 'd')),
+    () => cellM([0.08, 0, 0], 0.22, '#8f7ad8', 0, 'h').concat(cellM([-0.27, 0.1, 0], 0.075, '#c9a0e8', 0, 'h')),
+    () => [[B3(0.3, [-0.08, 0, 0], 12), '#f6c3b0', { alpha: 0.5 }], [B3(0.18, [-0.04, 0.05, 0.05], 10), '#cfe7ff', { alpha: 0.7 }]].concat(cellM([0.32, 0.18, 0], 0.08, '#8f7ad8', 0, 'h')),
+    () => cellM([0.12, 0, 0], 0.2, '#a98ae8', 0, 'h').concat([-0.32, -0.2, -0.08].flatMap(x => cellM([x, -0.16, 0], 0.06, '#c9a0e8', 0, 'h'))),
+    () => [[ring3([0.05, 0, 0.02], 0.25, 0.25, 0.018), '#ffe08a']].concat(cellM([0.05, 0, 0], 0.2, '#a98ae8', 0, 'h'), [[merge([[-0.3, 0.14], [-0.34, -0.02], [-0.28, -0.17]].map(([x, y]) => B3(0.05, [x, y, 0], 6))), '#c9a0e8', { alpha: 0.35 }]])
   ],
+
   bconjD: [
     () => rod3([-0.22, 0, 0], 0.12, 0.2).concat(rod3([0.24, 0, 0], 0.12, 0.2), [[B3(0.04, [-0.22, -0.05, 0.1]), '#d43fd0']], [[merge([-0.05, 0, 0.05].map(d => T3([[-0.22 + d, 0.12, 0], [-0.22 + d * 2, 0.24, 0]], 0.01))), '#2a2a2a']]),
     () => rod3([-0.2, 0, 0], 0.12, 0.2).concat(rod3([0.2, 0, 0], 0.12, 0.2), [[place(capsule({ r: 0.05, len: 0.06, rows: 3, cols: 10 }), { rot: [0, 0, Math.PI / 2], at: [0, 0, 0] }), '#ffe680']]),
@@ -100,25 +105,27 @@ ICON3.prPSD = [ICON3.prPCD[0], ICON3.prPCD[1], ICON3.prPCD[2],
   () => para3([-0.24, 0, 0], 1).concat(para3([0.24, 0, 0], 1), [[B3(0.06, [-0.24, -0.03, 0.1]), '#f7941d'], [B3(0.06, [0.24, -0.03, 0.1]), '#7a5ad6']]),
   ICON3.prPCD[6]];
 function cycModel(v){ return function(B){
-  const D = CYC[v], ST = D.st(), n = ST.length, R = 2.6;
+  const D = CYC[v], ST = D.stages(), n = ST.length, R = 2.6;
   const ang = i => Math.PI / 2 - i * 2 * Math.PI / n, P = i => [Math.cos(ang(i)) * R, Math.sin(ang(i)) * R, 0];
   const xf = (m, s, at) => { const p = new Array(m.p.length); for (let k = 0; k < m.p.length; k += 3){ p[k] = m.p[k] * s + at[0]; p[k + 1] = m.p[k + 1] * s + at[1]; p[k + 2] = m.p[k + 2] * s + at[2]; } return { p, n: m.n, l: m.l, i: m.i }; };
   const IC = ICON3[v] || [];
-  const S0 = 1.15, S1 = 1.5;
+  const S0 = 1.3, S1 = 1.65;
   const nodes = ST.map((_, i) => { const at = P(i), bub = B3(0.48, [0, 0, 0], 16);
-    const objs = [{ m: bub, o: B.add(xf(bub, S0, at), { part: D.ids[i], color: D.col, alpha: 0.16, rim: 1.2, rimColor: '#ffffff', shell: { size: 1.3 }, pop: false, center: at }) }];
-    (IC[i] ? IC[i]() : [[B3(0.2, [0, 0, 0]), D.col]]).forEach(([m, c, o]) => objs.push({ m, o: B.add(xf(m, S0, at), Object.assign({ part: D.ids[i], color: c, rim: 0.8, rimColor: '#ffffff', pop: false, center: at }, o || {})) }));
+    const objs = [{ m: bub, o: B.add(xf(bub, S0, at), { part: D.N[i].id, color: D.col, alpha: 0.16, rim: 1.2, rimColor: '#ffffff', shell: { size: 1.3 }, pop: false, center: at }) }];
+    (IC[i] ? IC[i]() : [[B3(0.2, [0, 0, 0]), D.col]]).forEach(([m, c, o]) => objs.push({ m, o: B.add(xf(m, S0, at), Object.assign({ part: D.N[i].id, color: c, rim: 0.8, rimColor: '#ffffff', pop: false, center: at }, o || {})) }));
     return { i, at, objs }; });
   const arcPts = (i, j) => { const a0 = ang(i) - 0.3, a1 = (j > i ? ang(j) : ang(j) - 2 * Math.PI) + 0.3, pts = []; for (let k = 0; k <= 16; k++){ const a = a0 + (a1 - a0) * k / 16; pts.push([Math.cos(a) * R, Math.sin(a) * R, -0.3]); } return pts; };
   const arrow = pts => { const e = pts[pts.length - 1], d = norm([e[0] - pts[pts.length - 3][0], e[1] - pts[pts.length - 3][1], 0]);
     return merge([tube({ pts: pts.slice(0, -1), r: 0.045, sides: 6 }), place(ellipsoid({ r: [0.11, 0.22, 0.11], rows: 5, cols: 8, disp: q => 1 - 0.85 * Math.max(0, q[1]) }), { at: add(e, mul(d, -0.1)), dir: d })]); };
   const arrs = []; for (let i = 0; i < n - 1; i++) arrs.push({ to: i + 1, o: B.add(arrow(arcPts(i, i + 1)), { color: '#e8e0d0', rim: 0.5, pop: false }) });
   if (D.loop) arrs.push({ to: 0, o: B.add(arrow(arcPts(n - 1, 0)), { color: '#e8e0d0', rim: 0.5, pop: false }) });
-  ST.forEach((s, i) => { const p = P(i); B.caption(add(p, [0, -0.78, 0]), () => wrapName((STG.idx === i ? '◀ ' : '') + (i + 1) + ' · ' + cycShort(s) + (STG.idx === i ? ' ▶' : ''), 22).slice(0, 2)); });
+  D.N.forEach((nd, i) => { const p = P(i); B.caption(add(p, [0, -0.8, 0]), () => wrapName((STG.idx === i ? '◀ ' : '') + (i + 1) + ' · ' + nd.n + (STG.idx === i ? ' ▶' : ''), 20).slice(0, 2));
+    /* اسم العملية على السهم الداخل للمحطة */
+    if (nd.via && (i > 0 || D.loop)){ const am = (ang(i) + (i > 0 ? ang(i - 1) : ang(n - 1) - 2 * Math.PI)) / 2; B.caption([Math.cos(am) * (R + 0.72), Math.sin(am) * (R + 0.72), 0.2], () => ['➜ ' + nd.via]); } });
   B.caption([0, 0.35, 0], () => [D.title]);
   B.caption([0, -0.1, 0], () => wrapName((ST[STG.idx] || {}).n || '', 28));
   let last = -1; const hot = G3.hex('#ffd98a'), cold = G3.hex('#e8e0d0');
-  return { dist: 13.6, yaw: 0, pitch: 0.06, target: [0, -0.3, 0], live2d: true,
+  return { dist: 15, yaw: 0, pitch: 0.06, target: [0, -0.35, 0], live2d: true,
     anim(t){ const s = STG.idx;
       if (s !== last){ last = s; nodes.forEach(N => N.objs.forEach(R2 => { B.update(R2.o, xf(R2.m, N.i === s ? S1 : S0, N.at)); if (!R2.o.shell){ if (R2.o.base === undefined) R2.o.base = R2.o.alpha; R2.o.alpha = N.i <= s ? R2.o.base : R2.o.base * 0.7; } }));
         arrs.forEach(A => { A.o.col = A.to === s ? hot : cold; }); }

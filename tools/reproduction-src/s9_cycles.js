@@ -4,18 +4,84 @@
        الوسط. زر «مخطط …» يضاف لتبويب كل موضوع وتبقى الشاشة الأصلية كما هي.
        الأجزاء: كل دائرة جزء بمعلوماته من الملزمة.
    ══════════════════════════════════════════════════════════════════════════ */
+/* كل مخطط: محطات بالترتيب؛ كل محطة = الشيء نفسه (تركيب أو خلية) باسمه ورسمه.
+   [الاسم، خطوات العملية التي تقابلها، اسم العملية على السهم الداخل إليها، جزء السهم، جزء المحطة] */
 const CYC = {
-  ispermD:   { src: 'ملزمة ص6–10', tab: 'intro', label: 'مخطط النطف ↻', title: 'تكوين النطف', st: () => SPERM_STAGES, ids: ['gTestis', 'semTubX', 'spGonium', 'spPrim', 'spSec', 'spTid', 'spermM'], col: '#b07ad8' },
-  ieggD:     { src: 'ملزمة ص7–11', tab: 'intro', label: 'مخطط البيوض ↻', title: 'تكوين البيوض', st: () => EGG_STAGES, ids: ['ovary', 'ooGonium', 'ooPrim', 'ooSec', 'graaf', 'ootid', 'ovumM'], col: '#e98a8a' },
-  bconjD:    { src: 'ملزمة ص19–22', tab: 'prok', label: 'مخطط الاقتران ↻', title: 'الاقتران وإعادة الخلط في البكتيريا', st: () => CONJ_STAGES, ids: ['cDonor', 'cBridge', 'cFert', 'cChrom', 'cRecomb'], col: '#8fdc6a' },
-  prPCD:     { src: 'ملزمة ص32–35', tab: 'protist', label: 'مخطط الاقتران ↻', title: 'الاقتران في البراميسيوم', st: () => PR_CONJ_ST, ids: ['prProtoBr', 'prMeioMic', 'prUneq', 'prExch', 'prFusHet', 'prSep', 'prEight'], col: '#5fb6d8' },
-  prPSD:     { src: 'ملزمة ص33–35', tab: 'protist', label: 'مخطط الإخصاب الذاتي ↻', title: 'الإخصاب الذاتي في البراميسيوم', st: () => PR_SELF_ST, ids: ['prProtoBr', 'prMeioMic', 'prUneq', 'prFusHom', 'prSep', 'prEight'], col: '#7aa8e8' },
-  plvMossD:  { src: 'ملزمة ص45–47', tab: 'plants1', label: 'مخطط الحزاز ↻', title: 'دورة حياة البوليتراكم', st: () => PL_MOSS_ST, ids: ['plMMature', 'plMSperm', 'plMZyg', 'plMSeta', 'plMSpores', 'plMProto'], col: '#62c94a', loop: true },
-  plvFernD:  { src: 'ملزمة ص48–50', tab: 'plants1', label: 'مخطط السرخس ↻', title: 'دورة حياة السرخس', st: () => PL_FERN_ST, ids: ['plFern', 'plFSpores', 'plProth', 'plFSperm', 'plFYoung'], col: '#4fae4a', loop: true },
-  flVPollenD:{ src: 'ملزمة ص59–61', tab: 'flower', label: 'مخطط حبة اللقاح ↻', title: 'تكوين حبة اللقاح', st: () => FL_POLLEN_STAGES, ids: ['flAnther', 'flMicroMother', 'flMicrospores', 'flMicrospores', 'flPollen', 'flSlit'], col: '#f2b33a' },
-  sdsFTD:    { src: 'ملزمة ص82 وص86', tab: 'sdSeedFruit', label: 'مخطط الثمار ↻', title: 'تكوّن أنواع الثمار', st: () => SD_FT_ST, ids: ['sdFlw1', 'sdSimple', 'sdFlwN', 'sdAggr', 'sdFlwM', 'sdMulti'], col: '#f59a50' },
-  cyvHermD:  { src: 'ملزمة ص125', tab: 'cycle', label: 'مخطط الخنثي ↻', title: 'التكاثر الخنثي', st: () => HU_HERM_ST, ids: ['huHerm', 'huHydra', 'huSpEx', 'huTimeMat', 'huTapeworm'], col: '#e08a86' }
+  ispermD:   { src: 'ملزمة ص6–10', tab: 'intro', label: 'مخطط النطف ↻', title: 'تكوين النطف', st: () => SPERM_STAGES, col: '#b07ad8', nodes: [
+    ['النبيبات المنوية', [0, 1], '', '', 'semTubX'],
+    ['سليفات النطف (2س)', 2, 'انقسامات غير مباشرة', '', 'spGonium'],
+    ['الخلية النطفية الأولية (2س)', 3, 'نمو', '', 'spPrim'],
+    ['الخلايا النطفية الثانوية (س)', 4, 'انقسام اختزالي أول', 'meio1', 'spSec'],
+    ['أرومات النطف (س)', 5, 'انقسام اختزالي ثانٍ', 'meio2', 'spTid'],
+    ['النطف الناضجة (س)', 6, 'التحول النطفي', 'spermio', 'spermM']] },
+  ieggD:     { src: 'ملزمة ص7–11', tab: 'intro', label: 'مخطط البيوض ↻', title: 'تكوين البيوض', st: () => EGG_STAGES, col: '#e98a8a', nodes: [
+    ['المبيض وخلاياه الجرثومية', 0, '', '', 'ovary'],
+    ['سليفات البيوض (2س)', 1, 'انقسامات غير مباشرة', '', 'ooGonium'],
+    ['الخلية البيضية الأولية (2س) في الحويصلة', 2, 'نمو', '', 'ooPrim'],
+    ['الخلية البيضية الثانوية (س) + جسم قطبي أول', 3, 'انقسام اختزالي أول', 'oMeio1', 'ooSec'],
+    ['حويصلة كراف: التحرر', 4, 'نضج الحويصلة', '', 'graaf'],
+    ['أرومة البيضة (س) + أجسام قطبية', 5, 'انقسام اختزالي ثانٍ', 'oMeio2', 'ootid'],
+    ['البيضة الناضجة (س)', 6, 'نمو أرومة البيضة', '', 'ovumM']] },
+  bconjD:    { src: 'ملزمة ص19–22', tab: 'prok', label: 'مخطط الاقتران ↻', title: 'الاقتران وإعادة الخلط في البكتيريا', st: () => CONJ_STAGES, col: '#8fdc6a', nodes: [
+    ['الخلية المعطية والمستلمة', 0, '', '', 'cDonor'],
+    ['جسر الاقتران', 1, 'تلامس هلب الاقتران', '', 'cBridge'],
+    ['عامل الخصوبة داخل الكروموسوم', 2, 'انغراز عامل الخصوبة', '', 'cFert'],
+    ['انتقال جزء من الكروموسوم', 3, 'انكسار أحد الشريطين', '', 'cChrom'],
+    ['سلالة جديدة (إعادة الخلط)', 4, 'تحل القطعة محل جزء مساوٍ', '', 'cRecomb']] },
+  prPCD:     { src: 'ملزمة ص32–35', tab: 'protist', label: 'مخطط الاقتران ↻', title: 'الاقتران في البراميسيوم', st: () => PR_CONJ_ST, col: '#5fb6d8', nodes: [
+    ['فردان مقترنان وجسر بروتوبلازمي', 0, '', '', 'prProtoBr'],
+    ['أربع نوى صغيرة (س) في كل فرد', 1, 'انقسام اختزالي', '', 'prMeioMic'],
+    ['نواتان أوليتان: ذكرية وأنثوية (س)', 2, 'تنحل ثلاث وانقسام غير متساوٍ', '', 'prUneq'],
+    ['تبادل الأنوية الذكرية', 3, 'تبادل', '', 'prExch'],
+    ['النواة المندمجة المتباينة (2س)', 4, 'اتحاد الأنوية', '', 'prFusHet'],
+    ['فردان منفصلان', 5, 'انفصال', '', 'prSep'],
+    ['8 براميسيومات بنوية', 6, 'انقسامان اعتياديان لكل فرد', '', 'prEight']] },
+  prPSD:     { src: 'ملزمة ص33–35', tab: 'protist', label: 'مخطط الإخصاب الذاتي ↻', title: 'الإخصاب الذاتي في البراميسيوم', st: () => PR_SELF_ST, col: '#7aa8e8', nodes: [
+    ['فردان مقترنان وجسر بروتوبلازمي', 0, '', '', 'prProtoBr'],
+    ['أربع نوى صغيرة (س) في كل فرد', 1, 'انقسام اختزالي', '', 'prMeioMic'],
+    ['نواتان أوليتان: ذكرية وأنثوية (س)', 2, 'تنحل ثلاث وانقسام غير متساوٍ', '', 'prUneq'],
+    ['النواة المندمجة المتماثلة (2س)', 3, 'اتحاد في الفرد نفسه', '', 'prFusHom'],
+    ['فردان منفصلان', 4, 'انفصال', '', 'prSep'],
+    ['8 براميسيومات بنوية', 5, 'انقسامان اعتياديان لكل فرد', '', 'prEight']] },
+  plvMossD:  { src: 'ملزمة ص45–47', tab: 'plants1', label: 'مخطط الحزاز ↻', title: 'دورة حياة البوليتراكم', st: () => PL_MOSS_ST, col: '#62c94a', loop: true, nodes: [
+    ['النبات المشيجي (س): أنثريديا وأركيكونيا', 0, 'تتحول إلى نباتات مشيجية', 'plGameto', 'plMMature'],
+    ['الأمشاج الذكرية السابحة', 1, 'تخرج في الماء', '', 'plMSperm'],
+    ['الزيجة (2س)', 2, 'إخصاب', 'plFert', 'plMZyg'],
+    ['الطور البوغي (2س): حامل وحافظة', 3, 'نمو داخل الأركيكونيوم', '', 'plMSeta'],
+    ['الأبواغ (س)', 4, 'انقسام اختزالي وتحرر', 'plMeio', 'plMSpores'],
+    ['الخيوط الأولية (س)', 5, 'إنبات الأبواغ', '', 'plMProto']] },
+  plvFernD:  { src: 'ملزمة ص48–50', tab: 'plants1', label: 'مخطط السرخس ↻', title: 'دورة حياة السرخس', st: () => PL_FERN_ST, col: '#4fae4a', loop: true, nodes: [
+    ['النبات البوغي السائد (2س)', 0, 'نمو الطور البوغي', '', 'plFern'],
+    ['الأبواغ (س)', 1, 'انقسام اختزالي', 'plMeio', 'plFSpores'],
+    ['الثالوس الأولي (س)', 2, 'إنبات الأبواغ', 'plFGerm', 'plProth'],
+    ['النطف تسبح إلى البيضة', 3, 'بوجود الرطوبة', '', 'plFSperm'],
+    ['الزايكوت والطور البوغي الفتي (2س)', 4, 'إخصاب', 'plFert', 'plFYoung']] },
+  flVPollenD:{ src: 'ملزمة ص59–61', tab: 'flower', label: 'مخطط حبة اللقاح ↻', title: 'تكوين حبة اللقاح', st: () => FL_POLLEN_STAGES, col: '#f2b33a', nodes: [
+    ['المتك (مقطع عرضي)', 0, '', '', 'flAnther'],
+    ['الخلايا الأم للأبواغ الصغيرة (2س)', 1, 'في كيس اللقاح', '', 'flMicroMother'],
+    ['أربعة أبواغ صغيرة (س)', 2, 'انقسام اختزالي', '', 'flMicrospores'],
+    ['الأبواغ الصغيرة المنفصلة', 3, 'انفصال', '', 'flMicrospores'],
+    ['حبة اللقاح: خلية أنبوبية + مولدة', 4, 'انقسام اعتيادي للنواة', '', 'flPollen'],
+    ['المتك الناضج المتفتح', 5, 'نضج المتك', '', 'flSlit']] },
+  sdsFTD:    { src: 'ملزمة ص82 وص86', tab: 'sdSeedFruit', label: 'مخطط الثمار ↻', title: 'تكوّن أنواع الثمار', st: () => SD_FT_ST, col: '#f59a50', nodes: [
+    ['زهرة واحدة بكربلة واحدة', 0, '', '', 'sdFlw1'],
+    ['ثمرة بسيطة (المشمش)', 1, 'ينمو المبيض', '', 'sdSimple'],
+    ['زهرة واحدة بكربلات عديدة', 2, 'النوع الثاني', '', 'sdFlwN'],
+    ['ثمرة متجمعة (التوت الأسود)', 3, 'تنمو كل كربلة', '', 'sdAggr'],
+    ['أزهار عديدة متجمعة', 4, 'النوع الثالث', '', 'sdFlwM'],
+    ['ثمرة مركبة (الأناناس)', 5, 'من كل زهرة ثمرة', '', 'sdMulti']] },
+  cyvHermD:  { src: 'ملزمة ص125', tab: 'cycle', label: 'مخطط الخنثي ↻', title: 'التكاثر الخنثي', st: () => HU_HERM_ST, col: '#e08a86', nodes: [
+    ['دودة الأرض الخنثى', 0, '', '', 'huHerm'],
+    ['أمثلة: هايدرا وقشريات وأسماك', 1, 'أمثلة أخرى', '', 'huHydra'],
+    ['تبادل الخلايا التناسلية', 2, 'تحاشي الإخصاب الذاتي (1)', '', 'huSpEx'],
+    ['نضج البيوض والنطف بأوقات متباينة', 3, 'تحاشي الإخصاب الذاتي (2)', '', 'huTimeMat'],
+    ['الدودة الشريطية: إخصاب ذاتي', 4, 'استثناء', '', 'huTapeworm']] }
 };
+/* محطات المخطط كمراحل: الاسم والشرح (شرح خطوات العملية المقابلة من الملزمة) */
+Object.keys(CYC).forEach(v => { const D = CYC[v];
+  D.N = D.nodes.map(([n, f, via, vid, id]) => ({ n, from: [].concat(f), via, vid, id }));
+  D.ids = D.N.map(x => x.id);
+  D.stages = () => { const ST = D.st(); return D.N.map((x, i) => ({ n: (i + 1) + ' · ' + x.n, d: x.from.map(j => ST[j].d).join(' ') })); }; });
 const CYC_TABS = { intro: [INT_VIEWS, 'intv'], prok: [PRK_VIEWS, 'prkv'], protist: [PR_VIEWS, 'prv'], plants1: [PL_VIEWS, 'plv'], flower: [FL_VIEWS, 'flv'], sdSeedFruit: [SD_VIEWS_S, 'sdsv'], cycle: [CY_VIEWS, 'cyv'] };
 /* اسم مختصر للخطوة: بعد «N ·» */
 const cycShort = s => s.n.replace(/^\s*\d+\s*·\s*/, '');
@@ -30,25 +96,42 @@ const ciPara = (x, y, s, mir) => cycPlain(prParaV(x, y, s, mir, true));
 const ciPair = (s) => ciPara(-9 * s / 0.32, 0, s, false) + ciPara(9 * s / 0.32, 0, s, true);
 const ciDot = (x, y, r, c) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${c}" stroke="#fff" stroke-width=".8"/>`;
 const ciLeafy = (x, yb, h, s, seed) => plLeafy(x, yb, h, s, seed, 0);
+/* كروموسوم صغير: عصا ملونة بقطعة مركزية */
+const ciChr = (x, y, L, c, rot) => `<g transform="translate(${n2(x)},${n2(y)}) rotate(${rot || 0})"><line x1="0" y1="${n2(-L / 2)}" x2="0" y2="${n2(L / 2)}" stroke="${c}" stroke-width="${n2(Math.max(2, L * 0.32))}" stroke-linecap="round"/><circle r="${n2(Math.max(1, L * 0.16))}" fill="#fff" opacity=".8"/></g>`;
+/* خلية بنواة وكروموسومات: 'd' = ثنائية (2س: زوجان، أحمر من الأب وأزرق من الأم) و'h' = أحادية (س: واحد من كل زوج) */
+const OOC = '#8f7ad8';
+const ciNC = (x, y, r, pl, fill) => { const nr = r * 0.56, L = nr * 0.78;
+  const ch = pl === 'd' ? [[-0.5, -0.1, 1, '#e5484d', -12], [-0.17, 0.05, 1, '#4a7dff', 10], [0.2, -0.05, 0.6, '#e5484d', -6], [0.48, 0.08, 0.6, '#4a7dff', 14]]
+    : [[-0.28, 0, 1, '#e5484d', -10], [0.3, 0.04, 0.6, '#4a7dff', 12]];
+  return `<circle cx="${n2(x)}" cy="${n2(y)}" r="${n2(r)}" fill="${fill || GAM.cell}" stroke="#fff4ff" stroke-width="${n2(Math.max(1.2, r * 0.08))}"/>` +
+    `<circle cx="${n2(x - r * 0.3)}" cy="${n2(y - r * 0.42)}" r="${n2(r * 0.16)}" fill="#fff" opacity=".35"/>` +
+    `<circle cx="${n2(x)}" cy="${n2(y + r * 0.05)}" r="${n2(nr)}" fill="#f4ecff" stroke="#4a2a7a" stroke-width="${n2(Math.max(0.8, r * 0.05))}"/>` +
+    ch.map(([dx, dy, k, c, rot]) => ciChr(x + dx * nr * 1.2, y + r * 0.05 + dy * nr, L * k, c, rot)).join(''); };
+/* حويصلة: طبقة خلايا حوصلية حول خلية بيضية (antrum = تجويف سائل) */
+const ciFol = (x, y, R, antrum) => { let s = `<circle cx="${n2(x)}" cy="${n2(y)}" r="${n2(R)}" fill="#f6c3b0" stroke="#fff4ec" stroke-width="1.6"/>`;
+  const n = Math.round(R * 0.6); for (let i = 0; i < n; i++){ const a = i * 6.2832 / n; s += `<circle cx="${n2(x + Math.cos(a) * R * 0.85)}" cy="${n2(y + Math.sin(a) * R * 0.85)}" r="${n2(R * 0.1)}" fill="#e9a58e"/>`; }
+  if (antrum) s += `<circle cx="${n2(x + R * 0.1)}" cy="${n2(y - R * 0.1)}" r="${n2(R * antrum)}" fill="#cfe7ff" opacity=".9"/>`;
+  return s; };
+const ciCorona = (x, y, R) => Array.from({ length: 14 }, (_, i) => { const a = i * 6.2832 / 14; return `<circle cx="${n2(x + Math.cos(a) * R)}" cy="${n2(y + Math.sin(a) * R)}" r="${n2(Math.max(2, R * 0.13))}" fill="#f6c3b0" stroke="#e9a58e" stroke-width=".8"/>`; }).join('');
 let CI_G = 200;
 const CYC_ICON = {
   ispermD: [
-    () => cycG(0.2, cycPlain(testisSvg())),
-    () => cycG(0.25, cycPlain(tubuleSvg())),
-    () => ciCell(0, 0, 15),
-    () => ciCell(0, 0, 22),
-    () => ciCell(-15, 0, 13) + ciCell(15, 0, 13),
-    () => [-27, -9, 9, 27].map(x => ciCell(x, 0, 8)).join(''),
-    () => cycPlain([-24, -8, 8, 24].map((x, i) => spermSvg(x, -18, 0.48, Math.PI / 2, '', i)).join(''))
+    () => cycG(0.29, cycPlain(tubuleSvg())),
+    () => `<path d="M-54,30 Q0,6 54,30 L54,40 Q0,16 -54,40Z" fill="#f3d6c0" stroke="#fff3ea" stroke-width="1.5"/>` + ciNC(-32, 4, 14, 'd') + ciNC(0, -4, 14, 'd') + ciNC(32, 4, 14, 'd'),
+    () => ciNC(0, 0, 32, 'd'),
+    () => ciNC(-25, 0, 22, 'h') + ciNC(25, 0, 22, 'h'),
+    () => [-40, -13.5, 13.5, 40].map(x => ciNC(x, 0, 12.5, 'h', GAM.cellL)).join(''),
+    () => cycPlain([-33, -11, 11, 33].map((x, i) => spermSvg(x, -22, 0.62, Math.PI / 2, '', i)).join(''))
   ],
   ieggD: [
-    () => cycG(0.17, cycPlain(ovarySvg()), -6, 2),
-    () => ciCell(0, 0, 14, '#8f7ad8', '#2e2266'),
-    () => cycPlain(follicleSvg(0, 0, 26, 11, 0)),
-    () => ciCell(8, 0, 20, '#8f7ad8', '#2e2266') + ciCell(-24, 10, 8, GAM.polar, '#2e2266'),
-    () => cycPlain(follicleSvg(-6, 0, 28, 8, 0.62)) + ciArrow(18, -6, 40, -22) + ciCell(44, -26, 6, '#8f7ad8', '#2e2266'),
-    () => ciCell(14, 0, 18, '#a98ae8', '#2e2266') + [-30, -18, -6].map(x => ciCell(x, 14, 6, GAM.polar, '#2e2266')).join(''),
-    () => `<circle cx="0" cy="0" r="26" fill="none" stroke="#ffe08a" stroke-width="3"/>` + ciCell(0, 0, 19, '#a98ae8', '#2e2266')
+    () => cycG(0.3, cycPlain(ovarySvg())),
+    () => ciNC(-26, 8, 15, 'd', OOC) + ciNC(0, -10, 15, 'd', OOC) + ciNC(26, 8, 15, 'd', OOC),
+    () => ciFol(0, 0, 38) + ciNC(0, 0, 20, 'd', OOC),
+    () => ciNC(10, 0, 27, 'h', OOC) + ciNC(-33, 18, 9, 'h', GAM.polar),
+    () => ciFol(14, 6, 36, 0.55) + ciArrow(-14, -8, -28, -18) + ciCorona(-38, -22, 11) + ciNC(-38, -22, 9, 'h', OOC),
+    () => ciNC(12, 0, 25, 'h', '#a98ae8') + [[-34, -18], [-38, 4], [-30, 25]].map(([x, y]) => ciNC(x, y, 8, 'h', GAM.polar)).join(''),
+    () => ciCorona(6, 0, 30) + `<circle cx="6" cy="0" r="27" fill="none" stroke="#ffe08a" stroke-width="3"/>` + ciNC(6, 0, 22, 'h', '#a98ae8') +
+      [[-40, -16], [-44, 4], [-38, 22]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="6" fill="${GAM.polar}" opacity=".45" stroke="#fff" stroke-dasharray="2 2"/>`).join('')
   ],
   bconjD: [
     () => ciCaps(-22, 0, 34, 52) + ciCaps(26, 0, 34, 52) + `<path d="M-30,-26 l-3,-8 M-22,-27 l0,-9 M-14,-26 l3,-8" stroke="#2a2a2a" stroke-width="2.4"/>` + ciDot(-22, 14, 4, MIC.plas),
@@ -91,10 +174,10 @@ const CYC_ICON = {
   ],
   flVPollenD: [
     () => `<path d="M0,-6 C20,-30 52,-22 48,0 C52,22 20,30 0,6 C-20,30 -52,22 -48,0 C-52,-22 -20,-30 0,-6Z" fill="#6fb85e" stroke="#d4f5c0" stroke-width="1.6"/>` + [[-26, -10], [-26, 10], [26, -10], [26, 10]].map(([x, y]) => `<ellipse cx="${x}" cy="${y}" rx="11" ry="8" fill="#2f6b3a" stroke="#b8e8a8"/>` + ciDot(x - 3, y, 2, '#d64a3a') + ciDot(x + 3, y - 2, 2, '#d64a3a')).join('') + `<circle cx="0" cy="0" r="7" fill="#3d7f9e" stroke="#cfe8f5"/>`,
-    () => `<ellipse cx="0" cy="0" rx="40" ry="30" fill="#2f6b3a" stroke="#b8e8a8" stroke-width="2"/>` + [[-18, -8], [0, -12], [18, -8], [-10, 10], [10, 10]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="8" fill="${FLC.mother}" stroke="#ffc0b0"/><circle cx="${x}" cy="${y}" r="3" fill="#6a1a1a"/>`).join(''),
-    () => [[-8, -8], [8, -8], [-8, 8], [8, 8]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="8" fill="${FLC.mega}" stroke="${FLC.megaL}"/><circle cx="${x}" cy="${y}" r="2.4" fill="#5a2a0a"/>`).join(''),
-    () => [[-20, -14], [20, -14], [-20, 14], [20, 14]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="8" fill="${FLC.mega}" stroke="${FLC.megaL}"/><circle cx="${x}" cy="${y}" r="2.4" fill="#5a2a0a"/>`).join(''),
-    () => `<circle cx="0" cy="0" r="22" fill="${FLC.pollen}" stroke="#c9801a" stroke-width="3"/><line x1="-14" y1="4" x2="-2" y2="4" stroke="#d0302a" stroke-width="3.5" stroke-linecap="round"/><circle cx="8" cy="-6" r="4.5" fill="#e3237a"/>`,
+    () => `<ellipse cx="0" cy="0" rx="50" ry="36" fill="#2f6b3a" stroke="#b8e8a8" stroke-width="2.4"/>` + [[-24, -10], [0, -14], [24, -10], [-12, 14], [12, 14]].map(([x, y]) => ciNC(x, y, 11.5, 'd', FLC.mother)).join(''),
+    () => `<circle cx="0" cy="0" r="34" fill="none" stroke="#ffe0b0" stroke-width="1.6" stroke-dasharray="4 3"/>` + [[-13, -13], [13, -13], [-13, 13], [13, 13]].map(([x, y]) => ciNC(x, y, 13, 'h', FLC.mega)).join(''),
+    () => [[-28, -16], [28, -16], [-28, 16], [28, 16]].map(([x, y]) => ciNC(x, y, 13, 'h', FLC.mega)).join('') + ciArrow(-8, -6, -16, -12) + ciArrow(8, 6, 16, 12) + ciArrow(8, -6, 16, -12) + ciArrow(-8, 6, -16, 12),
+    () => Array.from({ length: 18 }, (_, i) => { const a = i * 6.2832 / 18; return `<line x1="${n2(Math.cos(a) * 30)}" y1="${n2(Math.sin(a) * 30)}" x2="${n2(Math.cos(a) * 37)}" y2="${n2(Math.sin(a) * 37)}" stroke="#c9801a" stroke-width="2.4" stroke-linecap="round"/>`; }).join('') + `<circle cx="0" cy="0" r="31" fill="${FLC.pollen}" stroke="#c9801a" stroke-width="3.5"/><path d="M-20,8 Q-8,-2 4,8" stroke="#d0302a" stroke-width="5" fill="none" stroke-linecap="round"/><ellipse cx="12" cy="-8" rx="9" ry="6" fill="#e3237a" stroke="#fff" stroke-width="1"/>`,
     () => `<ellipse cx="-20" cy="6" rx="22" ry="15" fill="#6fb85e" stroke="#d4f5c0"/><ellipse cx="20" cy="6" rx="22" ry="15" fill="#6fb85e" stroke="#d4f5c0"/><ellipse cx="-20" cy="7" rx="15" ry="9" fill="#1f4a2a"/><ellipse cx="20" cy="7" rx="15" ry="9" fill="#1f4a2a"/>` +
       [[-40, -10], [-34, -20], [-46, -22], [40, -10], [34, -20], [46, -22]].map(([x, y]) => ciDot(x, y, 2.6, '#ffd35a')).join('')
   ],
@@ -115,50 +198,59 @@ const CYC_ICON = {
   ]
 };
 
+const CYC_SC = { ispermD: 1.12, ieggD: 1.1, flVPollenD: 1.12, prPCD: 1.5, prPSD: 1.5 };
 function cycView(v){
-  const D = CYC[v], ST = D.st(), n = ST.length, C = [575, 352], R = 238, NR = 60;
+  const D = CYC[v], ST = D.stages(), n = ST.length, C = [578, 350], R = 250, NR = 74;
   const ang = i => (-90 + i * 360 / n) * Math.PI / 180, P = i => [C[0] + Math.cos(ang(i)) * R, C[1] + Math.sin(ang(i)) * R];
-  /* أسهم على محيط الدائرة بين العقد */
-  const arc = (i, j) => { const a0 = ang(i) + NR / R * 1.15, a1 = (j > i ? ang(j) : ang(j) + 2 * Math.PI) - NR / R * 1.15, pts = [];
+  /* أسهم على محيط الدائرة بين المحطات، وعلى كل سهم اسم العملية التي تنقل للمحطة التالية */
+  const arc = (i, j) => { const a0 = ang(i) + NR / R * 1.12, a1 = (j > i ? ang(j) : ang(j) + 2 * Math.PI) - NR / R * 1.12, pts = [];
     for (let k = 0; k <= 20; k++){ const a = a0 + (a1 - a0) * k / 20; pts.push([C[0] + Math.cos(a) * R, C[1] + Math.sin(a) * R]); }
-    const e = pts[20], p = pts[18], an = Math.atan2(e[1] - p[1], e[0] - p[0]), h = 12;
-    return `<g class="cycArc" data-to="${j}"><path d="${pts.map((q, k) => (k ? 'L' : 'M') + n2(q[0]) + ',' + n2(q[1])).join(' ')}" fill="none" stroke="#e8e0d0" stroke-width="4" stroke-linecap="round" stroke-dasharray="12 7"/>
-      <path d="M${n2(e[0])},${n2(e[1])} L${n2(e[0] - h * Math.cos(an - 0.45))},${n2(e[1] - h * Math.sin(an - 0.45))} L${n2(e[0] - h * Math.cos(an + 0.45))},${n2(e[1] - h * Math.sin(an + 0.45))}Z" fill="#e8e0d0"/></g>`; };
+    const e = pts[20], p = pts[18], an = Math.atan2(e[1] - p[1], e[0] - p[0]), h = 13;
+    const via = D.N[j].via, am = (a0 + a1) / 2, lx = C[0] + Math.cos(am) * (R - 40), ly = C[1] + Math.sin(am) * (R - 40);
+    const L = via ? wrapName(via, 13).slice(0, 2) : [], w = Math.max(...L.map(l => l.length), 1) * 6.4 + 16, hh = L.length * 14 + 8;
+    const lab = via ? (() => { const inner = `<rect x="${n2(lx - w / 2)}" y="${n2(ly - hh / 2)}" width="${n2(w)}" height="${hh}" rx="8" fill="rgba(24,18,36,.92)" stroke="#ffd98a" stroke-width="1.3"/>` +
+      `<text x="${n2(lx)}" y="${n2(ly - hh / 2 + 15)}" text-anchor="middle" font-size="11.5" font-weight="700" fill="#ffd98a">${L.map((l, k) => `<tspan x="${n2(lx)}" dy="${k ? 14 : 0}">${l}</tspan>`).join('')}</text>`;
+      return `<g class="cycVia" data-to="${j}">${D.N[j].vid ? part(D.N[j].vid, inner) : `<g pointer-events="none">${inner}</g>`}</g>`; })() : '';
+    return `<g class="cycArc" data-to="${j}"><path d="${pts.map((q, k) => (k ? 'L' : 'M') + n2(q[0]) + ',' + n2(q[1])).join(' ')}" fill="none" stroke="#e8e0d0" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="12 7"/>
+      <path d="M${n2(e[0])},${n2(e[1])} L${n2(e[0] - h * Math.cos(an - 0.45))},${n2(e[1] - h * Math.sin(an - 0.45))} L${n2(e[0] - h * Math.cos(an + 0.45))},${n2(e[1] - h * Math.sin(an + 0.45))}Z" fill="#e8e0d0"/></g>${lab}`; };
   let arcs = ''; for (let i = 0; i < n - 1; i++) arcs += arc(i, i + 1); if (D.loop) arcs += arc(n - 1, 0);
-  /* العقد */
-  const IC = CYC_ICON[v] || [];
-  const nodes = ST.map((s, i) => { const [x, y] = P(i), L = wrapName(cycShort(s), 15).slice(0, 2), ic = IC[i] ? IC[i]() : '';
-    return `<g class="cycNode" data-i="${i}" data-x="${n2(x)}" data-y="${n2(y)}"><circle class="cycRip" cx="${n2(x)}" cy="${n2(y)}" r="${NR}" fill="none" stroke="${D.col}" stroke-width="3" opacity="0" pointer-events="none"/>${part(D.ids[i], `<circle cx="${n2(x)}" cy="${n2(y)}" r="${NR}" fill="${D.col}" fill-opacity=".28" stroke="${D.col}" stroke-width="3"/>
-      <g transform="translate(${n2(x)},${n2(y - 12)}) scale(.95)">${ic}</g>
-      <text class="cap sm" x="${n2(x)}" y="${n2(y + 34)}" text-anchor="middle" font-size="11">${L.map((l, k) => `<tspan x="${n2(x)}" dy="${k ? 12 : 0}">${l}</tspan>`).join('')}</text>`)}
-      <circle cx="${n2(x + NR * 0.72)}" cy="${n2(y - NR * 0.72)}" r="14" fill="#ffd98a" stroke="#5a4a3a" stroke-width="2"/><text x="${n2(x + NR * 0.72)}" y="${n2(y - NR * 0.72 + 5)}" text-anchor="middle" font-size="15" font-weight="800" fill="#2a1a10">${i + 1}</text></g>`; }).join('');
-  const start = D.loop ? '' : (() => { const [x, y] = P(0), [x2, y2] = P(n - 1); return `<text class="cap sm" x="${n2(x)}" y="${n2(y - NR - 12)}" text-anchor="middle" fill="#9fe08a">البداية</text><text class="cap sm" x="${n2(x2)}" y="${n2(y2 - NR - 12)}" text-anchor="middle" fill="#ffb0a0">النهاية</text>`; })();
-  const body = `${D.tab === 'plants1' ? plDefs() : ''}<circle cx="${C[0]}" cy="${C[1]}" r="${R}" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="40"/>${arcs}${nodes}${start}
+  /* المحطات: رسم الشيء كبيراً، واسمه تحته على شريط */
+  const IC = CYC_ICON[v] || [], K = CYC_SC[v] || 1.3;
+  const nodes = D.N.map((nd, i) => { const [x, y] = P(i), L = wrapName(nd.n, 18).slice(0, 3), ic = IC[i] ? IC[i]() : '';
+    const ty = y + NR - 22 - (L.length - 1) * 11, bw = Math.max(...L.map(l => l.length)) * 6.6 + 18, bh = L.length * 14 + 8;
+    return `<g class="cycNode" data-i="${i}" data-x="${n2(x)}" data-y="${n2(y)}"><circle class="cycRip" cx="${n2(x)}" cy="${n2(y)}" r="${NR}" fill="none" stroke="${D.col}" stroke-width="3" opacity="0" pointer-events="none"/>${part(nd.id, `<circle cx="${n2(x)}" cy="${n2(y)}" r="${NR}" fill="#1c1626" fill-opacity=".92" stroke="${D.col}" stroke-width="3"/>
+      <circle class="cycTint" cx="${n2(x)}" cy="${n2(y)}" r="${NR - 3}" fill="${D.col}" fill-opacity=".14"/>
+      <clipPath id="cycCl${i}"><circle cx="${n2(x)}" cy="${n2(y)}" r="${NR - 4}"/></clipPath><g clip-path="url(#cycCl${i})"><g transform="translate(${n2(x)},${n2(y - 18 - (L.length - 2) * 6)}) scale(${K})">${ic}</g></g>
+      <rect x="${n2(x - bw / 2)}" y="${n2(ty - 14)}" width="${n2(bw)}" height="${bh}" rx="9" fill="rgba(16,12,24,.9)" stroke="${D.col}" stroke-width="1.4"/>
+      <text x="${n2(x)}" y="${n2(ty)}" text-anchor="middle" font-size="12" font-weight="700" fill="#fff6e6">${L.map((l, k) => `<tspan x="${n2(x)}" dy="${k ? 14 : 0}">${l}</tspan>`).join('')}</text>`)}
+      <circle cx="${n2(x + NR * 0.72)}" cy="${n2(y - NR * 0.72)}" r="14" fill="#ffd98a" stroke="#5a4a3a" stroke-width="2"/><text x="${n2(x + NR * 0.72)}" y="${n2(y - NR * 0.72 + 5)}" text-anchor="middle" font-size="15" font-weight="800" fill="#2a1a10" pointer-events="none">${i + 1}</text></g>`; }).join('');
+  const start = D.loop ? '' : (() => { const [x, y] = P(0), [x2, y2] = P(n - 1); return `<text class="cap sm" x="${n2(x - NR - 34)}" y="${n2(y + 4)}" text-anchor="middle" fill="#9fe08a">البداية ◀</text><text class="cap sm" x="${n2(x2)}" y="${n2(y2 - NR - 10)}" text-anchor="middle" fill="#ffb0a0">النهاية</text>`; })();
+  const body = `${D.tab === 'plants1' ? plDefs() : ''}<circle cx="${C[0]}" cy="${C[1]}" r="${R}" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="44"/>${arcs}${nodes}${start}
     <g pointer-events="none"><text class="cap" x="${C[0]}" y="${C[1] - 92}" text-anchor="middle" fill="#ffd98a">${D.title}</text>
-    <rect x="${C[0] - 128}" y="${C[1] - 72}" width="256" height="170" rx="14" fill="rgba(20,16,32,.82)" stroke="${D.col}" stroke-width="1.6"/>
+    <rect x="${C[0] - 122}" y="${C[1] - 72}" width="244" height="168" rx="14" fill="rgba(20,16,32,.86)" stroke="${D.col}" stroke-width="1.6"/>
     <text id="cycT" class="cap sm" x="${C[0]}" y="${C[1] - 50}" text-anchor="middle" fill="#ffd98a"></text>
     <text id="cycD" class="cap sm" x="${C[0]}" y="${C[1] - 12}" text-anchor="middle"></text>
-    <g id="cycTok" opacity="0"><circle r="11" fill="#fff" opacity=".25"/><circle r="6" fill="#ffd98a" stroke="#fff" stroke-width="2"/></g></g>
-    <text class="cap sm" x="500" y="668" text-anchor="middle">مخطط ${D.title}: الخطوات بالترتيب حول الدائرة — اضغط أي دائرة لتظهر معلوماتها</text>`;
+    <g id="cycTok" opacity="0"><circle r="11" fill="#fff" opacity=".25"/><circle r="6" fill="#ffd98a" stroke="#fff" stroke-width="2"/></g></g>`;
   const ctl = stageCtl(ST, { dur: n * 5 });
   let shown = -1;
   return {
     body, stages: ST, parts: [],
     tools: [{ id: 'cycBack', label: '▶ عرض العملية' }].concat(ctl.tools),
     init(){ ctl.start(); cycKeep(); },
-    onSlider: x => ctl.onSlider(x), onTool: id => { if (id === 'cycBack') cycSwitch(v.slice(0, -1)); else ctl.onTool(id); },
+    onSlider: x => ctl.onSlider(x), onTool: id => { if (id === 'cycBack') cycSwitch(v.slice(0, -1), (D.N[STG.idx].from[0] + Math.min(STG.k, 0.98)) / D.st().length); else ctl.onTool(id); },
     tick(dt, t, a){
       ctl.tick(dt); const s = STG.idx, k = STG.k;
-      a.all('.cycNode').forEach(g => { const i = +g.dataset.i, on = i === s, c = g.querySelector('[data-part] circle'), x = +g.dataset.x, y = +g.dataset.y;
-        const sc = on ? 1 + 0.08 * Math.sin(t * 5) + 0.12 * Math.max(0, 1 - k * 4) : 1; g.setAttribute('transform', `translate(${x},${y}) scale(${n2(sc)}) translate(${-x},${-y})`);
+      a.all('.cycNode').forEach(g => { const i = +g.dataset.i, on = i === s, c = g.querySelector('[data-part] circle'), tn = g.querySelector('.cycTint'), x = +g.dataset.x, y = +g.dataset.y;
+        const sc = on ? 1.04 + 0.04 * Math.sin(t * 5) + 0.1 * Math.max(0, 1 - k * 4) : 1; g.setAttribute('transform', `translate(${x},${y}) scale(${n2(sc)}) translate(${-x},${-y})`);
         const rp = g.querySelector('.cycRip'); if (rp){ const q = (t * 0.8) % 1; rp.setAttribute('r', n2(NR + q * 26)); rp.setAttribute('opacity', on ? n2(0.8 * (1 - q)) : 0); }
-        g.setAttribute('opacity', i <= s ? 1 : 0.62); c.setAttribute('fill-opacity', on ? '.6' : '.28'); c.setAttribute('stroke-width', on ? 5 : 3);
-        c.style.filter = on ? `drop-shadow(0 0 ${n2(5 + 4 * Math.sin(t * 4))}px ${D.col})` : ''; });
+        g.setAttribute('opacity', i <= s || D.loop ? 1 : 0.55); if (tn) tn.setAttribute('fill-opacity', on ? '.34' : '.12'); c.setAttribute('stroke-width', on ? 5.5 : 3);
+        c.style.filter = on ? `drop-shadow(0 0 ${n2(6 + 4 * Math.sin(t * 4))}px ${D.col})` : ''; });
       a.all('.cycArc').forEach(g => { const to = +g.dataset.to, on = to === s, done = D.loop ? true : to <= s; g.setAttribute('opacity', done || on ? 1 : 0.35);
         g.querySelectorAll('path').forEach(p => { if (p.getAttribute('fill') === 'none'){ p.setAttribute('stroke', on ? '#ffd98a' : '#e8e0d0'); p.setAttribute('stroke-dashoffset', n2(-(t * (on ? 60 : 25)) % 19)); } else p.setAttribute('fill', on ? '#ffd98a' : '#e8e0d0'); }); });
+      a.all('.cycVia').forEach(g => { const on = +g.dataset.to === s, r = g.querySelector('rect'); g.setAttribute('opacity', D.loop || +g.dataset.to <= s ? 1 : 0.5); if (r){ r.setAttribute('fill', on ? 'rgba(90,64,20,.95)' : 'rgba(24,18,36,.92)'); r.setAttribute('stroke-width', on ? 2.4 : 1.3); } });
       if (s !== shown){ shown = s; const T = a.el('#cycT'), Dd = a.el('#cycD');
-        if (T) T.innerHTML = wrapName(ST[s].n, 30).slice(0, 2).map((l, i) => `<tspan x="${C[0]}" dy="${i ? 16 : 0}">${l}</tspan>`).join(''); if (Dd) Dd.innerHTML = wrapName(ST[s].d, 34).slice(0, 6).map((l, i) => `<tspan x="${C[0]}" dy="${i ? 17 : 0}">${l}</tspan>`).join(''); }
-      /* علامة تتحرك من العقدة السابقة إلى الحالية */
+        if (T) T.innerHTML = wrapName(ST[s].n, 28).slice(0, 2).map((l, i) => `<tspan x="${C[0]}" dy="${i ? 16 : 0}">${l}</tspan>`).join(''); if (Dd) Dd.innerHTML = wrapName(ST[s].d, 32).slice(0, 6).map((l, i) => `<tspan x="${C[0]}" dy="${i ? 17 : 0}">${l}</tspan>`).join(''); }
+      /* علامة تتحرك من المحطة السابقة إلى الحالية */
       const tk = a.el('#cycTok'); if (tk){ if (s === 0 && !D.loop){ tk.setAttribute('opacity', 0); } else { const i0 = (s - 1 + n) % n, a0 = ang(i0), a1 = s > i0 ? ang(s) : ang(s) + 2 * Math.PI, q = Math.min(1, k * 1.6), aa = a0 + (a1 - a0) * q;
         tk.setAttribute('opacity', q < 1 ? 1 : 0); tk.setAttribute('transform', `translate(${n2(C[0] + Math.cos(aa) * R)},${n2(C[1] + Math.sin(aa) * R)})`); } }
     }
@@ -166,7 +258,7 @@ function cycView(v){
 }
 /* التبديل بين العملية ومخططها مع البقاء على الخطوة نفسها */
 let CYC_T = null;
-function cycSwitch(id){ CYC_T = STG.T; const b = document.querySelector(`#sceneTools [data-tool="${id}"]`); if (b) b.click(); }
+function cycSwitch(id, T){ CYC_T = T; const b = document.querySelector(`#sceneTools [data-tool="${id}"]`); if (b) b.click(); }
 function cycKeep(){ if (CYC_T === null) return; STG.T = CYC_T; CYC_T = null; if (api.setSlider) api.setSlider(STG.T); }
 /* إضافة زر «مخطط …» بجانب زر عمليته في كل تبويب، وتغليف البناء والمجسّم */
 Object.keys(CYC).forEach(v => { const D = CYC[v], [VIEWS] = CYC_TABS[D.tab]; if (VIEWS.some(x => x.id === v)) return; const bi = VIEWS.findIndex(x => x.id === v.slice(0, -1)); VIEWS.splice(bi < 0 ? VIEWS.length : bi + 1, 0, { id: v, label: D.label }); });
@@ -176,7 +268,7 @@ Object.keys(CYC_TABS).forEach(tab => {
   Object.defineProperty(sc, 'src', { configurable: true, get(){ const v = SEL[radio]; return CYC[v] && CYC[v].tab === tab ? CYC[v].src : (sd.get ? sd.get.call(sc) : sd.value); } });
   sc.build = function(){ const v = SEL[radio]; if (!CYC[v] || CYC[v].tab !== tab){ const r = ob.call(this); if (CYC[v + 'D'] && CYC[v + 'D'].tab === tab){
       r.tools = (r.tools || []).slice(); const at = r.tools.findIndex(x => x.id === 'stPrev'); r.tools.splice(at < 0 ? r.tools.length : at, 0, { id: 'cycGo', label: '↻ عرض المخطط' });
-      const ot = r.onTool, oi = r.init; r.onTool = id => { if (id === 'cycGo') cycSwitch(v + 'D'); else if (ot) ot(id); }; r.init = function(){ if (oi) oi.call(this); cycKeep(); }; }
+      const ot = r.onTool, oi = r.init; r.onTool = id => { if (id === 'cycGo'){ const DD = CYC[v + 'D'], ni = Math.max(0, DD.N.findIndex(x => x.from.includes(STG.idx))), fr = DD.N[ni].from; cycSwitch(v + 'D', (ni + Math.min(0.98, (fr.indexOf(STG.idx) + STG.k) / fr.length)) / DD.N.length); } else if (ot) ot(id); }; r.init = function(){ if (oi) oi.call(this); cycKeep(); }; }
     return r; }
     const s = cycView(v); s.rebuildOnRadio = radio; s.tools = VIEWS.map(x => ({ id: x.id, label: x.label, radio, on: x.id === v })).concat(s.tools || []); return s; };
   sc.model3d = () => { const v = SEL[radio]; return CYC[v] && CYC[v].tab === tab ? 'cyc_' + v : om(); };
