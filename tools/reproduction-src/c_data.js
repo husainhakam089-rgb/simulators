@@ -268,6 +268,7 @@ QUIZ.push(
 
 CH.tabs.push({ k: 'intro', t: 'التكاثر والأمشاج' });
 CH.sel.intv = 'itypes';
+Object.assign(CH.toolIcons, { sdGoFT: 'route' });
 Object.assign(CH.toolIcons, { itypes: 'compare', isperm: 'route', iegg: 'cell' });
 CH.exam.push({ k: 'int_types', t: 'التكاثر الجنسي واللاجنسي' }, { k: 'int_sperm', t: 'مراحل تكوين النطف' }, { k: 'int_egg', t: 'مراحل تكوين البيوض' });
 CH.draw.push(

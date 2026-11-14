@@ -1538,6 +1538,7 @@ QUIZ.push(
 
 CH.tabs.push({ k: 'intro', t: 'التكاثر والأمشاج' });
 CH.sel.intv = 'itypes';
+Object.assign(CH.toolIcons, { sdGoFT: 'route' });
 Object.assign(CH.toolIcons, { itypes: 'compare', isperm: 'route', iegg: 'cell' });
 CH.exam.push({ k: 'int_types', t: 'التكاثر الجنسي واللاجنسي' }, { k: 'int_sperm', t: 'مراحل تكوين النطف' }, { k: 'int_egg', t: 'مراحل تكوين البيوض' });
 CH.draw.push(
@@ -7625,8 +7626,9 @@ function sdFruit(still){
       { id: 'sdEndo', anchor: [662, 340], label: [866, 370], side: 'R' },
       { id: 'sdFSeed', anchor: [430, 320], label: [134, 320], side: 'L' }
     ],
-    tools: still ? [] : [{ id: 'sdGrow', label: 'من المبيض إلى ثمرة', toggle: true }, { id: 'info:sdFruitI', label: 'عرّف الثمرة' }, { id: 'info:sdFalse', label: 'الثمار الكاذبة' },
+    tools: still ? [] : [{ id: 'sdGrow', label: 'من المبيض إلى ثمرة', toggle: true }, { id: 'sdGoFT', label: 'تكوّن الثمار البسيطة والمتجمعة والمركبة' }, { id: 'info:sdFruitI', label: 'عرّف الثمرة' }, { id: 'info:sdFalse', label: 'الثمار الكاذبة' },
       { id: 'info:sdPollenRole', label: 'دور حبوب اللقاح' }, { id: 'tbl:sdFruitOrg', label: 'منشأ الثمار (ص82)' }, { id: 'tbl:sdFruitChg', label: 'تغيرات النضج (ص83)' }, { id: 'info:sdParthe', label: 'الإثمار العذري' }, { id: 'tbl:sdParth', label: 'العذري الطبيعي × الاصطناعي (ص85)' }],
+    onTool: id => { if (id === 'sdGoFT'){ const b = document.querySelector('#sceneTools [data-tool="sdsFT"]'); if (b) b.click(); } },
     tick(dt, t, a){
       if (still) return;
       const on = a.tool('sdGrow');
@@ -7715,7 +7717,9 @@ function sdFTypes(still){
     tools: ctl.tools.concat([{ id: 'tbl:sdFruitTypes', label: 'أنواع الثمار (ص86)' }]),
     init(){ if (!still) ctl.start(); },
     onSlider: v => ctl.onSlider(v), onTool: id => ctl.onTool(id),
-    tick(dt, t, a){ if (!still) ctl.tick(dt); stageShow(a, still ? 9 : STG.idx, still ? 1 : STG.k); if (!still) plBadgeTick(a, STG.idx, t); }
+    tick(dt, t, a){ if (!still) ctl.tick(dt); stageShow(a, still ? 9 : STG.idx, still ? 1 : STG.k); if (!still) plBadgeTick(a, STG.idx, t);
+      /* الأنواع الثلاثة ظاهرة دائماً: الأزهار والثمار التي لم تصلها الخطوة بعد تبقى واضحة بشفافية، والخطوة الحالية مضاءة */
+      if (!still) a.all('[data-st]').forEach(e => { const st = +e.dataset.st; if (st > STG.idx) e.setAttribute('opacity', st % 2 ? 0.3 : 0.5); }); }
   };
 }
 
