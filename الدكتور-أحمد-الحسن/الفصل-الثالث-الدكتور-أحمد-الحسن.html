@@ -8646,10 +8646,18 @@ function huOvarySvg(cx, cy){
 function huFemBody(o){
   o = o || {};
   const TL = HU_TUBE_L, TRr = HU_TUBE_L.map(([x, y]) => [-x, y]);
-  let rug = ''; for (let y = 446; y <= 580; y += 14) rug += `M${-44 - (y - 446) * 0.05},${y} Q0,${y + 7} ${44 + (y - 446) * 0.05},${y} `;
-  const vag = `<path d="M-34,428 L34,428 L46,470 L52,592 L-52,592 L-46,470 Z" fill="#e6858f" stroke="#ffd0d6" stroke-width="2"/>
-    <path d="${rug}" fill="none" stroke="#b84a5a" stroke-width="1.6"/><path id="huVagL" d="M0,428 L0,592" stroke="#8e1a30" stroke-width="7" stroke-linecap="round"/>`;
-  const cerv = `<path d="M-32,392 L32,392 L35,430 L-35,430 Z" fill="#f0a0a8" stroke="#ffd0d6" stroke-width="2"/><path id="huCervC" d="M0,362 L-5,372 L5,382 L-5,392 L5,402 L-5,412 L5,422 L0,430" fill="none" stroke="${HUC.cav}" stroke-width="4"/>`;
+  /* المهبل: أنبوب عضلي يتسع قليلاً للأعلى (القبوات حول عنق الرحم)، تجويفه في الوسط وعلى جداره الجانبي ثنيات مستعرضة،
+     وينفتح للخارج بفتحة المهبل في الأسفل */
+  let rug = ''; for (let y = 474; y <= 584; y += 13){ const w = 33 - (y - 450) * 0.04;
+    rug += `M${n2(-w)},${y} q8,5 15,1 M${n2(w)},${y} q-8,5 -15,1 `; }
+  const vag = `<path d="M-26,418 C-46,416 -54,430 -52,452 L-45,602 L45,602 L52,452 C54,430 46,416 26,418 Z" fill="#e6858f" stroke="#ffd0d6" stroke-width="2"/>
+    <path d="M-37,454 C-38,436 -30,430 -22,432 L22,432 C30,430 38,436 37,454 L31,602 L-31,602 Z" fill="#a83c50" stroke="#c45a6c" stroke-width="1.2"/>
+    <path d="${rug}" fill="none" stroke="#f0a2ac" stroke-width="2.2" stroke-linecap="round"/>
+    <ellipse cx="0" cy="602" rx="31" ry="4.5" fill="#6e1a2c" stroke="#ffd0d6" stroke-width="1.4"/>
+    <path id="huVagL" d="M0,452 L0,602" fill="none" stroke="none"/>`;
+  /* عنق الرحم: الجزء السفلي الضيق من الرحم يبرز في أعلى المهبل، وفيه قناة عنق الرحم المغزلية من الفتحة الداخلية إلى الخارجية */
+  const cerv = `<path d="M-33,392 L33,392 L28,430 C27,446 18,454 0,454 C-18,454 -27,446 -28,430 Z" fill="#f0a0a8" stroke="#ffd0d6" stroke-width="2"/>
+    <path id="huCervC" d="M0,360 C-7,390 -7,424 0,454 C7,424 7,390 0,360 Z" fill="${HUC.cav}" stroke="${HUC.cav}" stroke-width="1"/>`;
   const uter = `<path id="huWall" d="${huWallD(o.g)}" fill="${HUC.wall}" stroke="${HUC.wallS}" stroke-width="2.6"/>
     <path id="huLin" d="${huCavD(o.g, 1.14)}" fill="${HUC.lin}"/><path id="huCav" d="${huCavD(o.g)}" fill="${HUC.cav}"/>`;
   return {
@@ -8672,8 +8680,8 @@ function huFemale(still){
     ${part('huFallop', fb.tubes)}
     ${part('huOvary', fb.ovaries)}
     ${part('huUterus', fb.uterus)}
-    ${part('huCervix', fb.cervix)}
-    ${part('huVagina', fb.vagina)}</g>
+    ${part('huVagina', fb.vagina)}
+    ${part('huCervix', fb.cervix)}</g>
     ${part('huFimb', `<circle cx="${X - 250}" cy="262" r="14" fill="none" stroke="#ffd0d6" stroke-width="2" stroke-dasharray="3 3"/><circle cx="${X + 250}" cy="262" r="14" fill="none" stroke="#ffd0d6" stroke-width="2" stroke-dasharray="3 3"/>`)}
     ${part('huGraaf', graaf)}
     ${still ? '' : `<g pointer-events="none">${cil}</g>` + egg.svg}
@@ -8684,10 +8692,10 @@ function huFemale(still){
       { id: 'huFallop', anchor: F(190, 146), label: [866, 120], side: 'R' },
       { id: 'huUterus', anchor: F(22, 270), label: [866, 250], side: 'R' },
       { id: 'huGraaf', anchor: F(237, 300), label: [866, 330], side: 'R' },
-      { id: 'huVagina', anchor: F(50, 530), label: [866, 530], side: 'R' },
+      { id: 'huVagina', anchor: F(42, 540), label: [866, 540], side: 'R' },
       { id: 'huFimb', anchor: F(-262, 270), label: [134, 220], side: 'L' },
       { id: 'huOvary', anchor: F(-222, 310), label: [134, 320], side: 'L' },
-      { id: 'huCervix', anchor: F(-33, 412), label: [134, 412], side: 'L' }
+      { id: 'huCervix', anchor: F(-24, 420), label: [134, 420], side: 'L' }
     ],
     tools: [{ id: 'info:huFemSys', label: 'عن الجهاز الأنثوي' }, { id: 'tbl:huFemale', label: 'الأعضاء وعددها ووظيفتها (ص111)' }, { id: 'tbl:huWho', label: 'من المسؤول؟ (ص129)' }],
     tick(dt, t, a){
@@ -8735,8 +8743,8 @@ function huFert(still){
     ${part('huOvary', fb.ovaries)}
     ${part('huCL', `<g data-st="3"><path d="${smoothClosed([[-204, 280], [-188, 270], [-172, 282], [-176, 300], [-196, 302]])}" fill="${HUC.yellow}" stroke="#fff3c8" stroke-width="2"/></g>`)}
     ${part('huUterus', fb.uterus)}
-    ${part('huCervix', fb.cervix)}
     ${part('huVagina', fb.vagina)}
+    ${part('huCervix', fb.cervix)}
     ${part('huPlacenta', `<g id="huPlac" data-st="3"><path d="M-46,200 Q0,180 46,200 Q0,226 -46,200Z" fill="#b8344a" stroke="#ffb0c0" stroke-width="2"/></g>`)}
     <g id="huSacG">${part('huAmnion', `<circle id="huSac" cx="0" cy="240" r="12" fill="rgba(170,215,255,.55)" stroke="#d8eeff" stroke-width="2.4"/>`)}
       <path id="huCord" d="M0,210 Q14,230 0,250" fill="none" stroke="#f2a0b0" stroke-width="4" opacity="0"/>
@@ -8764,8 +8772,8 @@ function huFert(still){
       { id: 'huAmnion', anchor: F(64, 270), label: [866, 228], side: 'R' },
       { id: 'huEmbryo', anchor: F(20, 290), label: [866, 290], side: 'R' },
       { id: 'huUterus', anchor: F(110, 330), label: [866, 350], side: 'R' },
-      { id: 'huCervix', anchor: F(34, 412), label: [866, 410], side: 'R' },
-      { id: 'huVagina', anchor: F(50, 520), label: [866, 500], side: 'R' },
+      { id: 'huCervix', anchor: F(24, 420), label: [866, 410], side: 'R' },
+      { id: 'huVagina', anchor: F(42, 530), label: [866, 500], side: 'R' },
       { id: 'huFertSite', anchor: F(-242, 152), label: [134, 270], side: 'L' },
       { id: 'huZygote', anchor: F(-120, 160), label: [134, 320], side: 'L' },
       { id: 'huCL', anchor: F(-200, 300), label: [134, 372], side: 'L' },
@@ -9309,6 +9317,13 @@ const CYC = {
     ['النواة المندمجة المتماثلة (2س)', 3, 'اتحاد في الفرد نفسه', '', 'prFusHom'],
     ['فردان منفصلان', 4, 'انفصال', '', 'prSep'],
     ['8 براميسيومات بنوية', 5, 'انقسامان اعتياديان لكل فرد', '', 'prEight']] },
+  agAltD:    { src: 'ملزمة ص42–45', tab: 'altgen', label: 'مخطط تعاقب الأجيال ↻', title: 'تعاقب الأجيال', st: () => PL_ALT_ST, col: '#b48cff', loop: true, nodes: [
+    ['الطور البوغي (2س)', 0, 'انقسام خيطي', 'plMito', 'plSporo'],
+    ['الحافظة البوغية (2س)', 1, 'يكوّن الحافظات البوغية', '', 'plSporang'],
+    ['الأبواغ (س)', [2, 3], 'انقسام اختزالي', 'plMeio', 'plSpore'],
+    ['الطور المشيجي (س)', 4, 'انقسام خيطي', 'plMito', 'plGameto'],
+    ['الأمشاج الذكرية والأنثوية (س)', 5, 'انقسام خيطي', 'plMito', 'plGametes'],
+    ['الزيجة (2س)', [6, 7], 'إخصاب', 'plFert', 'plZyg']] },
   plvMossD:  { src: 'ملزمة ص45–47', tab: 'plants1', label: 'مخطط الحزاز ↻', title: 'دورة حياة البوليتراكم', st: () => PL_MOSS_ST, col: '#62c94a', loop: true, nodes: [
     ['النبات المشيجي (س): أنثريديا وأركيكونيا', 0, 'تتحول إلى نباتات مشيجية', 'plGameto', 'plMMature'],
     ['الأمشاج الذكرية السابحة', 1, 'تخرج في الماء', '', 'plMSperm'],
@@ -9348,7 +9363,12 @@ Object.keys(CYC).forEach(v => { const D = CYC[v];
   D.N = D.nodes.map(([n, f, via, vid, id]) => ({ n, from: [].concat(f), via, vid, id }));
   D.ids = D.N.map(x => x.id);
   D.stages = () => { const ST = D.st(); return D.N.map((x, i) => ({ n: (i + 1) + ' · ' + x.n, d: x.from.map(j => ST[j].d).join(' ') })); }; });
-const CYC_TABS = { intro: [INT_VIEWS, 'intv'], prok: [PRK_VIEWS, 'prkv'], protist: [PR_VIEWS, 'prv'], plants1: [PL_VIEWS, 'plv'], flower: [FL_VIEWS, 'flv'], sdSeedFruit: [SD_VIEWS_S, 'sdsv'], cycle: [CY_VIEWS, 'cyv'] };
+/* تبويب تعاقب الأجيال ليس له أزرار شاشات: نضيف زر الشكل وزر مخططه */
+const AG_VIEWS = [{ id: 'agAlt', label: 'تعاقب الأجيال (شكل 3-11)' }];
+CH.sel.agv = 'agAlt';
+(() => { const ob = SCENES.altgen.build; SCENES.altgen.build = function(){ const r = ob.call(this); r.rebuildOnRadio = 'agv';
+  r.tools = AG_VIEWS.map(x => ({ id: x.id, label: x.label, radio: 'agv', on: x.id === SEL.agv })).concat(r.tools || []); return r; }; })();
+const CYC_TABS = { altgen: [AG_VIEWS, 'agv'], intro: [INT_VIEWS, 'intv'], prok: [PRK_VIEWS, 'prkv'], protist: [PR_VIEWS, 'prv'], plants1: [PL_VIEWS, 'plv'], flower: [FL_VIEWS, 'flv'], sdSeedFruit: [SD_VIEWS_S, 'sdsv'], cycle: [CY_VIEWS, 'cyv'] };
 /* اسم مختصر للخطوة: بعد «N ·» */
 const cycShort = s => s.n.replace(/^\s*\d+\s*·\s*/, '');
 /* رسم صغير لكل خطوة داخل دائرتها (بإحداثيات محلية حول 0,0 بحدود ±48×±32 تقريباً).
@@ -9423,6 +9443,14 @@ const CYC_ICON = {
     () => ciPara(-22, 0, 0.32, false) + ciPara(22, 0, 0.32, true) + ciDot(-22, 4, 4, PR_CA[0]) + ciDot(22, 4, 4, PR_CB2[0]),
     () => [-36, -24, -12, 0, 12, 24, 36, 48].map((x, i) => ciPara(x - 6, (i % 2) * 6 - 3, 0.16, i % 2)).join('')
   ],
+  agAltD: [
+    () => plCluster(0, 0, 38, 10.5, 'plGDi', 7),
+    () => `<path d="M-2,44 Q0,30 2,22" stroke="${PL.diD}" stroke-width="5" fill="none"/><ellipse cx="2" cy="-2" rx="26" ry="30" fill="url(#plGDi)" stroke="${PL.diL}" stroke-width="2.4"/>` + [[-9, -16], [8, -14], [-11, 0], [10, 2], [0, -6], [-3, 13], [11, 15]].map(([dx, dy]) => `<circle cx="${2 + dx}" cy="${-2 + dy}" r="4.6" fill="#ffe0a8" stroke="${PL.haD}" stroke-width="1"/>`).join(''),
+    () => [[-15, -13], [15, -13], [-15, 15], [15, 15]].map(([x, y]) => ciNC(x, y, 14, 'h', PL.ha)).join(''),
+    () => plCluster(0, 0, 38, 10.5, 'plGHa', 11),
+    () => ciNC(16, 2, 21, 'h', PL.ha) + ciNC(-26, -8, 12, 'h', '#ffd27a') + `<path d="M-38,-8 q-8,6 -14,0" stroke="#ffd27a" stroke-width="2.4" fill="none"/>`,
+    () => ciNC(0, 0, 30, 'd', PL.zy)
+  ],
   plvMossD: [
     () => cycG(0.5, ciLeafy(-22, 60, 90, 0.7, 31) + ciLeafy(22, 60, 90, 0.7, 7) + cycG(0.5, plCup(-44, -60, '#5fc04a', PL.leafL)) + cycG(0.5, plCup(44, -60, '#efc35a', '#ffe7a8'))),
     () => `<path d="M-30,10 Q0,-26 30,10" fill="none" stroke="${PL.water}" stroke-width="2.4" stroke-dasharray="4 3"/>` + [-18, -6, 6, 18].map((x, i) => ciDot(x, -6 - Math.abs(x) * -0.4 - 8, 2.6, '#3a7ad8')).join(''),
@@ -9473,7 +9501,7 @@ function cycView(v){
     for (let k = 0; k <= 20; k++){ const a = a0 + (a1 - a0) * k / 20; pts.push([C[0] + Math.cos(a) * R, C[1] + Math.sin(a) * R]); }
     const e = pts[20], p = pts[18], an = Math.atan2(e[1] - p[1], e[0] - p[0]), h = 13;
     const via = D.N[j].via, am = (a0 + a1) / 2, lx = C[0] + Math.cos(am) * (R - 40), ly = C[1] + Math.sin(am) * (R - 40);
-    const L = via ? wrapName(via, 13).slice(0, 2) : [], w = Math.max(...L.map(l => l.length), 1) * 6.4 + 16, hh = L.length * 14 + 8;
+    const L = via ? wrapName(via, 13).slice(0, 3) : [], w = Math.max(...L.map(l => l.length), 1) * 6.4 + 16, hh = L.length * 14 + 8;
     const lab = via ? (() => { const inner = `<rect x="${n2(lx - w / 2)}" y="${n2(ly - hh / 2)}" width="${n2(w)}" height="${hh}" rx="8" fill="rgba(24,18,36,.92)" stroke="#ffd98a" stroke-width="1.3"/>` +
       `<text x="${n2(lx)}" y="${n2(ly - hh / 2 + 15)}" text-anchor="middle" font-size="11.5" font-weight="700" fill="#ffd98a">${L.map((l, k) => `<tspan x="${n2(lx)}" dy="${k ? 14 : 0}">${l}</tspan>`).join('')}</text>`;
       return `<g class="cycVia" data-to="${j}">${D.N[j].vid ? part(D.N[j].vid, inner) : `<g pointer-events="none">${inner}</g>`}</g>`; })() : '';
@@ -9491,7 +9519,7 @@ function cycView(v){
       <text x="${n2(x)}" y="${n2(ty)}" text-anchor="middle" font-size="12" font-weight="700" fill="#fff6e6">${L.map((l, k) => `<tspan x="${n2(x)}" dy="${k ? 14 : 0}">${l}</tspan>`).join('')}</text>`)}
       <circle cx="${n2(x + NR * 0.72)}" cy="${n2(y - NR * 0.72)}" r="14" fill="#ffd98a" stroke="#5a4a3a" stroke-width="2"/><text x="${n2(x + NR * 0.72)}" y="${n2(y - NR * 0.72 + 5)}" text-anchor="middle" font-size="15" font-weight="800" fill="#2a1a10" pointer-events="none">${i + 1}</text></g>`; }).join('');
   const start = D.loop ? '' : (() => { const [x, y] = P(0), [x2, y2] = P(n - 1); return `<text class="cap sm" x="${n2(x - NR - 34)}" y="${n2(y + 4)}" text-anchor="middle" fill="#9fe08a">البداية ◀</text><text class="cap sm" x="${n2(x2)}" y="${n2(y2 - NR - 10)}" text-anchor="middle" fill="#ffb0a0">النهاية</text>`; })();
-  const body = `${D.tab === 'plants1' ? plDefs() : ''}<circle cx="${C[0]}" cy="${C[1]}" r="${R}" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="44"/>${arcs}${nodes}${start}
+  const body = `${D.tab === 'plants1' || D.tab === 'altgen' ? plDefs() : ''}<circle cx="${C[0]}" cy="${C[1]}" r="${R}" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="44"/>${arcs}${nodes}${start}
     <g pointer-events="none"><text class="cap" x="${C[0]}" y="${C[1] - 92}" text-anchor="middle" fill="#ffd98a">${D.title}</text>
     <rect x="${C[0] - 122}" y="${C[1] - 72}" width="244" height="168" rx="14" fill="rgba(20,16,32,.86)" stroke="${D.col}" stroke-width="1.6"/>
     <text id="cycT" class="cap sm" x="${C[0]}" y="${C[1] - 50}" text-anchor="middle" fill="#ffd98a"></text>
@@ -13501,6 +13529,14 @@ const worm3 = (y, x0, x1, r, z) => { const P = Array.from({ length: 9 }, (_, i) 
 const tape3 = (at, n, s) => { const out = [[B3(0.06 * s, at, 8), '#f6efdf']]; let x = at[0] + 0.08 * s; for (let i = 0; i < n; i++){ const w = (0.03 + i * 0.006) * s; x += w; out.push([place(superEll({ h: [w, (0.025 + i * 0.006) * s, 0.012 * s], e: 0.3, rows: 3, cols: 8 }), { at: [x, at[1], at[2]] }), i >= n - 3 ? '#f2d8e8' : '#f6efdf']); x += w + 0.004; } return out; };
 
 const ICON3 = {
+  agAltD: [
+    () => [[merge(Array.from({ length: 9 }, (_, i) => { const a = i * 2.4, rr = Math.sqrt(i / 9) * 0.26; return B3(0.09, [Math.cos(a) * rr, Math.sin(a) * rr, 0], 8); })), '#b48cff']],
+    () => [[T3([[0, -0.42, 0], [0, -0.2, 0]], 0.03), '#6a44c4'], [E3([0.2, 0.25, 0.16], [0, 0.04, 0]), '#b48cff', { alpha: 0.6 }], [merge([[-0.07, 0.12], [0.07, 0.1], [-0.08, 0], [0.08, -0.02], [0, 0.04], [-0.02, -0.1], [0.08, -0.12]].map(([x, y]) => B3(0.04, [x, y + 0.04, 0.08], 6))), '#ffe0a8']],
+    () => [[-0.15, 0.13], [0.15, 0.13], [-0.15, -0.15], [0.15, -0.15]].flatMap(([x, y]) => cellM([x, y, 0], 0.13, '#ffb547', 0, 'h')),
+    () => [[merge(Array.from({ length: 9 }, (_, i) => { const a = i * 2.4, rr = Math.sqrt(i / 9) * 0.26; return B3(0.09, [Math.cos(a) * rr, Math.sin(a) * rr, 0], 8); })), '#ffb547']],
+    () => cellM([0.14, 0, 0], 0.2, '#ffb547', 0, 'h').concat(cellM([-0.24, 0.06, 0], 0.11, '#ffd27a', 0, 'h')),
+    () => cellM([0, 0, 0], 0.28, '#7f8cff', 0, 'd')
+  ],
   ispermD: [
     () => [[place(capsule({ r: 0.36, len: 0.1, rows: 4, cols: 20 }), { rot: [Math.PI / 2, 0, 0], at: [0, 0, 0] }), '#f3d6c0', { alpha: 0.9 }], [merge(Array.from({ length: 16 }, (_, i) => B3(0.04, [Math.cos(i / 16 * 6.28) * 0.28, Math.sin(i / 16 * 6.28) * 0.28, 0.1], 6)).concat(Array.from({ length: 10 }, (_, i) => B3(0.035, [Math.cos(i / 10 * 6.28) * 0.17, Math.sin(i / 10 * 6.28) * 0.17, 0.1], 6)))), '#b07ad8'], [merge(Array.from({ length: 8 }, (_, i) => B3(0.02, [Math.cos(i / 8 * 6.28) * 0.07, Math.sin(i / 8 * 6.28) * 0.07, 0.12], 5))), '#e8ecff']],
     () => [[T3(Array.from({ length: 9 }, (_, i) => [-0.4 + i * 0.1, -0.2 + Math.abs(i - 4) * 0.025, -0.05]), 0.05), '#f3d6c0']].concat([-0.24, 0, 0.24].flatMap((x, i) => cellM([x, i === 1 ? 0.03 : -0.02, 0], 0.11, '#b07ad8', 0, 'd'))),

@@ -255,10 +255,18 @@ function huOvarySvg(cx, cy){
 function huFemBody(o){
   o = o || {};
   const TL = HU_TUBE_L, TRr = HU_TUBE_L.map(([x, y]) => [-x, y]);
-  let rug = ''; for (let y = 446; y <= 580; y += 14) rug += `M${-44 - (y - 446) * 0.05},${y} Q0,${y + 7} ${44 + (y - 446) * 0.05},${y} `;
-  const vag = `<path d="M-34,428 L34,428 L46,470 L52,592 L-52,592 L-46,470 Z" fill="#e6858f" stroke="#ffd0d6" stroke-width="2"/>
-    <path d="${rug}" fill="none" stroke="#b84a5a" stroke-width="1.6"/><path id="huVagL" d="M0,428 L0,592" stroke="#8e1a30" stroke-width="7" stroke-linecap="round"/>`;
-  const cerv = `<path d="M-32,392 L32,392 L35,430 L-35,430 Z" fill="#f0a0a8" stroke="#ffd0d6" stroke-width="2"/><path id="huCervC" d="M0,362 L-5,372 L5,382 L-5,392 L5,402 L-5,412 L5,422 L0,430" fill="none" stroke="${HUC.cav}" stroke-width="4"/>`;
+  /* المهبل: أنبوب عضلي يتسع قليلاً للأعلى (القبوات حول عنق الرحم)، تجويفه في الوسط وعلى جداره الجانبي ثنيات مستعرضة،
+     وينفتح للخارج بفتحة المهبل في الأسفل */
+  let rug = ''; for (let y = 474; y <= 584; y += 13){ const w = 33 - (y - 450) * 0.04;
+    rug += `M${n2(-w)},${y} q8,5 15,1 M${n2(w)},${y} q-8,5 -15,1 `; }
+  const vag = `<path d="M-26,418 C-46,416 -54,430 -52,452 L-45,602 L45,602 L52,452 C54,430 46,416 26,418 Z" fill="#e6858f" stroke="#ffd0d6" stroke-width="2"/>
+    <path d="M-37,454 C-38,436 -30,430 -22,432 L22,432 C30,430 38,436 37,454 L31,602 L-31,602 Z" fill="#a83c50" stroke="#c45a6c" stroke-width="1.2"/>
+    <path d="${rug}" fill="none" stroke="#f0a2ac" stroke-width="2.2" stroke-linecap="round"/>
+    <ellipse cx="0" cy="602" rx="31" ry="4.5" fill="#6e1a2c" stroke="#ffd0d6" stroke-width="1.4"/>
+    <path id="huVagL" d="M0,452 L0,602" fill="none" stroke="none"/>`;
+  /* عنق الرحم: الجزء السفلي الضيق من الرحم يبرز في أعلى المهبل، وفيه قناة عنق الرحم المغزلية من الفتحة الداخلية إلى الخارجية */
+  const cerv = `<path d="M-33,392 L33,392 L28,430 C27,446 18,454 0,454 C-18,454 -27,446 -28,430 Z" fill="#f0a0a8" stroke="#ffd0d6" stroke-width="2"/>
+    <path id="huCervC" d="M0,360 C-7,390 -7,424 0,454 C7,424 7,390 0,360 Z" fill="${HUC.cav}" stroke="${HUC.cav}" stroke-width="1"/>`;
   const uter = `<path id="huWall" d="${huWallD(o.g)}" fill="${HUC.wall}" stroke="${HUC.wallS}" stroke-width="2.6"/>
     <path id="huLin" d="${huCavD(o.g, 1.14)}" fill="${HUC.lin}"/><path id="huCav" d="${huCavD(o.g)}" fill="${HUC.cav}"/>`;
   return {
@@ -281,8 +289,8 @@ function huFemale(still){
     ${part('huFallop', fb.tubes)}
     ${part('huOvary', fb.ovaries)}
     ${part('huUterus', fb.uterus)}
-    ${part('huCervix', fb.cervix)}
-    ${part('huVagina', fb.vagina)}</g>
+    ${part('huVagina', fb.vagina)}
+    ${part('huCervix', fb.cervix)}</g>
     ${part('huFimb', `<circle cx="${X - 250}" cy="262" r="14" fill="none" stroke="#ffd0d6" stroke-width="2" stroke-dasharray="3 3"/><circle cx="${X + 250}" cy="262" r="14" fill="none" stroke="#ffd0d6" stroke-width="2" stroke-dasharray="3 3"/>`)}
     ${part('huGraaf', graaf)}
     ${still ? '' : `<g pointer-events="none">${cil}</g>` + egg.svg}
@@ -293,10 +301,10 @@ function huFemale(still){
       { id: 'huFallop', anchor: F(190, 146), label: [866, 120], side: 'R' },
       { id: 'huUterus', anchor: F(22, 270), label: [866, 250], side: 'R' },
       { id: 'huGraaf', anchor: F(237, 300), label: [866, 330], side: 'R' },
-      { id: 'huVagina', anchor: F(50, 530), label: [866, 530], side: 'R' },
+      { id: 'huVagina', anchor: F(42, 540), label: [866, 540], side: 'R' },
       { id: 'huFimb', anchor: F(-262, 270), label: [134, 220], side: 'L' },
       { id: 'huOvary', anchor: F(-222, 310), label: [134, 320], side: 'L' },
-      { id: 'huCervix', anchor: F(-33, 412), label: [134, 412], side: 'L' }
+      { id: 'huCervix', anchor: F(-24, 420), label: [134, 420], side: 'L' }
     ],
     tools: [{ id: 'info:huFemSys', label: 'عن الجهاز الأنثوي' }, { id: 'tbl:huFemale', label: 'الأعضاء وعددها ووظيفتها (ص111)' }, { id: 'tbl:huWho', label: 'من المسؤول؟ (ص129)' }],
     tick(dt, t, a){
@@ -344,8 +352,8 @@ function huFert(still){
     ${part('huOvary', fb.ovaries)}
     ${part('huCL', `<g data-st="3"><path d="${smoothClosed([[-204, 280], [-188, 270], [-172, 282], [-176, 300], [-196, 302]])}" fill="${HUC.yellow}" stroke="#fff3c8" stroke-width="2"/></g>`)}
     ${part('huUterus', fb.uterus)}
-    ${part('huCervix', fb.cervix)}
     ${part('huVagina', fb.vagina)}
+    ${part('huCervix', fb.cervix)}
     ${part('huPlacenta', `<g id="huPlac" data-st="3"><path d="M-46,200 Q0,180 46,200 Q0,226 -46,200Z" fill="#b8344a" stroke="#ffb0c0" stroke-width="2"/></g>`)}
     <g id="huSacG">${part('huAmnion', `<circle id="huSac" cx="0" cy="240" r="12" fill="rgba(170,215,255,.55)" stroke="#d8eeff" stroke-width="2.4"/>`)}
       <path id="huCord" d="M0,210 Q14,230 0,250" fill="none" stroke="#f2a0b0" stroke-width="4" opacity="0"/>
@@ -373,8 +381,8 @@ function huFert(still){
       { id: 'huAmnion', anchor: F(64, 270), label: [866, 228], side: 'R' },
       { id: 'huEmbryo', anchor: F(20, 290), label: [866, 290], side: 'R' },
       { id: 'huUterus', anchor: F(110, 330), label: [866, 350], side: 'R' },
-      { id: 'huCervix', anchor: F(34, 412), label: [866, 410], side: 'R' },
-      { id: 'huVagina', anchor: F(50, 520), label: [866, 500], side: 'R' },
+      { id: 'huCervix', anchor: F(24, 420), label: [866, 410], side: 'R' },
+      { id: 'huVagina', anchor: F(42, 530), label: [866, 500], side: 'R' },
       { id: 'huFertSite', anchor: F(-242, 152), label: [134, 270], side: 'L' },
       { id: 'huZygote', anchor: F(-120, 160), label: [134, 320], side: 'L' },
       { id: 'huCL', anchor: F(-200, 300), label: [134, 372], side: 'L' },

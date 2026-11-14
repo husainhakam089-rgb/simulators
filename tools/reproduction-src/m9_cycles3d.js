@@ -27,6 +27,14 @@ const worm3 = (y, x0, x1, r, z) => { const P = Array.from({ length: 9 }, (_, i) 
 const tape3 = (at, n, s) => { const out = [[B3(0.06 * s, at, 8), '#f6efdf']]; let x = at[0] + 0.08 * s; for (let i = 0; i < n; i++){ const w = (0.03 + i * 0.006) * s; x += w; out.push([place(superEll({ h: [w, (0.025 + i * 0.006) * s, 0.012 * s], e: 0.3, rows: 3, cols: 8 }), { at: [x, at[1], at[2]] }), i >= n - 3 ? '#f2d8e8' : '#f6efdf']); x += w + 0.004; } return out; };
 
 const ICON3 = {
+  agAltD: [
+    () => [[merge(Array.from({ length: 9 }, (_, i) => { const a = i * 2.4, rr = Math.sqrt(i / 9) * 0.26; return B3(0.09, [Math.cos(a) * rr, Math.sin(a) * rr, 0], 8); })), '#b48cff']],
+    () => [[T3([[0, -0.42, 0], [0, -0.2, 0]], 0.03), '#6a44c4'], [E3([0.2, 0.25, 0.16], [0, 0.04, 0]), '#b48cff', { alpha: 0.6 }], [merge([[-0.07, 0.12], [0.07, 0.1], [-0.08, 0], [0.08, -0.02], [0, 0.04], [-0.02, -0.1], [0.08, -0.12]].map(([x, y]) => B3(0.04, [x, y + 0.04, 0.08], 6))), '#ffe0a8']],
+    () => [[-0.15, 0.13], [0.15, 0.13], [-0.15, -0.15], [0.15, -0.15]].flatMap(([x, y]) => cellM([x, y, 0], 0.13, '#ffb547', 0, 'h')),
+    () => [[merge(Array.from({ length: 9 }, (_, i) => { const a = i * 2.4, rr = Math.sqrt(i / 9) * 0.26; return B3(0.09, [Math.cos(a) * rr, Math.sin(a) * rr, 0], 8); })), '#ffb547']],
+    () => cellM([0.14, 0, 0], 0.2, '#ffb547', 0, 'h').concat(cellM([-0.24, 0.06, 0], 0.11, '#ffd27a', 0, 'h')),
+    () => cellM([0, 0, 0], 0.28, '#7f8cff', 0, 'd')
+  ],
   ispermD: [
     () => [[place(capsule({ r: 0.36, len: 0.1, rows: 4, cols: 20 }), { rot: [Math.PI / 2, 0, 0], at: [0, 0, 0] }), '#f3d6c0', { alpha: 0.9 }], [merge(Array.from({ length: 16 }, (_, i) => B3(0.04, [Math.cos(i / 16 * 6.28) * 0.28, Math.sin(i / 16 * 6.28) * 0.28, 0.1], 6)).concat(Array.from({ length: 10 }, (_, i) => B3(0.035, [Math.cos(i / 10 * 6.28) * 0.17, Math.sin(i / 10 * 6.28) * 0.17, 0.1], 6)))), '#b07ad8'], [merge(Array.from({ length: 8 }, (_, i) => B3(0.02, [Math.cos(i / 8 * 6.28) * 0.07, Math.sin(i / 8 * 6.28) * 0.07, 0.12], 5))), '#e8ecff']],
     () => [[T3(Array.from({ length: 9 }, (_, i) => [-0.4 + i * 0.1, -0.2 + Math.abs(i - 4) * 0.025, -0.05]), 0.05), '#f3d6c0']].concat([-0.24, 0, 0.24].flatMap((x, i) => cellM([x, i === 1 ? 0.03 : -0.02, 0], 0.11, '#b07ad8', 0, 'd'))),
